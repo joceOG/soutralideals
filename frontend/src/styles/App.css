@@ -2,10 +2,10 @@
 
 .container {
     max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 15px;
+    margin: 10px 0 0 20px ;
+    padding: 0 0 0 0px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     height: 100%;
 }
@@ -20,6 +20,13 @@
     height: 100%;
 }
 
+.textHome {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
 .navbar {
     height: 60px;
     background-color: #FFFFFF;
@@ -33,6 +40,11 @@
 
 .nav-elements {
     z-index: 2;
+}
+
+.rowNav {
+    display: flex;
+    height: 60px;
 }
 
 .nav-elements ul {
