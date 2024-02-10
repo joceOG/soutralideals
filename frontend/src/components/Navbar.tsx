@@ -11,6 +11,8 @@ import Col from 'rsuite/esm/Col';
 import Button, { ButtonProps } from '@mui/material/Button/Button';
 import { styled} from '@mui/material/styles';
 import SearchField from '../components/SearchField';
+import Typography from '@mui/material/Typography';
+import Popover from '@mui/material/Popover';
 
 const Navbar: FC = () => {
   const [showNavbar, setShowNavbar] = useState<boolean>(false);
@@ -34,6 +36,26 @@ const Navbar: FC = () => {
   interface SearchFieldProps {
     onSearch: (query: string) => void;
   }
+
+
+//pop menu 1
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+
+  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+
+  //pop menu 2
+  
+
+  };
+
+  const open = Boolean(anchorEl);
+//pop menu fin 1
+
 
   return (
     <nav className="navbar">
@@ -77,47 +99,62 @@ const Navbar: FC = () => {
     <div className="container">
         <div className={`nav-elements  ${showNavbar && 'active'}`}>
           <ul>
-
+            
             <li>
-              <NavLink to="/">nos métiers/services</NavLink> 
-              <li className="liste1">techniques et artisanaux
-    <ul>
-        <li>maçonnerie</li>
-        <li>plomberie</li>
-        <li>couturier</li>
-        <li>coordennerie</li>
-    </ul>
-</li>
+              <NavLink to="/">
+              <Typography
+        aria-owns={open ? 'mouse-over-popover' : undefined}
+        aria-haspopup="true"
+        onMouseEnter={handlePopoverOpen}
+        onMouseLeave={handlePopoverClose}
+      >
+                nos métiers/services
+                
+                </Typography>
+                <Popover
+        id="mouse-over-popover"
+        sx={{
+          pointerEvents: 'none',
+        }}
+        open={open}
+        anchorEl={anchorEl}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        onClose={handlePopoverClose}
+        disableRestoreFocus
+      >
+        <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
 
-<li className="liste1">immobilier neuf
-    <ul>
-        <li>programme de logement neufs</li>
-        <li>promoteur immobilier</li>
-    </ul>
-</li>
+        <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
 
-<li className="liste1">per
-    <ul>
-        <li>appartement</li>
-        <li>maison</li>
-        <li>parking</li>
-    </ul>
-</li>
+        <Typography sx={{ p: 1 }}>per </Typography>
+
+        <Typography sx={{ p: 1 }}>collocation</Typography>
+
+        <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
+
+      </Popover>
+                </NavLink> 
 
             </li>
 
             <li>
-              <NavLink to="/Reservations">freelance/corporate</NavLink>
+              <NavLink to="/Reservations">
+                <Typography>freelance/corporate</Typography>
+                </NavLink>
             </li>
-
             <li>
               <NavLink to="/Services">E-marché</NavLink>
             </li>
-
             <li>
               <NavLink to="/Apropos">Autre</NavLink>
             </li>
-            
           </ul>
         </div>
         <br></br>
