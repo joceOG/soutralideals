@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const cors = require('cors');
 
+const groupeRoute = require("./controller/groupeController");
 require("dotenv").config()
-const Service = require('./service');
+const Service = require('./models/service');
 const app = express();
 
 mongoose.set('strictQuery', false);
@@ -21,8 +22,8 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 app.use(cors());
 app.use(express.json());
-
-
+app.use(express.urlencoded({ extended: true }));
+app.use("/api", groupeRoute);
 
 app.post('/api/service', upload.single('image'), async(req, res) => {
     try {
