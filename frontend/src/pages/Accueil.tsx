@@ -4,6 +4,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Box from '@mui/material/Box';
+import FlexibleImage from '../components/FlexibleImage';
+import accueil from '../assets/accueil.jpg';
 
 const Accueil: React.FC = () => {
   return (
@@ -15,6 +17,12 @@ const Accueil: React.FC = () => {
           <div className="textHome">
           <h3>Des centaines de services et autant de prestations de qualité .</h3>
           </div>
+        </Box>
+
+        <Box sx={{ mt:2 }} >
+          <div className="imageAccueil">
+          <FlexibleImage src={accueil} alt="Accueil" />
+          </div>  
         </Box>
 
         <Box sx={{ mt:16 }} >
