@@ -77,21 +77,47 @@ const Navbar: FC = () => {
     <div className="container">
         <div className={`nav-elements  ${showNavbar && 'active'}`}>
           <ul>
+
             <li>
-              <NavLink to="/">Accueil</NavLink>
+              <NavLink to="/">nos métiers/services</NavLink> 
+              <li className="liste1">techniques et artisanaux
+    <ul>
+        <li>maçonnerie</li>
+        <li>plomberie</li>
+        <li>couturier</li>
+        <li>coordennerie</li>
+    </ul>
+</li>
+
+<li className="liste1">immobilier neuf
+    <ul>
+        <li>programme de logement neufs</li>
+        <li>promoteur immobilier</li>
+    </ul>
+</li>
+
+<li className="liste1">per
+    <ul>
+        <li>appartement</li>
+        <li>maison</li>
+        <li>parking</li>
+    </ul>
+</li>
+
             </li>
+
             <li>
-              <NavLink to="/Reservations">Réservations</NavLink>
+              <NavLink to="/Reservations">freelance/corporate</NavLink>
             </li>
+
             <li>
-              <NavLink to="/Services">Services</NavLink>
+              <NavLink to="/Services">E-marché</NavLink>
             </li>
+
             <li>
-              <NavLink to="/Apropos">A Propos</NavLink>
+              <NavLink to="/Apropos">Autre</NavLink>
             </li>
-            <li>
-              <NavLink to="/Contacts">Contacts</NavLink>
-            </li>
+            
           </ul>
         </div>
         <br></br>
