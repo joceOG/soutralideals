@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const ServiceSchema = mongoose.Schema({
+const ServiceSxchema = mongoose.Schema({
     nom: { type: String, required: true },
     prix: { type: String, required: true },
     image: {
@@ -8,4 +8,4 @@ const ServiceSchema = mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model('Service', ServiceSchema);
+module.exports = mongoose.model('Servicex', ServiceSxchema);

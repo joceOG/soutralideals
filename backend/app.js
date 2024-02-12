@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const groupeRoute = require("./controller/groupeController");
 const categorieRoute = require("./controller/categorieController");
+const serviceRoute = require("./controller/serviceController");
 
 require("dotenv").config()
 const Service = require('./models/service');
@@ -20,18 +21,20 @@ mongoose.connect(process.env.MONGO_URL, {
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 
-
-
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 app.use(cors());
+
+
+app.use(express.urlencoded({ extended : true }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
 
 app.use("/api", groupeRoute);
 app.use("/api", categorieRoute);
+app.use("/api", serviceRoute);
 
-app.post('/api/service', upload.single('image'), async(req, res) => {
+app.post('/api/servicex', upload.single('image'), async(req, res) => {
     try {
         const { nom, prix } = req.body;
         const image = req.file.buffer // This assumes Multer is saving the file to the 'uploads/' directory
@@ -44,10 +47,10 @@ app.post('/api/service', upload.single('image'), async(req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-});
+}); 
 
 // API endpoint to retrieve data
-app.get('/api/service', async(req, res) => {
+app.get('/api/servicex', async(req, res) => {
     try {
         const data = await Service.find();
         res.status(200).json(data);
