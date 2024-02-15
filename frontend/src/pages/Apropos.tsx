@@ -1,15 +1,16 @@
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
+
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
+
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+
 
 function Copyright(props: any) {
   return (
@@ -41,7 +42,11 @@ export default function SignIn() {
     <ThemeProvider theme={defaultTheme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
-        <Box
+        <Box sx={{
+          backgroundImage: `url("frontend/src/components/images/undraw_coffee_break_h3uu 1.png")`,
+        }}>
+
+          <Box
           sx={{
             marginTop: 8,
             display: 'flex',
@@ -107,6 +112,10 @@ export default function SignIn() {
             </Grid>
           </Box>
         </Box>
+
+        </Box>
+
+        
         <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
     </ThemeProvider>

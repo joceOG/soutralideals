@@ -1,20 +1,12 @@
-import  { FC } from 'react';
-import styled from 'styled-components';
+import React, { FC } from 'react';
 
-interface FlexibleImageProps {
+interface FlexLogoProps {
   src: string;
   alt: string;
 }
 
-const FlexImage = styled.img`
-  width: 200px;
-  height: 36px;
-`;
-
-const FlexLogo: FC<FlexibleImageProps> = ({ src, alt }) => {
-  return <FlexImage src={src} alt={alt}> 
-  </FlexImage>
-  ;
+const FlexLogo: FC<FlexLogoProps> = ({ src, alt }) => {
+  return <img src={src} alt={alt} />;
 };
 
 export default FlexLogo;
