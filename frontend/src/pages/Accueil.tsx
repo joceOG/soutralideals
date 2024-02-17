@@ -8,6 +8,9 @@ import FlexibleImage from '../components/FlexibleImage';
 import accueil from '../assets/accueil.jpg';
 
 const Accueil: React.FC = () => {
+
+
+
   return (
     <div>
       <Navbar></Navbar>
@@ -26,7 +29,7 @@ const Accueil: React.FC = () => {
         </Box>
 
         <Box sx={{ mt:16 }} >
-           <h2>Page d'accueil</h2>
+           <h2 >Page d'accueil</h2>
           <Link to="/Apropos">Aller à la page À propos</Link>
 
         </Box>
