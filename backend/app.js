@@ -4,6 +4,8 @@ const multer = require('multer');
 const cors = require('cors');
 
 const groupeRoute = require("./controller/groupeController");
+const categorieRoute = require("./controller/categorieController");
+
 require("dotenv").config()
 const Service = require('./models/service');
 const app = express();
@@ -24,6 +26,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api", groupeRoute);
+app.use("/api", categorieRoute);
 
 app.post('/api/service', upload.single('image'), async(req, res) => {
     try {
