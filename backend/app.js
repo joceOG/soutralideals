@@ -4,6 +4,10 @@ const multer = require('multer');
 const cors = require('cors');
 
 const groupeRoute = require("./controller/groupeController");
+const serviceRoute = require("./controller/serviceController");
+const categorieRoute = require("./controller/categorieController");
+const utilisateurRoute = require("./controller/utilisateurController");
+
 require("dotenv").config()
 const Service = require('./models/service');
 const app = express();
@@ -27,7 +31,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 
+
 app.use("/api", groupeRoute);
+app.use("/api", categorieRoute);
+app.use("/api", serviceRoute);
+app.use("/api", utilisateurRoute);
 
 app.post('/api/servicex', upload.single('image'), async(req, res) => {
     try {
