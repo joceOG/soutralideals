@@ -11,15 +11,40 @@ import appartementImage7 from '../assets/7 pièces.jpg';
 import appartementImage52 from '../assets/5 pièces 2.jpg';
 import appartementImage3 from '../assets/3 pièces.webp';
 
-const defaultTheme = createTheme();
+const customTheme = createTheme({
+  palette: {
+    primary: {
+      main: '#0f8a18', // Vert
+    },
+    secondary: {
+      main: '#318ec9', // Bleu
+    },
+    text: {
+      primary: '#ffffff', // Blanc
+    },
+  },
+  typography: {
+    fontFamily: ['Arial', 'Helvetica', 'sans-serif'].join(','),
+  },
+});
 
 const titleContainerStyle: CSSProperties = {
-    backgroundColor: 'violet',
+    backgroundColor: '#0f8a18', // Vert
+    color: '#ffffff', // Blanc
     borderRadius: '10px',
     padding: '20px',
     width: '100%', // Utilise 100% de la largeur de son conteneur
     marginBottom: '20px', // Ajoute cette ligne pour l'espace entre le titre et le reste du contenu
     boxSizing: 'border-box',
+};
+
+const infoContainerStyle: CSSProperties = {
+    backgroundColor: '#318ec9', // Bleu
+    color: '#ffffff', // Blanc
+    padding: '65px',
+    borderRadius: '10px',
+    flex: '1',
+    justifyContent: 'flex-start', // Modifier cette ligne
 };
 
 const Prestataire = () => {
@@ -50,8 +75,9 @@ const Prestataire = () => {
         padding: '5px 10px',
         borderRadius: '5px',
         cursor: 'pointer',
-        backgroundColor: '#e0e0e0',
+        backgroundColor: '#0f8a18', // Vert
         border: 'none',
+        color: '#ffffff', // Blanc
     };
 
     // Style pour le conteneur des informations sur les appartements
@@ -69,16 +95,6 @@ const Prestataire = () => {
         borderRadius: '10px',
         overflow: 'hidden',
     };
-
-    // Style pour le conteneur des informations sur les appartements
-const infoContainerStyle = {
-    backgroundColor: 'violet',
-    padding: '65px',
-    borderRadius: '10px',
-    flex: '1',
-    justifyContent: 'flex-start', // Modifier cette ligne
-};
-
 
     // État et fonction pour gérer le like de chaque appartement
     const [isLiked, setIsLiked] = React.useState([false, false, false, false]);
@@ -106,7 +122,7 @@ const infoContainerStyle = {
 
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                <div style={{ backgroundColor: 'yellow', width: '800px' }}>
+                <div style={{ backgroundColor: '#318ec9', width: '800px' }}>
                     <div style={titleContainerStyle}>
                         <div style={{ textAlign: 'center' }}>
                             <h1>SOUTRALI DEALS</h1>
@@ -238,7 +254,7 @@ const infoContainerStyle = {
     };
 
     return (
-        <ThemeProvider theme={defaultTheme}>
+        <ThemeProvider theme={customTheme}>
             <MouseOverPopover />
         </ThemeProvider>
     );
