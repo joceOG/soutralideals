@@ -27,7 +27,8 @@ const Accueil: React.FC = () => {
 
         <Box sx={{ mt:16 }} >
            <h2>Page d'accueil</h2>
-          <Link to="/Apropos">Aller à la page À propos</Link>
+          <Link to="/Apropos">Aller à la page À propos   </Link>
+          <Link to="/Prestataire">Aller à la page prestataire</Link>
 
         </Box>
       

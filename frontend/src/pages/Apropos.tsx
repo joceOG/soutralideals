@@ -28,7 +28,7 @@ function Copyright(props: any) {
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
-export default function SignIn() {
+const Apropos: React.FC = () => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -121,3 +121,5 @@ export default function SignIn() {
     </ThemeProvider>
   );
 }
+
+export default Apropos;
