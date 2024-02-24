@@ -9,6 +9,9 @@ import accueil from '../assets/accueil.jpg';
 import Footer from '../components/Footer';
 
 const Accueil: React.FC = () => {
+
+
+
   return (
     <div>
       <Navbar></Navbar>
@@ -30,6 +33,7 @@ const Accueil: React.FC = () => {
            <h2>Page d'accueil</h2>
           <Link to="/Apropos">Aller à la page À propos   </Link>
           <Link to="/Prestataire">Aller à la page prestataire</Link>
+           <h2 >Page d'accueil</h2>
 
         </Box>
       </div>

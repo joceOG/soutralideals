@@ -4,6 +4,10 @@ const multer = require('multer');
 const cors = require('cors');
 
 const groupeRoute = require("./controller/groupeController");
+const serviceRoute = require("./controller/serviceController");
+const categorieRoute = require("./controller/categorieController");
+const utilisateurRoute = require("./controller/utilisateurController");
+
 require("dotenv").config()
 const Service = require('./models/service');
 const app = express();
@@ -21,11 +25,19 @@ mongoose.connect(process.env.MONGO_URL, {
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use("/api", groupeRoute);
 
-app.post('/api/service', upload.single('image'), async(req, res) => {
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+
+
+app.use("/api", groupeRoute);
+app.use("/api", categorieRoute);
+app.use("/api", serviceRoute);
+app.use("/api", utilisateurRoute);
+
+app.post('/api/servicex', upload.single('image'), async(req, res) => {
     try {
         const { nom, prix } = req.body;
         const image = req.file.buffer // This assumes Multer is saving the file to the 'uploads/' directory
@@ -41,7 +53,7 @@ app.post('/api/service', upload.single('image'), async(req, res) => {
 });
 
 // API endpoint to retrieve data
-app.get('/api/service', async(req, res) => {
+app.get('/api/servicex', async(req, res) => {
     try {
         const data = await Service.find();
         res.status(200).json(data);
