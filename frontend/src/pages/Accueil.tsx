@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import Box from '@mui/material/Box';
 import FlexibleImage from '../components/FlexibleImage';
 import accueil from '../assets/accueil.jpg';
+import Footer from '../components/Footer';
 
 const Accueil: React.FC = () => {
   return (
@@ -31,9 +32,8 @@ const Accueil: React.FC = () => {
           <Link to="/Prestataire">Aller à la page prestataire</Link>
 
         </Box>
-      
       </div>
-      
+      <Footer></Footer>
     </div>
   );
 }
