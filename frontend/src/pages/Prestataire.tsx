@@ -2,8 +2,12 @@ import * as React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
-import { CSSProperties } from 'react';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
+import { CSSProperties } from 'react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 // Importez vos images
 import appartementImage51 from '../assets/5 pièces 1.webp';
@@ -12,20 +16,20 @@ import appartementImage52 from '../assets/5 pièces 2.jpg';
 import appartementImage3 from '../assets/3 pièces.webp';
 
 const customTheme = createTheme({
-  palette: {
-    primary: {
-      main: '#0f8a18', // Vert
+    palette: {
+        primary: {
+            main: '#0f8a18', // Vert
+        },
+        secondary: {
+            main: '#318ec9', // Bleu
+        },
+        text: {
+            primary: '#ffffff', // Blanc
+        },
     },
-    secondary: {
-      main: '#318ec9', // Bleu
+    typography: {
+        fontFamily: ['Arial', 'Helvetica', 'sans-serif'].join(','),
     },
-    text: {
-      primary: '#ffffff', // Blanc
-    },
-  },
-  typography: {
-    fontFamily: ['Arial', 'Helvetica', 'sans-serif'].join(','),
-  },
 });
 
 const titleContainerStyle: CSSProperties = {
@@ -47,56 +51,29 @@ const infoContainerStyle: CSSProperties = {
     justifyContent: 'flex-start', // Modifier cette ligne
 };
 
-const Prestataire = () => {
-    const [currentPage, setCurrentPage] = React.useState(1);
-    const totalPages = 11; // Nombre total de pages
+// Style pour les images des appartements
+const imageStyle = {
+    width: '170px',
+    height: '125px',
+};
 
-    // Fonction pour changer de page
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-    };
+// Style pour le conteneur des informations sur les appartements
+const apartmentContainerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '20px',
+};
 
-    // Style pour les images des appartements
-    const imageStyle = {
-        width: '170px',
-        height: '125px',
-    };
+// Style pour le conteneur de l'image
+const imageContainerStyle = {
+    marginRight: '20px',
+    width: '250px',
+    height: '250px',
+    borderRadius: '10px',
+    overflow: 'hidden',
+};
 
-    // Style pour le conteneur des boutons numérotés
-    const buttonContainerStyle = {
-        display: 'flex',
-        justifyContent: 'center',
-        marginTop: '20px',
-    };
-
-    // Style pour les boutons numérotés
-    const buttonStyle = {
-        margin: '0 5px',
-        padding: '5px 10px',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        backgroundColor: '#0f8a18', // Vert
-        border: 'none',
-        color: '#ffffff', // Blanc
-    };
-
-    // Style pour le conteneur des informations sur les appartements
-    const apartmentContainerStyle = {
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: '20px',
-    };
-
-    // Style pour le conteneur de l'image
-    const imageContainerStyle = {
-        marginRight: '20px',
-        width: '250px',
-        height: '250px',
-        borderRadius: '10px',
-        overflow: 'hidden',
-    };
-
-    // État et fonction pour gérer le like de chaque appartement
+const Prestataire: React.FC = () => { 
     const [isLiked, setIsLiked] = React.useState([false, false, false, false]);
 
     const handleLikeClick = (index: number) => {
@@ -108,21 +85,12 @@ const Prestataire = () => {
     };
 
     // Composant MouseOverPopover
-    const MouseOverPopover = () => {
-        const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
-        const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
-            setAnchorEl(event.currentTarget);
-        };
-
-        const handlePopoverClose = () => {
-            setAnchorEl(null);
-        };
-        const open = Boolean(anchorEl);
 
         return (
             
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <Navbar></Navbar>
                 <div style={{ backgroundColor: '#318ec9', width: '800px' }}>
                     <div style={titleContainerStyle}>
                         <div style={{ textAlign: 'center' }}>
@@ -231,24 +199,10 @@ const Prestataire = () => {
                         </div>
                     </div>
 
-
-
                     {/* Ajout des boutons numérotés */}
-                    <div style={buttonContainerStyle}>
-                        {[...Array(totalPages)].map((_, index) => (
-                            <button
-                                key={index + 1}
-                                style={{
-                                    ...buttonStyle,
-                                    backgroundColor: currentPage === index + 1 ? '#2196f3' : '#e0e0e0',
-                                    color: currentPage === index + 1 ? '#ffffff' : '#000000',
-                                }}
-                                onClick={() => handlePageChange(index + 1)}
-                            >
-                                {index + 1}
-                            </button>
-                        ))}
-                    </div>
+                    <Stack spacing={2}>
+                        <Pagination count={10} color="primary" />
+                    </Stack>
                 </div>
             </div>
         );
@@ -256,9 +210,11 @@ const Prestataire = () => {
 
     return (
         <ThemeProvider theme={customTheme}>
+            <Navbar />
             <MouseOverPopover />
+            <Footer />
         </ThemeProvider>
     );
 };
 
-export default Prestataire;
+export default Prestataire; 

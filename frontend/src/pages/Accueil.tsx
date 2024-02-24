@@ -10,8 +10,6 @@ import Footer from '../components/Footer';
 
 const Accueil: React.FC = () => {
 
-
-
   return (
     <div>
       <Navbar></Navbar>

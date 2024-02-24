@@ -1,34 +1,47 @@
-//import { Directions } from '@mui/icons-material';
-import React, { Component } from 'react';
-//import { Row } from 'rsuite';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import React from 'react';
+import ListText from './ListText';
+import ListTextIcon from './ListTextIcon';
+import SocialMediaIcon from './SocialMediaIcon';
 
-export default class Footer extends Component {
-    render() {
-        return (
-            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                    <h3>A propos de soutrali deals</h3>
-                </div>
+const Footer: React.FC = () => {
+  return <div style={{background:'#28a545'}}>
+         <Container style={{ backgroundColor:'#ff1423;'}}>
+            <Box style={{ backgroundColor:'#ff1423;'}}>
+            <Grid container style={{ backgroundColor:'#ff1423;'}} >
+                <Grid item xs={3}>
+                    <Box sx={{ mt: 10}}>
+                    <h1><b>SOUTRALI DEALS</b></h1>
+                    </Box>
+                    <Box sx={{ mt: 2 , mb:5 }}>
+                    <ListText/>
+                    </Box>
+                </Grid>
+                <Grid item xs={6}>
+                <Box sx={{ mt: 12}}>
+                <Typography>
+                Nous sommes une équipe de passionnés dont le but est d'améliorer la vie de chacun.
+                Nos services s'adressent aux petites et moyennes entreprises.
+                </Typography>
+                </Box>
+                <Box sx={{ mt: 3.5}}>
+                  <ListTextIcon/>
+                </Box>
+                </Grid>
+                <Grid item xs={3}>
+                <SocialMediaIcon/>
+                </Grid>
+                </Grid>
+               
+            </Box>
 
-                <div>
-                    <h3>Mention légales</h3>
-                    <h3>Des questions ?</h3>
-                </div>
 
-                <div>
-                    <h3>Téléchargez notre application</h3>
-                    <p>
-                        
-                    </p>
-                </div>
+         </Container>
 
-                <div>
-                    <h3>Réseaux sociaux</h3>
-                    <p>
-                        
-                    </p>
-                </div>
-            </div>
-        );
-    }
-}
+  </div>;
+};
+
+export default Footer;

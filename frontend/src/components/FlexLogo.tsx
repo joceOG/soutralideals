@@ -1,18 +1,20 @@
-import { width } from '@mui/system';
-import { FC } from 'react';
-import styled from 'styled-components' ;
-interface FlexLogoProps {
+import  { FC } from 'react';
+import styled from 'styled-components';
+
+interface FlexibleImageProps {
   src: string;
   alt: string;
 }
 
-const FlexImage = styled.img 
-    
-    ;
+const FlexImage = styled.img`
+  width: 200px;
+  height: 69px;
+`;
 
-
-const FlexLogo: FC<FlexLogoProps> = ({ src, alt }) => {
-  return <img src={src} alt={alt} />;
+const FlexLogo: FC<FlexibleImageProps> = ({ src, alt }) => {
+  return <FlexImage src={src} alt={alt}> 
+  </FlexImage>
+  ;
 };
 
 export default FlexLogo;
