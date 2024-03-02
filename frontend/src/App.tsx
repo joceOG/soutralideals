@@ -1,8 +1,11 @@
 import React from 'react';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import './styles/App.css';
 import AppRouter from './routes/AppRouter';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+//import CssBaseline from '@mui/material/CssBaseline';
+
 
 const whiteTheme = createTheme({
   palette: {
@@ -19,7 +22,7 @@ const whiteTheme = createTheme({
 function App() {
   return (
     <ThemeProvider theme={whiteTheme}>
-      <CssBaseline />
+      
       <main>
         <AppRouter/>
       </main>
