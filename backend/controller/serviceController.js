@@ -22,6 +22,8 @@ async function createService(nomservice, imageservice , idcategorie) {
 async function getService() {
     try {
         const services = await Service.find();
+       // const imgBase64 = services.imageservice.data.toString("base64");
+       // services.imageservice.data = imgBase64;
         return services;
     } catch (err) {
         throw new Error('Error fetching Service');
