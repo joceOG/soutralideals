@@ -7,8 +7,8 @@ interface FlexibleImageProps {
 }
 
 const FlexImage = styled.img`
-  width: 200px;
-  height: 36px;
+  width: 160px;
+  height: 28px;
 `;
 
 const FlexLogo: FC<FlexibleImageProps> = ({ src, alt }) => {
