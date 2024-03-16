@@ -1,23 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const Typeutilisayeur = require('../models/typeutilisayeurModel');
+const Typeutilisateur = require('../models/typeutilisateurModel');
 
 //Functions 
 
-async function createTypeutilisayeur(nom) {
+async function createTypeutilisateur(nom) {
     try {
-        const newTypeutilisayeur = new ({ nom});
-        await newTypeutilisayeur.save();
-        return newTypeutilisayeur;
+        const newTypeutilisateur = new ({ nom});
+        await newTypeutilisateur.save();
+        return newTypeutilisateur;
     } catch (err) {
         throw new Error('Error creating UserType');
     }
 }
 
-async function getTypeutilisayeur() {
+async function getTypeutilisateur() {
     try {
-        const typeutilisayeurs = await Typeutilisayeur.find();
-        return typeutilisayeurs;
+        const typeutilisateurs = await Typeutilisateur.find();
+        return typeutilisateurs;
     } catch (err) {
         throw new Error('Error fetching UserType');
     }
@@ -26,22 +26,22 @@ async function getTypeutilisayeur() {
 
 
 // Create a new Groupe
-router.post('/typeutilisayeur', async(req, res) => {
+router.post('/typeutilisateur', async(req, res) => {
     try {
         console.log(req.body)
         const { nom} = req.body;
-        const typeutilisayeur = await createTypeutilisayeur(nom);
-        res.json(typeutilisayeur);
+        const typeutilisateur = await createTypeutilisateur(nom);
+        res.json(typeutilisateur);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
 // Get all Groupes
-router.get('/typeutilisayeur', async(req, res) => {
+router.get('/typeutilisateur', async(req, res) => {
     try {
-        const typeutilisayeur = await getTypeutilisayeur();
-        res.json(typeutilisayeur);
+        const typeutilisateur = await getTypeutilisateur();
+        res.json(typeutilisateur);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
