@@ -4,9 +4,9 @@ const Typeutilisateur = require('../models/typeutilisateurModel');
 
 //Functions 
 
-async function createTypeutilisateur(nom) {
+async function createTypeutilisateur(LibelleType) {
     try {
-        const newTypeutilisateur = new ({ nom});
+        const newTypeutilisateur = new ({ LibelleType });
         await newTypeutilisateur.save();
         return newTypeutilisateur;
     } catch (err) {
@@ -29,8 +29,8 @@ async function getTypeutilisateur() {
 router.post('/typeutilisateur', async(req, res) => {
     try {
         console.log(req.body)
-        const { nom} = req.body;
-        const typeutilisateur = await createTypeutilisateur(nom);
+        const { LibelleType } = req.body;
+        const typeutilisateur = await createTypeutilisateur(LibelleType);
         res.json(typeutilisateur);
     } catch (err) {
         res.status(500).json({ error: err.message });
