@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import FlexibleImage from '../components/flexibleImage/FlexibleImage';
 import accueil from '../assets/accueil.jpg';
 import SimpleSlider from '../components/SImpleSlider';
+import Footer from '../components/Footer';
 
 const Accueil: React.FC = () => {
 
@@ -33,12 +34,15 @@ const Accueil: React.FC = () => {
         </Box>
 
         <Box sx={{ mt:16 }} >
+           <h2>Page d'accueil</h2>
+          <Link to="/Apropos">Aller à la page À propos   </Link>
+          <Link to="/Prestataire">Aller à la page prestataire</Link>
            <h2 >Page d'accueil</h2>
           <Link to="/Apropos">Aller à la page À propos</Link>
+
         </Box>
-      
       </div>
-      
+      <Footer></Footer>
     </div>
   );
 }
