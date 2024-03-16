@@ -4,9 +4,9 @@ const Typeutilisateur = require('../models/typeutilisateurModel');
 
 //Functions 
 
-async function createTypeutilisateur(LibelleType) {
+async function createTypeutilisateur(LibelleType, type_prestataire, type_client) {
     try {
-        const newTypeutilisateur = new ({ LibelleType });
+        const newTypeutilisateur = new ({ LibelleType, type_prestataire, type_client });
         await newTypeutilisateur.save();
         return newTypeutilisateur;
     } catch (err) {
@@ -29,8 +29,8 @@ async function getTypeutilisateur() {
 router.post('/typeutilisateur', async(req, res) => {
     try {
         console.log(req.body)
-        const { LibelleType } = req.body;
-        const typeutilisateur = await createTypeutilisateur(LibelleType);
+        const { LibelleType, type_prestataire, type_client } = req.body;
+        const typeutilisateur = await createTypeutilisateur(LibelleType, type_prestataire, type_client);
         res.json(typeutilisateur);
     } catch (err) {
         res.status(500).json({ error: err.message });
