@@ -26,6 +26,11 @@
     align-items: center;
 }
 
+.imageService {
+      height: 230px;
+      width: 170px;
+}
+
 .textHome {
     display: flex;
     justify-content: center;
