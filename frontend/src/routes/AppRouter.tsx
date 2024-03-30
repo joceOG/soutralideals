@@ -4,6 +4,7 @@ import Apropos from '../pages/Apropos';
 import Accueil from '../pages/Accueil';
 import Prestataire from '../pages/Prestataire';
 import Inscription from '../pages/Inscription';
+import Connexion from '../pages/Connexion';
 
 const AppRouter: React.FC = () => {
   return (
@@ -12,7 +13,8 @@ const AppRouter: React.FC = () => {
         <Route path="/" element={<Accueil />} />
         <Route path="/Apropos" element={<Apropos />} />
         <Route path="/Prestataire" element={<Prestataire />} />
-        <Route path="/inscription" element={<Inscription />} />
+        <Route path="/Inscription" element={<Inscription />} />
+        <Route path="/Connexion" element={<Connexion/>} />
       </Routes>
     </Router>
   );

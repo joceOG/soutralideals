@@ -68,15 +68,16 @@
 }
 
 .nav-elements ul a {
-    font-size: 16px;
-    font-weight: 400;
+    font-size: 30px;
+    font-weight: bold;
     color: #000000;
     text-decoration: none;
 }
 
 .nav-elements ul a.active {
     color: #2891DC;
-    font-weight: 500;
+    font-size: 30px;
+    font-weight: bold;
     position: relative;
 }
 

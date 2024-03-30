@@ -14,6 +14,7 @@ import appartementImage51 from '../assets/5 pièces 1.webp';
 import appartementImage7 from '../assets/7 pièces.jpg';
 import appartementImage52 from '../assets/5 pièces 2.jpg';
 import appartementImage3 from '../assets/3 pièces.webp';
+import { Box } from '@mui/material';
 
 const customTheme = createTheme({
     palette: {
@@ -97,121 +98,130 @@ const Prestataire: React.FC = () => {
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-            <Navbar />
-            <div style={{ backgroundColor: '#318ec9', width: '800px' }}>
-                <div style={titleContainerStyle}>
-                    <div style={{ textAlign: 'center' }}>
-                        <h1>SOUTRALI DEALS</h1>
-                        <h3>APPARTEMENT</h3>
-                    </div>
-                </div>
-
-                <div>
-                    <Typography
-                        aria-owns={open ? 'mouse-over-popover' : undefined}
-                        aria-haspopup="true"
-                        onMouseEnter={handlePopoverOpen}
-                        onMouseLeave={handlePopoverClose}
-                    >
-                        choisir la localisation
-                    </Typography>
-                    <Popover
-                        id="mouse-over-popover"
-                        sx={{
-                            pointerEvents: 'none',
-                        }}
-                        open={open}
-                        anchorEl={anchorEl}
-                        anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'left',
-                        }}
-                        transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'left',
-                        }}
-                        onClose={handlePopoverClose}
-                        disableRestoreFocus
-                    >
-                        <Typography sx={{ p: 1 }}>I use Popover.</Typography>
-                    </Popover>
-                </div>
-
-                <div>
-                    <h4>2000 annonces d'appartement</h4>
-                </div>
-
-                {/* Affichage des informations sur les appartements */}
-                <div style={apartmentContainerStyle}>
-                    <div style={imageContainerStyle}>
-                        <img src={appartementImage51} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
-                    </div>
-                    <div style={infoContainerStyle}>
-                        <p>À partir de 2.000.000 FCFA</p>
-                        <p>Appartement 5 pièces Abobo Belle Ville</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <button>Voir détails</button>
-                            <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(0)}>
-                                <ThumbUpIcon style={{ fontSize: 24, color: isLiked[0] ? 'blue' : 'lightblue' }} />
-                            </button>
+      <div>
+        <Navbar></Navbar>
+        
+        <div>
+                <Box sx={{ mt: 12 , mb : 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh'}}>
+                    
+                    <div style={{ width: '70%' }}>
+                        <div style={titleContainerStyle}>
+                            <div style={{ textAlign: 'center' }}>
+                                <h1>SOUTRALI DEALS</h1>
+                                <h3>APPARTEMENT</h3>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div style={apartmentContainerStyle}>
-                    <div style={imageContainerStyle}>
-                        <img src={appartementImage7} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
-                    </div>
-                    <div style={infoContainerStyle}>
-                        <p>À partir de 10.000.000 FCFA</p>
-                        <p>Appartement 7 pièces Angré Chateau</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <button>Voir détails</button>
-                            <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(1)}>
-                                <ThumbUpIcon style={{ fontSize: 24, color: isLiked[1] ? 'blue' : 'lightblue' }} />
-                            </button>
+                        <div>
+                            <Typography
+                                aria-owns={open ? 'mouse-over-popover' : undefined}
+                                aria-haspopup="true"
+                                onMouseEnter={handlePopoverOpen}
+                                onMouseLeave={handlePopoverClose}
+                            >
+                                choisir la localisation
+                            </Typography>
+                            <Popover
+                                id="mouse-over-popover"
+                                sx={{
+                                    pointerEvents: 'none',
+                                }}
+                                open={open}
+                                anchorEl={anchorEl}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'left',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'left',
+                                }}
+                                onClose={handlePopoverClose}
+                                disableRestoreFocus
+                            >
+                                <Typography sx={{ p: 1 }}>I use Popover.</Typography>
+                            </Popover>
                         </div>
-                    </div>
-                </div>
 
-                <div style={apartmentContainerStyle}>
-                    <div style={imageContainerStyle}>
-                        <img src={appartementImage52} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
-                    </div>
-                    <div style={infoContainerStyle}>
-                        <p>À partir de 5.000.000 FCFA</p>
-                        <p>Appartement 5 pièces Abatta</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <button>Voir détails</button>
-                            <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(2)}>
-                                <ThumbUpIcon style={{ fontSize: 24, color: isLiked[2] ? 'blue' : 'lightblue' }} />
-                            </button>
+                        <div>
+                            <h4>2000 annonces d'appartement</h4>
                         </div>
-                    </div>
-                </div>
 
-                <div style={apartmentContainerStyle}>
-                    <div style={imageContainerStyle}>
-                        <img src={appartementImage3} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
-                    </div>
-                    <div style={infoContainerStyle}>
-                        <p>À partir de 5.000.000 FCFA</p>
-                        <p>Appartement 3 pièces Port Bouet</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <button>Voir détails</button>
-                            <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(3)}>
-                                <ThumbUpIcon style={{ fontSize: 24, color: isLiked[3] ? 'blue' : 'lightblue' }} />
-                            </button>
+                        {/* Affichage des informations sur les appartements */}
+                        <div style={apartmentContainerStyle}>
+                            <div style={imageContainerStyle}>
+                                <img src={appartementImage51} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
+                            </div>
+                            <div style={infoContainerStyle}>
+                                <p>À partir de 2.000.000 FCFA</p>
+                                <p>Appartement 5 pièces Abobo Belle Ville</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <button>Voir détails</button>
+                                    <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(0)}>
+                                        <ThumbUpIcon style={{ fontSize: 24, color: isLiked[0] ? 'blue' : 'lightblue' }} />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+
+                        <div style={apartmentContainerStyle}>
+                            <div style={imageContainerStyle}>
+                                <img src={appartementImage7} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
+                            </div>
+                            <div style={infoContainerStyle}>
+                                <p>À partir de 10.000.000 FCFA</p>
+                                <p>Appartement 7 pièces Angré Chateau</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <button>Voir détails</button>
+                                    <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(1)}>
+                                        <ThumbUpIcon style={{ fontSize: 24, color: isLiked[1] ? 'blue' : 'lightblue' }} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={apartmentContainerStyle}>
+                            <div style={imageContainerStyle}>
+                                <img src={appartementImage52} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
+                            </div>
+                            <div style={infoContainerStyle}>
+                                <p>À partir de 5.000.000 FCFA</p>
+                                <p>Appartement 5 pièces Abatta</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <button>Voir détails</button>
+                                    <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(2)}>
+                                        <ThumbUpIcon style={{ fontSize: 24, color: isLiked[2] ? 'blue' : 'lightblue' }} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={apartmentContainerStyle}>
+                            <div style={imageContainerStyle}>
+                                <img src={appartementImage3} alt="Appartement" style={{ ...imageStyle, objectFit: 'cover', width: '100%', height: '100%' }} />
+                            </div>
+                            <div style={infoContainerStyle}>
+                                <p>À partir de 5.000.000 FCFA</p>
+                                <p>Appartement 3 pièces Port Bouet</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <button>Voir détails</button>
+                                    <button style={{ backgroundColor: 'transparent', border: 'none', padding: '5px' }} onClick={() => handleLikeClick(3)}>
+                                        <ThumbUpIcon style={{ fontSize: 24, color: isLiked[3] ? 'blue' : 'lightblue' }} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Ajout des boutons numérotés */}
+                        <Stack spacing={2}>
+                            <Pagination count={10} color="primary" />
+                        </Stack>
                     </div>
                 </div>
-
-                {/* Ajout des boutons numérotés */}
-                <Stack spacing={2}>
-                    <Pagination count={10} color="primary" />
-                </Stack>
-            </div>
+                </Box>
+        </div>
+        <Footer></Footer>
         </div>
     );
 };

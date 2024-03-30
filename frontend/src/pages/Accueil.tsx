@@ -28,16 +28,12 @@ const Accueil: React.FC = () => {
           </div>
         </Box>
 
-        <Box sx={{ mt: 16, }} >
-          <h2>Page d'accueil</h2>
-          <Link to="/Apropos">Aller à la page À propos   </Link>
-          <Link to="/Prestataire">Aller à la page prestataire</Link>
-          <h2 >Page d'accueil</h2>
+        <Box sx={{ mt: 6, }} >
+          <h2>Top Catégories</h2>
         </Box>
 
         <Box sx={{ mt: 6, pr: 6, pl: 6 }} >
           <SimpleSlider></SimpleSlider>
-
         </Box>
 
         <Box sx={{ mt:16 }} >
