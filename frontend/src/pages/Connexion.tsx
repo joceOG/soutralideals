@@ -16,7 +16,7 @@ import Footer from '../components/Footer';
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
-const Apropos: React.FC = () => {
+const Connexion: React.FC = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -98,4 +98,4 @@ const Apropos: React.FC = () => {
     );
 };
 
-export default Apropos;
+export default Connexion;

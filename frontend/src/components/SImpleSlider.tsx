@@ -6,6 +6,7 @@ import FlexibleImageSlick from './flexibleImage/FlexibleImageSlick';
 import m1 from '../assets/m1.jpg';
 import axios from 'axios';
 import { imagefrombuffer } from 'imagefrombuffer';
+import { useNavigate } from 'react-router-dom';
 
 const useStyles = makeStyles({
     slide: {
@@ -16,15 +17,23 @@ const useStyles = makeStyles({
   });
 
   interface Item {
-    idservice:string;
     nomservice: string;
-    imageservice: Buffer;
+    imageservice: { 
+      type:Buffer ,
+      data: []
+    };
     idcategorie: string;
   }
 
 
+
 const SimpleSlider: React.FC = () => {
  const classes = useStyles();
+const navigate = useNavigate();
+
+ function toPrestataire( item : any ) {
+  navigate('/Prestataire', { state: item});
+  }
 
  const settings = {
     dots: true,
@@ -66,20 +75,18 @@ if (!service) return null;
 
   return (
     <Slider {...settings}>
-      <div >
-        <Box className={classes.slide} sx={{ mt:1, mb:1 , mr:2 , ml:2 }}>
-          <FlexibleImageSlick src={m1} alt="Carroussel"></FlexibleImageSlick>
-        </Box>
-      </div>
+
              
-      {service.map(item => (
-          <div key={item.idservice}>
-            <img src={imagefrombuffer({
-                                      type: item.imageservice,
-                                      data: item.imageservice,
-                                    })} alt="Service" />
-            <h3>{item.nomservice}</h3>
+      {service.map( (item , index ) => (
+         <a onClick={() => { toPrestataire(item) }}> 
+          <div key={index}>
+                          <img   className='imageService' src={imagefrombuffer({
+                                      type: item.imageservice.type,
+                                      data: item.imageservice.data,
+                                    }  )}  />          
+                <h3>{item.nomservice}</h3>                      
           </div>
+          </a>
         ))}       
 
 
