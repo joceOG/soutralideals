@@ -7,6 +7,7 @@ const groupeRoute = require("./controller/groupeController");
 const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");
 const utilisateurRoute = require("./controller/utilisateurController");
+const typeutilisateurRoute = require("./controller/typeutilisateurController");
 
 require("dotenv").config()
 const Service = require('./models/service');
@@ -36,6 +37,7 @@ app.use("/api", groupeRoute);
 app.use("/api", categorieRoute);
 app.use("/api", serviceRoute);
 app.use("/api", utilisateurRoute);
+app.use("/api", typeutilisateurRoute);
 
 app.post('/api/servicex', upload.single('image'), async(req, res) => {
     try {
