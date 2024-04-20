@@ -1,11 +1,12 @@
 import React from 'react';
 
+
 // Composant Dashboard
 const Dashboard: React.FC = () => {
   return (
-    <nav>
-        
-    </nav>
+    <div className="dashboard">
+      
+    </div>
   );
 };
 
