@@ -11,7 +11,7 @@ import { styled } from '@mui/material/styles';
 import SearchField from '../components/SearchField';
 import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
-import { Box } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 
 const Navbar: FC = () => {
   const [showNavbar, setShowNavbar] = useState<boolean>(false);
@@ -154,26 +154,33 @@ const Navbar: FC = () => {
                   disableRestoreFocus
                 >  
             <Box>
-            
-              <Row> 
-              <Col> 
-              ddd
-              </Col>
-              <Col> 
-              <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
+              
+
+              <Stack direction="row" spacing={2}>
+                <div>
+                <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
                   <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
                   <Typography sx={{ p: 1 }}>per</Typography>
                   <Typography sx={{ p: 1 }}>collocation</Typography>
                   <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
-              </Col>
-              <Col> 
-              <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
+                </div>
+                <div>
+                  <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
                   <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
                   <Typography sx={{ p: 1 }}>per</Typography>
                   <Typography sx={{ p: 1 }}>collocation</Typography>
                   <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
-              </Col>
-              </Row>
+                </div>
+                <div> 
+                  <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
+                  <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
+                  <Typography sx={{ p: 1 }}>per</Typography>
+                  <Typography sx={{ p: 1 }}>collocation</Typography>
+                  <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
+                </div>
+              </Stack>
+                       
+
               </Box>
 
 
