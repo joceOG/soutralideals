@@ -1,16 +1,17 @@
 import React, { FC, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import FlexLogo from './FlexLogo'; 
 import logo from '../assets/logo.png';
 //import Box from '@mui/material/Box';
-import {Row, Col } from 'rsuite';
+import {Row, Col, Grid, Container } from 'rsuite';
 import Button, { ButtonProps } from '@mui/material/Button/Button';
 import { styled } from '@mui/material/styles';
 import SearchField from '../components/SearchField';
 import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
+import { Box, Stack } from '@mui/material';
 
 const Navbar: FC = () => {
   const [showNavbar, setShowNavbar] = useState<boolean>(false);
@@ -71,20 +72,40 @@ const Navbar: FC = () => {
   const open3 = Boolean(anchorE3);
   const open4 = Boolean(anchorE4);
 
+  const navigate = useNavigate();
+
+ function toConnexion( ) {
+  navigate('/Connexion');
+  }
+
+  function toHome( ) {
+    navigate('/');
+    }
+
+
+
   return (
     <nav className="navbar">
       <div className="container2">
         <Row className='rowNav'>
-          <Col xs={16} sm={8} md={4} lg={8} style={{ paddingRight: 20, paddingTop: 46, paddingLeft: 35, paddingBottom: 20, height: 120 }}>
-            <FlexLogo src={logo} alt='Logo' />
+        
+          <Col  style={{ paddingRight: 20, paddingTop: 46, paddingLeft: 35, paddingBottom: 20, height: 120 }}>
+          <a onClick={() => { toHome() }}> 
+          <FlexLogo src={logo} alt='Logo' />
+          </a>
           </Col>
-          <Col xs={16} sm={8} md={4} lg={8} style={{ paddingRight: 20, paddingTop: 50, paddingLeft: 20, paddingBottom: 20, height: 120 }}>
+          <Col  style={{ paddingRight: 20, paddingTop: 50, paddingLeft: 20, paddingBottom: 20, height: 120 }}>
             <ColorButton><b><h6>Déposer une annonce</h6></b></ColorButton>
           </Col>
-          <Col xs={16} sm={8} md={4} lg={8} style={{ paddingRight: 20, paddingLeft: 20, paddingTop: 50, paddingBottom: 20, height: 120 }}>
+          <Col  style={{ paddingRight: 20, paddingLeft: 20, paddingTop: 50, paddingBottom: 20, height: 120 }}>
             <SearchField onSearch={(query: string) => console.log('Search ', query)} />
           </Col>
-          <Col xs={16} sm={8} md={4} lg={8} style={{ paddingRight: 20, paddingLeft: 20, paddingTop: 30, paddingBottom: 20, height: 120 }}>
+          <Col  style={{ paddingRight: 20, paddingLeft: 20, paddingTop: 30, paddingBottom: 20, height: 120 }}>
+          </Col>
+          <Col style={{ paddingRight: 20, paddingTop: 50, paddingLeft: 20, paddingBottom: 20, height: 120 }}>
+          <a onClick={() => { toConnexion() }}> 
+               <ColorButton><b><h6>Se Connecter</h6></b></ColorButton>
+               </a>
           </Col>
         </Row>
         <div className="menu-icon" onClick={handleShowNavbar}>
@@ -109,7 +130,7 @@ const Navbar: FC = () => {
                   onMouseEnter={handlePopoverOpen1}
                   onMouseLeave={handlePopoverClose1}
                 >
-                  nos métiers/services
+                 <h3><b>Nos métiers/services</b> </h3>
                 </Typography>
                 <Popover
                   id="mouse-over-popover1"
@@ -126,14 +147,44 @@ const Navbar: FC = () => {
                     vertical: 'top',
                     horizontal: 'left',
                   }}
+                  PaperProps={{
+                    style: { width: '100%' },
+                  }}
                   onClose={handlePopoverClose1}
                   disableRestoreFocus
-                >
+                >  
+            <Box>
+              
+
+              <Stack direction="row" spacing={2}>
+                <div>
+                <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
+                  <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
+                  <Typography sx={{ p: 1 }}>per</Typography>
+                  <Typography sx={{ p: 1 }}>collocation</Typography>
+                  <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
+                </div>
+                <div>
                   <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
                   <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
                   <Typography sx={{ p: 1 }}>per</Typography>
                   <Typography sx={{ p: 1 }}>collocation</Typography>
                   <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
+                </div>
+                <div> 
+                  <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
+                  <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
+                  <Typography sx={{ p: 1 }}>per</Typography>
+                  <Typography sx={{ p: 1 }}>collocation</Typography>
+                  <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
+                </div>
+              </Stack>
+                       
+
+              </Box>
+
+
+                  
                 </Popover>
               </NavLink>
             </li>
@@ -146,7 +197,7 @@ const Navbar: FC = () => {
                   onMouseEnter={handlePopoverOpen2}
                   onMouseLeave={handlePopoverClose2}
                 >
-                  freelance/corporate
+                  <h3><b>Freelance/corporate</b> </h3>
                 </Typography>
                 <Popover
                   id="mouse-over-popover2"
@@ -179,7 +230,7 @@ const Navbar: FC = () => {
                   onMouseEnter={handlePopoverOpen3}
                   onMouseLeave={handlePopoverClose3}
                 >
-                  E-marché
+                  <h3> <b>  E-marché </b></h3>
                 </Typography>
                 <Popover
                   id="mouse-over-popover3"
@@ -212,7 +263,7 @@ const Navbar: FC = () => {
                   onMouseEnter={handlePopoverOpen4}
                   onMouseLeave={handlePopoverClose4}
                 >
-                  Autre
+                  <h3> <b> Autre </b></h3>
                 </Typography>
                 <Popover
                   id="mouse-over-popover4"
