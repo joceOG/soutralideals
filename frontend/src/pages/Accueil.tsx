@@ -29,7 +29,7 @@ const Accueil: React.FC = () => {
         </Box>
 
         <Box sx={{ mt: 6, }} >
-          <h2>Top Catégories</h2>
+          <h2>Top Métiers</h2>
         </Box>
 
         <Box sx={{ mt: 6, pr: 6, pl: 6 }} >
