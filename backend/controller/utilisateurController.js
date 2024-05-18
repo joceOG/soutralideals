@@ -4,7 +4,7 @@ const Utilisateur = require('../models/utilisateurModel');
 
 //Functions 
 
-async function createUtilisateur(nom, prenom, email, motdepasse, numerotelephone, genre, note , photoprofil) {
+async function createUtilisateur(nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note) {
     try {
         const newUtilisateur = new ({ nom, prenom, email, motdepasse, numerotelephone, genre, note, photoprofil });
         await newUtilisateur.save();

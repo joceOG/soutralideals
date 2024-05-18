@@ -7,7 +7,9 @@ const groupeRoute = require("./controller/groupeController");
 const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");
 const utilisateurRoute = require("./controller/utilisateurController");
+const typeutilisateurRoute = require("./controller/typeutilisateurController");
 const prestataireRoute = require("./controller/prestataireController");
+
 
 require("dotenv").config()
 const Service = require('./models/service');
@@ -37,6 +39,7 @@ app.use("/api", groupeRoute);
 app.use("/api", categorieRoute);
 app.use("/api", serviceRoute)
 app.use("/api", utilisateurRoute);
+app.use("/api", typeutilisateurRoute);
 app.use("/api", prestataireRoute);
 
 

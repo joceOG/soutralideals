@@ -6,7 +6,7 @@ import FlexLogo from './flexibleImage/FlexLogo';
 import logo from '../assets/logo.png';
 import iconeprestataire from '../assets/iconeprestataire.png';
 //import Box from '@mui/material/Box';
-import {Row, Col } from 'rsuite';
+import {Row, Col, Grid, Container } from 'rsuite';
 import Button, { ButtonProps } from '@mui/material/Button/Button';
 import { styled } from '@mui/material/styles';
 import SearchField from '../components/SearchField';
@@ -22,6 +22,7 @@ interface Item {
   nomcategorie: string;
   data: [];
 }
+
 
 const Navbar: FC = () => {
   const [showNavbar, setShowNavbar] = useState<boolean>(false);
@@ -91,6 +92,7 @@ const Navbar: FC = () => {
   function toHome( ) {
     navigate('/');
     }
+
 
   const [categories, setCategorie] = useState<Item[]>([]);
 
