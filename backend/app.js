@@ -22,7 +22,7 @@ mongoose.connect(process.env.MONGO_URL, {
         useUnifiedTopology: true
     })
     .then(() => console.log('Connexion à MongoDB réussie !'))
-    .catch(() => console.log('Connexion à MongoDB échouée !'));
+    .catch((e) => console.log('Connexion à MongoDB échouée !' + e));
 
 
 const storage = multer.memoryStorage();

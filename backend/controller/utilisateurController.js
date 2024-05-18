@@ -4,13 +4,9 @@ const Utilisateur = require('../models/utilisateurModel');
 
 //Functions 
 
-async function createUtilisateur(nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note) {
+async function createUtilisateur(nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note) {
     try {
-        const newUtilisateur = new ({ nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note });
-
-sync function createUtilisateur(nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note) {
-    try {
-        const newUtilisateur = new ({ nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note });
+        const newUtilisateur = new ({ nom, prenom, email, motdepasse, numerotelephone, genre, note, photoprofil });
         await newUtilisateur.save();
         return newUtilisateur;
     } catch (err) {
@@ -28,13 +24,12 @@ async function getUtilisateur() {
 }
 
 
-
 // Create a new Groupe
 router.post('/utilisateur', async(req, res) => {
     try {
         console.log(req.body)
-        const { nom, prenom, email, photoprofil, motdepasse, telephone , genre, note } = req.body;
-        const utilisateur = await createUtilisateur(nom, prenom, email, photoprofil, motdepasse, telephone, genre , note);
+        const { nom, prenom, email, motdepasse, telephone , genre, note , photoprofil } = req.body;
+        const utilisateur = await createUtilisateur(nom, prenom, email, motdepasse, telephone, genre , note, photoprofil) ;
         res.json(utilisateur);
     } catch (err) {
         res.status(500).json({ error: err.message });
