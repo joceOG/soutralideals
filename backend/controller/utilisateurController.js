@@ -7,6 +7,10 @@ const Utilisateur = require('../models/utilisateurModel');
 async function createUtilisateur(nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note) {
     try {
         const newUtilisateur = new ({ nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note });
+
+sync function createUtilisateur(nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note) {
+    try {
+        const newUtilisateur = new ({ nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note });
         await newUtilisateur.save();
         return newUtilisateur;
     } catch (err) {
@@ -29,8 +33,8 @@ async function getUtilisateur() {
 router.post('/utilisateur', async(req, res) => {
     try {
         console.log(req.body)
-        const { nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note } = req.body;
-        const utilisateur = await createUtilisateur(nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note);
+        const { nom, prenom, email, photoprofil, motdepasse, telephone , genre, note } = req.body;
+        const utilisateur = await createUtilisateur(nom, prenom, email, photoprofil, motdepasse, telephone, genre , note);
         res.json(utilisateur);
     } catch (err) {
         res.status(500).json({ error: err.message });

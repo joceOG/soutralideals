@@ -27,7 +27,7 @@ const Accueil: React.FC = () => {
         </Box>
 
         <Box sx={{ mt: 6, }} >
-          <h2>Top Catégories</h2>
+          <h2>Top Métiers</h2>
         </Box>
 
         <Box sx={{ mt: 6, pr: 6, pl: 6 }} >
@@ -37,7 +37,7 @@ const Accueil: React.FC = () => {
         <Box sx={{ mt:16 }} >
            <h2>Page d'accueil</h2>
           <Link to="/Apropos">Aller à la page À propos   </Link>
-          <Link to="/Metiers">Aller à la page prestataire</Link>
+          <Link to="/Prestataire">Aller à la page prestataire</Link>
            <h2 >Page d'accueil</h2>
           <Link to="/Apropos">Aller à la page À propos</Link>
         </Box>

@@ -6,7 +6,7 @@ const ServiceSchema = mongoose.Schema({
         type: Buffer,
     },
     idcategorie:{type: String, required: true},
-    
+    nomcategorie : { type: String, required: true },
 });
 
 module.exports = mongoose.model('Service', ServiceSchema);

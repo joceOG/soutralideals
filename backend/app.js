@@ -8,6 +8,8 @@ const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");
 const utilisateurRoute = require("./controller/utilisateurController");
 const typeutilisateurRoute = require("./controller/typeutilisateurController");
+const prestataireRoute = require("./controller/prestataireController");
+
 
 require("dotenv").config()
 const Service = require('./models/service');
@@ -35,36 +37,10 @@ app.use(express.json());
 
 app.use("/api", groupeRoute);
 app.use("/api", categorieRoute);
-app.use("/api", serviceRoute);
+app.use("/api", serviceRoute)
 app.use("/api", utilisateurRoute);
 app.use("/api", typeutilisateurRoute);
-
-app.post('/api/servicex', upload.single('image'), async(req, res) => {
-    try {
-        const { nom, prix } = req.body;
-        const image = req.file.buffer // This assumes Multer is saving the file to the 'uploads/' directory
-
-        const service = new Service({ nom, prix, image });
-        await service.save();
-
-        res.status(201).json({ message: 'Data stored successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-// API endpoint to retrieve data
-app.get('/api/servicex', async(req, res) => {
-    try {
-        const data = await Service.find();
-        res.status(200).json(data);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
+app.use("/api", prestataireRoute);
 
 
 app.use((req, res, next) => {
@@ -82,3 +58,36 @@ app.use((req, res, next) => {
 });
 
 module.exports = app;
+
+
+
+
+/*
+app.post('/api/servicex', upload.single('image'), async(req, res) => {
+    try {
+        const { nom, prix } = req.body;
+        const image = req.file.buffer // This assumes Multer is saving the file to the 'uploads/' directory
+
+        const service = new Service({ nom, prix, image });
+        await service.save();
+
+        res.status(201).json({ message: 'Data stored successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// API endpoint to retrieve data
+
+app.get('/api/servicex', async(req, res) => {
+    try {
+        const data = await Service.find();
+        res.status(200).json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+*/

@@ -1,9 +1,10 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import FlexLogo from './FlexLogo'; 
+import FlexLogo from './flexibleImage/FlexLogo'; 
 import logo from '../assets/logo.png';
+import iconeprestataire from '../assets/iconeprestataire.png';
 //import Box from '@mui/material/Box';
 import {Row, Col, Grid, Container } from 'rsuite';
 import Button, { ButtonProps } from '@mui/material/Button/Button';
@@ -11,7 +12,17 @@ import { styled } from '@mui/material/styles';
 import SearchField from '../components/SearchField';
 import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Grid } from '@mui/material';
+import FlexibleImagePrestataire from './flexibleImage/FlexibleImagePrestataire';
+import axios from 'axios';
+
+
+
+interface Item {
+  nomcategorie: string;
+  data: [];
+}
+
 
 const Navbar: FC = () => {
   const [showNavbar, setShowNavbar] = useState<boolean>(false);
@@ -83,6 +94,35 @@ const Navbar: FC = () => {
     }
 
 
+  const [categories, setCategorie] = useState<Item[]>([]);
+
+useEffect(() => {
+  // Effect hook pour récupérer les données de l'API
+  const fetchData = async () => {
+    let data = '';
+  let config = {
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: 'http://localhost:3000/api/categorieServices',
+    headers: { },
+    data : data
+  };
+  
+  axios.request(config)
+  .then((response) => {
+    console.log(JSON.stringify(response.data));
+    setCategorie(response.data.categories);
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
+  };
+
+  fetchData();
+}, []);
+
+if (!categories) return null;
 
   return (
     <nav className="navbar">
@@ -157,33 +197,33 @@ const Navbar: FC = () => {
               
 
               <Stack direction="row" spacing={2}>
-                <div>
-                <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
-                  <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
-                  <Typography sx={{ p: 1 }}>per</Typography>
-                  <Typography sx={{ p: 1 }}>collocation</Typography>
-                  <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
+                <div className='popUp'>
+                   <div className='popUpIn'>
+                        <FlexibleImagePrestataire src={iconeprestataire} alt='Prestataire'  ></FlexibleImagePrestataire>
+                    <div className='popInText'>
+                       <b>Prestations de Services</b>
+                    </div>
+                   </div>
                 </div>
                 <div>
-                  <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
-                  <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
-                  <Typography sx={{ p: 1 }}>per</Typography>
-                  <Typography sx={{ p: 1 }}>collocation</Typography>
-                  <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
-                </div>
-                <div> 
-                  <Typography sx={{ p: 1 }}>techniques et artisanaux</Typography>
-                  <Typography sx={{ p: 1 }}>immobilier neuf</Typography>
-                  <Typography sx={{ p: 1 }}>per</Typography>
-                  <Typography sx={{ p: 1 }}>collocation</Typography>
-                  <Typography sx={{ p: 1 }}>bureau et commerce</Typography>
+               <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                  {Array.from(categories).map((itemcat ,  index1) => (
+                    <Grid xs={2} sm={4} md={4} key={index1}>
+                      <div>
+                        <b> <h2> { itemcat.nomcategorie } </h2> </b>
+                        { (itemcat.data).map( ( data, index ) => (
+                        <h4 key={index}>    
+                            {data}                    
+                        </h4>
+                      ))} 
+                      </div>
+                    </Grid>
+                  ))}
+                </Grid> 
                 </div>
               </Stack>
-                       
 
               </Box>
-
-
                   
                 </Popover>
               </NavLink>
@@ -296,3 +336,7 @@ const Navbar: FC = () => {
 };
 
 export default Navbar;
+function fetchData() {
+  throw new Error('Function not implemented.');
+}
+
