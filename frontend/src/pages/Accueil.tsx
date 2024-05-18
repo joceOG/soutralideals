@@ -1,5 +1,3 @@
-// Par exemple, dans le fichier src/Home.tsx
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';

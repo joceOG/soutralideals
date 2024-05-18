@@ -4,7 +4,11 @@ const Utilisateur = require('../models/utilisateurModel');
 
 //Functions 
 
-async function createUtilisateur(nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note) {
+async function createUtilisateur(nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note) {
+    try {
+        const newUtilisateur = new ({ nom, prenom, adresseemail, idtypeutilisateur, cni, selfie, verifier, photoprofil, motdepasse, numerotelephone, genre, photoprofessionnelle, note });
+
+sync function createUtilisateur(nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note) {
     try {
         const newUtilisateur = new ({ nom, prenom, email, photoprofil, motdepasse, numerotelephone, genre, note });
         await newUtilisateur.save();
