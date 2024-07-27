@@ -33,8 +33,6 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
-
 app.use("/api", groupeRoute);
 app.use("/api", categorieRoute);
 app.use("/api", serviceRoute)
@@ -58,9 +56,6 @@ app.use((req, res, next) => {
 });
 
 module.exports = app;
-
-
-
 
 /*
 app.post('/api/servicex', upload.single('image'), async(req, res) => {

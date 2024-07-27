@@ -8,14 +8,13 @@ const upload = multer({ storage: storage });
 
 //Functions 
 
-async function createService(nomservice, imageservice , idcategorie) {
+async function createService(nomservice, imageservice, idcategorie) {
     try {
         const newService = new Service({ nomservice, imageservice, idcategorie });
         await newService.save();
         return newService;
     } catch (err) {
-        throw new Error('Error creating Service 2');
-        
+        throw new Error('Error creating Service 2');       
     }
 }
 
@@ -30,13 +29,29 @@ async function getService() {
     }
 }
 
+async function getServiceByCategorie(categorie) {
+    try {
+
+        //var query = { nomcategorie: categorie };
+        console.log("cat" + categorie);
+        const servicesByCategorie = await Service.find({nomcategorie: categorie }) ;
+       // const imgBase64 = services.imageservice.data.toString("base64");
+       // services.imageservice.data = imgBase64;
+        return servicesByCategorie ;
+    } catch (err) {
+        throw new Error('Error fetching Service');
+    }
+}
+
+
+//var query = { address: "Park Lane 38" };
+//dbo.collection("customers").find(query).toArray(function(err, result) 
 
 
 // Create a new Service
 router.post('/service', upload.single('imageservice'), async(req, res) => {
     try {
         const imageservice = req.file.buffer ;
-        
         const nomservice = req.body.nomservice ;
         const idcategorie = req.body.idcategorie;
         console.log('Nom serv' , nomservice) ;
@@ -57,5 +72,16 @@ router.get('/service', async(req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+router.get('/service/:categorie', async(req, res) => {
+    try {
+        const categorie = req.params.categorie;
+        const servicesByCategorie = await getServiceByCategorie(categorie);
+        res.json(servicesByCategorie);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 module.exports = router;

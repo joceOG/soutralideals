@@ -23,6 +23,38 @@ async function getGroupe() {
     }
 }
 
+async function getGroupeCategories() {
+    try {
+        const groupe = await Groupe.find();
+        console.log("Taille Groupe");
+        console.log(groupe.length) ;
+         const n =  groupe.length ; 
+        const groupeCategories = new groupeCategories() ;
+        categorieServices.nomgroupe = categories[0].nomgroupe 
+        categorieServices.idgroupe = categories[0].idgroupe;
+        console.log("Catégorie Par Service");           
+        var nomservice = [] ;
+        for (let i=0 ; i < n ; i++ ) 
+        {    
+             var nomservice = [] ;
+             console.log(categories[i].nomcategorie) ;
+             const data = await Service.find({"nomcategorie": categories[i].nomcategorie});
+
+             for (let j=0 ; j < data.length ; j++ ) {
+                     nomservice[j] = data[j].nomservice
+             }
+             categorieServices.categories.push(
+                { nomcategorie : categories[i].nomcategorie , data : nomservice} 
+                 ) ;         
+        }     
+        console.log(categorieServices);
+  
+        return categorieServices;
+    } catch (err) {
+        throw new Error('Error fetching Catégorie');
+    }
+}
+
 
 
 // Create a new Groupe
@@ -42,6 +74,15 @@ router.get('/groupe', async(req, res) => {
     try {
         const groupe = await getGroupe();
         res.json(groupe);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/groupeCategorie', async(req, res) => {
+    try {
+        const groupeCategorie = await getGroupeCategories();
+       res.json(groupeCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -6,7 +6,7 @@ import callIcon from '../assets/phone-call.svg';
 import Footer from '../components/Footer';
 import { Box } from '@mui/material';
 
-const Metiers: React.FC = () => {
+const DetailsMetiers: React.FC = () => {
   return (
     <div>
       <Navbar></Navbar>
@@ -53,4 +53,4 @@ const Metiers: React.FC = () => {
   );
 }
 
-export default Metiers;
+export default DetailsMetiers;
