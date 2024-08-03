@@ -4,11 +4,11 @@ const multer = require('multer');
 const cors = require('cors');
 require("dotenv").config();
 
+
 const groupeRoute = require("./controller/groupeController");
 const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");
 const userRoute = require("./controller/userController");
-const typeutilisateurRoute = require("./controller/typeutilisateurController");
 const prestataireRoute = require("./controller/prestataireController");
 const articleRoute = require("./controller/articleController");
 
@@ -30,22 +30,13 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use("/api", groupeRoute);
-app.use("/api", categorieRoute);
-app.use("/api", serviceRoute)
-app.use("/api", utilisateurRoute);
-app.use("/api", typeutilisateurRoute);
-app.use("/api", prestataireRoute);
-
-
 // Enregistrer les routes
-app.use("/api/groupe", groupeRoute);
-app.use("/api/categorie", categorieRoute);
-app.use("/api/article", articleRoute);
-app.use("/api/service", serviceRoute);
-app.use("/api/user", userRoute);
-app.use("/api/typeutilisateur", typeutilisateurRoute);
-app.use("/api/prestataire", prestataireRoute);
+app.use('/api', groupeRoute);
+app.use('/api', categorieRoute);
+app.use('/api', articleRoute);
+app.use('/api', serviceRoute);
+app.use('/api/user', userRoute);
+app.use('/api/prestataire', prestataireRoute);
 
 // Middleware pour enregistrer les requêtes et les réponses
 app.use((req, res, next) => {

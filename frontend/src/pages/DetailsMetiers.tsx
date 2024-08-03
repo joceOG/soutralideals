@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
-import Image from '../assets/patissier professionnel.jpg';
+import Image from '../assets/patissier_professionnel.jpg';
 import locationIcon from '../assets/location-sign.svg';
 import callIcon from '../assets/phone-call.svg';
 import Footer from '../components/Footer';

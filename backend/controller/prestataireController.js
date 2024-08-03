@@ -1,94 +1,85 @@
 const express = require('express');
 const router = express.Router();
-const Prestataire = require('../models/prestataireModel');
-const multer = require('multer');
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const Prestataire = require('../models/prestataire');
 
-//Functions 
-
-async function createPrestataire(idutilisateur, nomprenom , telephone, idservice, nomservice, prixmoyen, localisation, note, cni1, cni2, selfie, verifier) {
-    try { 
-        console.log('create')
-        const newPrestataire = new Prestataire({ idutilisateur, nomprenom, telephone, idservice, nomservice, prixmoyen, localisation, note, cni1, cni2, selfie, verifier });
-      console.log ( newPrestataire );
+// Créer un nouveau prestataire
+router.post('/prestataire', async (req, res) => {
+    try {
+        const { idUtilisateur, cni, selfie, verifier, idservice, nomservice, prixmoyen, localisation, note } = req.body;
+        const newPrestataire = new Prestataire({
+            idUtilisateur,
+            cni: Buffer.from(cni, 'base64'),  // Assuming cni and selfie are base64 encoded strings
+            selfie: Buffer.from(selfie, 'base64'),
+            verifier,
+            idservice,
+            nomservice,
+            prixmoyen,
+            localisation,
+            note
+        });
         await newPrestataire.save();
-        return newPrestataire;
+        res.status(201).json(newPrestataire);
     } catch (err) {
-        console.log(err);
+        res.status(500).json({ error: err.message });
     }
-}
+});
 
-async function getPrestataire() {
+// Obtenir tous les prestataires
+router.get('/prestataire', async (req, res) => {
     try {
         const prestataires = await Prestataire.find();
-        return prestataires;
-    } catch (err) {
-        throw new Error('Error fetching Users');
-    }
-}
-
-async function getPrestataireByService(service) {
-    try {
-
-        //var query = { nomcategorie: categorie };
-        console.log("service" + service);
-        const prestatairesByService = await Prestataire.find({nomservice: service }) ;
-       // const imgBase64 = services.imageservice.data.toString("base64");
-       // services.imageservice.data = imgBase64;
-        return prestatairesByService ;
-    } catch (err) {
-        throw new Error('Error fetching Prestataire');
-    }
-}
-
-const uploadFields = [
-    { name: 'cni1', maxCount: 1 },
-    { name: 'cni2', maxCount: 1 },
-    { name: 'selfie', maxCount: 1 },
-];
-
-
-// Create a new Groupe
-router.post('/prestataire', upload.fields(uploadFields) , async(req, res) => {
-    try {
-
-        const idutilisateur = req.body.idutilisateur ;
-        const nomprenom = req.body.nomprenom ;
-        const telephone = req.body.telephone ;
-        const idservice = req.body.idservice ;
-        const nomservice = req.body.nomservice ;
-        const prixmoyen = req.body.prixmoyen ;
-        const localisation = req.body.localisation ;
-        const note = req.body.note ;
-        const cni1 = req.files['cni1'] ? req.files['cni1'][0].buffer : null;
-        const cni2 = req.files['cni2'] ? req.files['cni2'][0].buffer : null;
-        const selfie = req.files['selfie'] ? req.files['selfie'][0].buffer : null;
-        const verifier = req.body.verifier ;
-
-        const prestataire = await createPrestataire(idutilisateur, nomprenom, telephone, idservice, nomservice, prixmoyen, localisation, note, cni1, cni2, selfie, verifier);
-        //console.log(req.body)
-        res.json(prestataire);
+        res.status(200).json(prestataires);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Get all Groupes
-router.get('/prestataire', async(req, res) => {
+// Obtenir un prestataire par ID
+router.get('/prestataire/:id', async (req, res) => {
     try {
-        const prestataire = await getPrestataire();
-        res.json(prestataire);
+        const prestataire = await Prestataire.findById(req.params.id);
+        if (!prestataire) {
+            return res.status(404).json({ error: 'Prestataire non trouvé' });
+        }
+        res.status(200).json(prestataire);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-router.get('/prestataire/:service', async(req, res) => {
+// Mettre à jour un prestataire par ID
+router.put('/prestataire/:id', async (req, res) => {
     try {
-        const service = req.params.service;
-        const prestataireByService = await getPrestataireByService(service);
-        res.json(prestataireByService);
+        const { idUtilisateur, cni, selfie, verifier, idservice, nomservice, prixmoyen, localisation, note } = req.body;
+        const prestataire = await Prestataire.findByIdAndUpdate(req.params.id, {
+            idUtilisateur,
+            cni: cni ? Buffer.from(cni, 'base64') : undefined,
+            selfie: selfie ? Buffer.from(selfie, 'base64') : undefined,
+            verifier,
+            idservice,
+            nomservice,
+            prixmoyen,
+            localisation,
+            note
+        }, { new: true });
+
+        if (!prestataire) {
+            return res.status(404).json({ error: 'Prestataire non trouvé' });
+        }
+        res.status(200).json(prestataire);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Supprimer un prestataire par ID
+router.delete('/prestataire/:id', async (req, res) => {
+    try {
+        const prestataire = await Prestataire.findByIdAndDelete(req.params.id);
+        if (!prestataire) {
+            return res.status(404).json({ error: 'Prestataire non trouvé' });
+        }
+        res.status(200).json({ message: 'Prestataire supprimé avec succès' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
