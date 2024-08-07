@@ -29,7 +29,7 @@ router.post('/categorie', upload.single('imagecategorie'), async (req, res) => {
 // Obtenir toutes les catégories
 router.get('/categorie', async (req, res) => {
     try {
-        const categories = await Categorie.find().populate('categorie'); // Populer le groupe si nécessaire
+        const categories = await Categorie.find().populate('groupe'); // Populer le groupe si nécessaire
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -39,7 +39,7 @@ router.get('/categorie', async (req, res) => {
 // Obtenir une catégorie par ID
 router.get('/categorie/:id', async (req, res) => {
     try {
-        const categorie = await Categorie.findById(req.params.id).populate('categorie'); // Populer le groupe si nécessaire
+        const categorie = await Categorie.findById(req.params.id).populate('groupe'); // Populer le groupe si nécessaire
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
         }
