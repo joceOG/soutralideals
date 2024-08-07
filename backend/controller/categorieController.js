@@ -5,7 +5,7 @@ const CategorieServices = require('../models/categorieServiceModel');
 const Service = require('../models/serviceModel');
 
 //Functions 
-
+ 
 async function createCategorie(nomcategorie, idgroupe) {
     try {
         const newCategorie = new Categorie({ nomcategorie, idgroupe });

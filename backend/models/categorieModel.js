@@ -6,4 +6,4 @@ const CategorieSchema = mongoose.Schema({
     nomGroupe : { type: String, required: true },
 });
 
-module.exports = mongoose.model('categorie', CategorieSchema);
+module.exports = mongoose.model('categorie', CategorieSchema); 

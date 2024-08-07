@@ -4,4 +4,4 @@ const GroupeSchema = mongoose.Schema({
     nomgroupe: { type: String, required: true },
 });
 
-module.exports = mongoose.model('Groupe', GroupeSchema);
+module.exports = mongoose.model('Groupe', GroupeSchema); 

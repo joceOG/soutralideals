@@ -12,4 +12,4 @@ const PrestataireSchema = mongoose.Schema({
     note: { type: String },
 });
 
-module.exports = mongoose.model('Prestataire', PrestataireSchema);
+module.exports = mongoose.model('Prestataire', PrestataireSchema); 

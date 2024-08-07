@@ -9,4 +9,4 @@ const CategorieServiceSchema = mongoose.Schema({
 
 });
 
-module.exports = mongoose.model('categorieService', CategorieServiceSchema);
+module.exports = mongoose.model('categorieService', CategorieServiceSchema); 

@@ -90,4 +90,4 @@ const commandeSchema = mongoose.Schema({
 
 const commandeModel =  mongoose.model('commande', commandeSchema);
 
-module.exports = commandeModel;
+module.exports = commandeModel; 

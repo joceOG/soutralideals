@@ -9,4 +9,4 @@ router.post("/prestataire", prestataireController.createPrestataire );
 router.get("/prestataire", prestataireController.getPrestataire);
 
 
-module.exports = router;
+module.exports = router; 

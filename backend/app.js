@@ -5,7 +5,7 @@ const cors = require('cors');
 
 const { checkUser } = require("./middleware/authMiddleware");
 
-
+ 
 const groupeRoute = require("./controller/groupeController");
 const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");

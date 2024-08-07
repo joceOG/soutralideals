@@ -7,7 +7,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 //Functions 
-
+ 
 async function createService(nomservice, imageservice , idcategorie) {
     try {
         const newService = new Service({ nomservice, imageservice, idcategorie });

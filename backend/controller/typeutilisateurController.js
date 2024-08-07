@@ -13,7 +13,7 @@ async function createTypeutilisateur(LibelleType, type_prestataire, type_client)
         throw new Error('Error creating UserType');
     }
 }
-
+ 
 async function getTypeutilisateur() {
     try {
         const typeutilisateurs = await Typeutilisateur.find();

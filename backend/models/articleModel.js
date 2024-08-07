@@ -61,7 +61,7 @@ const ArticleSchema = mongoose.Schema({
         type: Number,
         required: true,
       },
-      commentaire: {
+      commentaire: { 
         type: String,
         required: true,
       },

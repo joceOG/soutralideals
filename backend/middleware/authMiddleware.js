@@ -17,7 +17,7 @@ require("dotenv").config({ path: "../.env" });
 
 module.exports.checkUser = (req, res, next) => {
   const token = req.cookies.jwt;
-
+ 
   console.log(token);
   if (token) {
     //////////////////////////////////||

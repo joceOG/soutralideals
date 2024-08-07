@@ -3,7 +3,7 @@ const router = express.Router();
 const Groupe = require('../models/groupeModel');
 
 //Functions 
-
+ 
 async function createGroupe(nomgroupe) {
     try {
         const newGroupe = new Groupe({ nomgroupe });

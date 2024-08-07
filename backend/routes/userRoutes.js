@@ -15,4 +15,4 @@ router.get("/logout", authController.logout);
 router.get("/allUser", userController.getAllUser);
 router.get("/:id", userController.userInfo);
 
-module.exports = router;
+module.exports = router; 

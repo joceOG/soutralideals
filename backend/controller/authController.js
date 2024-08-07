@@ -7,7 +7,7 @@ require("dotenv").config({ path: "../.env" });
 
 const maxAge = 3 * 24 * 60 * 60 * 1000;
 
-
+ 
 // on se cree ici un token pour l'authntification du user
 const createToken = (id) => {
   return jtw.sign({ id }, process.env.TOKEN_SECRET, {
