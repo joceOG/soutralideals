@@ -5,7 +5,6 @@ const CategorieServiceSchema = mongoose.Schema({
     idGroupe: { type: String, required: true },
     nomCategorie: { type: String, required: true },
     categories: [],
-    
 
 });
 

@@ -1,12 +1,12 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
-import Image from '../assets/patissier professionnel.jpg';
+import Image from '../assets/patissier_professionnel.jpg';
 import locationIcon from '../assets/location-sign.svg';
 import callIcon from '../assets/phone-call.svg';
 import Footer from '../components/Footer';
 import { Box } from '@mui/material';
 
-const Metiers: React.FC = () => {
+const DetailsMetiers: React.FC = () => {
   return (
     <div>
       <Navbar></Navbar>
@@ -53,4 +53,4 @@ const Metiers: React.FC = () => {
   );
 }
 
-export default Metiers;
+export default DetailsMetiers;
