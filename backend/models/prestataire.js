@@ -15,4 +15,4 @@ const PrestataireSchema = mongoose.Schema({
     verifier : { type: String },
 });
 
-module.exports = mongoose.model('Prestataire', PrestataireSchema);
+module.exports = mongoose.model('Prestataire', PrestataireSchema); 

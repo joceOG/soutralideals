@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const CategorieServiceSchema = mongoose.Schema({
-    nomgroupe: { type: String, required: true },
-    idgroupe: { type: String, required: true },
-    nomcategorie: { type: String, required: true },
+    nomGroupe: { type: String, required: true },
+    idGroupe: { type: String, required: true },
+    nomCategorie: { type: String, required: true },
     categories: [],
 
 });
 
-module.exports = mongoose.model('CategorieService', CategorieServiceSchema);
+module.exports = mongoose.model('categorieService', CategorieServiceSchema); 

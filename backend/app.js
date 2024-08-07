@@ -5,6 +5,9 @@ const cors = require('cors');
 require("dotenv").config();
 
 
+const { checkUser } = require("./middleware/authMiddleware");
+
+ 
 const groupeRoute = require("./controller/groupeController");
 const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");
@@ -35,8 +38,8 @@ app.use('/api', groupeRoute);
 app.use('/api', categorieRoute);
 app.use('/api', articleRoute);
 app.use('/api', serviceRoute);
-app.use('/api/user', userRoute);
-app.use('/api/prestataire', prestataireRoute);
+app.use('/api', userRoute);
+app.use('/api', prestataireRoute);
 
 // Middleware pour enregistrer les requêtes et les réponses
 app.use((req, res, next) => {
