@@ -2,6 +2,10 @@ import React from 'react';
 import './styles/App.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Dashboard from './routes/Dashboard';
+import 'primereact/resources/themes/saga-blue/theme.css';  // Theme
+import 'primereact/resources/primereact.min.css';          // Core CSS
+import 'primeicons/primeicons.css';                        // Icons
+import 'primeflex/primeflex.css'; 
 //import CssBaseline from '@mui/material/CssBaseline';
 
 

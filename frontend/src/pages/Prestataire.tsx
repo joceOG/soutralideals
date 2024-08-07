@@ -11,10 +11,6 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { imagefrombuffer } from 'imagefrombuffer';
 // Importez vos images
-import appartementImage51 from '../assets/5 pièces 1.webp';
-import appartementImage7 from '../assets/7 pièces.jpg';
-import appartementImage52 from '../assets/5 pièces 2.jpg';
-import appartementImage3 from '../assets/3 pièces.webp';
 import { Box } from '@mui/material';
 import axios from 'axios';
 
@@ -134,7 +130,7 @@ const Prestataire: React.FC = () => {
     function toDetailsMetiers( ) {
         navigate('/DetailsMetiers');
         }
-//https://meet.google.com/osw-tnwb-xtb
+
         const [prestataire, setPrestataire] = useState<Item[]>([]);
     useEffect(() => {
         // Effect hook pour récupérer les données de l'API
