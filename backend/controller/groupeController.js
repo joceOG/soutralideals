@@ -2,46 +2,67 @@ const express = require('express');
 const router = express.Router();
 const Groupe = require('../models/groupeModel');
 
-//Functions 
- 
-async function createGroupe(nomgroupe) {
+
+
+// Créer un nouveau groupe
+router.post('/groupe', async (req, res) => {
     try {
+        const { nomgroupe } = req.body;
         const newGroupe = new Groupe({ nomgroupe });
         await newGroupe.save();
-        return newGroupe;
-    } catch (err) {
-        throw new Error('Error creating groupe');
-    }
-}
-
-async function getGroupe() {
-    try {
-        const groupes = await Groupe.find();
-        return groupes;
-    } catch (err) {
-        throw new Error('Error fetching Groupes');
-    }
-}
-
-
-
-// Create a new Groupe
-router.post('/groupe', async(req, res) => {
-    try {
-        console.log(req.body)
-        const { nomgroupe } = req.body;
-        const groupe = await createGroupe(nomgroupe);
-        res.json(groupe);
+        res.status(201).json(newGroupe);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Get all Groupes
-router.get('/groupe', async(req, res) => {
+// Obtenir tous les groupes
+router.get('/groupe', async (req, res) => {
     try {
-        const groupe = await getGroupe();
+        //const groupes = await Groupe.find();
+        const groupe = await Groupe.find();
         res.json(groupe);
+        //res.status(200).json(groupes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Obtenir un groupe par ID
+router.get('/groupe/:id', async (req, res) => {
+    try {
+        const groupe = await Groupe.findById(req.params.id);
+        if (!groupe) {
+            return res.status(404).json({ error: 'Groupe non trouvé' });
+        }
+        res.status(200).json(groupe);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Mettre à jour un groupe par ID
+router.put('/groupe/:id', async (req, res) => {
+    try {
+        const { nomgroupe } = req.body;
+        const groupe = await Groupe.findByIdAndUpdate(req.params.id, { nomgroupe }, { new: true });
+        if (!groupe) {
+            return res.status(404).json({ error: 'Groupe non trouvé' });
+        }
+        res.status(200).json(groupe);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Supprimer un groupe par ID
+router.delete('/groupe/:id', async (req, res) => {
+    try {
+        const groupe = await Groupe.findByIdAndDelete(req.params.id);
+        if (!groupe) {
+            return res.status(404).json({ error: 'Groupe non trouvé' });
+        }
+        res.status(200).json({ message: 'Groupe supprimé avec succès' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

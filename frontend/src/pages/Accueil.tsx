@@ -16,7 +16,7 @@ const Accueil: React.FC = () => {
       <div>
         <Box sx={{ mt: 12 }}>
           <div className="textHome">
-            <h3>Des centaines de services et autant de prestations de qualité .</h3>
+            <h3>Des centaines de services et autant de prestations de qualité . </h3>
           </div>
         </Box>
 

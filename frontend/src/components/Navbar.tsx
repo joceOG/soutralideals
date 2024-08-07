@@ -6,7 +6,7 @@ import FlexLogo from './flexibleImage/FlexLogo';
 import logo from '../assets/logo.png';
 import iconeprestataire from '../assets/iconeprestataire.png';
 //import Box from '@mui/material/Box';
-import {Row, Col, Grid, Container } from 'rsuite';
+import {Row, Col, Container } from 'rsuite';
 import Button, { ButtonProps } from '@mui/material/Button/Button';
 import { styled } from '@mui/material/styles';
 import SearchField from '../components/SearchField';
@@ -230,7 +230,7 @@ if (!categories) return null;
             </li>
 
             <li>
-              <NavLink to="/Reservations">
+              <NavLink to="/">
                 <Typography
                   aria-owns={open2 ? 'mouse-over-popover2' : undefined}
                   aria-haspopup="true"
@@ -263,7 +263,7 @@ if (!categories) return null;
             </li>
 
             <li>
-              <NavLink to="/Services">
+              <NavLink to="/Ecommerce">
                 <Typography
                   aria-owns={open3 ? 'mouse-over-popover3' : undefined}
                   aria-haspopup="true"

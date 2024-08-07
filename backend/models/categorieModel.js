@@ -1,9 +1,16 @@
 const mongoose = require('mongoose');
 
 const CategorieSchema = mongoose.Schema({
-    nomCategorie: { type: String, required: true },
-    idGroupe: { type: String, required: true },
-    nomGroupe : { type: String, required: true },
+    nomcategorie: { type: String, required: true },
+    imagecategorie: {
+        type: Buffer,
+    },
+    groupe: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Groupe',
+        required: true 
+    },
 });
 
-module.exports = mongoose.model('categorie', CategorieSchema); 
+module.exports = mongoose.model('Categorie', CategorieSchema);
+

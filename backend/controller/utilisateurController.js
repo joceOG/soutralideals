@@ -1,24 +1,29 @@
-// const express = require('express');
-// const router = express.Router();
-const userModel = require('../models/utilisateurModel');
+const express = require('express');
+const router = express.Router();
+const Utilisateur = require('../models/utilisateurModel');
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const ObjectID = require("mongoose").Types.ObjectId;
 //Functions 
 
+async function createUtilisateur(nom, prenom, email, motdepasse, telephone, genre, note ,photoprofil) {
+    try {
+        const newUtilisateur = new Utilisateur({ nom, prenom, email, motdepasse, telephone, genre, note, photoprofil });
+        await newUtilisateur.save();
+        return newUtilisateur;
+    } catch (err) {
+        throw new Error('Error creating User');
+    }
+}
 
-
-module.exports.getAllUser = async (req, res) => {
-    const users = await userModel.find().select("-password");
-  
-    res.status(200).json(users);
-  };
-
-
-  module.exports.userInfo = (req, res) => {
-    console.log(req.params);
-  
-    if (!ObjectID.isValid(req.params.id)) {
-      return res.status(200).send("Id incorrecte :" + req.params.id);
+async function getUtilisateur() {
+    try {
+        const utilisateurs = await Utilisateur.find();
+        return utilisateurs;
+    } catch (err) {
+        throw new Error('Error fetching Users');
     }
   
     userModel.findById(req.params.id).then((user) => {
@@ -51,25 +56,41 @@ module.exports.getAllUser = async (req, res) => {
 
 
 // Create a new Groupe
-// router.post('/utilisateur', async(req, res) => {
-//     try {
-//         console.log(req.body)
-//         const { nom, prenom, email, motdepasse, telephone , genre, note , photoprofil } = req.body;
-//         const utilisateur = await createUtilisateur(nom, prenom, email, motdepasse, telephone, genre , note, photoprofil) ;
-//         res.json(utilisateur);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
+router.post('/utilisateur', upload.single('photoprofil'), async(req, res) => {
+    try {
+        
+        const photoprofil = req.file.buffer ;
+        const nom = req.body.nom ;
+        const prenom = req.body.prenom ;
+        const email = req.body.email ;
+        const motdepasse = req.body.motdepasse ;
+        const telephone = req.body.telephone ;
+        const genre = req.body.genre ;
+        const note = req.body.note ;
+
+        const utilisateur = await createUtilisateur(nom, prenom, email, motdepasse, telephone, genre, note, photoprofil) ;
+        console.log(req.body);
+        res.json(utilisateur);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+
+});
 
 // Get all Groupes
-// router.get('/utilisateur', async(req, res) => {
-//     try {
-//         const utilisateur = await getUtilisateur();
-//         res.json(utilisateur);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
+router.get('/utilisateur', async(req, res) => {
+    try {
+        
+        const utilisateur = await getUtilisateur();
+        
+        res.json(utilisateur);
+
+    } catch (err) {
+
+        res.status(500).json({ error: err.message });
+
+    }
+});
 
 // module.exports = router; 
