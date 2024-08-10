@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ServiceSchema = mongoose.Schema({
-    nom: { type: String, required: true },
+    nomservice: { type: String, required: true },
     imageservice: {
         type: Buffer,
     },
