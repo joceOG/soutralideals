@@ -8,13 +8,13 @@ const upload = multer({ storage: storage });
 
 //Functions 
 
-async function createService(nomservice, imageservice , idcategorie) {
+async function createService(nomservice, imageservice , categorie) {
     try {
-        const newService = new Service({ nomservice, imageservice, idcategorie });
+        const newService = new Service({ nomservice, imageservice, categorie });
         await newService.save();
         return newService;
     } catch (err) {
-        throw new Error('Error creating Service 2');       
+        throw new Error('Error 2' + err);       
     }
 }
 
@@ -25,7 +25,8 @@ async function getService() {
        // services.imageservice.data = imgBase64;
         return services;
     } catch (err) {
-        throw new Error('Error fetching Service');
+        console.log("Erreur" + err ) ;
+        throw new Error('Error fetching Service' + err);
     }
 }
 
@@ -53,10 +54,10 @@ router.post('/service', upload.single('imageservice'), async(req, res) => {
     try {
         const imageservice = req.file.buffer ;
         const nomservice = req.body.nomservice ;
-        const idcategorie = req.body.idcategorie;
+        const categorie = req.body.categorie;
         console.log('Nom serv' , nomservice) ;
     // This assumes Multer is saving the file to the 'uploads/' directory
-        const service = await createService(nomservice, imageservice, idcategorie);
+        const service = await createService(nomservice, imageservice, categorie);
         res.json(service);
     } catch (err) {
         res.status(500).json({ error: err.message });

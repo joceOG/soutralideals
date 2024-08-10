@@ -25,22 +25,22 @@ UtilisateurSchema.pre("save", async function(next) {
     next();
   });
   
-  const userModel = mongoose.model("utilisateur", UtilisateurSchema);
+  const utilisateurModel = mongoose.model("utilisateur", UtilisateurSchema);
   
   // Attacher la fonction comparePassword au modèle userModel
-  userModel.comparePassword = async function(email, password) {
+  utilisateurModel.comparePassword = async function(email, password) {
   
       // on recherche dans notre base de donnee s'il existe ce email
-    const user = await this.findOne({ email }).select('+password');
+    const utilisateur = await this.findOne({ email }).select('+password');
     if (user) {
       // s'il existe on compare sont password avec celui qui essais de se connecter
-      const auth = await bcrypt.compare(password, user.password);
+      const auth = await bcrypt.compare(password, utilisateur.password);
       if (auth) {
-        return user;
+        return utilisateur;
       }
       throw new Error("incorrect password");
     }
     throw new Error("incorrect email");
   };
 
-module.exports = userModel
+module.exports = utilisateurModel
