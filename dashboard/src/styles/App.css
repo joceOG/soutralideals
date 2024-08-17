@@ -46,10 +46,16 @@
     align-items: center;
 }
 
-.imageService {
-      height: 230px;
-      width: 170px;
+.imageCategorie {
+    height: 90px;
+    width: 90px;
 }
+
+.imageService {
+    height: 90px;
+    width: 90px;
+}
+
 
 .textHome {
     display: flex;

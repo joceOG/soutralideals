@@ -6,6 +6,7 @@ import { Column, ColumnBodyOptions } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { imagefrombuffer } from "imagefrombuffer";
 
 
 interface Item {
@@ -123,6 +124,19 @@ const actionTemplate = (rowData: Item) => {
   );
 };
 
+const imageBodyTemplate = (rowData: Item) => {
+
+  return (
+    <div>
+    <img   className='imageCategorie' alt="imagecategorie" src={imagefrombuffer({
+      type: rowData.imagecategorie.type,
+      data: rowData.imagecategorie.data,
+    }  )}  /> 
+  </div>
+  )
+};
+
+                                    
 const onEdit = (rowData: Item) => {
   // Handle edit action
   console.log('Edit customer:', rowData);
@@ -151,6 +165,7 @@ const onDelete = (rowData: Item) => {
                 <Column header="#" body={rowIndexTemplate} />
                 <Column field="groupe.nomgroupe" header="Groupe" sortable />
                 <Column field="nomcategorie" header="Catégorie" sortable />
+                <Column header="Image Catégorie" body={imageBodyTemplate} />  
                 <Column field="_id" header="Identifiant" sortable />
                 <Column header="Actions" body={actionTemplate} />
             </DataTable>

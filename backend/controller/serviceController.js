@@ -8,16 +8,6 @@ const upload = multer({ storage: storage });
 
 //Functions 
 
-async function createService(nomservice, imageservice , categorie) {
-    try {
-        const newService = new Service({ nomservice, imageservice, categorie });
-        await newService.save();
-        return newService;
-    } catch (err) {
-        throw new Error('Error 2' + err);       
-    }
-}
-
 async function getService() {
     try {
         const services = await Service.find();
@@ -57,8 +47,10 @@ router.post('/service', upload.single('imageservice'), async(req, res) => {
         const categorie = req.body.categorie;
         console.log('Nom serv' , nomservice) ;
     // This assumes Multer is saving the file to the 'uploads/' directory
-        const service = await createService(nomservice, imageservice, categorie);
-        res.json(service);
+        const newService = new Service({nomservice, imageservice, categorie});
+        console.log("Service" + newService.toString()) ;
+        await newService.save();
+        res.status(201).json(newService);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -67,7 +59,12 @@ router.post('/service', upload.single('imageservice'), async(req, res) => {
 // Get all Service
 router.get('/service', async(req, res) => {
     try {
-        const service = await getService();
+        const service = await Service.find().populate({
+            path: 'categorie',
+            populate: {
+                path: 'groupe'
+            }
+        }); // Populer la categorie puis le groupe si necessaire
         res.json(service);
     } catch (err) {
         res.status(500).json({ error: err.message });
