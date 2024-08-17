@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Fab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, Button } from '@mui/material';
 import axios from 'axios';
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
@@ -9,14 +9,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 
-
-
-interface Item {
-  _id: string;
-  nomgroupe: string;
-}
-
+// Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,
@@ -31,47 +27,62 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   '&:nth-of-type(odd)': {
     backgroundColor: theme.palette.action.hover,
   },
-  // hide last border
   '&:last-child td, &:last-child th': {
     border: 0,
   },
 }));
 
-const Groupe: React.FC = () => {
+// Interface for Item
+interface Item {
+  _id: string;
+  nomgroupe: string;
+}
 
+// Main component
+const Groupe: React.FC = () => {
   const [groupe, setGroupe] = useState<Item[]>([]);
+  const [open, setOpen] = useState(false);
+  const [nomgroupe, setnomgroupe] = useState('');
 
   useEffect(() => {
-    // Effect hook pour récupérer les données de l'API
     const fetchData = async () => {
-      let data = '';
-    let config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'http://localhost:3000/api/groupe',
-      headers: { },
-      data : data
+      try {
+        const response = await axios.get('http://localhost:3000/api/groupe');
+        setGroupe(response.data);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
     };
-    
-    axios.request(config)
-    .then((response) => {
-      console.log(JSON.stringify(response.data));
-      setGroupe(response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  
-    };
-  
+
     fetchData();
-  }, []);    
+  }, []);
+
+  const handleClickOpen = () => {
+    console.log('FAB clicked'); // Debugging log
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    console.log('Dialog closed'); // Debugging log
+    setOpen(false);
+    setnomgroupe('');
+  };
 
 
-if (!groupe) return null;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-
-
+    const formData = new FormData();
+    formData.append('nomgroupe', nomgroupe);
+    console.log(nomgroupe);
+    try {
+      await axios.post('http://localhost:3000/api/groupe', formData);
+      console.log('Form submitted successfully'); // Debugging log
+    } catch (error) {
+      console.error('Failed to submit form:', error);
+    }
+    handleClose();
+  };
 
   return (
     <div>
@@ -82,38 +93,82 @@ if (!groupe) return null;
         Liste des Groupes
       </Typography>
 
-      <Box  sx={{ mt: 2, mb: 2 }}>
-      <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 700 }} aria-label="customized table">
-        <TableHead>
-          <TableRow>
-            <StyledTableCell>#</StyledTableCell>
-            <StyledTableCell > Groupe</StyledTableCell>
-            <StyledTableCell > Identifiant</StyledTableCell>
-            <StyledTableCell > Action</StyledTableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-        { groupe.map( (item , index ) => (
-            <StyledTableRow key={index}>
-              <StyledTableCell component="th" scope="row">
-                {index}
-              </StyledTableCell>
-              <StyledTableCell >{item.nomgroupe}</StyledTableCell>
-              <StyledTableCell >{item._id}</StyledTableCell>
-              <StyledTableCell >
+      <Box sx={{ mt: 2, mb: 2 }}>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 700 }} aria-label="customized table">
+            <TableHead>
+              <TableRow>
+                <StyledTableCell>#</StyledTableCell>
+                <StyledTableCell>Groupe</StyledTableCell>
+                <StyledTableCell>Identifiant</StyledTableCell>
+                <StyledTableCell>Action</StyledTableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {groupe.map((item, index) => (
+                <StyledTableRow key={item._id}>
+                  <StyledTableCell component="th" scope="row">
+                    {index + 1}
+                  </StyledTableCell>
+                  <StyledTableCell>{item.nomgroupe}</StyledTableCell>
+                  <StyledTableCell>{item._id}</StyledTableCell>
+                  <StyledTableCell>
+                    {/* Add actions here */}
+                  </StyledTableCell>
+                </StyledTableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+      
+      <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
+        <Fab color="secondary" aria-label="add" onClick={handleClickOpen}>
+          <AddIcon />
+        </Fab>
+      </Box>
 
-              </StyledTableCell>
-            </StyledTableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-    </Box>
-
-
+      <Dialog onClose={handleClose} open={open} fullWidth>
+        <DialogTitle sx={{ m: 0, p: 2 }}>
+          Ajouter un groupe
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="nomgroupe"
+              variant="outlined"
+              name="nomgroupe"
+              value={nomgroupe}
+              onChange={(e) => setnomgroupe(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            <DialogActions>
+              <Button type="submit" variant="contained" color="secondary">
+                Enregistrer
+              </Button>
+              <Button onClick={handleClose} variant="outlined" color="primary">
+                Annuler
+              </Button>
+            </DialogActions>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 export default Groupe;
+

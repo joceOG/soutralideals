@@ -7,11 +7,13 @@ const Groupe = require('../models/groupeModel');
 // Créer un nouveau groupe
 router.post('/groupe', async (req, res) => {
     try {
-        const { nomgroupe } = req.body;
+        const nomgroupe = req.body;
         const newGroupe = new Groupe({ nomgroupe });
         await newGroupe.save();
+        console.log("requete");
         res.status(201).json(newGroupe);
     } catch (err) {
+        console.log( "erreur" + err) ;
         res.status(500).json({ error: err.message });
     }
 });

@@ -11,7 +11,7 @@ const { checkUser } = require("./middleware/authMiddleware");
 const groupeRoute = require("./controller/groupeController");
 const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");
-const userRoute = require("./controller/userController");
+const utilisateurRoute = require("./controller/utilisateurController");
 const prestataireRoute = require("./controller/prestataireController");
 const articleRoute = require("./controller/articleController");
 
@@ -38,7 +38,7 @@ app.use('/api', groupeRoute);
 app.use('/api', categorieRoute);
 app.use('/api', articleRoute);
 app.use('/api', serviceRoute);
-app.use('/api', userRoute);
+app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRoute);
 
 // Middleware pour enregistrer les requêtes et les réponses
