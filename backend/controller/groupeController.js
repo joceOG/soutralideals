@@ -7,16 +7,27 @@ const Groupe = require('../models/groupeModel');
 // Créer un nouveau groupe
 router.post('/groupe', async (req, res) => {
     try {
-        const nomgroupe = req.body;
+        // Extract `nomgroupe` from req.body
+        const { nomgroupe } = req.body;
+
+        // Ensure `nomgroupe` is provided
+        if (!nomgroupe) {
+            return res.status(400).json({ error: 'Nom du groupe est requis' });
+        }
+
+        // Create a new Groupe instance with the extracted `nomgroupe`
         const newGroupe = new Groupe({ nomgroupe });
+
+        // Save the new group to the database
         await newGroupe.save();
         console.log("requete");
         res.status(201).json(newGroupe);
     } catch (err) {
-        console.log( "erreur" + err) ;
+        console.log("erreur: " + err);
         res.status(500).json({ error: err.message });
     }
 });
+
 
 // Obtenir tous les groupes
 router.get('/groupe', async (req, res) => {
