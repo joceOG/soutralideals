@@ -139,9 +139,7 @@ const Groupe: React.FC = () => {
       </Typography>
 
       <Box sx={{ mt: 2, mb: 2 }}>
-        <Button variant="contained" color="primary" onClick={handleClickOpen}>
-          Ajouter Un Nouveau Group
-        </Button>
+     
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 700 }} aria-label="customized table">
             <TableHead>
