@@ -3,7 +3,7 @@ const router = express.Router();
 const Categorie = require('../models/categorieModel');
 const multer = require('multer');
 
-const storage = multer.memoryStorage();
+const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
 
 

@@ -1,27 +1,59 @@
 const express = require('express');
 const router = express.Router();
 const Utilisateur = require('../models/utilisateurModel');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+const cloudinary = require("cloudinary").v2;
+const bcrypt = require('bcrypt'); // Import bcrypt here as well if necessary
 
-// Créer un nouvel utilisateur
-router.post('/utilisateur', async (req, res) => {
+cloudinary.config({
+    cloud_name: "dm0c8st6k",
+    api_key: "541481188898557",
+    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+});
+
+router.post('/utilisateur', upload.single('photo'), async (req, res) => {
     try {
-        const { nom, prenom, email, motdepasse, telephone, genre, note, photoprofil } = req.body;
+        const { nom, prenom, email, motdepasse, telephone, genre, note } = req.body;
+
+        let photoprofilUrl = '';
+
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: 'users',
+            });
+            photoprofilUrl = result.secure_url;
+        }
+
+        // Ensure motdepasse is provided
+        if (!motdepasse) {
+            return res.status(400).json({ error: 'Password is required' });
+        }
+
+        // Hash the password before saving
+        const hashedPassword = await bcrypt.hash(motdepasse, 10);
+
         const newUtilisateur = new Utilisateur({
             nom,
             prenom,
             email,
-            motdepasse,
+            password: hashedPassword, // Save hashed password
             telephone,
             genre,
             note,
-            photoprofil: Buffer.from(photoprofil, 'base64') // Si l'image est envoyée en base64
+            photoProfil: photoprofilUrl,
         });
+
         await newUtilisateur.save();
         res.status(201).json(newUtilisateur);
     } catch (err) {
+        console.error('Erreur lors de la création de l\'utilisateur:', err);
         res.status(500).json({ error: err.message });
     }
 });
+
+
+
 
 // Obtenir tous les utilisateurs
 router.get('/utilisateurs', async (req, res) => {
