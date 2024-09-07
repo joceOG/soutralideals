@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Fab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, Button } from '@mui/material';
+import {
+  Box, Typography, Fab, Dialog, DialogTitle, DialogContent,
+  DialogActions, IconButton, TextField, Button, Alert, Snackbar
+} from '@mui/material';
 import axios from 'axios';
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
@@ -11,6 +14,8 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 // Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -42,7 +47,10 @@ interface Item {
 const Groupe: React.FC = () => {
   const [groupe, setGroupe] = useState<Item[]>([]);
   const [open, setOpen] = useState(false);
-  const [nomgroupe, setnomgroupe] = useState('');
+  const [nomgroupe, setNomgroupe] = useState('');
+  const [updateId, setUpdateId] = useState<string | null>(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,30 +66,67 @@ const Groupe: React.FC = () => {
   }, []);
 
   const handleClickOpen = () => {
-    console.log('FAB clicked'); // Debugging log
     setOpen(true);
+    setNomgroupe('');
+    setUpdateId(null);
+  };
+
+  const handleClickOpenUpdate = (item: Item) => {
+    setOpen(true);
+    setNomgroupe(item.nomgroupe);
+    setUpdateId(item._id);
   };
 
   const handleClose = () => {
-    console.log('Dialog closed'); // Debugging log
     setOpen(false);
-    setnomgroupe('');
+    setNomgroupe('');
+    setUpdateId(null);
   };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const formData = new FormData();
-    formData.append('nomgroupe', nomgroupe);
-    console.log(nomgroupe);
+  
     try {
-      await axios.post('http://localhost:3000/api/groupe', formData);
-      console.log('Form submitted successfully'); // Debugging log
+      if (updateId) {
+        await axios.put(`http://localhost:3000/api/groupe/${updateId}`, { nomgroupe });
+        setAlertMessage('Groupe mis à jour avec succès');
+      } else {
+        await axios.post('http://localhost:3000/api/groupe', { nomgroupe });
+        setAlertMessage('Groupe ajouté avec succès');
+      }
+  
+      setOpenSnackbar(true);
+      const response = await axios.get('http://localhost:3000/api/groupe');
+      setGroupe(response.data);
     } catch (error) {
-      console.error('Failed to submit form:', error);
+      console.error('Failed to submit form:', error);  // Log error for debugging
+      if (axios.isAxiosError(error)) {
+        // Handle specific axios error details
+        console.error('Axios Error:', error.response?.data || error.message);
+      } else {
+        // Handle general error
+        console.error('General Error:');
+      }
     }
     handleClose();
+  };
+  
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
+      try {
+        await axios.delete(`http://localhost:3000/api/groupe/${id}`);
+        setAlertMessage('Groupe supprimé avec succès');
+        setOpenSnackbar(true);
+        setGroupe(groupe.filter((item) => item._id !== id));
+      } catch (error) {
+        console.error('Failed to delete group:', error);
+      }
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
   };
 
   return (
@@ -94,6 +139,7 @@ const Groupe: React.FC = () => {
       </Typography>
 
       <Box sx={{ mt: 2, mb: 2 }}>
+     
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 700 }} aria-label="customized table">
             <TableHead>
@@ -113,7 +159,12 @@ const Groupe: React.FC = () => {
                   <StyledTableCell>{item.nomgroupe}</StyledTableCell>
                   <StyledTableCell>{item._id}</StyledTableCell>
                   <StyledTableCell>
-                    {/* Add actions here */}
+                    <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton color="error" onClick={() => handleDelete(item._id)}>
+                      <DeleteIcon />
+                    </IconButton>
                   </StyledTableCell>
                 </StyledTableRow>
               ))}
@@ -121,16 +172,18 @@ const Groupe: React.FC = () => {
           </Table>
         </TableContainer>
       </Box>
-      
+
+      {/* Floating Action Button to open the modal for adding a new group */}
       <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <Fab color="secondary" aria-label="add" onClick={handleClickOpen}>
           <AddIcon />
         </Fab>
       </Box>
 
+      {/* Modal for adding or updating a group */}
       <Dialog onClose={handleClose} open={open} fullWidth>
         <DialogTitle sx={{ m: 0, p: 2 }}>
-          Ajouter un groupe
+          {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
           <IconButton
             aria-label="close"
             onClick={handleClose}
@@ -147,17 +200,17 @@ const Groupe: React.FC = () => {
         <DialogContent dividers>
           <form onSubmit={handleSubmit}>
             <TextField
-              label="nomgroupe"
+              label="Nom du Groupe"
               variant="outlined"
               name="nomgroupe"
               value={nomgroupe}
-              onChange={(e) => setnomgroupe(e.target.value)}
+              onChange={(e) => setNomgroupe(e.target.value)}
               fullWidth
               margin="normal"
             />
             <DialogActions>
               <Button type="submit" variant="contained" color="secondary">
-                Enregistrer
+                {updateId ? 'Mettre à jour' : 'Enregistrer'}
               </Button>
               <Button onClick={handleClose} variant="outlined" color="primary">
                 Annuler
@@ -166,9 +219,19 @@ const Groupe: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Snackbar for success messages */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
 
 export default Groupe;
-
