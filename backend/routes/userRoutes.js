@@ -6,7 +6,7 @@ const router = require("express").Router();
 
 
 
-
+const upload = multer({ dest: 'uploads/' });
 router.post("/register", authController.signUp);
 router.post("/login", authController.signIn);
 router.get("/logout", authController.logout);

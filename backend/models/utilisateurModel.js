@@ -1,7 +1,7 @@
+const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 
 const UtilisateurSchema = mongoose.Schema({
-
     nom: { type: String },
     prenom: { type: String  },
     email: { type: String },
@@ -9,38 +9,31 @@ const UtilisateurSchema = mongoose.Schema({
     telephone: { type: String },
     genre: { type: String },
     note: { type: String },
-    photoProfil: { type: Buffer },
+    photoProfil: { type: String },
 });
- 
 
-
-//////////////////////////////////||
-// on crypte le mot de passe      ||
-// avant d'enregistrer le user ///||
-///                               ||
-//////////////////////////////////||
+// Hash password before saving user
 UtilisateurSchema.pre("save", async function(next) {
+    if (!this.isModified('password')) return next(); // Only hash if password is modified or new
+
     const salt = await bcrypt.genSalt();
     this.password = await bcrypt.hash(this.password, salt);
     next();
-  });
-  
-  const utilisateurModel = mongoose.model("utilisateur", UtilisateurSchema);
-  
-  // Attacher la fonction comparePassword au modèle userModel
-  utilisateurModel.comparePassword = async function(email, password) {
-  
-      // on recherche dans notre base de donnee s'il existe ce email
+});
+
+// Attacher la fonction comparePassword au modèle utilisateurModel
+UtilisateurSchema.statics.comparePassword = async function(email, password) {
     const utilisateur = await this.findOne({ email }).select('+password');
-    if (user) {
-      // s'il existe on compare sont password avec celui qui essais de se connecter
-      const auth = await bcrypt.compare(password, utilisateur.password);
-      if (auth) {
-        return utilisateur;
-      }
-      throw new Error("incorrect password");
+    if (utilisateur) {
+        const auth = await bcrypt.compare(password, utilisateur.password);
+        if (auth) {
+            return utilisateur;
+        }
+        throw new Error("incorrect password");
     }
     throw new Error("incorrect email");
-  };
+};
 
-module.exports = utilisateurModel
+const utilisateurModel = mongoose.model("utilisateur", UtilisateurSchema);
+
+module.exports = utilisateurModel;
