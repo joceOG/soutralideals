@@ -23,7 +23,7 @@ router.post('/utilisateur', upload.single('photo'), async (req, res) => {
                 folder: 'users',
             });
             photoprofilUrl = result.secure_url;
-        }
+        } 
 
         // Ensure motdepasse is provided
         if (!motdepasse) {
