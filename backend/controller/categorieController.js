@@ -57,7 +57,7 @@ router.put('/categorie/:id', async (req, res) => {
             nomcategorie,
             imagecategorie,
             groupe
-        }, { new: true }).populate('categorie'); // Populer le groupe si nécessaire
+        }, { new: true }).populate('groupe'); // Populer le groupe si nécessaire
 
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
