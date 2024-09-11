@@ -2,11 +2,15 @@ const express = require('express');
 const router = express.Router();
 const Categorie = require('../models/categorieModel');
 const multer = require('multer');
-const storage = multer.memoryStorage(); 
-const upload = multer({ storage: storage });
+const upload = multer({ dest: 'uploads/' });
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require('bcrypt');
 
+cloudinary.config({
+    cloud_name: "dm0c8st6k",
+    api_key: "541481188898557",
+    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+});
 
 
 // Créer une nouvelle catégorie
@@ -20,16 +24,18 @@ router.post('/categorie', upload.single('imagecategorie'), async (req, res) => {
 
         if (req.file) {
             const result = await cloudinary.uploader.upload(req.file.path, {
-                folder: 'categorie',
+                folder: 'categories',
             });
             imagecategorie = result.secure_url;
         }
 
-        const newCategorie = new Categorie({ nomcategorie, imagecategorie, groupe });
+        const newCategorie = new Categorie({ nomcategorie, imagecategorie : imagecategorie, groupe });
         await newCategorie.save();
         res.status(201).json(newCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
+        console.log("Erreur") ;
+        console.log(err.message) ;
     }
 });
 
