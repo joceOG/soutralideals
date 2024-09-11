@@ -35,7 +35,9 @@ const Home: React.FC = () => {
       try {
         const response = await axios.get('http://localhost:3000/api/utilisateurs'); // Replace with your API endpoint
         setUtilisateurs(response.data);
-
+        setUserMetrics({
+          totalUsers: utilisateurs.length,
+        });
         console.log(utilisateurs.length) ;
         setLoading(false);
       } catch (err) {
@@ -45,9 +47,7 @@ const Home: React.FC = () => {
     };
 
     fetchUserMetrics();
-    setUserMetrics({
-      totalUsers: utilisateurs.length,
-    });
+
   }, []);
 
   // Handle button click event
