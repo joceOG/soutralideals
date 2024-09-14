@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Prestataire = require('../models/prestataire');
+const Prestataire = require('../models/prestataireModel');
 
 // Créer un nouveau prestataire
 router.post('/prestataire', async (req, res) => {
