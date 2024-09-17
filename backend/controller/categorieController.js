@@ -11,7 +11,7 @@ cloudinary.config({
     cloud_name: "dm0c8st6k",
     api_key: "541481188898557",
     api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
-});
+}); 
 
 // Configure Multer
 const upload = multer({ dest: 'uploads/' });
