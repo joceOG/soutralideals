@@ -1,412 +1,282 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Box, Fab, IconButton, MenuItem, Select, SelectChangeEvent,Snackbar,SnackbarCloseReason,Typography } from '@mui/material';
+import { Alert, Box, Fab, IconButton, MenuItem, Select, Snackbar, TextField, Typography } from '@mui/material';
 import axios from 'axios';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
-import { Column, ColumnBodyOptions } from 'primereact/column';
-import { InputText } from 'primereact/inputtext';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import AddIcon from '@mui/icons-material/Add';
-import { imagefrombuffer } from "imagefrombuffer";
-//import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Item {
   _id: string;
   nomservice: string;
-  imageservice: { 
-    type:Buffer ,
-    data: []
-  };
-  categorie: { 
-    _id:string ,
-    nomcategorie:string,
-    imagecategorie:string,
-    groupe: { 
-      _id:string ,
-      nomgroupe:string 
+  imageservice: string;
+  categorie: {
+    _id: string;
+    nomcategorie: string;
+    groupe: {
+      _id: string;
+      nomgroupe: string;
     };
   };
 }
 
-interface Item2 {
-  _id: string;
-  nomcategorie: string;
-  imagecategorie: { 
-    type:Buffer ,
-    data: []
-  };
-  groupe: { 
-    _id:string ,
-    nomgroupe:string 
-  };
-}
-
 interface Option {
+  _id: string;
   label: string;
   value: string;
 }
 
 const Service: React.FC = () => {
-
-  
   const [service, setService] = useState<Item[]>([]);
-  //const [count, setCount] = useState(0);
   const [nomservice, setNomService] = useState('');
   const [imageservice, setImageService] = useState<File | null>(null);
   const [visible, setVisible] = useState(false);
-  const [categorie, setCategorie] = useState<Item2[]>([]);
-  const [optionsCategorie, setOptionsCategorie] = useState<Option[]>([]);
-  
-
-  const [loadingSelect, setLoadingSelect] = useState<boolean>(true);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
- 
-
-const [globalFilter, setGlobalFilter] = useState<string | null>(null);
-const [loading, setLoading] = useState<boolean>(true);
-const [filters, setFilters] = useState<DataTableFilterMeta>({
-  'global': { value: null, matchMode: 'contains' }
-});
-
-const [open, setOpen] = React.useState(false);
-const [open2, setOpen2] = React.useState(false);
-
-/*const navigate = useNavigate();
-
-const actualiserRoute = () => {
-    navigate(0); // Actualiser la route actuelle
-};*/
+  const [categorie, setCategorie] = useState<Option[]>([]);
+  const [groupe, setGroupe] = useState<Option[]>([]);
+  const [selectedCategorie, setSelectedCategorie] = useState<string | null>(null);
+  const [selectedGroupe, setSelectedGroupe] = useState<string | null>(null);
+  const [openSnackbarSuccess, setOpenSnackbarSuccess] = useState(false);
+  const [openSnackbarError, setOpenSnackbarError] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // Track if editing
+  const [currentService, setCurrentService] = useState<Item | null>(null); // Current service being edited
 
   useEffect(() => {
-    // Effect hook pour récupérer les données de l'API
     const fetchData = async () => {
-      let data = '';
-    let config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'http://localhost:3000/api/service',
-      headers: { },
-      data : data
+      try {
+        const response = await axios.get('http://localhost:3000/api/service');
+        setService(response.data);
+      } catch (error) {
+        console.error(error);
+      }
     };
-    
-    axios.request(config)
-    .then((response) => {
-     // console.log(JSON.stringify(response.data));
-      setService(response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  
-    };
-
     fetchData();
-    setLoading(false);
-  }, []); 
-  
-   //Récupération de la liste des catégories 
+  }, []);
+
   useEffect(() => {
-      let data = '';
-      let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: 'http://localhost:3000/api/categorie',
-        headers: { },
-        data : data
-      };
-      
-      axios.request(config)
-      .then((response) => {
-        //console.log(JSON.stringify(response.data));
-       
-      setCategorie(response.data);
-      const options = categorie.map(objet => ({
-        label: objet.nomcategorie,
-        value:  objet._id,
-      }));
-     // console.log( "Option ..." + JSON.stringify(options)) ;
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/categorie');
+        const options = response.data.map((cat: any) => ({
+          label: cat.nomcategorie,
+          value: cat._id,
+        }));
+        setCategorie(options);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-        setOptionsCategorie(options);
-        setLoadingSelect(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoadingSelect(false);
-      });
-         
-  } ) ;
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/groupe');
+        const options = response.data.map((grp: any) => ({
+          label: grp.nomgroupe,
+          value: grp._id,
+        }));
+        setGroupe(options);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchGroups();
+  }, []);
 
-if (!service) return null;
-if (!categorie) return null;
-if (!optionsCategorie) return null;
+  const handleClickOpen = () => {
+    setVisible(true);
+    setIsEditing(false); // Ensure it's a new service
+  };
 
-const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = e.target.value;
-  let _filters = { ...filters };
+  const handleClose = () => {
+    setVisible(false);
+    setNomService('');
+    setImageService(null);
+    setSelectedCategorie(null);
+    setSelectedGroupe(null);
+    setCurrentService(null);
+  };
 
-  if (_filters['global'] && 'value' in _filters['global']) {
-      _filters['global'].value = value;
-  } else {
-      _filters['global'] = { value, matchMode: 'contains' };
-  }
-
-  setFilters(_filters);
-  setGlobalFilter(value);
-};
-
-const renderHeader = () => {
-  return (
-      <div className="table-header">
-          <h5 className="mx-0 my-1">Manage Services</h5>
-          <span className="p-input-icon-left">
-              <i className="pi pi-search" />
-              <InputText type="search" value={globalFilter ?? ''} onChange={onGlobalFilterChange} placeholder="Global Search" />
-          </span>
-      </div>
-  );
-};
-
-const header = renderHeader();
-
-const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => {
-  return options.rowIndex + 1;
-};
-
-
-const actionTemplate = (rowData: Item) => {
-  return (
-      <React.Fragment>
-            <IconButton 
-            className='mr-2'
-      aria-label="delete" 
-      color="primary" 
-      size="large" 
-      onClick={() => onEdit(rowData)}
-    >
-      <DeleteIcon />
-    </IconButton>
-
-    <IconButton 
-      className='mr-2'
-      aria-label="delete" 
-      color="primary" 
-      size="large" 
-      onClick={() => onDelete(rowData)}
-    >
-      <EditIcon />
-    </IconButton>
-    
-      </React.Fragment>
-  );
-};
-
-const onEdit = (rowData: Item) => {
-  // Handle edit action
-  console.log('Edit service:', rowData);
-};
-
-const onDelete = (rowData: Item) => {
-  // Handle delete action
-  console.log('Delete service:', rowData);
-};
-
-//Ouverture du Pop Up d'ajout des Serviced
-const handleClickOpen = () => {
-  console.log('FAB clicked'); // Debugging log
-  setVisible(true);   
-};
-
-const handleClose = () => {
-  setVisible(false);
-  var item = {
-    _id: '',
-    nomcategorie: '',
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImageService(e.target.files[0]);
     }
-  setSelectedOption(item.nomcategorie);
-  setNomService('');
-  setImageService(null);
-};
+  };
 
-const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files) {
-    setImageService(e.target.files[0]);
-  }
-};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('nomservice', nomservice);
+    if (selectedCategorie) formData.append('categorie', selectedCategorie);
+    if (selectedGroupe) formData.append('nomgroupe', selectedGroupe);
+    if (imageservice) formData.append('imageservice', imageservice);
 
-const handleSelectChange = (event: SelectChangeEvent<string>) => {
-  setSelectedOption(event.target.value);
-};
+    try {
+      if (isEditing && currentService) {
+        // Update service
+        await axios.put(`http://localhost:3000/api/service/${currentService._id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('Service mis à jour avec succès!');
+      } else {
+        // Create new service
+        await axios.post('http://localhost:3000/api/service', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('Service créé avec succès!');
+      }
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+      setOpenSnackbarSuccess(true);
+      handleClose();
+      const response = await axios.get('http://localhost:3000/api/service');
+      setService(response.data);
+    } catch (error) {
+      console.error(error);
+      setOpenSnackbarError(true);
+    }
+  };
 
-  const formData = new FormData();
-  formData.append('nomservice', nomservice);
-  let categorieObjet = categorie.find(objet => objet.nomcategorie === selectedOption);
-  let categorieId = categorieObjet?._id ;
-console.log(categorieId) ;
-  if ( categorieId) {
-    formData.append('categorie', categorieId );
-  }
-  if (imageservice) {
-    formData.append('imageservice', imageservice as File);
-  }
+  const onEdit = (rowData: Item) => {
+    setVisible(true);
+    setIsEditing(true); // Set editing to true
+    setCurrentService(rowData);
+    setNomService(rowData.nomservice);
+    setSelectedCategorie(rowData.categorie._id);
+    setSelectedGroupe(rowData.categorie.groupe._id);
+    // You may also set the image if required
+  };
 
-  try {
-    await axios.post('http://localhost:3000/api/service', formData, { headers: {
-      'Content-Type': 'multipart/form-data'
-  } });
-  setOpen(true);
-    // Optionally, you can redirect or perform any other action after successful submission.
-  } catch (error) {
-    console.log('Réponse du serveur:', error);
-    console.error(error);
-    setOpen2(true);
-  }
-  //setCount(count + 1);
-  handleClose();
- 
-};
-
-const imageBodyTemplate = (rowData: Item) => {
-
-  return (
-
-    <div>
-    <img   className='imageService' alt="imageservice" src={imagefrombuffer({
-      type: rowData.imageservice.type,
-      data: rowData.imageservice.data,
-    }  )}  /> 
-  </div>
-  )
-};
-
-
-
-const handleSnackClose = (
-  event?: React.SyntheticEvent | Event,
-  reason?: SnackbarCloseReason,
-) => {
-  if (reason === 'clickaway') {
-    return;
-  }
-
-  setOpen(false);
-  setOpen2(false);
-};
-
+  const onDelete = async (rowData: Item) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette Service ?')) {
+      try {
+        await axios.delete(`http://localhost:3000/api/service/${rowData._id}`);
+        setService(service.filter((item) => item._id !== rowData._id));
+        toast.success('Service supprimé avec succès!');
+      } catch (error) {
+        console.error(error);
+        toast.error('Erreur lors de la suppression du service.');
+      }
+    }
+  };
 
   return (
     <div>
       <Typography variant="h4" gutterBottom>
         Services
       </Typography>
-      <Typography variant="body1">
-       Liste des services
-      </Typography>
+      <Dialog visible={visible} onHide={handleClose} header={isEditing ? "Modifier Service" : "Ajouter Service"}>
+        <form onSubmit={handleSubmit}>
+          <div className="flex flex-column px-8 py-5 gap-4">
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Nom du service"
+              type="text"
+              fullWidth
+              variant="standard"
+              value={nomservice}
+              onChange={(e) => setNomService(e.target.value)}
+            />
 
-      <Box  sx={{ mt: 2, mb: 2 }}>
+            <TextField
+              margin="dense"
+              type="file"
+              fullWidth
+              variant="standard"
+              onChange={handleImageChange}
+            />
 
-      <div className="datatable-doc-demo">
-            <DataTable value={service} paginator showGridlines rows={10} loading={loading} dataKey="_id"
-                filters={filters} globalFilterFields={['groupe.nomgroupe', 'nomcategorie', '_id' ]} header={header}
-                emptyMessage="Aucun service trouvé" onFilter={(e) => setFilters(e.filters)}>
-                <Column header="#" body={rowIndexTemplate} />
-                <Column field="categorie.groupe.nomgroupe" header="Groupe" sortable />
-                <Column field="categorie.nomcategorie" header="Catégorie" sortable />
-                <Column field="nomservice" header="Service" sortable />
-                <Column header="Image Service" body={imageBodyTemplate} />  
-                <Column field="_id" header="Identifiant" sortable />
-                <Column header="Actions" body={actionTemplate} />
-            </DataTable>
+            <TextField
+              select
+              label="Catégorie"
+              value={selectedCategorie || ''}
+              onChange={(e) => setSelectedCategorie(e.target.value)}
+              fullWidth
+              variant="standard"
+            >
+              <MenuItem value="" disabled>Select Catégorie</MenuItem>
+              {categorie.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="Groupe"
+              value={selectedGroupe || ''}
+              onChange={(e) => setSelectedGroupe(e.target.value)}
+              fullWidth
+              variant="standard"
+            >
+              <MenuItem value="" disabled>Select Groupe</MenuItem>
+              {groupe.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <Button label={isEditing ? "Mettre à jour" : "Enregistrer"} type="submit" className="p-button-success" />
+          </div> 
+        </form>
+      </Dialog>
+      <Box sx={{ mt: 2, mb: 2 }}>
+        <div className="datatable-doc-demo">
+          <DataTable value={service} paginator rows={10} dataKey="_id" emptyMessage="Aucun service trouvé">
+            <Column field="_id" header="ID" sortable />
+
+            <Column header="Image" body={(rowData) => (
+              <img src={rowData.imageservice} alt="service" style={{ width: '40px', height: '40px',borderRadius:'50%' }} />
+            )} />
+            <Column field="nomservice" header="Service" sortable />
+            <Column field="categorie.nomcategorie" header="Catégorie" sortable />
+            <Column field="categorie.groupe.nomgroupe" header="Groupe" sortable />
+       
+            <Column header="Actions" body={(rowData) => (
+              <>
+                <IconButton color="primary" onClick={() => onEdit(rowData)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton color="error" onClick={() => onDelete(rowData)}>
+                  <DeleteIcon />
+                </IconButton>
+              </>
+            )} />
+          </DataTable>
         </div>
-
-    </Box>
-
-    <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
-        <Fab color="secondary" aria-label="add" onClick={handleClickOpen}>
-          <AddIcon />
-        </Fab>
       </Box>
-
-    <Dialog     header="Service" 
-                visible={visible}
-                modal
-                onHide={() => {if (!visible) return; setVisible(false); }}
-         >
-                <form onSubmit={handleSubmit}>
-                    <div className="flex flex-column px-8 py-5 gap-4" style={{ borderRadius: '12px', backgroundImage: 'radial-gradient(circle at left top, var(--primary-400), var(--primary-700))' }}>
-                      
-                        <div className="inline-flex flex-column gap-2">
-                            <label htmlFor="Nom du service" className="text-primary-50 font-semibold">
-                                Nom du service :
-                            </label>
-                            
-                            <InputText id="imageservice" onChange={(e) => setNomService(e.target.value)} value={nomservice} className="bg-white-alpha-20 border-none p-3 text-primary-50"></InputText>
-                        </div>
-                        <div className="inline-flex flex-column gap-2">
-                            <label className="text-primary-50 font-semibold">
-                                Image:
-                                <input type="file" onChange={handleImageChange} />
-                              </label>
-                        </div>
-                        <div className="inline-flex flex-column gap-2">
-                            <label htmlFor="Catégorie" className="text-primary-50 font-semibold">
-                                Catégorie :
-                            </label>
-                            {loadingSelect ? (
-                              <p>Loading...</p>
-                            ) : (
-                              <div>
-                              <Select
-                                  labelId="select-label"
-                                  value={selectedOption || ''}
-                                  onChange={handleSelectChange}
-                                  displayEmpty
-                                  renderValue={(selected) => selected !== '' ? selected : 'Select an Option'}
-                              >
-                                  {categorie.map(option => (
-                                      <MenuItem key={option._id} value={option.nomcategorie}>
-                                          {option.nomcategorie}
-                                      </MenuItem>
-                                  ))}
-                              </Select>
-                              </div>
-                            )}
-                        </div>
-
-                        <div className="flex align-items-center gap-2">
-                            <Button label="Sauvegarder" onClick={handleSubmit} text className="p-3 w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10"></Button>
-                        </div>
-                    </div>
-            
-               </form>
-          </Dialog>
-
-       <Snackbar open={open} autoHideDuration={2000} onClose={handleSnackClose}>
-        <Alert
-          onClose={handleSnackClose}
-          severity="success"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          Utilisateur ajouté avec succès
+      <Fab color="primary" aria-label="add" onClick={handleClickOpen}>
+        <AddIcon />
+      </Fab>
+      <ToastContainer />
+      <Snackbar
+        open={openSnackbarSuccess}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbarSuccess(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="success" onClose={() => setOpenSnackbarSuccess(false)}>
+          Service ajouté avec succès!
         </Alert>
       </Snackbar>
-
-      <Snackbar open={open2} autoHideDuration={2000} onClose={handleSnackClose}>
-        <Alert
-          onClose={handleSnackClose}
-          severity="error"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          Erreur
+      <Snackbar
+        open={openSnackbarError}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbarError(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="error" onClose={() => setOpenSnackbarError(false)}>
+          Une erreur s'est produite lors de l'ajout du service.
         </Alert>
       </Snackbar>
-
     </div>
   );
 };
