@@ -2,11 +2,93 @@ const express = require('express');
 const router = express.Router();
 const Service = require('../models/serviceModel');
 const multer = require('multer');
+const cloudinary = require("cloudinary").v2;
+const fs = require('fs');
+const mongoose = require('mongoose');
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: "dm0c8st6k",
+    api_key: "541481188898557",
+    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+});
 
-//Functions 
+// Configure Multer
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/service', upload.single('imageservice'), async (req, res) => {
+    try {
+      const nomservice = req.body.nomservice;
+      const categorie = req.body.categorie;
+      const nomgroupe = req.body.nomgroupe; // This should be used in creating a new service
+  
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+  
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "services"
+      });
+  
+      const imageservice = result.secure_url;
+  
+      const newService = new Service({
+        nomservice,
+        imageservice,
+        categorie,
+        nomgroupe // Ensure this matches your schema
+      });
+  
+      await newService.save();
+  
+      fs.unlinkSync(req.file.path);
+  
+      res.status(201).json(newService);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+// Update service route
+router.put('/service/:id', upload.single('imageservice'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { nomservice, categorie, nomgroupe } = req.body;
+      const updates = { nomservice, categorie, nomgroupe };
+  
+      // Check if a new image is uploaded
+      if (req.file) {
+        // Upload new image to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'services' // Optional: store images in a specific folder on Cloudinary
+        });
+  
+        // Update the image URL in the updates object
+        updates.imageservice = result.secure_url;
+  
+        // Remove the local file after uploading
+        fs.unlinkSync(req.file.path);
+      }
+  
+      // Find and update the service
+      const updatedService = await Service.findByIdAndUpdate(id, updates, { new: true });
+  
+      if (!updatedService) {
+        return res.status(404).json({ error: 'Service not found' });
+      }
+  
+      res.status(200).json(updatedService);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+
+
+
+
 
 async function getService() {
     try {
@@ -35,26 +117,7 @@ async function getServiceByCategorie(categorie) {
 }
 
 
-//var query = { address: "Park Lane 38" };
-//dbo.collection("customers").find(query).toArray(function(err, result) 
 
-
-// Create a new Service
-router.post('/service', upload.single('imageservice'), async(req, res) => {
-    try {
-        const imageservice = req.file.buffer ;
-        const nomservice = req.body.nomservice ;
-        const categorie = req.body.categorie;
-        console.log('Nom serv' , nomservice) ;
-    // This assumes Multer is saving the file to the 'uploads/' directory
-        const newService = new Service({nomservice, imageservice, categorie});
-        console.log("Service" + newService.toString()) ;
-        await newService.save();
-        res.status(201).json(newService);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 // Get all Service
 router.get('/service', async(req, res) => {
@@ -78,6 +141,23 @@ router.get('/service/:categorie', async(req, res) => {
         res.json(servicesByCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+router.delete('/service/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Find and delete the service by ID
+        const service = await Service.findByIdAndDelete(id);
+
+        if (!service) {
+            return res.status(404).json({ message: 'Service not found' });
+        }
+
+        res.status(200).json({ message: 'Service deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
