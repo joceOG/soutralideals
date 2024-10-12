@@ -2,29 +2,96 @@ const express = require('express');
 const router = express.Router();
 const Categorie = require('../models/categorieModel');
 const multer = require('multer');
+const cloudinary = require("cloudinary").v2;
+const fs = require('fs');
+const mongoose = require('mongoose');
 
-const storage = multer.memoryStorage(); 
-const upload = multer({ storage: storage });
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: "dm0c8st6k",
+    api_key: "541481188898557",
+    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+}); 
+
+// Configure Multer
+const upload = multer({ dest: 'uploads/' });
 
 
-
-// Créer une nouvelle catégorie
-router.post('/categorie', upload.single('imagecategorie'), async (req, res) => {
+// Mettre à jour une catégorie par ID
+router.put('/categorie/:id', upload.single('imagecategorie'), async (req, res) => {
     try {
-        console.log("Categorie Post") ;       
-        const nomcategorie = req.body.nomcategorie;
-        const groupe = req.body.groupe;
-        const imagecategorie =  req.file.buffer; 
-        //const { nomcategorie, imagecategorie, groupe } = req.body;
-        console.log(  nomcategorie ) ;
-        console.log(  groupe ) ;
-        const newCategorie = new Categorie({ nomcategorie, imagecategorie, groupe });
-        await newCategorie.save();
-        res.status(201).json(newCategorie);
+        const { nomcategorie, groupe } = req.body;
+        const { path: filePath } = req.file || {};
+
+        // Find the category to update
+        const categorie = await Categorie.findById(req.params.id);
+
+        if (!categorie) {
+            return res.status(404).json({ error: 'Catégorie non trouvée' });
+        }
+
+        // If a new image is uploaded
+        if (filePath) {
+            // Upload new image to Cloudinary
+            const result = await cloudinary.uploader.upload(filePath);
+
+            // Remove the uploaded file from the server
+            fs.unlinkSync(filePath);
+
+            // If there was an old image, delete it from Cloudinary
+            if (categorie.imagecategorie) {
+                const publicId = categorie.imagecategorie.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
+            }
+
+            // Update category with new image URL
+            categorie.imagecategorie = result.secure_url;
+        }
+
+        // Update other fields
+        categorie.nomcategorie = nomcategorie || categorie.nomcategorie;
+        categorie.groupe = mongoose.Types.ObjectId(groupe) || categorie.groupe;
+
+        // Save updated category
+        const updatedCategorie = await categorie.save();
+        res.status(200).json(updatedCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
+// Your POST route to create a new category
+router.post('/categorie', upload.single('imagecategorie'), async (req, res) => {
+    try {
+        const { nomcategorie, groupe } = req.body;
+        
+        // Convert groupe to ObjectId
+        const groupeId = mongoose.Types.ObjectId(groupe);
+        
+        // Upload image to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path);
+        
+        // Remove the uploaded file from the server
+        fs.unlinkSync(req.file.path);
+        
+        // Create a new category
+        const newCategorie = new Categorie({
+            nomcategorie,
+            imagecategorie: result.secure_url, // Cloudinary URL
+            groupe: groupeId
+        });
+        
+        await newCategorie.save();
+        res.status(201).json(newCategorie);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+        console.log("Erreur") ;
+        console.log(err.message) ;
+    }
+});
+
+
+
 
 // Obtenir toutes les catégories
 router.get('/categorie', async (req, res) => {
@@ -40,25 +107,6 @@ router.get('/categorie', async (req, res) => {
 router.get('/categorie/:id', async (req, res) => {
     try {
         const categorie = await Categorie.findById(req.params.id).populate('groupe'); // Populer le groupe si nécessaire
-        if (!categorie) {
-            return res.status(404).json({ error: 'Catégorie non trouvée' });
-        }
-        res.status(200).json(categorie);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Mettre à jour une catégorie par ID
-router.put('/categorie/:id', async (req, res) => {
-    try {
-        const { nomcategorie, imagecategorie, groupe } = req.body;
-        const categorie = await Categorie.findByIdAndUpdate(req.params.id, {
-            nomcategorie,
-            imagecategorie,
-            groupe
-        }, { new: true }).populate('categorie'); // Populer le groupe si nécessaire
-
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
         }
