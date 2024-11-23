@@ -17,8 +17,11 @@ userRouter.get("/utilisateurs", userController.getAllUsers);
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 export default userRouter;
 =======
+=======
+>>>>>>> 1b487c7 (Connexion effective entre front et back)
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -30,4 +33,10 @@ router.get("/utilisateurs", userController.getAllUsers);
 
 
 export default router;
+<<<<<<< HEAD
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+=======
+export default userRouter;
+>>>>>>> a814426 (Connexion effective entre front et back)
+>>>>>>> 1b487c7 (Connexion effective entre front et back)

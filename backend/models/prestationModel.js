@@ -25,6 +25,7 @@ import mongoose from 'mongoose'
             required: true,
         },
 
+<<<<<<< HEAD
        
         idPrestataire: {
             type: mongoose.Schema.Types.ObjectId,
@@ -85,3 +86,6 @@ import mongoose from 'mongoose'
 
         module.exports = Prestation;
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+module.exports = mongoose.model('Prestation', PrestationSchema); 
+>>>>>>> 1b487c7 (Connexion effective entre front et back)
