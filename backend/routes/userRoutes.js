@@ -3,6 +3,7 @@ import * as controller from '../controller/authController.js'
 import {Router} from  "express"
 import  multer from "multer"
 // const userController = require("../controller/utilisateurController");
+import * as userController from '../controller/utilisateurController.js'
 
 const router = Router()
 
@@ -14,8 +15,7 @@ router.post("/register", controller.signUp);
 router.post("/login", controller.signIn);
 router.get("/logout", controller.logout);
 
+router.get("/utilisateurs", userController.getAllUsers);
 
-// router.get("/allUser", userController.getAllUser);
-// router.get("/:id", userController.userInfo);
 
 export default router;

@@ -2,14 +2,12 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import { Link } from 'react-router-dom'; // Importez Link de react-router-dom
+import { Link,useNavigate } from 'react-router-dom'; // Importez Link de react-router-dom
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import axios from 'axios'
 
 
@@ -21,6 +19,7 @@ const defaultTheme = createTheme();
 
 
 const Connexion: React.FC = () => {
+    const navigate=useNavigate()
     const [error, setError] = React.useState('');
 const [success, setSuccess] = React.useState('');
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -36,11 +35,16 @@ const [success, setSuccess] = React.useState('');
         let password=data.get('password')
 
         try {
-            const response = await axios.post("http://localhost:8080/api/login", {
+            const response = await axios.post("http://localhost:3000/api/login", {
                 email,
                 password,
             });
-            setSuccess("Login successful! Token: " + response.data.token);
+            // setSuccess("Login successful! Token: " + response.data.token);
+            setSuccess("Login successful! " + response.data.token);
+            setTimeout(()=>{
+            navigate('/')
+            },3000)
+            
         } catch (err) {
             // if (err.response) {
             //     setError(err.response.data.error);
@@ -57,7 +61,7 @@ const [success, setSuccess] = React.useState('');
 
     return (
         <ThemeProvider theme={defaultTheme}>
-            <Navbar />
+            <p>Navbar</p>
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
                 <Box
@@ -124,7 +128,7 @@ const [success, setSuccess] = React.useState('');
                     </Box>
                 </Box>
             </Container>
-            <Footer />
+            <p>Footer</p>
         </ThemeProvider>
     );
 };

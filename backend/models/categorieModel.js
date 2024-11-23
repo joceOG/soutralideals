@@ -1,9 +1,12 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const CategorieSchema = mongoose.Schema({
-    nomcategorie: { type: String, required: true },
+    nomcategorie: 
+    { type: String, 
+        required: true },
     imagecategorie: {
         type: String,
+        required:true
     },
     groupe: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -12,5 +15,15 @@ const CategorieSchema = mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model('Categorie', CategorieSchema);
 
+   // Virtual
+   CategorieSchema.virtual('articles', {
+    ref: 'Article',       
+    localField: '_id',       
+    foreignField: 'categorie'    
+});
+
+
+const categorieModel = mongoose.model("Categorie", CategorieSchema);
+
+  export default categorieModel;

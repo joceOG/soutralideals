@@ -1,6 +1,6 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
-const commandeSchema = mongoose.Schema({
+const CommandeSchema = mongoose.Schema({
     infoCommande: {
         addresse: {
             type: String,
@@ -88,6 +88,6 @@ const commandeSchema = mongoose.Schema({
 
 })
 
-const commandeModel =  mongoose.model('commande', commandeSchema);
+const commandeModel =  mongoose.model('Commande', CommandeSchema);
 
-module.exports = commandeModel; 
+export default commandeModel; 

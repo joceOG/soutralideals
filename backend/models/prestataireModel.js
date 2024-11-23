@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const PrestataireSchema = mongoose.Schema({
     idutilisateur: { type: String },
@@ -15,4 +15,6 @@ const PrestataireSchema = mongoose.Schema({
     verifier : { type: String },
 });
 
-module.exports = mongoose.model('Prestataire', PrestataireSchema); 
+const prestataireModel = mongoose.model('Prestataire', PrestataireSchema); 
+
+export default prestataireModel;

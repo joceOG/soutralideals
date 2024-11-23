@@ -69,6 +69,13 @@ UtilisateurSchema.pre("save", async function(next) {
     // next();
 });
 
+   // Virtual
+   UtilisateurSchema.virtual('articles', {
+    ref: 'Article',             // Référence à la collection 'Task'
+    localField: '_id',       
+    foreignField: 'owner'    
+});
+
 // Methode s'applique a tous les objet
 
 UtilisateurSchema.methods.generateAuthToken= async function (){
@@ -82,12 +89,13 @@ UtilisateurSchema.methods.generateAuthToken= async function (){
 }
 
 
+
 // Méthode statique pour rechercher un utilisateur par ses identifiants
 UtilisateurSchema.statics.findIdLogin = async (email, password) => {
     const user = await userModel.findOne({ email });
 
     if (!user) {
-        throw new Error('Unable to login');
+        throw new Error('Email ou password Introuvable');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -113,6 +121,6 @@ UtilisateurSchema.statics.findIdLogin = async (email, password) => {
 //     throw new Error("incorrect email");
 // };
 
-const userModel = mongoose.model("utilisateur", UtilisateurSchema);
+const userModel = mongoose.model("User", UtilisateurSchema);
 
 export default userModel;
