@@ -243,6 +243,7 @@ export const createArticle = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const newArticle = new articleModel({
 <<<<<<< HEAD
 =======
@@ -260,6 +261,11 @@ export const createArticle = async (req, res) => {
 =======
         const newArticle = new Article({
 >>>>>>> 1b487c7 (Connexion effective entre front et back)
+=======
+
+
+        const newArticle = new articleModel({
+>>>>>>> c2ad0c0 (Connexion effective entre front et back)
             nomArticle,
             prixArticle,
             quantiteArticle,
@@ -324,8 +330,12 @@ export const getArticleById = async (req, res) => {
 =======
 >>>>>>> 1b487c7 (Connexion effective entre front et back)
     try {
+<<<<<<< HEAD
         const articles = await articleModel.find({}).populate('categorie');
         
+=======
+<<<<<<< HEAD
+>>>>>>> 7f93ecd (Connexion effective entre front et back)
         const articles = await articleModel.find().populate('categorie');
         res.status(200).json(articles);
     } catch (err) {
@@ -333,6 +343,14 @@ export const getArticleById = async (req, res) => {
         res.status(500).json( 'Impossible de récupérer les articles' );
         console.error('Erreur lors de la récupération des articles:', err.message);
         res.status(500).json({ error: err.message });
+=======
+        const articles = await articleModel.find({}).populate('categorie');
+        
+        res.status(200).json(articles);
+    } catch (err) {
+        // console.error('Erreur lors de la récupération des articles:', err.message);
+        res.status(500).json( 'Impossible de récupérer les articles' );
+>>>>>>> 6ae59ac (Connexion effective entre front et back)
     }
 };
 };

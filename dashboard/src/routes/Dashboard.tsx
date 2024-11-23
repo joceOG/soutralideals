@@ -17,9 +17,29 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import { List, Avatar, Tooltip, Zoom } from '@mui/material';
 import { mainListItems } from '../components/ListItems';
+<<<<<<< HEAD
 import { BrowserRouter as Router } from 'react-router-dom';
 import AppRouter from './AppRouter';
 import { alpha } from '@mui/material/styles';
+=======
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Home from '../pages/Home';
+import Groupe from '../pages/Groupe';
+import Categorie from '../pages/Categorie';
+import Service from '../pages/Service';
+import Article from '../pages/Article';
+import Prestataire from '../pages/Prestataire';
+import Utilisateur from '../pages/Utilisateur';
+import Connexion from '../pages/Connexion';
+<<<<<<< HEAD
+import Test from '../pages/text';
+=======
+>>>>>>> 7f93ecd (Connexion effective entre front et back)
+//import { mainListItems, secondaryListItems } from './listItems';
+//import Chart from './Chart';
+//import Deposits from './Deposits';
+//import Orders from './Orders';
+>>>>>>> 23067a3 (Connexion effective entre front et back)
 
 function Copyright(props: any) {
   return (
