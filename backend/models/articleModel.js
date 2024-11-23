@@ -11,6 +11,7 @@ const ArticleSchema = new mongoose.Schema({
         required:true,
     },
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     owner:{
         type: mongoose.Schema.Types.ObjectId,
@@ -18,6 +19,8 @@ const ArticleSchema = new mongoose.Schema({
         ref:'User'
     },
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+>>>>>>> 7f93ecd (Connexion effective entre front et back)
     categorie:
      { type: mongoose.Schema.Types.ObjectId,
         required:true,

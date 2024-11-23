@@ -43,10 +43,14 @@ export const updateCategoryById = async (req, res) => {
         categorie.groupe = mongoose.Types.ObjectId(groupe) || categorie.groupe;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         const updatedCategorie = await categorie.save();
 =======
         const updatedCategorie = await categorieModel.save();
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+        const updatedCategorie = await categorie.save();
+>>>>>>> 7f93ecd (Connexion effective entre front et back)
         res.status(200).json(updatedCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -63,10 +67,14 @@ export const createCategory = async (req, res) => {
         fs.unlinkSync(req.file.path);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         const newCategorie = new categorieModel({
 =======
         const newCategorie = new Categorie({
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+        const newCategorie = new categorieModel({
+>>>>>>> 7f93ecd (Connexion effective entre front et back)
             nomcategorie,
             imagecategorie: result.secure_url,
             groupe: groupeId,
@@ -83,6 +91,7 @@ export const createCategory = async (req, res) => {
 // Obtenir toutes les catégories
 export const getAllCategories = async (req, res) => {
     try {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         const categories = await categorieModel
@@ -107,12 +116,14 @@ export const getAllCategories = async (req, res) => {
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET,POST');
 >>>>>>> 8327079 (get update)
+=======
+        const categories = await categorieModel.find({}).populate('groupe');
+>>>>>>> 7f93ecd (Connexion effective entre front et back)
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
-
 
 // Obtenir une catégorie par ID
 export const getCategoryById = async (req, res) => {

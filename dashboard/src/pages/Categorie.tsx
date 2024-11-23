@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from 'react';
 <<<<<<< HEAD
 import { Box, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
@@ -426,58 +428,71 @@ const Categorie: React.FC = () => {
     };
 
     const handleSave = async () => {
+        // Vérifier que le groupe est sélectionné
         if (!formData.groupe?._id) {
-            toast.error('Groupe is not selected.');
+            toast.error('Groupe non sélectionné.');
             return;
         }
-
-        const formDataObj = new FormData();
-        formDataObj.append('nomcategorie', formData.nomcategorie || '');
-        formDataObj.append('groupe', JSON.stringify(formData.groupe || {}));
+    
+        // Préparer les données à envoyer
+        const formDataToSend = new FormData();
+        formDataToSend.append('nomcategorie', formData.nomcategorie || '');
+        formDataToSend.append('groupe', formData.groupe._id);  // Passer seulement le _id
+    
+        // Ajouter l'image si disponible
         if (file) {
             formDataObj.append('imagecategorie', file);
         }
-
+    
         try {
-            if (selectedCategory) {
-                // Update
-                await axios.put(`http://localhost:3000/api/categorie/${selectedCategory._id}`, formDataObj, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-                toast.success('Catégorie mise à jour avec succès');
-            } else {
-                // Create
-                await axios.post('http://localhost:3000/api/categorie', formDataObj, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-                toast.success('Catégorie créée avec succès');
-            }
-
-            // Refresh data
-            const response = await axios.get('http://localhost:3000/api/categorie');
-            setCategorie(response.data);
-            setFilteredCategorie(response.data);
-
-            // Reset and close
-            setModalOpen(false);
-            setSelectedCategory(null);
-            setFormData({
-                nomcategorie: '',
-                imagecategorie: '',
-                groupe: { _id: '', nomgroupe: '' },
+            // Déterminer l'URL et la méthode en fonction de la présence de selectedCategory
+            const url = selectedCategory
+                ? `http://localhost:3000/api/categorie/${selectedCategory._id}`
+                : 'http://localhost:3000/api/categorie';
+            const method = selectedCategory ? 'put' : 'post';
+    
+            // Envoyer la requête avec Axios
+            const response = await axios({
+                url,
+                method,
+                data: formDataToSend,
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
-            setFile(null);
+    
+            // Mettre à jour l'état en fonction de l'opération (mise à jour ou ajout)
+            setCategorie((prevCategorie) => {
+                if (method === 'put' && selectedCategory) {
+                    return prevCategorie.map((item) =>
+                        item._id === selectedCategory._id ? response.data : item
+                    );
+                }
+                return [...prevCategorie, response.data];
+            });
+    
+            // Afficher un message de succès
+            const actionMessage = selectedCategory ? 'Catégorie mise à jour' : 'Nouvelle catégorie ajoutée';
+            toast.success(`${actionMessage} avec succès !`);
+            setModalOpen(false);  // Fermer le modal
+    
         } catch (error) {
+<<<<<<< HEAD
             console.error('Erreur lors de l\'enregistrement:', error);
             toast.error('Erreur lors de l\'enregistrement');
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+            console.error('Erreur lors de la sauvegarde de la catégorie:', error);
+            
+            // Gestion des erreurs en cas de réponse d'Axios ou erreur générique
+            const errorMessage = axios.isAxiosError(error) && error.response
+                ? error.response.data.error
+                : 'Erreur lors de la sauvegarde de la catégorie.';
+            
+            toast.error(errorMessage);
+>>>>>>> 7f93ecd (Connexion effective entre front et back)
         }
         setModalOpen(false);
     };
+        
 
     const renderSearchHeader = () => (
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
