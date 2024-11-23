@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from 'react';
 import { Box, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, MenuItem } from '@mui/material';
 import axios from 'axios';
@@ -104,50 +106,64 @@ const Categorie: React.FC = () => {
     };
 
     const handleSave = async () => {
+        // Vérifier que le groupe est sélectionné
         if (!formData.groupe?._id) {
-            toast.error('Groupe is not selected.');
+            toast.error('Groupe non sélectionné.');
             return;
         }
-
+    
+        // Préparer les données à envoyer
         const formDataToSend = new FormData();
         formDataToSend.append('nomcategorie', formData.nomcategorie || '');
-        formDataToSend.append('groupe', formData.groupe._id); // Pass only the _id as a string
-
+        formDataToSend.append('groupe', formData.groupe._id);  // Passer seulement le _id
+    
+        // Ajouter l'image si disponible
         if (file) {
             formDataToSend.append('imagecategorie', file);
         }
-
+    
         try {
-            if (selectedCategory) {
-                // Update existing category
-                const response = await axios.put(`http://localhost:3000/api/categorie/${selectedCategory._id}`, formDataToSend, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
-                setCategorie((prevCategorie) =>
-                    prevCategorie.map((item) =>
+            // Déterminer l'URL et la méthode en fonction de la présence de selectedCategory
+            const url = selectedCategory
+                ? `http://localhost:3000/api/categorie/${selectedCategory._id}`
+                : 'http://localhost:3000/api/categorie';
+            const method = selectedCategory ? 'put' : 'post';
+    
+            // Envoyer la requête avec Axios
+            const response = await axios({
+                url,
+                method,
+                data: formDataToSend,
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+    
+            // Mettre à jour l'état en fonction de l'opération (mise à jour ou ajout)
+            setCategorie((prevCategorie) => {
+                if (method === 'put' && selectedCategory) {
+                    return prevCategorie.map((item) =>
                         item._id === selectedCategory._id ? response.data : item
-                    )
-                );
-                toast.success('Catégorie mise à jour avec succès !');
-            } else {
-                // Add new category
-                const response = await axios.post('http://localhost:3000/api/categorie', formDataToSend, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
-                setCategorie((prevCategorie) => [...prevCategorie, response.data]);
-                toast.success('Nouvelle catégorie ajoutée avec succès !');
-            }
-            setModalOpen(false);
+                    );
+                }
+                return [...prevCategorie, response.data];
+            });
+    
+            // Afficher un message de succès
+            const actionMessage = selectedCategory ? 'Catégorie mise à jour' : 'Nouvelle catégorie ajoutée';
+            toast.success(`${actionMessage} avec succès !`);
+            setModalOpen(false);  // Fermer le modal
+    
         } catch (error) {
             console.error('Erreur lors de la sauvegarde de la catégorie:', error);
-            if (axios.isAxiosError(error) && error.response) {
-                console.error('Erreur response:', error.response.data);
-                toast.error(`Erreur lors de la sauvegarde de la catégorie: ${error.response.data.error}`);
-            } else {
-                toast.error('Erreur lors de la sauvegarde de la catégorie.');
-            }
+            
+            // Gestion des erreurs en cas de réponse d'Axios ou erreur générique
+            const errorMessage = axios.isAxiosError(error) && error.response
+                ? error.response.data.error
+                : 'Erreur lors de la sauvegarde de la catégorie.';
+            
+            toast.error(errorMessage);
         }
     };
+        
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;

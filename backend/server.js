@@ -3,6 +3,12 @@ import morgan from 'morgan';
 import cors from 'cors';
 import { config } from 'dotenv';
 import router from './routes/userRoutes.js';
+import categorieRouter from './routes/categorieRoutes.js';
+import groupeRouter from './routes/groupeRoutes.js';
+import serviceRouter from './routes/serviceRoutes.js'
+import prestataireRouter from './routes/prestataireRoutes.js';
+import articleRouter from './routes/articleRoutes.js'
+
 
 
 /** import connection file */
@@ -21,11 +27,17 @@ config();
 
 
 /** appliation port */
-const port = process.env.PORT || 8080;
+const port = process.env.PORT ;
 
 
 /** routes */
-app.use('/api', router) /** apis */
+app.use('/api', router) /** apis utilisateur */
+app.use('/api', groupeRouter);
+app.use('/api', categorieRouter);
+app.use('/api', articleRouter);
+app.use('/api', serviceRouter);
+// app.use('/api', utilisateurRoute);
+app.use('/api', prestataireRouter);
 
 
 app.get('/', (req, res) => {

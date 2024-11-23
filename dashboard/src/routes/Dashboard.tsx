@@ -23,6 +23,7 @@ import Service from '../pages/Service';
 import Article from '../pages/Article';
 import Prestataire from '../pages/Prestataire';
 import Utilisateur from '../pages/Utilisateur';
+import Connexion from '../pages/Connexion';
 //import { mainListItems, secondaryListItems } from './listItems';
 //import Chart from './Chart';
 //import Deposits from './Deposits';
@@ -181,6 +182,8 @@ const Dashboard: React.FC = () => {
             <Route path="/article" element={<Article />} />
             <Route path="/utilisateur" element={< Utilisateur />} />
             <Route path="/prestataire" element={<Prestataire />} />
+            <Route path="/connexion" element={<Connexion />} />
+            
           </Routes>
 
           </Box>

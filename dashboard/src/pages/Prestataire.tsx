@@ -109,54 +109,47 @@ const PrestataireComponent: React.FC = () => {
   };
 
   const handleSave = async () => {
-    const formDataToSend = new FormData();
-    
-    // Safely append form data
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formDataToSend.append(key, String(value));
-      }
+  try {
+    // Détermine si c'est une mise à jour ou une création
+    const isUpdate = Boolean(selectedPrestataire?._id);
+
+    // Construire l'URL et la méthode en fonction de l'action
+    const url = isUpdate
+      ? `http://localhost:3000/api/prestataire/${selectedPrestataire?._id}`
+      : 'http://localhost:3000/api/prestataire';
+    const method = isUpdate ? 'put' : 'post';
+
+    // Préparation des données du formulaire
+    const payload = { ...formData };
+
+    // Appel API
+    const response = await axios({
+      method,
+      url,
+      data: payload,
     });
 
-    if (cniFile) {
-      formDataToSend.append('cni', cniFile);
-    }
-    if (selfieFile) {
-      formDataToSend.append('selfie', selfieFile);
+    // Mise à jour du state local
+    if (isUpdate) {
+      setPrestataires((prev) =>
+        prev.map((item) =>
+          item._id === selectedPrestataire?._id ? response.data : item
+        )
+      );
+      toast.success('Prestataire mis à jour avec succès !');
+    } else {
+      setPrestataires((prev) => [...prev, response.data]);
+      toast.success('Nouveau prestataire ajouté avec succès !');
     }
 
-    try {
-      if (selectedPrestataire?._id) {
-        const response = await axios.put(
-          `http://localhost:3000/api/prestataire/${selectedPrestataire._id}`,
-          formDataToSend,
-          {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          }
-        );
-        setPrestataires(prevPrestataires =>
-          prevPrestataires.map(item =>
-            item._id === selectedPrestataire._id ? response.data : item
-          )
-        );
-        toast.success('Prestataire mis à jour avec succès !');
-      } else {
-        const response = await axios.post(
-          'http://localhost:3000/api/prestataire',
-          formDataToSend,
-          {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          }
-        );
-        setPrestataires([...prestataires, response.data]);
-        toast.success('Nouveau prestataire ajouté avec succès !');
-      }
-      setModalOpen(false);
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      toast.error('Erreur lors de la sauvegarde du prestataire.');
-    }
-  };
+    setModalOpen(false);
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde:', error);
+    toast.error('Erreur lors de la sauvegarde du prestataire.');
+  }
+};
+
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;

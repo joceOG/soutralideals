@@ -65,9 +65,9 @@ export  async function  signIn (req, res)  {
       const user = await userModel.findIdLogin(email,password);
       const token=await user.generateAuthToken()
       console.log('connecté')
-      res.send({user,token}); // Renvoie les détails de l'utilisateur si la connexion réussit
+      res.json({user,token}); // Renvoie les détails de l'utilisateur si la connexion réussit
   } catch (e) {
-      res.status(400).send({ error: e.message }); // En cas d'erreur, renvoie une réponse avec l'erreur
+      res.status(400).json({ error: e.message }); // En cas d'erreur, renvoie une réponse avec l'erreur
   }
   
     // try {
