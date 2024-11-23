@@ -5,7 +5,6 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnBodyOptions } from 'primereact/column';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { imagefrombuffer } from "imagefrombuffer";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
