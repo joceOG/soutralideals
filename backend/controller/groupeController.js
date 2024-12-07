@@ -37,13 +37,13 @@ export const getAllGroupes = async (req, res) => {
 // Obtenir un groupe par ID
 export const getGroupeById = async (req, res) => {
     try {
-        const groupe = await groupeModel.findById(req.params.id);
+        const groupe = await groupeModel.findById(req.params.id).populate('categories');
 
         if (!groupe) {
             return res.status(404).json({ error: "Groupe non trouvé" });
         }
 
-        res.status(200).json(groupe);
+        res.status(200).json(groupe.categories);
     } catch (err) {
         console.error("Erreur:", err.message);
         res.status(500).json({ error: err.message });
