@@ -11,7 +11,7 @@ const Test = () => {
         axios
             .get('http://localhost:3000/api/groupe')
             .then((response) => {
-                setCategories(response.data); // Assurez-vous que `response.data` contient une liste d'objets groupe avec `id` et `nomgroupe`.
+                setCategories(response.data); 
                
             })
             .catch((error) => {
@@ -25,14 +25,14 @@ const Test = () => {
             axios
                 .get(`http://localhost:3000/api/groupe/${selectedCategory}`) // Utilisation de l'ID dans l'URL
                 .then((response) => {
-                    setSubcategories(response.data); // Assurez-vous que le backend renvoie les sous-catégories liées.
+                    setSubcategories(response.data); 
                   
                 })
                 .catch((error) => {
                     console.error('Erreur lors du chargement des sous-catégories:', error);
                 });
         } else {
-            setSubcategories([]); // Réinitialiser les sous-catégories si aucun groupe n'est sélectionné
+            setSubcategories([]); // Réinitialise les sous-catégories si aucun groupe n'est sélectionné
         }
     }, [selectedCategory]);
 
@@ -63,7 +63,7 @@ const Test = () => {
                 <option value="">-- Sélectionnez une sous-catégorie --</option>
                 {subcategories.map((subcategory, index) => (
                     <option key={index} value={subcategory._id} >
-                        {subcategory.nomcategorie} {/* Ajustez selon la structure des sous-catégories */}
+                        {subcategory.nomcategorie} {/* Ajustement selon la structure des sous-catégories */}
                     </option>
                 ))}
             </select>
