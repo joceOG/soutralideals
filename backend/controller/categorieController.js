@@ -97,11 +97,14 @@ router.post('/categorie', upload.single('imagecategorie'), async (req, res) => {
 router.get('/categorie', async (req, res) => {
     try {
         const categories = await Categorie.find().populate('groupe'); // Populer le groupe si nécessaire
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST');
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 // Obtenir une catégorie par ID
 router.get('/categorie/:id', async (req, res) => {
