@@ -84,6 +84,7 @@ export const createCategory = async (req, res) => {
 export const getAllCategories = async (req, res) => {
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
         const categories = await categorieModel
         .find({})
         .populate({
@@ -101,11 +102,17 @@ export const getAllCategories = async (req, res) => {
 =======
         const categories = await categorieModel.find({}).populate('groupe');
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+        const categories = await Categorie.find().populate('groupe'); // Populer le groupe si nécessaire
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST');
+>>>>>>> 8327079 (get update)
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
+
 
 // Obtenir une catégorie par ID
 export const getCategoryById = async (req, res) => {
