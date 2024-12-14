@@ -5,14 +5,17 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnBodyOptions } from 'primereact/column';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ModalInfo from './ModalInfo';
 
 export interface IPrestataireData {
   _id?: string;
   idUtilisateur: string;
-  cni: string;
-  selfie: string;
+  cni1: { data: string }; // CNI 1 with data buffer
+  cni2: { data: string }; // CNI 2 with data buffer
+  selfie: string; // Selfie URL or base64 string
   verifier: boolean;
   idservice: string;
   nomservice: string;
@@ -31,7 +34,8 @@ const PrestataireComponent: React.FC = () => {
   const [selectedPrestataire, setSelectedPrestataire] = useState<IPrestataireData | null>(null);
   const [formData, setFormData] = useState<IPrestataireData>({
     idUtilisateur: '',
-    cni: '',
+    cni1: { data: '' },
+    cni2: { data: '' },
     selfie: '',
     verifier: false,
     idservice: '',
@@ -40,8 +44,11 @@ const PrestataireComponent: React.FC = () => {
     localisation: '',
     note: ''
   });
-  const [cniFile, setCniFile] = useState<File | null>(null);
+  const [cni1File, setCni1File] = useState<File | null>(null);
+  const [cni2File, setCni2File] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [infoModalOpen, setInfoModalOpen] = useState<boolean>(false);
+  const [modalCniData, setModalCniData] = useState<any>(null); // State to store CNI data
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +82,8 @@ const PrestataireComponent: React.FC = () => {
   const onEdit = (rowData: IPrestataireData) => {
     setSelectedPrestataire(rowData);
     setFormData(rowData);
-    setCniFile(null);
+    setCni1File(null);
+    setCni2File(null);
     setSelfieFile(null);
     setModalOpen(true);
   };
@@ -84,7 +92,8 @@ const PrestataireComponent: React.FC = () => {
     setSelectedPrestataire(null);
     setFormData({
       idUtilisateur: '',
-      cni: '',
+      cni1: { data: '' },
+      cni2: { data: '' },
       selfie: '',
       verifier: false,
       idservice: '',
@@ -93,15 +102,18 @@ const PrestataireComponent: React.FC = () => {
       localisation: '',
       note: ''
     });
-    setCniFile(null);
+    setCni1File(null);
+    setCni2File(null);
     setSelfieFile(null);
     setModalOpen(true);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cni' | 'selfie') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cni1' | 'cni2' | 'selfie') => {
     if (e.target.files && e.target.files[0]) {
-      if (type === 'cni') {
-        setCniFile(e.target.files[0]);
+      if (type === 'cni1') {
+        setCni1File(e.target.files[0]);
+      } else if (type === 'cni2') {
+        setCni2File(e.target.files[0]);
       } else {
         setSelfieFile(e.target.files[0]);
       }
@@ -109,47 +121,48 @@ const PrestataireComponent: React.FC = () => {
   };
 
   const handleSave = async () => {
-  try {
-    // Détermine si c'est une mise à jour ou une création
-    const isUpdate = Boolean(selectedPrestataire?._id);
+    try {
+      const isUpdate = Boolean(selectedPrestataire?._id);
+      const url = isUpdate
+        ? `http://localhost:3000/api/prestataire/${selectedPrestataire?._id}`
+        : 'http://localhost:3000/api/prestataire';
+      const method = isUpdate ? 'put' : 'post';
+      const formDataToSend = new FormData();
+      formDataToSend.append('idUtilisateur', formData.idUtilisateur);
+      formDataToSend.append('nomservice', formData.nomservice);
+      formDataToSend.append('prixmoyen', formData.prixmoyen.toString());
+      formDataToSend.append('localisation', formData.localisation);
+      formDataToSend.append('note', formData.note);
+      formDataToSend.append('verifier', formData.verifier.toString());
 
-    // Construire l'URL et la méthode en fonction de l'action
-    const url = isUpdate
-      ? `http://localhost:3000/api/prestataire/${selectedPrestataire?._id}`
-      : 'http://localhost:3000/api/prestataire';
-    const method = isUpdate ? 'put' : 'post';
+      if (cni1File) formDataToSend.append('cni1', cni1File);
+      if (cni2File) formDataToSend.append('cni2', cni2File);
+      if (selfieFile) formDataToSend.append('selfie', selfieFile);
 
-    // Préparation des données du formulaire
-    const payload = { ...formData };
+      const response = await axios({
+        method,
+        url,
+        data: formDataToSend,
+      });
 
-    // Appel API
-    const response = await axios({
-      method,
-      url,
-      data: payload,
-    });
+      if (isUpdate) {
+        setPrestataires((prev) =>
+          prev.map((item) =>
+            item._id === selectedPrestataire?._id ? response.data : item
+          )
+        );
+        toast.success('Prestataire mis à jour avec succès !');
+      } else {
+        setPrestataires((prev) => [...prev, response.data]);
+        toast.success('Nouveau prestataire ajouté avec succès !');
+      }
 
-    // Mise à jour du state local
-    if (isUpdate) {
-      setPrestataires((prev) =>
-        prev.map((item) =>
-          item._id === selectedPrestataire?._id ? response.data : item
-        )
-      );
-      toast.success('Prestataire mis à jour avec succès !');
-    } else {
-      setPrestataires((prev) => [...prev, response.data]);
-      toast.success('Nouveau prestataire ajouté avec succès !');
+      setModalOpen(false);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('Erreur lors de la sauvegarde du prestataire.');
     }
-
-    setModalOpen(false);
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde:', error);
-    toast.error('Erreur lors de la sauvegarde du prestataire.');
-  }
-};
-
-  
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -196,69 +209,38 @@ const PrestataireComponent: React.FC = () => {
       >
         <EditIcon />
       </IconButton>
+      <IconButton
+        className='mr-2'
+        aria-label="info"
+        color="default"
+        size="large"
+        onClick={() => {
+          setModalCniData({ cni1: rowData.cni1, cni2: rowData.cni2, selfie: rowData.selfie });
+          setInfoModalOpen(true);
+        }}
+      >
+        <AddIcon />
+      </IconButton>
     </React.Fragment>
   );
 
   return (
-    <div>
+    <>
       <ToastContainer />
-      <Typography variant="h4" gutterBottom>
-        Prestataires
-      </Typography>
-      <Typography variant="body1">
-        Liste des prestataires
-      </Typography>
-
-      <Box sx={{ mt: 2, mb: 2 }}>
-        <div className="datatable-doc-demo">
-          <DataTable
-            value={prestataires}
-            paginator
-            showGridlines
-            rows={10}
-            loading={loading}
-            dataKey="_id"
-            filters={filters}
-            globalFilterFields={['nomservice', 'localisation', 'idUtilisateur']}
-            header={renderHeader()}
-            emptyMessage="Aucun prestataire trouvé"
-            onFilter={(e) => setFilters(e.filters)}
-          >
-            <Column header="#" body={rowIndexTemplate} />
-            <Column field="idUtilisateur" header="ID Utilisateur" sortable />
-            <Column field="nomservice" header="Service" sortable />
-            <Column field="prixmoyen" header="Prix Moyen" sortable />
-            <Column field="localisation" header="Localisation" sortable />
-            <Column field="note" header="Note" sortable />
-            <Column header="Vérification" body={verificationTemplate} sortable field="verifier" />
-            <Column header="Actions" body={actionTemplate} />
-          </DataTable>
-        </div>
-      </Box>
+      <DataTable value={prestataires} paginator rows={10} filters={filters} header={renderHeader()}>
+        <Column field="index" header="#" body={rowIndexTemplate} />
+        <Column field="idservice" header="Service" />
+        <Column field="localisation" header="Localisation" />
+        <Column field="prixmoyen" header="Prix moyen" />
+        <Column field="note" header="Note" />
+        <Column header="Vérification" body={verificationTemplate} />
+        <Column header="Actions" body={actionTemplate} />
+      </DataTable>
 
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
-        <DialogTitle>
-          {selectedPrestataire ? 'Modifier le Prestataire' : 'Ajouter un Nouveau Prestataire'}
-        </DialogTitle>
+        <DialogTitle>{selectedPrestataire ? 'Modifier Prestataire' : 'Ajouter Prestataire'}</DialogTitle>
         <DialogContent>
           <TextField
-            margin="normal"
-            fullWidth
-            label="ID Utilisateur"
-            name="idUtilisateur"
-            value={formData.idUtilisateur}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
-            label="ID Service"
-            name="idservice"
-            value={formData.idservice}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="normal"
             fullWidth
             label="Nom du Service"
             name="nomservice"
@@ -266,16 +248,14 @@ const PrestataireComponent: React.FC = () => {
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
             fullWidth
-            label="Prix Moyen"
+            label="Prix moyen"
             name="prixmoyen"
             type="number"
             value={formData.prixmoyen}
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
             fullWidth
             label="Localisation"
             name="localisation"
@@ -283,51 +263,37 @@ const PrestataireComponent: React.FC = () => {
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
             fullWidth
             label="Note"
             name="note"
             value={formData.note}
             onChange={handleChange}
           />
+          <TextField
+            fullWidth
+            label="Utilisateur ID"
+            name="idUtilisateur"
+            value={formData.idUtilisateur}
+            onChange={handleChange}
+          />
+
           <div>
-            <Typography variant="subtitle1">CNI</Typography>
-            <input
-              type="file"
-              onChange={(e) => handleFileChange(e, 'cni')}
-              accept="image/*"
-            />
-          </div>
-          <div>
-            <Typography variant="subtitle1">Selfie</Typography>
-            <input
-              type="file"
-              onChange={(e) => handleFileChange(e, 'selfie')}
-              accept="image/*"
-            />
-          </div>
-          <div>
-            <label>
-              <input
-                type="checkbox"
-                name="verifier"
-                checked={formData.verifier}
-                onChange={handleChange}
-              />
-              Vérifié
-            </label>
+            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'cni1')} />
+            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'cni2')} />
+            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'selfie')} />
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalOpen(false)} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={handleSave} color="primary">
-            {selectedPrestataire ? 'Enregistrer' : 'Ajouter'}
+          <Button onClick={() => setModalOpen(false)}>Annuler</Button>
+          <Button onClick={handleSave} variant="contained" color="primary">
+            Sauvegarder
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+
+      {/* Modal for displaying CNI Data */}
+      <ModalInfo open={infoModalOpen} onClose={() => setInfoModalOpen(false)} modalData={modalCniData} />
+    </>
   );
 };
 

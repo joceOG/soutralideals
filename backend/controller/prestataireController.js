@@ -45,10 +45,31 @@ export const createPrestataire = async (req, res) => {
 };
 
 // Obtenir tous les prestataires
+
 export const getAllPrestataires = async (req, res) => {
     try {
+        // Récupérer tous les prestataires depuis la base de données
         const prestataires = await prestataireModel.find();
-        res.status(200).json(prestataires);
+
+        // Vérifier si des prestataires ont été trouvés
+        if (!prestataires || prestataires.length === 0) {
+            return res.status(404).json({ message: "Aucun prestataire trouvé." });
+        }
+
+        // Ajouter les images en base64 à chaque prestataire
+        const prestatairesWithImagesBase64 = prestataires.map(prestataire => {
+            const imagesBase64 = prestataire.getImagesBase64(); 
+
+            return {
+                ...prestataire.toObject(), 
+                cni1: imagesBase64.cni1, // Ajouter cni1 en base64
+                cni2: imagesBase64.cni2, 
+                selfie: imagesBase64.selfie, 
+            };
+        });
+
+        // Renvoyer la réponse avec les prestataires et leurs images en base64
+        res.status(200).json(prestatairesWithImagesBase64);
     } catch (err) {
         console.error("Erreur lors de la récupération des prestataires:", err);
         res.status(500).json({ error: "Impossible de récupérer les prestataires." });
