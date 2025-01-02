@@ -7,7 +7,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.3",
     "@mui/material": "^5.14.18",
-    "@mui/styles": "^5.15.11",
+    "@mui/styles": "^6.1.7",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -29,6 +29,7 @@
     "react-scripts": "5.0.1",
     "react-slick": "^0.30.2",
     "react-toastify": "^10.0.5",
+    "recharts": "^2.13.3",
     "rsuite": "^5.51.0",
     "slick-carousel": "^1.8.1",
     "styled-components": "^6.1.6",
@@ -60,6 +61,6 @@
     ]
   },
   "devDependencies": {
-    "ajv": "^7.2.4"
+    "ajv": "^8.17.1"
   }
 }

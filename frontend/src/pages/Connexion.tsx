@@ -10,21 +10,50 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import axios from 'axios'
 
 
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
+// Erreur et Succès
+
+
 const Connexion: React.FC = () => {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const [error, setError] = React.useState('');
+const [success, setSuccess] = React.useState('');
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+        // console.log({
+        //     email: data.get('email'),
+        //     password: data.get('password'),
+        // });
+        setError("");
+        setSuccess("");
+        let email=data.get('email')
+        let password=data.get('password')
+
+        try {
+            const response = await axios.post("http://localhost:8080/api/login", {
+                email,
+                password,
+            });
+            setSuccess("Login successful! Token: " + response.data.token);
+        } catch (err) {
+            // if (err.response) {
+            //     setError(err.response.data.error);
+            // } else {
+                setError("An unexpected error occurred.");
+            // }
+        }
     };
+
+
+
+  
+
 
     return (
         <ThemeProvider theme={defaultTheme}>
@@ -90,6 +119,8 @@ const Connexion: React.FC = () => {
                                 </Link>
                             </Grid>
                         </Grid>
+                        {error && <p style={{ color: "red" }}>{error}</p>}
+                        {success && <p style={{ color: "green" }}>{success}</p>}
                     </Box>
                 </Box>
             </Container>

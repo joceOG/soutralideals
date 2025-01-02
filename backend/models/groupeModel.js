@@ -1,7 +1,17 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const GroupeSchema = mongoose.Schema({
-    nomgroupe: { type: String, required: true },
+    nomgroupe: 
+    { type: String,
+         required: true },
 });
 
-module.exports = mongoose.model('Groupe', GroupeSchema); 
+GroupeSchema.virtual('categories', {
+    ref: 'Categorie',       
+    localField: '_id',       
+    foreignField: 'groupe'    
+});
+
+const groupeModel = mongoose.model('Groupe', GroupeSchema); 
+
+export default groupeModel;
