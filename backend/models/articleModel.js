@@ -1,11 +1,22 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const ArticleSchema = new mongoose.Schema({
-    nomArticle: { type: String, required: true },
-    prixArticle: { type: String, required: true },
-    quantiteArticle: { type: Number, required: true },
-    photoArticle: { type: String },
-    categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie' }, // Reference to Categorie model
+    nomArticle: 
+    { type: String, required: true },
+    prixArticle: 
+    { type: String, required: true },
+    quantiteArticle:
+     { type: Number, required: true },
+    photoArticle: { type: String ,
+        required:true,
+    },
+    categorie:
+     { type: mongoose.Schema.Types.ObjectId,
+        required:true,
+         ref: 'Categorie' }, 
 });
 
-module.exports = mongoose.model('Article', ArticleSchema);
+const articleModel = mongoose.model('Article', ArticleSchema);
+
+
+export default articleModel

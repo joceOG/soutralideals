@@ -1,18 +1,21 @@
 
-const authController = require("../controller/authController");
-const userController = require("../controller/utilisateurController");
+import * as controller from '../controller/authController.js'
+import {Router} from  "express"
+import  multer from "multer"
+// const userController = require("../controller/utilisateurController");
+import * as userController from '../controller/utilisateurController.js'
 
-const router = require("express").Router();
+const router = Router()
 
 
 
 const upload = multer({ dest: 'uploads/' });
-router.post("/register", authController.signUp);
-router.post("/login", authController.signIn);
-router.get("/logout", authController.logout);
+
+router.post("/register", controller.signUp);
+router.post("/login", controller.signIn);
+router.get("/logout", controller.logout);
+
+router.get("/utilisateurs", userController.getAllUsers);
 
 
-router.get("/allUser", userController.getAllUser);
-router.get("/:id", userController.userInfo);
-
-module.exports = router; 
+export default router;

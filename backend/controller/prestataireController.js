@@ -1,88 +1,292 @@
-const express = require('express');
-const router = express.Router();
-const Prestataire = require('../models/prestataireModel');
+import prestataireModel from "../models/prestataireModel.js";
 
 // Créer un nouveau prestataire
-router.post('/prestataire', async (req, res) => {
+export const createPrestataire = async (req, res) => {
     try {
-        const { idUtilisateur, cni, selfie, verifier, idservice, nomservice, prixmoyen, localisation, note } = req.body;
-        const newPrestataire = new Prestataire({
+        const {
             idUtilisateur,
-            cni: Buffer.from(cni, 'base64'),  // Assuming cni and selfie are base64 encoded strings
-            selfie: Buffer.from(selfie, 'base64'),
+            cni,
+            selfie,
             verifier,
             idservice,
             nomservice,
             prixmoyen,
             localisation,
-            note
+            note,
+        } = req.body;
+
+        // Validation des données
+        if (!idUtilisateur) {
+            return res.status(400).json({ error: "idUtilisateur est obligatoire." });
+        }
+
+        // Conversion des champs en base64 si présents
+        const cniBuffer = cni ? Buffer.from(cni, "base64") : undefined;
+        const selfieBuffer = selfie ? Buffer.from(selfie, "base64") : undefined;
+
+        const newPrestataire = new prestataireModel({
+            idUtilisateur,
+            cni: cniBuffer,
+            selfie: selfieBuffer,
+            verifier,
+            idservice,
+            nomservice,
+            prixmoyen,
+            localisation,
+            note,
         });
+
         await newPrestataire.save();
         res.status(201).json(newPrestataire);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Erreur lors de la création du prestataire:", err);
+        res.status(500).json({ error: "Une erreur est survenue lors de la création du prestataire." });
     }
-});
+};
 
 // Obtenir tous les prestataires
-router.get('/prestataire', async (req, res) => {
+export const getAllPrestataires = async (req, res) => {
     try {
-        const prestataires = await Prestataire.find();
+        const prestataires = await prestataireModel.find();
         res.status(200).json(prestataires);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Erreur lors de la récupération des prestataires:", err);
+        res.status(500).json({ error: "Impossible de récupérer les prestataires." });
     }
-});
+};
 
 // Obtenir un prestataire par ID
-router.get('/prestataire/:id', async (req, res) => {
+export const getPrestataireById = async (req, res) => {
     try {
-        const prestataire = await Prestataire.findById(req.params.id);
+        const prestataire = await prestataireModel.findById(req.params.id);
+
         if (!prestataire) {
-            return res.status(404).json({ error: 'Prestataire non trouvé' });
+            return res.status(404).json({ error: "Prestataire non trouvé." });
         }
+
         res.status(200).json(prestataire);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Erreur lors de la récupération du prestataire:", err);
+        res.status(500).json({ error: "Impossible de récupérer le prestataire." });
     }
-});
+};
 
 // Mettre à jour un prestataire par ID
-router.put('/prestataire/:id', async (req, res) => {
+export const updatePrestataire = async (req, res) => {
     try {
-        const { idUtilisateur, cni, selfie, verifier, idservice, nomservice, prixmoyen, localisation, note } = req.body;
-        const prestataire = await Prestataire.findByIdAndUpdate(req.params.id, {
+        const {
             idUtilisateur,
-            cni: cni ? Buffer.from(cni, 'base64') : undefined,
-            selfie: selfie ? Buffer.from(selfie, 'base64') : undefined,
+            cni,
+            selfie,
             verifier,
             idservice,
             nomservice,
             prixmoyen,
             localisation,
-            note
-        }, { new: true });
+            note,
+        } = req.body;
+
+        // Construction de l'objet `updates`
+        const updates = {
+            idUtilisateur,
+            verifier,
+            idservice,
+            nomservice,
+            prixmoyen,
+            localisation,
+            note,
+        };
+
+        if (cni) updates.cni = Buffer.from(cni, "base64");
+        if (selfie) updates.selfie = Buffer.from(selfie, "base64");
+
+        const prestataire = await prestataireModel.findByIdAndUpdate(
+            req.params.id,
+            updates,
+            { new: true, runValidators: true } // Retourne l'objet mis à jour
+        );
 
         if (!prestataire) {
-            return res.status(404).json({ error: 'Prestataire non trouvé' });
+            return res.status(404).json({ error: "Prestataire non trouvé." });
         }
+
         res.status(200).json(prestataire);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Erreur lors de la mise à jour du prestataire:", err);
+        res.status(500).json({ error: "Impossible de mettre à jour le prestataire." });
     }
-});
+};
 
 // Supprimer un prestataire par ID
-router.delete('/prestataire/:id', async (req, res) => {
+export const deletePrestataire = async (req, res) => {
     try {
-        const prestataire = await Prestataire.findByIdAndDelete(req.params.id);
+        const prestataire = await prestataireModel.findByIdAndDelete(req.params.id);
+
         if (!prestataire) {
-            return res.status(404).json({ error: 'Prestataire non trouvé' });
+            return res.status(404).json({ error: "Prestataire non trouvé." });
         }
-        res.status(200).json({ message: 'Prestataire supprimé avec succès' });
+
+        res.status(200).json({ message: "Prestataire supprimé avec succès." });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Erreur lors de la suppression du prestataire:", err);
+        res.status(500).json({ error: "Impossible de supprimer le prestataire." });
     }
-});
- 
-module.exports = router;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import prestataireModel from "../models/prestataireModel.js";
+
+// // Créer un nouveau prestataire
+// export const createPrestataire = async (req, res) => {
+//     try {
+//         const {
+//             idUtilisateur,
+//             cni,
+//             selfie,
+//             verifier,
+//             idservice,
+//             nomservice,
+//             prixmoyen,
+//             localisation,
+//             note,
+//         } = req.body;
+
+//         if (!idUtilisateur) {
+//             return res.status(400).send("idUtilisateur est obligatoire.");
+//         }
+
+//         const cniBuffer = cni ? Buffer.from(cni, "base64") : undefined;
+//         const selfieBuffer = selfie ? Buffer.from(selfie, "base64") : undefined;
+
+//         const newPrestataire = new prestataireModel({
+//             idUtilisateur,
+//             cni: cniBuffer,
+//             selfie: selfieBuffer,
+//             verifier,
+//             idservice,
+//             nomservice,
+//             prixmoyen,
+//             localisation,
+//             note,
+//         });
+
+//         await newPrestataire.save();
+//         res.status(201).send(newPrestataire);
+//     } catch (err) {
+//         console.error("Erreur lors de la création du prestataire:", err);
+//         res.status(500).send("Une erreur est survenue lors de la création du prestataire.");
+//     }
+// };
+
+// // Obtenir tous les prestataires
+// export const getAllPrestataires = async (req, res) => {
+//     try {
+//         const prestataires = await prestataireModel.find();
+//         res.status(200).send(prestataires);
+//     } catch (err) {
+//         console.error("Erreur lors de la récupération des prestataires:", err);
+//         res.status(500).send("Impossible de récupérer les prestataires.");
+//     }
+// };
+
+// // Obtenir un prestataire par ID
+// export const getPrestataireById = async (req, res) => {
+//     try {
+//         const prestataire = await prestataireModel.findById(req.params.id);
+
+//         if (!prestataire) {
+//             return res.status(404).send("Prestataire non trouvé.");
+//         }
+
+//         res.status(200).send(prestataire);
+//     } catch (err) {
+//         console.error("Erreur lors de la récupération du prestataire:", err);
+//         res.status(500).send("Impossible de récupérer le prestataire.");
+//     }
+// };
+
+// // Mettre à jour un prestataire par ID
+// export const updatePrestataire = async (req, res) => {
+//     try {
+//         const {
+//             idUtilisateur,
+//             cni,
+//             selfie,
+//             verifier,
+//             idservice,
+//             nomservice,
+//             prixmoyen,
+//             localisation,
+//             note,
+//         } = req.body;
+
+//         const updates = {
+//             idUtilisateur,
+//             verifier,
+//             idservice,
+//             nomservice,
+//             prixmoyen,
+//             localisation,
+//             note,
+//         };
+
+//         if (cni) updates.cni = Buffer.from(cni, "base64");
+//         if (selfie) updates.selfie = Buffer.from(selfie, "base64");
+
+//         const prestataire = await prestataireModel.findByIdAndUpdate(
+//             req.params.id,
+//             updates,
+//             { new: true, runValidators: true }
+//         );
+
+//         if (!prestataire) {
+//             return res.status(404).send("Prestataire non trouvé.");
+//         }
+
+//         res.status(200).send(prestataire);
+//     } catch (err) {
+//         console.error("Erreur lors de la mise à jour du prestataire:", err);
+//         res.status(500).send("Impossible de mettre à jour le prestataire.");
+//     }
+// };
+
+// // Supprimer un prestataire par ID
+// export const deletePrestataire = async (req, res) => {
+//     try {
+//         const prestataire = await prestataireModel.findByIdAndDelete(req.params.id);
+
+//         if (!prestataire) {
+//             return res.status(404).send("Prestataire non trouvé.");
+//         }
+
+//         res.status(200).send("Prestataire supprimé avec succès.");
+//     } catch (err) {
+//         console.error("Erreur lors de la suppression du prestataire:", err);
+//         res.status(500).send("Impossible de supprimer le prestataire.");
+//     }
+// };
