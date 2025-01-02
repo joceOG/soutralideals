@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  TextField, 
-  Dialog, 
-  DialogActions, 
-  DialogContent, 
-  DialogTitle, 
-  IconButton, 
-  MenuItem, 
-  Snackbar, 
-  Alert 
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
+  Snackbar,
+  Alert,
 } from '@mui/material';
-import { toast, ToastContainer } from 'react-toastify';
-import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
@@ -25,8 +23,9 @@ import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
+import { styled } from '@mui/material/styles';
 
-// Styled components for table cells and rows
+// Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,
@@ -46,9 +45,8 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-// Interface for Item
 interface Item {
-  _id: string; 
+  _id: string;
   nomArticle: string;
   prixArticle: string;
   quantiteArticle: number;
@@ -71,8 +69,8 @@ const Article: React.FC = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [categorie, setCategorie] = useState<Option[]>([]);
-  const [selectedCategorie, setSelectedCategorie] = useState<string | ''>('');
-  const [newArticle, setNewArticle] = useState<Omit<Item, 'photoArticle' | 'categorie'>>({
+  const [selectedCategorie, setSelectedCategorie] = useState<string>('');
+  const [newArticle, setNewArticle] = useState<Omit<Item, 'photoArticle'>>({
     _id: '',
     nomArticle: '',
     prixArticle: '',
@@ -80,49 +78,34 @@ const Article: React.FC = () => {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [currentArticle, setCurrentArticle] = useState<Omit<Item, 'photoArticle' | 'categorie'>>({
+  const [currentArticle, setCurrentArticle] = useState<Omit<Item, 'photoArticle'>>({
     _id: '',
     nomArticle: '',
     prixArticle: '',
     quantiteArticle: 0,
   });
 
+  // Fetch articles and categories
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/articles', { 
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        setArticles(response.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+        const articleResponse = await axios.get('http://localhost:3000/api/articles');
+        setArticles(articleResponse.data);
 
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/categorie');
-        const options = response.data.map((cat: any) => ({
+        const categorieResponse = await axios.get('http://localhost:3000/api/categorie');
+        const options = categorieResponse.data.map((cat: any) => ({
           label: cat.nomcategorie,
           value: cat._id,
         }));
         setCategorie(options);
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching data:', error);
       }
     };
-    fetchCategories();
+    fetchData();
   }, []);
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleClickOpen = () => setOpen(true);
 
   const handleClose = () => {
     setOpen(false);
@@ -134,62 +117,52 @@ const Article: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (isEditMode) {
-      setCurrentArticle({ ...currentArticle, [name]: value });
-    } else {
-      setNewArticle({ ...newArticle, [name]: value });
-    }
+    const articleData = isEditMode ? currentArticle : newArticle;
+    const updatedData = { ...articleData, [name]: value };
+
+    if (isEditMode) setCurrentArticle(updatedData);
+    else setNewArticle(updatedData);
   };
 
   const handleSubmit = async () => {
-    const formData = new FormData();
     const articleData = isEditMode ? currentArticle : newArticle;
+    const formData = new FormData();
 
     formData.append('nomArticle', articleData.nomArticle);
     formData.append('prixArticle', articleData.prixArticle);
     formData.append('quantiteArticle', articleData.quantiteArticle.toString());
-    formData.append('categorie', selectedCategorie || '');
+    formData.append('categorie', selectedCategorie);
 
-    if (selectedFile) {
-      formData.append('photoArticle', selectedFile);
-    }
+    if (selectedFile) formData.append('photoArticle', selectedFile);
+
+
+    const url = isEditMode
+      ? `http://localhost:3000/api/article/${currentArticle._id}`
+      : 'http://localhost:3000/api/article';
+
+    const method = isEditMode ? 'put':'post';
 
     try {
-      let response;
-      if (isEditMode) {
-        response = await axios.put(`http://localhost:3000/api/article/${currentArticle._id}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        toast.success('Service mis à jour avec succès!');
-      } else {
-        response = await axios.post('http://localhost:3000/api/article', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        toast.success('Service créé avec succès!');
-      }
+      const response = await axios({
+        method,
+        url,
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-      if (response.status === 200 || response.status === 201) {
-        const updatedArticle = response.data;
-        if (isEditMode) {
-          setArticles(articles.map(item => item._id === updatedArticle._id ? updatedArticle : item));
-        } else {
-          setArticles([...articles, updatedArticle]);
-        }
-        handleClose();
-        setAlertMessage(isEditMode ? 'Article mis à jour avec succès' : 'Article ajouté avec succès');
-        setOpenSnackbar(true);
-      } else {
-        setAlertMessage('Échec de l\'ajout de l\'article');
-        setOpenSnackbar(true);
-      }
+      const updatedArticle = response.data;
+      const updatedArticles = isEditMode
+        ? articles.map((item) => (item._id === updatedArticle._id ? updatedArticle : item))
+        : [...articles, updatedArticle];
+
+      setArticles(updatedArticles);
+      setAlertMessage(isEditMode ? 'Article mis à jour avec succès' : 'Article ajouté avec succès');
     } catch (error) {
-      console.error('Error saving article:', error);
+      console.error('Erreur lors de la sauvegarde de l\'article:', error);
       setAlertMessage('Erreur lors de la sauvegarde de l\'article');
+    } finally {
       setOpenSnackbar(true);
+      handleClose();
     }
   };
 
@@ -197,12 +170,12 @@ const Article: React.FC = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
       try {
         await axios.delete(`http://localhost:3000/api/article/${id}`);
+        setArticles(articles.filter((item) => item._id !== id));
         setAlertMessage('Article supprimé avec succès');
-        setOpenSnackbar(true);
-        setArticles(articles.filter((item: { _id: string; }) => item._id !== id));
       } catch (error) {
         console.error('Failed to delete article:', error);
         setAlertMessage('Échec de la suppression de l\'article');
+      } finally {
         setOpenSnackbar(true);
       }
     }
@@ -215,19 +188,16 @@ const Article: React.FC = () => {
       prixArticle: article.prixArticle,
       quantiteArticle: article.quantiteArticle,
     });
-    setSelectedCategorie(article.categorie?._id || '');
+    setSelectedCategorie(article?.categorie?._id || '');
     setSelectedFile(null);
     setIsEditMode(true);
-    setOpen(true); // Open the modal
+    setOpen(true);
   };
 
   return (
     <div>
       <Typography variant="h4" gutterBottom>
         Articles
-      </Typography>
-      <Typography variant="body1">
-        Liste des Articles
       </Typography>
       <Box sx={{ mt: 2, mb: 2 }}>
         <Button variant="contained" color="primary" onClick={handleClickOpen}>
@@ -249,14 +219,16 @@ const Article: React.FC = () => {
             <TableBody>
               {articles.map((item, index) => (
                 <StyledTableRow key={item._id}>
-                  <StyledTableCell component="th" scope="row">
-                    {index + 1}
-                  </StyledTableCell>
+                  <StyledTableCell>{index + 1}</StyledTableCell>
                   <StyledTableCell>{item.nomArticle}</StyledTableCell>
                   <StyledTableCell>{item.prixArticle}</StyledTableCell>
                   <StyledTableCell>{item.quantiteArticle}</StyledTableCell>
                   <StyledTableCell>
-                    {item.photoArticle ? <img src={item.photoArticle} alt={item.nomArticle} width={50} /> : 'No Image'}
+                    {item.photoArticle ? (
+                      <img src={item.photoArticle} alt={item.nomArticle} width={50} />
+                    ) : (
+                      'No Image'
+                    )}
                   </StyledTableCell>
                   <StyledTableCell>{item.categorie?.nomcategorie || 'N/A'}</StyledTableCell>
                   <StyledTableCell>
@@ -281,7 +253,6 @@ const Article: React.FC = () => {
             autoFocus
             margin="dense"
             label="Nom Article"
-            type="text"
             fullWidth
             variant="standard"
             name="nomArticle"
@@ -291,7 +262,6 @@ const Article: React.FC = () => {
           <TextField
             margin="dense"
             label="Prix Article"
-            type="text"
             fullWidth
             variant="standard"
             name="prixArticle"
@@ -301,50 +271,64 @@ const Article: React.FC = () => {
           <TextField
             margin="dense"
             label="Quantité Article"
-            type="number"
             fullWidth
             variant="standard"
+            type="number"
             name="quantiteArticle"
             value={isEditMode ? currentArticle.quantiteArticle : newArticle.quantiteArticle}
             onChange={handleInputChange}
           />
           <TextField
-            select
+            margin="dense"
             label="Catégorie"
+            select
+            fullWidth
             value={selectedCategorie}
             onChange={(e) => setSelectedCategorie(e.target.value)}
-            fullWidth
-            margin="dense"
           >
             {categorie.map((cat) => (
-              <MenuItem key={cat._id} value={cat._id}>
+              <MenuItem key={cat.value} value={cat.value}>
                 {cat.label}
               </MenuItem>
             ))}
           </TextField>
           <Button
-            variant="contained"
+            variant="outlined"
             component="label"
             sx={{ mt: 2 }}
           >
-            Upload File
+            {selectedFile ? 'Changer La Photo' : 'Télécharger Une Photo'}
             <input
               type="file"
+              accept="image/*"
               hidden
-              onChange={(e) => setSelectedFile(e.target.files![0])}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setSelectedFile(e.target.files[0]);
+                }
+              }}
             />
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Annuler</Button>
+          <Button onClick={handleClose} color="secondary">
+            Annuler
+          </Button>
           <Button onClick={handleSubmit} color="primary">
             {isEditMode ? 'Mettre à jour' : 'Ajouter'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
-        <Alert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }}>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={alertMessage.includes('succès') ? 'success' : 'error'}
+        >
           {alertMessage}
         </Alert>
       </Snackbar>
