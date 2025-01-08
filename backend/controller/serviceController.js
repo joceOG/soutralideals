@@ -86,12 +86,7 @@ export const updateService = async (req, res) => {
 // Obtenir tous les services
 export const getAllServices = async (req, res) => {
     try {
-        const services = await Service.find().populate({
-            path: "categorie",
-            populate: {
-                path: "groupe",
-            },
-        }); // Populate categorie and groupe if necessary
+        const services = await Service.find({}).populate('categorie');
         res.json(services);
     } catch (err) {
         console.error(err);
