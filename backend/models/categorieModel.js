@@ -16,14 +16,19 @@ const CategorieSchema = mongoose.Schema({
 });
 
 
-   // Virtual
-CategorieSchema.virtual('articles', {
+   // Virtual Categories
+   CategorieSchema.virtual('articles', {
     ref: 'Article',       
     localField: '_id',       
     foreignField: 'categorie'    
 })
-
 ;
+   // Virtual Services
+   CategorieSchema.virtual('services', {
+    ref: 'Service',       
+    localField: '_id',       
+    foreignField: 'categorie'    
+});
 
 
 const categorieModel = mongoose.model("Categorie", CategorieSchema);

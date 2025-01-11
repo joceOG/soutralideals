@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 const GroupeSchema = mongoose.Schema({
     nomgroupe: 
     { type: String,
+        trim:true,
          required: true },
 });
 
