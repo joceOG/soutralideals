@@ -1,28 +1,29 @@
-
-
 import React, { useEffect, useState } from 'react';
-import { Box, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, MenuItem } from '@mui/material';
+import { Box, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
 import axios from 'axios';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnBodyOptions } from 'primereact/column';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { imagefrombuffer } from "imagefrombuffer";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export interface Item {
-    _id?: string;
+    _id: string;
     nomcategorie: string;
-    imagecategorie?: string; // Optional field
+    imagecategorie: { 
+        type: string,
+        data: Uint8Array
+    };
     groupe: { 
-        _id: string;
-        nomgroupe: string;
+        _id: string,
+        nomgroupe: string 
     };
 }
 
 const Categorie: React.FC = () => {
     const [categorie, setCategorie] = useState<Item[]>([]);
-    const [groupes, setGroupes] = useState<{ _id: string; nomgroupe: string }[]>([]);
     const [globalFilter, setGlobalFilter] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [filters, setFilters] = useState<DataTableFilterMeta>({
@@ -30,23 +31,20 @@ const Categorie: React.FC = () => {
     });
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [selectedCategory, setSelectedCategory] = useState<Item | null>(null);
-    const [formData, setFormData] = useState<Partial<Item>>({
+    const [formData, setFormData] = useState<Item>({
+        _id: '',
         nomcategorie: '',
-        imagecategorie: '',
+        imagecategorie: { type: '', data: new Uint8Array() },
         groupe: { _id: '', nomgroupe: '' },
     });
-    const [file, setFile] = useState<File | null>(null); // Separate state for file input
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const categorieResponse = await axios.get('http://localhost:3000/api/categorie');
-                setCategorie(categorieResponse.data);
-
-                const groupesResponse = await axios.get('http://localhost:3000/api/groupe');
-                setGroupes(groupesResponse.data);
+                const response = await axios.get('http://localhost:3000/api/categorie');
+                setCategorie(response.data);
             } catch (error) {
-                console.error('Erreur lors de la récupération des données:', error);
+                console.log(error);
             } finally {
                 setLoading(false);
             }
@@ -57,10 +55,15 @@ const Categorie: React.FC = () => {
 
     const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        setFilters({
-            ...filters,
-            'global': { value, matchMode: 'contains' }
-        });
+        let _filters = { ...filters };
+
+        if (_filters['global'] && 'value' in _filters['global']) {
+            _filters['global'].value = value;
+        } else {
+            _filters['global'] = { value, matchMode: 'contains' };
+        }
+
+        setFilters(_filters);
         setGlobalFilter(value);
     };
 
@@ -79,115 +82,51 @@ const Categorie: React.FC = () => {
 
     const onEdit = (rowData: Item) => {
         setSelectedCategory(rowData);
-        setFormData({
-            nomcategorie: rowData.nomcategorie,
-            imagecategorie: rowData.imagecategorie,
-            groupe: rowData.groupe,
-        });
-        setFile(null); // Reset file state when editing a category
+        setFormData(rowData);
         setModalOpen(true);
     };
 
     const onAdd = () => {
         setSelectedCategory(null);
         setFormData({
+            _id: '',
             nomcategorie: '',
-            imagecategorie: '',
+            imagecategorie: { type: '', data: new Uint8Array() },
             groupe: { _id: '', nomgroupe: '' },
         });
-        setFile(null); // Reset file state when adding a new category
         setModalOpen(true);
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]); // Save file in the state
-        }
-    };
-
     const handleSave = async () => {
-        // Vérifier que le groupe est sélectionné
-        if (!formData.groupe?._id) {
-            toast.error('Groupe non sélectionné.');
-            return;
+        if (selectedCategory) {
+            // Edit existing category
+            try {
+                const response = await axios.put(`http://localhost:3000/api/categorie/${formData._id}`, formData);
+                setCategorie(prevCategorie => prevCategorie.map(item => item._id === formData._id ? response.data : item));
+                toast.success('Catégorie mise à jour avec succès !');
+            } catch (error) {
+                toast.error('Erreur lors de la mise à jour de la catégorie.');
+                console.error('Erreur lors de la mise à jour de la catégorie:', error);
+            }
+        } else {
+            // Add new category
+            try {
+                const response = await axios.post('http://localhost:3000/api/categorie', formData);
+                setCategorie([...categorie, response.data]);
+                toast.success('Nouvelle catégorie ajoutée avec succès !');
+            } catch (error) {
+                toast.error('Erreur lors de l\'ajout de la catégorie.');
+                console.error('Erreur lors de l\'ajout de la catégorie:', error);
+            }
         }
-    
-        // Préparer les données à envoyer
-        const formDataToSend = new FormData();
-        formDataToSend.append('nomcategorie', formData.nomcategorie || '');
-        formDataToSend.append('groupe', formData.groupe._id);  // Passer seulement le _id
-    
-        // Ajouter l'image si disponible
-        if (file) {
-            formDataToSend.append('imagecategorie', file);
-        }
-    
-        try {
-            // Déterminer l'URL et la méthode en fonction de la présence de selectedCategory
-            const url = selectedCategory
-                ? `http://localhost:3000/api/categorie/${selectedCategory._id}`
-                : 'http://localhost:3000/api/categorie';
-            const method = selectedCategory ? 'put' : 'post';
-    
-            // Envoyer la requête avec Axios
-            const response = await axios({
-                url,
-                method,
-                data: formDataToSend,
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-    
-            // Mettre à jour l'état en fonction de l'opération (mise à jour ou ajout)
-            setCategorie((prevCategorie) => {
-                if (method === 'put' && selectedCategory) {
-                    return prevCategorie.map((item) =>
-                        item._id === selectedCategory._id ? response.data : item
-                    );
-                }
-                return [...prevCategorie, response.data];
-            });
-    
-            // Afficher un message de succès
-            const actionMessage = selectedCategory ? 'Catégorie mise à jour' : 'Nouvelle catégorie ajoutée';
-            toast.success(`${actionMessage} avec succès !`);
-            setModalOpen(false);  // Fermer le modal
-    
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la catégorie:', error);
-            
-            // Gestion des erreurs en cas de réponse d'Axios ou erreur générique
-            const errorMessage = axios.isAxiosError(error) && error.response
-                ? error.response.data.error
-                : 'Erreur lors de la sauvegarde de la catégorie.';
-            
-            toast.error(errorMessage);
-        }
-    };
-        
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-    };
-
-    const handleGroupeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedGroupe = groupes.find(groupe => groupe._id === e.target.value);
-        if (selectedGroupe) {
-            setFormData({
-                ...formData,
-                groupe: { _id: selectedGroupe._id, nomgroupe: selectedGroupe.nomgroupe },
-            });
-        }
+        setModalOpen(false);
     };
 
     const renderHeader = () => (
         <div className="table-header">
             <h5 className="mx-0 my-1">Manage Categories</h5>
             <Button variant="contained" color="primary" onClick={onAdd}>
-                Ajouter Une Nouvelle Catégorie
+                Ajouter Un Nouveau Catégorie
             </Button>
         </div>
     );
@@ -222,18 +161,26 @@ const Categorie: React.FC = () => {
         </React.Fragment>
     );
 
-    const imageTemplate = (rowData: Item) => (
-        <img
-            src={rowData.imagecategorie || 'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
-            alt="Category"
-            style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                objectFit: 'cover',
-            }}
-        />
+    const imageBodyTemplate = (rowData: Item) => (
+        <div>
+            <img 
+                className='imageCategorie' 
+                alt="imagecategorie" 
+                src={imagefrombuffer({
+                    type: rowData.imagecategorie.type,
+                    data: rowData.imagecategorie.data,
+                })}  
+            /> 
+        </div>
     );
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value,
+        });
+    };
 
     return (
         <div>
@@ -256,67 +203,70 @@ const Categorie: React.FC = () => {
                         dataKey="_id"
                         filters={filters} 
                         globalFilterFields={['groupe.nomgroupe', 'nomcategorie', '_id']} 
-                        header={header}
+                          header={header}
                         emptyMessage="Aucune catégorie trouvée" 
                         onFilter={(e) => setFilters(e.filters)}
                     >
-                        <Column header="N°" body={rowIndexTemplate} />
-                        <Column field="nomcategorie" header="Nom Catégorie" />
-                        <Column field="imagecategorie" header="Image Catégorie" body={imageTemplate} />
-                        <Column field="groupe.nomgroupe" header="Groupe" />
-                        <Column body={actionTemplate} header="Actions" />
+                        <Column header="#" body={rowIndexTemplate} />
+                        <Column field="groupe.nomgroupe" header="Groupe" sortable />
+                        <Column field="nomcategorie" header="Catégorie" sortable />
+                        <Column header="Image Catégorie" body={imageBodyTemplate} />  
+                        <Column field="_id" header="Identifiant" sortable />
+                        <Column header="Actions" body={actionTemplate} />
                     </DataTable>
                 </div>
             </Box>
 
+            {/* Modal for Add/Edit Category */}
             <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
-                <DialogTitle>{selectedCategory ? 'Editer Catégorie' : 'Ajouter Catégorie'}</DialogTitle>
+                <DialogTitle>{selectedCategory ? 'Modifier la Catégorie' : 'Ajouter Une Nouvelle Catégorie'}</DialogTitle>
+              
                 <DialogContent>
                     <TextField
                         autoFocus
                         margin="dense"
-                        id="nomcategorie"
                         name="nomcategorie"
-                        label="Nom Catégorie"
+                        label="Nom de la catégorie"
                         type="text"
                         fullWidth
-                        variant="standard"
-                        value={formData.nomcategorie || ''}
+                        value={formData.nomcategorie}
                         onChange={handleChange}
                     />
+                    {/* Add other form fields as needed */}
+                </DialogContent>
+                <DialogContent>
                     <TextField
+                        autoFocus
                         margin="dense"
-                        id="groupe"
-                        select
+                        name="group"
                         label="Groupe"
+                        type="text"
                         fullWidth
-                        variant="standard"
-                        value={formData.groupe?._id || ''}
-                        onChange={handleGroupeChange}
-                    >
-                        {groupes.map((groupe) => (
-                            <MenuItem key={groupe._id} value={groupe._id}>
-                                {groupe.nomgroupe}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    <input
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        id="upload-button"
-                        type="file"
-                        onChange={handleFileChange}
+                        value={formData.groupe}
+                        onChange={handleChange}
                     />
-                    <label htmlFor="upload-button">
-                        <Button variant="contained" color="primary" component="span">
-                            Upload Image
-                        </Button>
-                    </label>
-                    {file && <Typography>Selected file: {file.name}</Typography>}
+                    {/* Add other form fields as needed */}
+                </DialogContent>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        name="image"
+                          label="Image"
+                        type="text"
+                        fullWidth
+                        value={formData.imagecategorie}
+                        onChange={handleChange}
+                    />
+                    {/* Add other form fields as needed */}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setModalOpen(false)}>Annuler</Button>
-                    <Button onClick={handleSave}>Enregistrer</Button>
+                    <Button onClick={() => setModalOpen(false)} color="primary">
+                        Annuler
+                    </Button>
+                    <Button onClick={handleSave} color="primary">
+                        Sauvegarder
+                    </Button>
                 </DialogActions>
             </Dialog>
         </div>

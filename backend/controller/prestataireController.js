@@ -47,7 +47,7 @@ export const createPrestataire = async (req, res) => {
 // Obtenir tous les prestataires
 export const getAllPrestataires = async (req, res) => {
     try {
-        const prestataires = await prestataireModel.find();
+        const prestataires = await prestataireModel.find({});
         res.status(200).json(prestataires);
     } catch (err) {
         console.error("Erreur lors de la récupération des prestataires:", err);
