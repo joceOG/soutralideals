@@ -95,16 +95,45 @@ export const getAllServices = async (req, res) => {
 };
 
 // Obtenir les services par catégorie
-export const getServicesByCategorie = async (req, res) => {
+export const getServicesGroupedByCategorie = async (req, res) => {
     try {
-        const { categorie } = req.params;
-        const servicesByCategorie = await Service.find({ nomcategorie: categorie });
-        res.json(servicesByCategorie);
+        const services = await Service.aggregate([
+            {
+                $lookup: {
+                    from: "categories", 
+                    localField: "categorie",
+                    foreignField: "_id",
+                    as: "categorieData" 
+                }
+            },
+            {
+                $unwind: "$categorieData" 
+            },
+            {
+                $group: {
+                    _id: "$categorieData._id", 
+                    nomcategorie: { $first: "$categorieData.nomcategorie" }, 
+                    imagecategorie: { $first: "$categorieData.imagecategorie" }, 
+                    services: {
+                        $push: {
+                            _id: "$_id",
+                            nomservice: "$nomservice",
+                            imageservice: "$imageservice"
+                        }
+                    }
+                }
+            }
+        ]);
+
+        res.json(services);
+        
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
 };
+
+
 
 // Supprimer un service
 export const deleteService = async (req, res) => {
