@@ -31,7 +31,7 @@ const port = process.env.PORT ;
 
 
 /** routes */
-app.use('/api', router) /** apis utilisateur */
+app.use('/api',router) /** apis utilisateur */
 app.use('/api', groupeRouter);
 app.use('/api', categorieRouter);
 app.use('/api', articleRouter);
