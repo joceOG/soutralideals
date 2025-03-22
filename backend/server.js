@@ -8,6 +8,7 @@ import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
+import smsRouter from './routes/smsRoutes.js';
 
 
 
@@ -38,6 +39,7 @@ app.use('/api', articleRouter);
 app.use('/api', serviceRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
+app.use('/api', smsRouter);
 
 
 app.get('/', (req, res) => {
