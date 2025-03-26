@@ -14,18 +14,22 @@ export const updateArticle = async (req, res) => {
     try {
         const { nomArticle, prixArticle, quantiteArticle, categorie } = req.body;
 
-        let updatedFields = {
-            nomArticle,
-            prixArticle,
-            quantiteArticle,
-            categorie
-        };
+        // l'article existe
+        const articleToUpdate = await articleModel.findById(req.params.id);
+        if (!articleToUpdate) {
+            return res.status(404).json({ error: 'Article non trouvé' });
+        }
+
+        //  au cas ou
+        // if (articleToUpdate.owner.toString() !== req.user._id.toString()) {
+        //     return res.status(403).json({ error: "Vous n'avez pas les droits pour modifier cet article." });
+        // }
+
+        let updatedFields = { nomArticle, prixArticle, quantiteArticle, categorie };
 
         if (req.file) {
             // Upload nouvelle image
-            const result = await cloudinary.v2.uploader.upload(req.file.path, {
-                folder: 'articles',
-            });
+            const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'articles' });
 
             // Supprimer l'image temporaire
             fs.unlinkSync(req.file.path);
@@ -33,30 +37,21 @@ export const updateArticle = async (req, res) => {
             // Ajouter l'URL de l'image au champ mis à jour
             updatedFields.photoArticle = result.secure_url;
 
-            // Supprimer l'ancienne image dans Cloudinary si elle existe
-            const articleToUpdate = await articleModel.findById(req.params.id);
+            // Supprimer l'ancienne image sur Cloudinary si elle existe
             if (articleToUpdate?.photoArticle) {
                 const publicId = articleToUpdate.photoArticle.split('/').slice(-2).join('/').split('.')[0];
                 await cloudinary.v2.uploader.destroy(publicId);
             }
         }
 
-        const updatedArticle = await articleModel.findByIdAndUpdate(
-            req.params.id,
-            updatedFields,
-            { new: true }
-        )
-
-        if (!updatedArticle) {
-            return res.status(404).json({ error: 'Article non trouvé' });
-        }
+        const updatedArticle = await articleModel.findByIdAndUpdate(req.params.id, updatedFields, { new: true });
 
         res.status(200).json(updatedArticle);
     } catch (err) {
-        // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
         res.status(500).json({ error: err.message });
     }
 };
+
 
 // Crée un nouvel article avec upload d'image
 export const createArticle = async (req, res) => {

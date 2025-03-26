@@ -8,6 +8,7 @@ import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
+import smsRouter from './routes/smsRoutes.js';
 
 
 
@@ -31,13 +32,14 @@ const port = process.env.PORT ;
 
 
 /** routes */
-app.use('/api', router) /** apis utilisateur */
+app.use('/api',router) /** apis utilisateur */
 app.use('/api', groupeRouter);
 app.use('/api', categorieRouter);
 app.use('/api', articleRouter);
 app.use('/api', serviceRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
+app.use('/api', smsRouter);
 
 
 app.get('/', (req, res) => {

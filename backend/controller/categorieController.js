@@ -75,7 +75,20 @@ export const createCategory = async (req, res) => {
 // Obtenir toutes les catégories
 export const getAllCategories = async (req, res) => {
     try {
-        const categories = await categorieModel.find({}).populate('groupe');
+        const categories = await categorieModel
+        .find({})
+        .populate({
+            path: 'articles',
+            select: 'nomArticle prixArticle quantiteArticle photoArticle' 
+        })
+        .populate({
+            path: 'groupe',
+            select: 'nomgroupe' 
+        })
+        .populate({
+            path: 'services',
+            select: 'nomservice ' 
+        })        
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
