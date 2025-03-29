@@ -48,7 +48,7 @@ const Service: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/service');
+        const response = await axios.get('http://localhost:3000/api/services');
         setService(response.data);
       } catch (error) {
         console.error(error);

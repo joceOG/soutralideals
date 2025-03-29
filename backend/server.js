@@ -2,7 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import { config } from 'dotenv';
-import router from './routes/userRoutes.js';
+import userRouter from './routes/userRoutes.js';
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
@@ -17,22 +17,17 @@ import connect from './database/connex.js';
 
 const app = express()
 
-
 /** app middlewares */
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
 config();
 
-
-
-
 /** appliation port */
 const port = process.env.PORT ;
 
-
 /** routes */
-app.use('/api',router) /** apis utilisateur */
+app.use('/api',userRouter) /** apis utilisateur */
 app.use('/api', groupeRouter);
 app.use('/api', categorieRouter);
 app.use('/api', articleRouter);
@@ -40,7 +35,6 @@ app.use('/api', serviceRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
 app.use('/api', smsRouter);
-
 
 app.get('/', (req, res) => {
     try {
