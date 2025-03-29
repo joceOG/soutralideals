@@ -9,6 +9,7 @@ import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
 import smsRouter from './routes/smsRoutes.js';
+import mailRouter from './routes/mailRouter.js';
 
 
 
@@ -35,6 +36,7 @@ app.use('/api', serviceRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
 app.use('/api', smsRouter);
+app.use('/api', mailRouter);
 
 app.get('/', (req, res) => {
     try {

@@ -9,11 +9,11 @@ const userRouter = Router()
 
 const upload = multer({ dest: 'uploads/user' });
 
-router.post("/register", upload.single('photoProfil'), controller.signUp);
-router.post("/login", controller.signIn);
-router.get("/logout", controller.logout);
+userRouter.post("/register", upload.single('photoProfil'), controller.signUp);
+userRouter.post("/login", controller.signIn);
+userRouter.get("/logout", controller.logout);
 
-router.get("/utilisateurs", userController.getAllUsers);
+userRouter.get("/utilisateurs", userController.getAllUsers);
 
 
 export default userRouter;
