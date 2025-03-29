@@ -1,7 +1,9 @@
 
 import {Router} from  "express"
-import * as sendSms from "../Notifications-Api/infobip.js";
-import * as smsTwilio from "../Notifications-Api/twilio.js";
+import * as sendSms from "../api/infobip.js";
+import * as smsTwilio from "../api/twilio.js";
+
+
 
 
 

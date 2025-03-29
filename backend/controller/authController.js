@@ -1,9 +1,34 @@
+
+import multer from "multer";
+import cloudinary from "cloudinary";
+import fs from "fs";
 import userModel from "../models/utilisateurModel.js"
 // const { signUpError, signInError } = require("../utils/errors.utils");
 
 // const jtw = require("jsonwebtoken");
 
 // require("dotenv").config({ path: "../.env" });
+
+
+// Configure Cloudinary
+cloudinary.v2.config({
+    cloud_name: "dm0c8st6k",
+    api_key: "541481188898557",
+    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+});
+
+// Configure Multer
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/utilisateurs'); // Dossier où enregistrer les fichiers
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
 
 const maxAge = 3 * 24 * 60 * 60 * 1000;
 
@@ -17,24 +42,47 @@ const createToken = (id) => {
 
 // le module de creation d'utilisateur
 
-export  async function signUp(req, res){
-  // const { nom,prenom, email, password,telephone,genre,note,photoProfil } = req.body;
+export const signUp = async (req, res) => {
+   
     try {
+      const { firstname,surname, email, password,telephone,genre,note } = req.body;
       // Vérifier si l'utilisateur existe déjà par email ou nom
       const existingUser = await userModel.findOne({
-          $or: [{ email: req.body.email }, { firstname: req.body.firstname }]
+          $or: [{ email: email }, { firstname: firstname }]
       });
       
       if (existingUser) {
-          const error = existingUser.email === req.body.email ? 'Email already in use' : 'Name already in use';
+          const error = existingUser.email === email ? 'Email already in use' : 'Name already in use';
           return res.status(400).send({ error });
-      }
+      } 
 
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      const result2 = await cloudinary.v2.uploader.upload(req.file.path);  
+      fs.unlinkSync(req.file.path);
+     const photoProfil = result2.secure_url;
+
+     console.log( 'Req' + firstname + "  " + surname ) ;
+
+     
+      
       // Créer et sauvegarder un nouvel utilisateur
-      const user = new userModel(req.body);
+      const user = new userModel({
+        firstname,
+        surname,
+        email,
+        password, 
+        telephone,
+        genre,
+        note,
+        photoProfil
+      });
       await user.save();
+     
       res.status(201).send(user);
   } catch (e) {
+    console.error(e);
       res.status(400).send(e);
   }
 

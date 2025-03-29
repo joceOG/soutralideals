@@ -10,14 +10,14 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export interface Item {
   _id?: string;
-  nom: string;
-  prenom: string;
+  firstname: string;
+  surname: string;
   email: string;
   telephone: string;
   genre: string;
   note: string;
   photoProfil?: string;// Cloudinary image URL
-  motdepasse?: string; // Password field
+  password?: string; // Password field
 }
 
 const Utilisateur: React.FC = () => {
@@ -30,13 +30,13 @@ const Utilisateur: React.FC = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedUtilisateur, setSelectedUtilisateur] = useState<Item | null>(null);
   const [formData, setFormData] = useState<Item>({
-    nom: '',
-    prenom: '',
+    firstname: '',
+    surname: '',
     email: '',
     telephone: '',
     genre: '',
     note: '',
-    motdepasse: '', // Password field
+    password: '', // Password field
   });
   const [file, setFile] = useState<File | null>(null); // Separate state for file input
 
@@ -93,13 +93,13 @@ const Utilisateur: React.FC = () => {
   const onAdd = () => {
     setSelectedUtilisateur(null);
     setFormData({
-      nom: '',
-      prenom: '',
+      firstname: '',
+      surname: '',
       email: '',
       telephone: '',
       genre: '',
       note: '',
-      motdepasse: '', // Reset this field as well
+      password: '', // Reset this field as well
     });
     setFile(null); // Reset file state when adding new user
     setModalOpen(true);
@@ -111,18 +111,21 @@ const Utilisateur: React.FC = () => {
     }
   };
   const handleSave = async () => {
+    console.log('Form :' , formData) ;
+    
     const formDataToSend = new FormData();
-    formDataToSend.append('nom', formData.nom);
-    formDataToSend.append('prenom', formData.prenom);
+    formDataToSend.append('firstname', formData.firstname);
+    formDataToSend.append('surname', formData.surname);
     formDataToSend.append('email', formData.email);
     formDataToSend.append('telephone', formData.telephone);
     formDataToSend.append('genre', formData.genre);
     formDataToSend.append('note', formData.note);
-    formDataToSend.append('motdepasse', formData.motdepasse || '');
+    formDataToSend.append('password', formData.password || '');
 
     if (file) {
-        formDataToSend.append('photo', file);
+        formDataToSend.append('photoProfil', file);
     }
+
 
     try {
         if (selectedUtilisateur) {
@@ -138,7 +141,7 @@ const Utilisateur: React.FC = () => {
             toast.success('Utilisateur mis à jour avec succès !');
         } else {
             // Add new utilisateur
-            const response = await axios.post('http://localhost:3000/api/utilisateur', formDataToSend, {
+            const response = await axios.post('http://localhost:3000/api/register', formDataToSend, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             setUtilisateurs([...utilisateurs, response.data]);
@@ -263,16 +266,16 @@ const Utilisateur: React.FC = () => {
             margin="normal"
             fullWidth
             label="Nom"
-            name="nom"
-            value={formData.nom}
+            name="firstname"
+            value={formData.firstname}
             onChange={handleChange}
           />
           <TextField
             margin="normal"
             fullWidth
             label="Prénom"
-            name="prenom"
-            value={formData.prenom}
+            name="surname"
+            value={formData.surname}
             onChange={handleChange}
           />
           <TextField
@@ -312,8 +315,8 @@ const Utilisateur: React.FC = () => {
             fullWidth
             type="password"
             label="Mot de Passe"
-            name="motdepasse"
-            value={formData.motdepasse}
+            name="password"
+            value={formData.password}
             onChange={handleChange}
           />
           <input

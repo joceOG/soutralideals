@@ -41,7 +41,7 @@ const Categorie: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/api/categorie');
+                const response = await axios.get('http://localhost:3000/api/categories');
                 setCategorie(response.data);
             } catch (error) {
                 console.log(error);
