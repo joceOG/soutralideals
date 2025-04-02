@@ -35,11 +35,10 @@ const test=()=>transporter.verify(function (error, success) {
 // Fonction pour envoyer un e-mail
 const sendMail = async (to) => {
     try {
-        console.log(process.env.EMAIL_USER)
-        console.log(process.env.EMAIL_PASS)
+    
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to:process.env.EMAIL_USER,
+            to,
             subject:"Email de Confirmation",
             text:"Félicitation vous êtes inscrit"
         };
@@ -55,9 +54,9 @@ const sendMail = async (to) => {
 export const sendEmail = async (req, res) => {
     const { to } = req.body;
 
-    // if (!to  ) {
-    //     return res.status(400).json({ message: 'Tous les champs sont requis' });
-    // }
+    if (!to  ) {
+        return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
 
     const response = await sendMail(to);
 
