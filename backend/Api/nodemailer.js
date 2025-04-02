@@ -2,24 +2,44 @@ import nodemailer from 'nodemailer';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 
-config({ path: resolve('../.env') });
+
+config();
 
 
 // Configuration SMTP
+const emailUser = process.env.EMAIL_USER;
+const emailPass = process.env.EMAIL_PASS;
+
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465, // ou 587 si `secure: false`
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+        pass: process.env.EMAIL_PASS,
+    },
+    // tls: {
+    //   // do not fail on invalid certs
+    //   rejectUnauthorized: false,
+    // },
 });
+
+const test=()=>transporter.verify(function (error, success) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Server is ready to take our messages");
+    }
+  });
 
 // Fonction pour envoyer un e-mail
 const sendMail = async (to) => {
     try {
+        console.log(process.env.EMAIL_USER)
+        console.log(process.env.EMAIL_PASS)
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to,
+            to:process.env.EMAIL_USER,
             subject:"Email de Confirmation",
             text:"Félicitation vous êtes inscrit"
         };
@@ -35,9 +55,9 @@ const sendMail = async (to) => {
 export const sendEmail = async (req, res) => {
     const { to } = req.body;
 
-    if (!to  ) {
-        return res.status(400).json({ message: 'Tous les champs sont requis' });
-    }
+    // if (!to  ) {
+    //     return res.status(400).json({ message: 'Tous les champs sont requis' });
+    // }
 
     const response = await sendMail(to);
 
@@ -47,3 +67,6 @@ export const sendEmail = async (req, res) => {
         res.status(500).json(response);
     }
 };
+
+
+// test();

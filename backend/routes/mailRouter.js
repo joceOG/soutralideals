@@ -1,10 +1,6 @@
 
 import {Router} from  "express"
-import { sendEmail } from "../Api/nodemailer";
-
-
-
-
+import { sendEmail } from "../Api/nodemailer.js";
 
 
 const mailRouter = Router()
