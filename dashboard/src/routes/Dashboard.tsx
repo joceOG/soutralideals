@@ -17,19 +17,9 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import { List, Avatar, Tooltip, Zoom } from '@mui/material';
 import { mainListItems } from '../components/ListItems';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from '../pages/Home';
-import Groupe from '../pages/Groupe';
-import Categorie from '../pages/Categorie';
-import Service from '../pages/Service';
-import Article from '../pages/Article';
-import Prestataire from '../pages/Prestataire';
-import Utilisateur from '../pages/Utilisateur';
-import Connexion from '../pages/Connexion';
-//import { mainListItems, secondaryListItems } from './listItems';
-//import Chart from './Chart';
-//import Deposits from './Deposits';
-//import Orders from './Orders';
+import { BrowserRouter as Router } from 'react-router-dom';
+import AppRouter from './AppRouter';
+import { alpha } from '@mui/material/styles';
 
 function Copyright(props: any) {
   return (
@@ -232,13 +222,18 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
             sx={{
               height: '100%',
               display: 'flex',
+<<<<<<< HEAD
               flexDirection: 'column',
               py: 2
+=======
+              flexDirection: 'column'
+>>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
             }}
           >
             <List 
               component="nav"
               sx={{
+<<<<<<< HEAD
                 py: 1,
                 px: 1.5,
                 '& .MuiListItemButton-root': {
@@ -248,12 +243,22 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                   transition: 'all 0.2s',
                   
                   // Effet de hover amélioré
+=======
+                '& .MuiListItemButton-root': {
+                  my: 0.5,
+                  mx: 1,
+                  borderRadius: 2,
+                  transition: 'all 0.2s',
+>>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                   '&:hover': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.08)' : 'rgba(0, 157, 179, 0.15)',
                     transform: 'translateX(4px)'
                   },
+<<<<<<< HEAD
                   
                   // Mise en évidence renforcée de l'élément actif
+=======
+>>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                   '&.Mui-selected': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.12)' : 'rgba(0, 157, 179, 0.2)',
                     '&:hover': {
@@ -263,15 +268,22 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                       content: '""',
                       position: 'absolute',
                       left: 0,
+<<<<<<< HEAD
                       top: '20%',  // Bordure plus grande (25% → 20%)
                       height: '60%', // Bordure plus grande (50% → 60%)
                       width: 4,     // Bordure plus épaisse (3px → 4px)
+=======
+                      top: '25%',
+                      height: '50%',
+                      width: 3,
+>>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                       backgroundColor: themeMode === 'light' ? '#009DB3' : '#33B5CC',
                       borderTopRightRadius: 4,
                       borderBottomRightRadius: 4
                     }
                   }
                 },
+<<<<<<< HEAD
                 
                 // Icônes plus grandes et expressives
                 '& .MuiListItemIcon-root': {
@@ -289,6 +301,11 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                   '.Mui-selected &': {
                     fontWeight: 600  // Texte en gras si actif
                   }
+=======
+                '& .MuiListItemIcon-root': {
+                  minWidth: 40,
+                  color: themeMode === 'light' ? '#009DB3' : '#33B5CC',
+>>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                 },
               }}
             >
@@ -320,20 +337,8 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
           }}
         >
           <Toolbar />
-          <Box  sx={{ mt: 5, mb: 4 , mr:4 , ml:4 }}>
-
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/groupe" element={<Groupe />} />
-            <Route path="/categorie" element={<Categorie />} />
-            <Route path="/service" element={<Service />} />
-            <Route path="/article" element={<Article />} />
-            <Route path="/utilisateur" element={< Utilisateur />} />
-            <Route path="/prestataire" element={<Prestataire />} />
-            <Route path="/connexion" element={<Connexion />} />
-            
-          </Routes>
-
+          <Box sx={{ mt: 5, mb: 4, mr:4, ml:4 }}>
+            <AppRouter />
           </Box>
           <Copyright sx={{ pt: 4 }} />
         </Box>
