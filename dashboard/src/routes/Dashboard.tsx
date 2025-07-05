@@ -223,6 +223,7 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
               height: '100%',
               display: 'flex',
 <<<<<<< HEAD
+<<<<<<< HEAD
               flexDirection: 'column',
               py: 2
 =======
@@ -231,12 +232,20 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+<<<<<<< HEAD
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+=======
+              flexDirection: 'column',
+              py: 2
+>>>>>>> 58ba033 (categorie)
+>>>>>>> d4cb6e1 (categorie)
             }}
           >
             <List 
               component="nav"
               sx={{
+<<<<<<< HEAD
 <<<<<<< HEAD
                 py: 1,
                 px: 1.5,
@@ -248,20 +257,33 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                   
                   // Effet de hover amélioré
 =======
+=======
+                py: 1,
+                px: 1.5,
+>>>>>>> 58ba033 (categorie)
                 '& .MuiListItemButton-root': {
-                  my: 0.5,
+                  my: 1,  // Espacement aéré entre les éléments (augmenté de 0.5 à 1)
                   mx: 1,
                   borderRadius: 2,
                   transition: 'all 0.2s',
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+                  
+                  // Effet de hover amélioré
+>>>>>>> 58ba033 (categorie)
+>>>>>>> d4cb6e1 (categorie)
                   '&:hover': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.08)' : 'rgba(0, 157, 179, 0.15)',
                     transform: 'translateX(4px)'
                   },
+<<<<<<< HEAD
 <<<<<<< HEAD
                   
                   // Mise en évidence renforcée de l'élément actif
@@ -270,7 +292,14 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+<<<<<<< HEAD
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+=======
+                  
+                  // Mise en évidence renforcée de l'élément actif
+>>>>>>> 58ba033 (categorie)
+>>>>>>> d4cb6e1 (categorie)
                   '&.Mui-selected': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.12)' : 'rgba(0, 157, 179, 0.2)',
                     '&:hover': {
@@ -280,6 +309,7 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                       content: '""',
                       position: 'absolute',
                       left: 0,
+<<<<<<< HEAD
 <<<<<<< HEAD
                       top: '20%',  // Bordure plus grande (25% → 20%)
                       height: '60%', // Bordure plus grande (50% → 60%)
@@ -292,13 +322,22 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+<<<<<<< HEAD
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+=======
+                      top: '20%',  // Bordure plus grande (25% → 20%)
+                      height: '60%', // Bordure plus grande (50% → 60%)
+                      width: 4,     // Bordure plus épaisse (3px → 4px)
+>>>>>>> 58ba033 (categorie)
+>>>>>>> d4cb6e1 (categorie)
                       backgroundColor: themeMode === 'light' ? '#009DB3' : '#33B5CC',
                       borderTopRightRadius: 4,
                       borderBottomRightRadius: 4
                     }
                   }
                 },
+<<<<<<< HEAD
 <<<<<<< HEAD
                 
                 // Icônes plus grandes et expressives
@@ -318,14 +357,36 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                     fontWeight: 600  // Texte en gras si actif
                   }
 =======
+=======
+                
+                // Icônes plus grandes et expressives
+>>>>>>> 58ba033 (categorie)
                 '& .MuiListItemIcon-root': {
-                  minWidth: 40,
+                  minWidth: 44,  // Légèrement plus grand (40 → 44)
                   color: themeMode === 'light' ? '#009DB3' : '#33B5CC',
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '1.4rem'  // Icônes plus grandes
+                  }
+                },
+                
+                // Meilleure lisibilité des textes
+                '& .MuiListItemText-primary': {
+                  fontSize: '1rem',  // 16px minimum
+                  letterSpacing: '0.01em',
+                  '.Mui-selected &': {
+                    fontWeight: 600  // Texte en gras si actif
+                  }
+>>>>>>> 58ba033 (categorie)
+>>>>>>> d4cb6e1 (categorie)
                 },
               }}
             >
