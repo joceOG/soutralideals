@@ -21,6 +21,51 @@ export interface Item {
     };
 }
 
+// Animation variants pour les conteneurs
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+// Animation variants pour les éléments individuels
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: {
+            type: "spring",
+            stiffness: 100
+        }
+    }
+};
+
+// Composant Card neumorphique stylisé
+const NeumorphicCard = styled(Card)(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'dark' ? '#0c1a2c' : '#f0f4f8',
+    borderRadius: '16px',
+    boxShadow: theme.palette.mode === 'dark'
+        ? `5px 5px 10px ${alpha('#000000', 0.8)}, 
+           -5px -5px 10px ${alpha('#0c1a2c', 0.25)}`
+        : `10px 10px 20px ${alpha('#a3b1c6', 0.2)}, 
+           -10px -10px 20px ${alpha('#ffffff', 0.8)}`,
+    padding: theme.spacing(2),
+    transition: 'transform 0.3s, box-shadow 0.3s',
+    '&:hover': {
+        transform: 'translateY(-5px)',
+        boxShadow: theme.palette.mode === 'dark'
+            ? `8px 8px 18px ${alpha('#000000', 0.9)}, 
+               -8px -8px 18px ${alpha('#0c1a2c', 0.3)}`
+            : `15px 15px 30px ${alpha('#a3b1c6', 0.3)}, 
+               -15px -15px 30px ${alpha('#ffffff', 0.9)}`
+    }
+}));
+
 const Categorie: React.FC = () => {
     const [categorie, setCategorie] = useState<Item[]>([]);
     const [globalFilter, setGlobalFilter] = useState<string | null>(null);
@@ -51,6 +96,19 @@ const Categorie: React.FC = () => {
 
         fetchData();
     }, []);
+    
+    // Appliquer le filtre global quand il change
+    useEffect(() => {
+        if (globalFilter === null || globalFilter === '') {
+            setFilteredCategorie(categorie);
+        } else {
+            const filtered = categorie.filter(item => 
+                item.nomcategorie.toLowerCase().includes(globalFilter.toLowerCase()) ||
+                item.groupe.nomgroupe.toLowerCase().includes(globalFilter.toLowerCase())
+            );
+            setFilteredCategorie(filtered);
+        }
+    }, [categorie, globalFilter]);
 
     const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -65,17 +123,81 @@ const Categorie: React.FC = () => {
         setFilters(_filters);
         setGlobalFilter(value);
     };
+    
+    // Fonctions d'aide aux templates et aux actions
+    const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => {
+        return options.rowIndex + 1;
+    };
 
-    const onDelete = async (rowData: Item) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
-            try {
-                await axios.delete(`http://localhost:3000/api/categorie/${rowData._id}`);
-                setCategorie(categorie.filter(item => item._id !== rowData._id));
-                toast.success('Catégorie supprimée avec succès !');
-            } catch (error) {
-                toast.error('Erreur lors de la suppression de la catégorie.');
-                console.error('Erreur lors de la suppression de la catégorie:', error);
-            }
+    const actionTemplate = (rowData: Item) => (
+        <React.Fragment>
+            <IconButton 
+                className='mr-2'
+                aria-label="edit" 
+                color="primary" 
+                size="large" 
+                onClick={() => onEdit(rowData)}
+            >
+                <EditIcon />
+            </IconButton>
+            <IconButton 
+                aria-label="delete" 
+                color="error" 
+                size="large" 
+                onClick={() => onDelete(rowData)}
+            >
+                <DeleteIcon />
+            </IconButton>
+        </React.Fragment>
+    );
+
+    const imageTemplate = (rowData: Item) => {
+        // Vérifier si l'image est au format buffer ou URL
+        if (typeof rowData.imagecategorie === 'string') {
+            // Format URL
+            return (
+                <img
+                    src={rowData.imagecategorie || 'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
+                    alt="Category"
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                    }}
+                />
+            );
+        } else if (rowData.imagecategorie && typeof rowData.imagecategorie === 'object' && 'type' in rowData.imagecategorie && 'data' in rowData.imagecategorie) {
+            // Format buffer
+            return (
+                <div>
+                    <img 
+                        className='imageCategorie' 
+                        alt="imagecategorie" 
+                        src={`data:${rowData.imagecategorie.type};base64,${Buffer.from(rowData.imagecategorie.data).toString('base64')}`}
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                        }}
+                    /> 
+                </div>
+            );
+        } else {
+            // Image par défaut
+            return (
+                <img
+                    src={'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
+                    alt="Category"
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                    }}
+                />
+            );
         }
     };
 
@@ -121,9 +243,28 @@ const Categorie: React.FC = () => {
         setModalOpen(false);
     };
 
+    // Recherche globale
+    const renderSearchHeader = () => {
+        return (
+            <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <TextField
+                    variant="outlined"
+                    size="small"
+                    placeholder="Rechercher..."
+                    value={globalFilter || ''}
+                    onChange={onGlobalFilterChange}
+                    InputProps={{
+                        startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1 }} />,
+                    }}
+                    sx={{ width: 300 }}
+                />
+            </Box>
+        );
+    };
+
     const renderHeader = () => (
         <div className="table-header">
-            <h5 className="mx-0 my-1">Manage Categories</h5>
+            <h5 className="mx-0 my-1">Gestion des Catégories</h5>
             <Button variant="contained" color="primary" onClick={onAdd}>
                 Ajouter Un Nouveau Catégorie
             </Button>
@@ -230,6 +371,7 @@ const Categorie: React.FC = () => {
                         fullWidth
                         value={formData.nomcategorie}
                         onChange={handleChange}
+                        sx={{ mb: 2 }}
                     />
                     {/* Add other form fields as needed */}
                 </DialogContent>
