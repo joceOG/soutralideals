@@ -80,6 +80,11 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
         duration: theme.transitions.duration.enteringScreen,
       }),
       boxSizing: 'border-box',
+      backgroundColor: theme.palette.mode === 'light' ? '#f8f9fa' : '#1e1e2f',
+      borderRight: `1px solid ${theme.palette.mode === 'light' ? '#e0e0e0' : '#2d2d3f'}`,
+      boxShadow: theme.palette.mode === 'light' 
+        ? '2px 0 10px rgba(0,0,0,0.03)' 
+        : '2px 0 10px rgba(0,0,0,0.2)',
       ...(!open && {
         overflowX: 'hidden',
         transition: theme.transitions.create('width', {
@@ -228,21 +233,28 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
             sx={{
               height: '100%',
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              py: 2
             }}
           >
             <List 
               component="nav"
               sx={{
+                py: 1,
+                px: 1.5,
                 '& .MuiListItemButton-root': {
-                  my: 0.5,
+                  my: 1,  // Espacement aéré entre les éléments (augmenté de 0.5 à 1)
                   mx: 1,
                   borderRadius: 2,
                   transition: 'all 0.2s',
+                  
+                  // Effet de hover amélioré
                   '&:hover': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.08)' : 'rgba(0, 157, 179, 0.15)',
                     transform: 'translateX(4px)'
                   },
+                  
+                  // Mise en évidence renforcée de l'élément actif
                   '&.Mui-selected': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.12)' : 'rgba(0, 157, 179, 0.2)',
                     '&:hover': {
@@ -252,18 +264,32 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                       content: '""',
                       position: 'absolute',
                       left: 0,
-                      top: '25%',
-                      height: '50%',
-                      width: 3,
+                      top: '20%',  // Bordure plus grande (25% → 20%)
+                      height: '60%', // Bordure plus grande (50% → 60%)
+                      width: 4,     // Bordure plus épaisse (3px → 4px)
                       backgroundColor: themeMode === 'light' ? '#009DB3' : '#33B5CC',
                       borderTopRightRadius: 4,
                       borderBottomRightRadius: 4
                     }
                   }
                 },
+                
+                // Icônes plus grandes et expressives
                 '& .MuiListItemIcon-root': {
-                  minWidth: 40,
+                  minWidth: 44,  // Légèrement plus grand (40 → 44)
                   color: themeMode === 'light' ? '#009DB3' : '#33B5CC',
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '1.4rem'  // Icônes plus grandes
+                  }
+                },
+                
+                // Meilleure lisibilité des textes
+                '& .MuiListItemText-primary': {
+                  fontSize: '1rem',  // 16px minimum
+                  letterSpacing: '0.01em',
+                  '.Mui-selected &': {
+                    fontWeight: 600  // Texte en gras si actif
+                  }
                 },
               }}
             >
