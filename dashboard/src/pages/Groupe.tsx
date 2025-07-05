@@ -105,7 +105,11 @@ const NeumorphicCard = styled(Card)(({ theme }) => ({
          -8px -8px 16px ${alpha(theme.palette.common.white, 1)}`
   },
 =======
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 }));
 
 const SearchBox = styled(Paper)(({ theme }) => ({
@@ -149,12 +153,16 @@ const NeumorphicCard = styled(Card)(({ theme }) => ({
   },
 }));
 
+
 // Interface for Item
 interface Item {
   _id: string;
   nomgroupe: string;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   _categoriesCount?: number;
 }
 
@@ -162,6 +170,7 @@ type SortOrder = 'asc' | 'desc';
 
 =======
   // Virtuel - sera calculé dynamiquement
+<<<<<<< HEAD
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
   _categoriesCount?: number;
@@ -174,6 +183,16 @@ type SortOrder = 'asc' | 'desc';
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+  _categoriesCount?: number;
+}
+
+// Type pour le tri
+type SortOrder = 'asc' | 'desc';
+
+// Animations variants
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -192,6 +211,7 @@ const itemVariants = {
     transition: { 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       type: 'spring' as const,  // cast to literal type to satisfy TS
 =======
       type: 'spring', 
@@ -199,6 +219,12 @@ const itemVariants = {
 =======
       type: 'spring' as const,  // cast to literal type to satisfy TS
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+      type: 'spring' as const,  // cast to literal type to satisfy TS
+=======
+      type: 'spring', 
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
       stiffness: 100,
       damping: 12
     }
@@ -207,11 +233,17 @@ const itemVariants = {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Main component
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+=======
+// Main component
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 const Groupe: React.FC = () => {
   const [groupe, setGroupe] = useState<Item[]>([]);
   const [filteredGroupe, setFilteredGroupe] = useState<Item[]>([]);
@@ -224,6 +256,9 @@ const Groupe: React.FC = () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -231,6 +266,7 @@ const Groupe: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 =======
   // Search, pagination and sorting states
+<<<<<<< HEAD
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
   const [searchQuery, setSearchQuery] = useState('');
@@ -244,6 +280,20 @@ const Groupe: React.FC = () => {
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination states
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  
+  // Sorting states
+  const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  
+  // États pour la pagination et le tri déjà définis au-dessus
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -261,6 +311,31 @@ const Groupe: React.FC = () => {
 
     fetchData();
   }, []);
+  
+  // Appliquer la recherche, le tri et la pagination
+  useEffect(() => {
+    // Filter
+    let result = [...groupe];
+    if (searchQuery) {
+      result = result.filter(item => 
+        item.nomgroupe.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Sort
+    result.sort((a, b) => {
+      const valueA = a[sortField];
+      const valueB = b[sortField];
+      
+      if (sortOrder === 'asc') {
+        return valueA > valueB ? 1 : -1;
+      } else {
+        return valueA < valueB ? 1 : -1;
+      }
+    });
+    
+    setFilteredGroupe(result);
+  }, [groupe, searchQuery, sortField, sortOrder]);
 
   useEffect(() => {
     let result = [...groupe];
@@ -362,11 +437,17 @@ const Groupe: React.FC = () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // Pagination handlers
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+=======
+  // Pagination handlers
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -378,11 +459,17 @@ const Groupe: React.FC = () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // Sorting handler
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+=======
+  // Sorting handler
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   const handleSort = (field: 'nomgroupe' | '_id') => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -394,6 +481,9 @@ const Groupe: React.FC = () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   // Correct forwardRef with proper typing for Dialog transitions
@@ -423,6 +513,7 @@ const Groupe: React.FC = () => {
   // Get current rows for pagination
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -451,6 +542,9 @@ const Groupe: React.FC = () => {
   ));
 
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -468,11 +562,17 @@ const Groupe: React.FC = () => {
         
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         {/* Barre de recherche */}
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+=======
+        {/* Barre de recherche */}
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
         <SearchBox>
           <IconButton sx={{ p: '10px' }} aria-label="search">
             <SearchIcon />
@@ -693,6 +793,7 @@ const Groupe: React.FC = () => {
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <NeumorphicCard>
           <Box mb={2} px={2} display="flex" alignItems="center">
+<<<<<<< HEAD
             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
               Liste des Groupes
             </Typography>
@@ -810,6 +911,124 @@ const Groupe: React.FC = () => {
         </NeumorphicCard>
       </motion.div>
 
+=======
+          <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+            Liste des Groupes
+          </Typography>
+          <Box flexGrow={1} />
+          <Chip 
+            icon={<FolderIcon />} 
+            label={`${filteredGroupe.length} groupe${filteredGroupe.length > 1 ? 's' : ''}`} 
+            color="primary" 
+            variant="outlined" 
+            size="small" 
+          />
+        </Box>
+        <Divider sx={{ mb: 2 }} />
+
+        {loading ? (
+          <Box p={3} textAlign="center">
+            <Typography>Chargement des groupes...</Typography>
+          </Box>
+        ) : (
+          <>
+            <TableContainer component={Paper} elevation={0}>
+              <Table sx={{ minWidth: 700 }} aria-label="customized table">
+                <TableHead>
+                  <TableRow>
+                    <StyledTableCell>#</StyledTableCell>
+                    <StyledTableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
+                        Groupe
+                        {sortField === 'nomgroupe' && (
+                          <motion.span 
+                            initial={{ opacity: 0, scale: 0.5 }} 
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                            style={{ marginLeft: '5px' }}
+                          >
+                            {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+                          </motion.span>
+                        )}
+                      </Box>
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
+                        Identifiant
+                        {sortField === '_id' && (
+                          <motion.span 
+                            initial={{ opacity: 0, scale: 0.5 }} 
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                            style={{ marginLeft: '5px' }}
+                          >
+                            {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+                          </motion.span>
+                        )}
+                      </Box>
+                    </StyledTableCell>
+                    <StyledTableCell>Action</StyledTableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <AnimatePresence>
+                    {currentGroups.map((item, index) => (
+                      <motion.tr
+                        key={item._id}
+                        variants={itemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit={{ opacity: 0, y: -10 }}
+                        component={StyledTableRow}
+                      >
+                        <StyledTableCell component="th" scope="row">
+                          {page * rowsPerPage + index + 1}
+                        </StyledTableCell>
+                        <StyledTableCell>
+                          <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+                            {item.nomgroupe}
+                          </motion.div>
+                        </StyledTableCell>
+                        <StyledTableCell>{item._id}</StyledTableCell>
+                        <StyledTableCell>
+                          <Box className="action-buttons">
+                            <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
+                              <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
+                              <IconButton color="error" onClick={() => handleDelete(item._id)}>
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </StyledTableCell>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              component="div"
+              count={filteredGroupe.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25]}
+              labelRowsPerPage="Lignes par page:"
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+            />
+          </>
+        )}
+        </NeumorphicCard>
+      </motion.div>
+
+      {/* Floating Action Button to open the modal for adding a new group */}
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
       <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <motion.div
           whileHover={{ scale: 1.1 }}
@@ -825,6 +1044,7 @@ const Groupe: React.FC = () => {
         </motion.div>
       </Box>
 
+<<<<<<< HEAD
       <AnimatePresence>
         {open && (
           <Dialog
@@ -832,6 +1052,25 @@ const Groupe: React.FC = () => {
             open={open}
             fullWidth
             TransitionComponent={DialogTransition}
+=======
+      {/* Modal for adding or updating a group */}
+      <AnimatePresence>
+        {open && (
+          <Dialog 
+            onClose={handleClose} 
+            open={open} 
+            fullWidth
+            TransitionComponent={React.forwardRef((props, ref) => (
+              <motion.div
+                ref={ref}
+                {...props}
+                initial={{ opacity: 0, scale: 0.75 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ type: "spring", damping: 15 }}
+              />
+            ))}
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
           >
             <DialogTitle sx={{ m: 0, p: 2 }}>
               {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
@@ -891,10 +1130,15 @@ const Groupe: React.FC = () => {
       </AnimatePresence>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       {/* Snackbar for success messages */}
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+      {/* Snackbar for success messages */}
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
       <AnimatePresence>
         {openSnackbar && (
           <Snackbar
@@ -903,6 +1147,9 @@ const Groupe: React.FC = () => {
             onClose={handleCloseSnackbar}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
             TransitionComponent={SnackbarTransition}
 =======
             TransitionComponent={React.forwardRef((props, ref) => (
@@ -915,10 +1162,14 @@ const Groupe: React.FC = () => {
                 transition={{ type: "spring", damping: 15 }}
               />
             ))}
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
             TransitionComponent={SnackbarTransition}
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
           >
             <Alert 
               onClose={handleCloseSnackbar} 

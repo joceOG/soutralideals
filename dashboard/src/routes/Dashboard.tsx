@@ -227,7 +227,11 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
               py: 2
 =======
               flexDirection: 'column'
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
             }}
           >
             <List 
@@ -249,7 +253,11 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                   mx: 1,
                   borderRadius: 2,
                   transition: 'all 0.2s',
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                   '&:hover': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.08)' : 'rgba(0, 157, 179, 0.15)',
                     transform: 'translateX(4px)'
@@ -258,7 +266,11 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                   
                   // Mise en évidence renforcée de l'élément actif
 =======
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                   '&.Mui-selected': {
                     backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.12)' : 'rgba(0, 157, 179, 0.2)',
                     '&:hover': {
@@ -276,7 +288,11 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                       top: '25%',
                       height: '50%',
                       width: 3,
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                       backgroundColor: themeMode === 'light' ? '#009DB3' : '#33B5CC',
                       borderTopRightRadius: 4,
                       borderBottomRightRadius: 4
@@ -305,7 +321,11 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
                 '& .MuiListItemIcon-root': {
                   minWidth: 40,
                   color: themeMode === 'light' ? '#009DB3' : '#33B5CC',
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
                 },
               }}
             >

@@ -46,11 +46,17 @@ export interface Item {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Animation variants pour les conteneurs
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+=======
+// Animation variants pour les conteneurs
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -63,11 +69,17 @@ const containerVariants = {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Animation variants pour les éléments individuels
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+=======
+// Animation variants pour les éléments individuels
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -76,22 +88,30 @@ const itemVariants = {
         transition: {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
             type: "spring" as const,
             stiffness: 100,
             damping: 20
 =======
             type: "spring",
             stiffness: 100
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
             type: "spring" as const,
             stiffness: 100,
             damping: 20
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
         }
     }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -99,12 +119,20 @@ const itemVariants = {
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+=======
+// Composant Card neumorphique stylisé
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 const NeumorphicCard = styled(Card)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#0c1a2c' : '#f0f4f8',
     borderRadius: '16px',
     boxShadow: theme.palette.mode === 'dark'
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
         ? `5px 5px 10px ${alpha('#000000', 0.8)}, -5px -5px 10px ${alpha('#0c1a2c', 0.25)}`
         : `10px 10px 20px ${alpha('#a3b1c6', 0.2)}, -10px -10px 20px ${alpha('#ffffff', 0.8)}`,
 =======
@@ -112,11 +140,15 @@ const NeumorphicCard = styled(Card)(({ theme }) => ({
            -5px -5px 10px ${alpha('#0c1a2c', 0.25)}`
         : `10px 10px 20px ${alpha('#a3b1c6', 0.2)}, 
            -10px -10px 20px ${alpha('#ffffff', 0.8)}`,
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
         ? `5px 5px 10px ${alpha('#000000', 0.8)}, -5px -5px 10px ${alpha('#0c1a2c', 0.25)}`
         : `10px 10px 20px ${alpha('#a3b1c6', 0.2)}, -10px -10px 20px ${alpha('#ffffff', 0.8)}`,
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
+=======
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
     padding: theme.spacing(2),
     transition: 'transform 0.3s, box-shadow 0.3s',
     '&:hover': {
@@ -124,6 +156,9 @@ const NeumorphicCard = styled(Card)(({ theme }) => ({
         boxShadow: theme.palette.mode === 'dark'
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
             ? `8px 8px 18px ${alpha('#000000', 0.9)}, -8px -8px 18px ${alpha('#0c1a2c', 0.3)}`
             : `15px 15px 30px ${alpha('#a3b1c6', 0.3)}, -15px -15px 30px ${alpha('#ffffff', 0.9)}`
     }
@@ -156,6 +191,15 @@ const Transition = React.forwardRef<HTMLDivElement, PaperProps>((props, ref) => 
     );
 });
 
+=======
+            ? `8px 8px 18px ${alpha('#000000', 0.9)}, 
+               -8px -8px 18px ${alpha('#0c1a2c', 0.3)}`
+            : `15px 15px 30px ${alpha('#a3b1c6', 0.3)}, 
+               -15px -15px 30px ${alpha('#ffffff', 0.9)}`
+    }
+}));
+
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 const Categorie: React.FC = () => {
     const [categorie, setCategorie] = useState<Item[]>([]);
 =======
@@ -251,6 +295,19 @@ const Categorie: React.FC = () => {
 
         fetchData();
     }, []);
+    
+    // Appliquer le filtre global quand il change
+    useEffect(() => {
+        if (globalFilter === null || globalFilter === '') {
+            setFilteredCategorie(categorie);
+        } else {
+            const filtered = categorie.filter(item => 
+                item.nomcategorie.toLowerCase().includes(globalFilter.toLowerCase()) ||
+                item.groupe.nomgroupe.toLowerCase().includes(globalFilter.toLowerCase())
+            );
+            setFilteredCategorie(filtered);
+        }
+    }, [categorie, globalFilter]);
 
     useEffect(() => {
         if (globalFilter === null || globalFilter === '') {
@@ -289,8 +346,163 @@ const Categorie: React.FC = () => {
         setFilters(_filters);
         setGlobalFilter(value);
     };
+    
+    // Fonctions d'aide aux templates et aux actions
+    const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => {
+        return options.rowIndex + 1;
+    };
 
+<<<<<<< HEAD
     const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => options.rowIndex + 1;
+=======
+    const actionTemplate = (rowData: Item) => (
+        <React.Fragment>
+            <IconButton 
+                className='mr-2'
+                aria-label="edit" 
+                color="primary" 
+                size="large" 
+                onClick={() => onEdit(rowData)}
+            >
+                <EditIcon />
+            </IconButton>
+            <IconButton 
+                aria-label="delete" 
+                color="error" 
+                size="large" 
+                onClick={() => onDelete(rowData)}
+            >
+                <DeleteIcon />
+            </IconButton>
+        </React.Fragment>
+    );
+
+    const imageTemplate = (rowData: Item) => {
+        // Vérifier si l'image est au format buffer ou URL
+        if (typeof rowData.imagecategorie === 'string') {
+            // Format URL
+            return (
+                <img
+                    src={rowData.imagecategorie || 'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
+                    alt="Category"
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                    }}
+                />
+            );
+        } else if (rowData.imagecategorie && typeof rowData.imagecategorie === 'object' && 'type' in rowData.imagecategorie && 'data' in rowData.imagecategorie) {
+            // Format buffer
+            return (
+                <div>
+                    <img 
+                        className='imageCategorie' 
+                        alt="imagecategorie" 
+                        src={`data:${rowData.imagecategorie.type};base64,${Buffer.from(rowData.imagecategorie.data).toString('base64')}`}
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                        }}
+                    /> 
+                </div>
+            );
+        } else {
+            // Image par défaut
+            return (
+                <img
+                    src={'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
+                    alt="Category"
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                    }}
+                />
+            );
+        }
+    };
+
+    const onEdit = (rowData: Item) => {
+        setSelectedCategory(rowData);
+        setFormData(rowData);
+        setModalOpen(true);
+    };
+
+    const onAdd = () => {
+        setSelectedCategory(null);
+        setFormData({
+            _id: '',
+            nomcategorie: '',
+            imagecategorie: { type: '', data: new Uint8Array() },
+            groupe: { _id: '', nomgroupe: '' },
+        });
+        setModalOpen(true);
+    };
+
+    const handleSave = async () => {
+        if (selectedCategory) {
+            // Edit existing category
+            try {
+                const response = await axios.put(`http://localhost:3000/api/categorie/${formData._id}`, formData);
+                setCategorie(prevCategorie => prevCategorie.map(item => item._id === formData._id ? response.data : item));
+                toast.success('Catégorie mise à jour avec succès !');
+            } catch (error) {
+                toast.error('Erreur lors de la mise à jour de la catégorie.');
+                console.error('Erreur lors de la mise à jour de la catégorie:', error);
+            }
+        } else {
+            // Add new category
+            try {
+                const response = await axios.post('http://localhost:3000/api/categorie', formData);
+                setCategorie([...categorie, response.data]);
+                toast.success('Nouvelle catégorie ajoutée avec succès !');
+            } catch (error) {
+                toast.error('Erreur lors de l\'ajout de la catégorie.');
+                console.error('Erreur lors de l\'ajout de la catégorie:', error);
+            }
+        }
+        setModalOpen(false);
+    };
+
+    // Recherche globale
+    const renderSearchHeader = () => {
+        return (
+            <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <TextField
+                    variant="outlined"
+                    size="small"
+                    placeholder="Rechercher..."
+                    value={globalFilter || ''}
+                    onChange={onGlobalFilterChange}
+                    InputProps={{
+                        startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1 }} />,
+                    }}
+                    sx={{ width: 300 }}
+                />
+            </Box>
+        );
+    };
+
+    const renderHeader = () => (
+        <div className="table-header">
+            <h5 className="mx-0 my-1">Gestion des Catégories</h5>
+            <Button variant="contained" color="primary" onClick={onAdd}>
+                Ajouter Un Nouveau Catégorie
+            </Button>
+        </div>
+    );
+
+    const header = renderHeader();
+
+    const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => {
+        return options.rowIndex + 1;
+    };
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 
 <<<<<<< HEAD
     const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => options.rowIndex + 1;
@@ -875,6 +1087,7 @@ const Categorie: React.FC = () => {
                         open={modalOpen}
                         onClose={() => setModalOpen(false)}
                         fullWidth
+<<<<<<< HEAD
                         maxWidth="sm"
                         TransitionComponent={Transition}
                         keepMounted
@@ -986,7 +1199,54 @@ const Categorie: React.FC = () => {
 
             <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
         </motion.div>
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+=======
+                        value={formData.nomcategorie}
+                        onChange={handleChange}
+                        sx={{ mb: 2 }}
+                    />
+                    {/* Add other form fields as needed */}
+                </DialogContent>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        name="group"
+                        label="Groupe"
+                        type="text"
+                        fullWidth
+                        value={formData.groupe}
+                        onChange={handleChange}
+                    />
+                    {/* Add other form fields as needed */}
+                </DialogContent>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        name="image"
+                          label="Image"
+                        type="text"
+                        fullWidth
+                        value={formData.imagecategorie}
+                        onChange={handleChange}
+                    />
+                    {/* Add other form fields as needed */}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setModalOpen(false)} color="primary">
+                        Annuler
+                    </Button>
+                    <Button onClick={handleSave} color="primary">
+                        Sauvegarder
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+>>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+>>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
     );
 };
 
