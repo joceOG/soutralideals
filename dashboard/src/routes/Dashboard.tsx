@@ -26,10 +26,6 @@ import Article from '../pages/Article';
 import Prestataire from '../pages/Prestataire';
 import Utilisateur from '../pages/Utilisateur';
 import Connexion from '../pages/Connexion';
-<<<<<<< HEAD
-import Test from '../pages/text';
-=======
->>>>>>> 7f93ecd (Connexion effective entre front et back)
 //import { mainListItems, secondaryListItems } from './listItems';
 //import Chart from './Chart';
 //import Deposits from './Deposits';
@@ -335,7 +331,6 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
             <Route path="/utilisateur" element={< Utilisateur />} />
             <Route path="/prestataire" element={<Prestataire />} />
             <Route path="/connexion" element={<Connexion />} />
-            <Route path="/test" element={<Test />} />
             
           </Routes>
 

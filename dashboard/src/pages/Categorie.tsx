@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react';
 import { Box, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
 import axios from 'axios';
@@ -23,7 +21,6 @@ export interface Item {
     };
 }
 
-// Animation variants pour les conteneurs
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -34,39 +31,61 @@ const containerVariants = {
     }
 };
 
-// Animation variants pour les éléments individuels
 const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
         y: 0,
         opacity: 1,
         transition: {
-            type: "spring",
-            stiffness: 100
+            type: "spring" as const,
+            stiffness: 100,
+            damping: 20
         }
     }
 };
 
-// Composant Card neumorphique stylisé
 const NeumorphicCard = styled(Card)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#0c1a2c' : '#f0f4f8',
     borderRadius: '16px',
     boxShadow: theme.palette.mode === 'dark'
-        ? `5px 5px 10px ${alpha('#000000', 0.8)}, 
-           -5px -5px 10px ${alpha('#0c1a2c', 0.25)}`
-        : `10px 10px 20px ${alpha('#a3b1c6', 0.2)}, 
-           -10px -10px 20px ${alpha('#ffffff', 0.8)}`,
+        ? `5px 5px 10px ${alpha('#000000', 0.8)}, -5px -5px 10px ${alpha('#0c1a2c', 0.25)}`
+        : `10px 10px 20px ${alpha('#a3b1c6', 0.2)}, -10px -10px 20px ${alpha('#ffffff', 0.8)}`,
     padding: theme.spacing(2),
     transition: 'transform 0.3s, box-shadow 0.3s',
     '&:hover': {
         transform: 'translateY(-5px)',
         boxShadow: theme.palette.mode === 'dark'
-            ? `8px 8px 18px ${alpha('#000000', 0.9)}, 
-               -8px -8px 18px ${alpha('#0c1a2c', 0.3)}`
-            : `15px 15px 30px ${alpha('#a3b1c6', 0.3)}, 
-               -15px -15px 30px ${alpha('#ffffff', 0.9)}`
+            ? `8px 8px 18px ${alpha('#000000', 0.9)}, -8px -8px 18px ${alpha('#0c1a2c', 0.3)}`
+            : `15px 15px 30px ${alpha('#a3b1c6', 0.3)}, -15px -15px 30px ${alpha('#ffffff', 0.9)}`
     }
 }));
+
+const MotionTypography = motion(Typography);
+const MotionDiv = motion.div;
+
+const Transition = React.forwardRef<HTMLDivElement, PaperProps>((props, ref) => {
+    // Exclure les handlers incompatibles comme onAnimationStart avant de passer les props à MotionDiv
+    const { style, onAnimationStart, ...other } = props;
+
+    return (
+        <MotionDiv
+            ref={ref}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ type: 'spring', damping: 20 }}
+            style={{
+                borderRadius: '16px',
+                backgroundColor: 'white',
+                overflow: 'hidden',
+                boxShadow: `0 10px 30px rgba(0,0,0,0.15)`,
+                ...style,
+            }}
+        >
+            <Paper {...other} />
+        </MotionDiv>
+    );
+});
 
 const Categorie: React.FC = () => {
     const [categorie, setCategorie] = useState<Item[]>([]);
@@ -98,8 +117,7 @@ const Categorie: React.FC = () => {
 
         fetchData();
     }, []);
-    
-    // Appliquer le filtre global quand il change
+
     useEffect(() => {
         if (globalFilter === null || globalFilter === '') {
             setFilteredCategorie(categorie);
@@ -125,14 +143,11 @@ const Categorie: React.FC = () => {
         setFilters(_filters);
         setGlobalFilter(value);
     };
-    
-    // Fonctions d'aide aux templates et aux actions
-    const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => {
-        return options.rowIndex + 1;
-    };
+
+    const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => options.rowIndex + 1;
 
     const actionTemplate = (rowData: Item) => (
-        <React.Fragment>
+        <>
             <IconButton 
                 className='mr-2'
                 aria-label="edit" 
@@ -150,54 +165,32 @@ const Categorie: React.FC = () => {
             >
                 <DeleteIcon />
             </IconButton>
-        </React.Fragment>
+        </>
     );
 
     const imageTemplate = (rowData: Item) => {
-        // Vérifier si l'image est au format buffer ou URL
         if (typeof rowData.imagecategorie === 'string') {
-            // Format URL
             return (
                 <img
                     src={rowData.imagecategorie || 'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
                     alt="Category"
-                    style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                    }}
+                    style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
                 />
             );
         } else if (rowData.imagecategorie && typeof rowData.imagecategorie === 'object' && 'type' in rowData.imagecategorie && 'data' in rowData.imagecategorie) {
-            // Format buffer
             return (
-                <div>
-                    <img 
-                        className='imageCategorie' 
-                        alt="imagecategorie" 
-                        src={`data:${rowData.imagecategorie.type};base64,${Buffer.from(rowData.imagecategorie.data).toString('base64')}`}
-                        style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                        }}
-                    /> 
-                </div>
+                <img 
+                    alt="imagecategorie" 
+                    src={`data:${rowData.imagecategorie.type};base64,${Buffer.from(rowData.imagecategorie.data).toString('base64')}`}
+                    style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+                /> 
             );
         } else {
-            // Image par défaut
             return (
                 <img
                     src={'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
                     alt="Category"
-                    style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                    }}
+                    style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
                 />
             );
         }
@@ -245,24 +238,21 @@ const Categorie: React.FC = () => {
         setModalOpen(false);
     };
 
-    // Recherche globale
-    const renderSearchHeader = () => {
-        return (
-            <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-                <TextField
-                    variant="outlined"
-                    size="small"
-                    placeholder="Rechercher..."
-                    value={globalFilter || ''}
-                    onChange={onGlobalFilterChange}
-                    InputProps={{
-                        startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1 }} />,
-                    }}
-                    sx={{ width: 300 }}
-                />
-            </Box>
-        );
-    };
+    const renderSearchHeader = () => (
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+            <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Rechercher..."
+                value={globalFilter || ''}
+                onChange={onGlobalFilterChange}
+                InputProps={{
+                    startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1 }} />,
+                }}
+                sx={{ width: 300 }}
+            />
+        </Box>
+    );
 
     const renderHeader = () => (
         <div className="table-header">

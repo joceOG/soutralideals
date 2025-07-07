@@ -79,6 +79,7 @@ export const updateArticle = async (req, res) => {
             updatedFields,
             { new: true }
         ).populate('categorie');
+        )
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
@@ -86,7 +87,7 @@ export const updateArticle = async (req, res) => {
 
         res.status(200).json(updatedArticle);
     } catch (err) {
-        console.error('Erreur lors de la mise à jour de l\'article:', err.message);
+        // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
         res.status(500).json({ error: err.message });
     }
 };
@@ -108,8 +109,6 @@ export const createArticle = async (req, res) => {
         });
 
         fs.unlinkSync(req.file.path);
-
-
 
         const newArticle = new articleModel({
             nomArticle,
@@ -136,27 +135,12 @@ export const getAllArticles = async (req, res) => {
 // Récupère tous les articles
 export const getAllArticles = async (req, res) => {
     try {
-<<<<<<< HEAD
-        const articles = await articleModel.find({}).populate('categorie');
-        
-=======
-<<<<<<< HEAD
->>>>>>> 7f93ecd (Connexion effective entre front et back)
-        const articles = await articleModel.find().populate('categorie');
-        res.status(200).json(articles);
-    } catch (err) {
-        // console.error('Erreur lors de la récupération des articles:', err.message);
-        res.status(500).json( 'Impossible de récupérer les articles' );
-        console.error('Erreur lors de la récupération des articles:', err.message);
-        res.status(500).json({ error: err.message });
-=======
         const articles = await articleModel.find({}).populate('categorie');
         
         res.status(200).json(articles);
     } catch (err) {
         // console.error('Erreur lors de la récupération des articles:', err.message);
         res.status(500).json( 'Impossible de récupérer les articles' );
->>>>>>> 6ae59ac (Connexion effective entre front et back)
     }
 };
 };
