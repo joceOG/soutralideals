@@ -95,7 +95,6 @@ export const getAllCategories = async (req, res) => {
     }
 };
 
-
 // Obtenir une catégorie par ID
 export const getCategoryById = async (req, res) => {
     try {

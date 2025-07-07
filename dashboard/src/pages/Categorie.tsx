@@ -5,7 +5,6 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnBodyOptions } from 'primereact/column';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { imagefrombuffer } from "imagefrombuffer";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -21,6 +20,72 @@ export interface Item {
         nomgroupe: string 
     };
 }
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: {
+            type: "spring" as const,
+            stiffness: 100,
+            damping: 20
+        }
+    }
+};
+
+const NeumorphicCard = styled(Card)(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'dark' ? '#0c1a2c' : '#f0f4f8',
+    borderRadius: '16px',
+    boxShadow: theme.palette.mode === 'dark'
+        ? `5px 5px 10px ${alpha('#000000', 0.8)}, -5px -5px 10px ${alpha('#0c1a2c', 0.25)}`
+        : `10px 10px 20px ${alpha('#a3b1c6', 0.2)}, -10px -10px 20px ${alpha('#ffffff', 0.8)}`,
+    padding: theme.spacing(2),
+    transition: 'transform 0.3s, box-shadow 0.3s',
+    '&:hover': {
+        transform: 'translateY(-5px)',
+        boxShadow: theme.palette.mode === 'dark'
+            ? `8px 8px 18px ${alpha('#000000', 0.9)}, -8px -8px 18px ${alpha('#0c1a2c', 0.3)}`
+            : `15px 15px 30px ${alpha('#a3b1c6', 0.3)}, -15px -15px 30px ${alpha('#ffffff', 0.9)}`
+    }
+}));
+
+const MotionTypography = motion(Typography);
+const MotionDiv = motion.div;
+
+const Transition = React.forwardRef<HTMLDivElement, PaperProps>((props, ref) => {
+    // Exclure les handlers incompatibles comme onAnimationStart avant de passer les props à MotionDiv
+    const { style, onAnimationStart, ...other } = props;
+
+    return (
+        <MotionDiv
+            ref={ref}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ type: 'spring', damping: 20 }}
+            style={{
+                borderRadius: '16px',
+                backgroundColor: 'white',
+                overflow: 'hidden',
+                boxShadow: `0 10px 30px rgba(0,0,0,0.15)`,
+                ...style,
+            }}
+        >
+            <Paper {...other} />
+        </MotionDiv>
+    );
+});
 
 const Categorie: React.FC = () => {
     const [categorie, setCategorie] = useState<Item[]>([]);
@@ -53,6 +118,18 @@ const Categorie: React.FC = () => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        if (globalFilter === null || globalFilter === '') {
+            setFilteredCategorie(categorie);
+        } else {
+            const filtered = categorie.filter(item => 
+                item.nomcategorie.toLowerCase().includes(globalFilter.toLowerCase()) ||
+                item.groupe.nomgroupe.toLowerCase().includes(globalFilter.toLowerCase())
+            );
+            setFilteredCategorie(filtered);
+        }
+    }, [categorie, globalFilter]);
+
     const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         let _filters = { ...filters };
@@ -67,16 +144,55 @@ const Categorie: React.FC = () => {
         setGlobalFilter(value);
     };
 
-    const onDelete = async (rowData: Item) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
-            try {
-                await axios.delete(`http://localhost:3000/api/categorie/${rowData._id}`);
-                setCategorie(categorie.filter(item => item._id !== rowData._id));
-                toast.success('Catégorie supprimée avec succès !');
-            } catch (error) {
-                toast.error('Erreur lors de la suppression de la catégorie.');
-                console.error('Erreur lors de la suppression de la catégorie:', error);
-            }
+    const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => options.rowIndex + 1;
+
+    const actionTemplate = (rowData: Item) => (
+        <>
+            <IconButton 
+                className='mr-2'
+                aria-label="edit" 
+                color="primary" 
+                size="large" 
+                onClick={() => onEdit(rowData)}
+            >
+                <EditIcon />
+            </IconButton>
+            <IconButton 
+                aria-label="delete" 
+                color="error" 
+                size="large" 
+                onClick={() => onDelete(rowData)}
+            >
+                <DeleteIcon />
+            </IconButton>
+        </>
+    );
+
+    const imageTemplate = (rowData: Item) => {
+        if (typeof rowData.imagecategorie === 'string') {
+            return (
+                <img
+                    src={rowData.imagecategorie || 'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
+                    alt="Category"
+                    style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+                />
+            );
+        } else if (rowData.imagecategorie && typeof rowData.imagecategorie === 'object' && 'type' in rowData.imagecategorie && 'data' in rowData.imagecategorie) {
+            return (
+                <img 
+                    alt="imagecategorie" 
+                    src={`data:${rowData.imagecategorie.type};base64,${Buffer.from(rowData.imagecategorie.data).toString('base64')}`}
+                    style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+                /> 
+            );
+        } else {
+            return (
+                <img
+                    src={'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'}
+                    alt="Category"
+                    style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+                />
+            );
         }
     };
 
@@ -122,9 +238,25 @@ const Categorie: React.FC = () => {
         setModalOpen(false);
     };
 
+    const renderSearchHeader = () => (
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+            <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Rechercher..."
+                value={globalFilter || ''}
+                onChange={onGlobalFilterChange}
+                InputProps={{
+                    startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1 }} />,
+                }}
+                sx={{ width: 300 }}
+            />
+        </Box>
+    );
+
     const renderHeader = () => (
         <div className="table-header">
-            <h5 className="mx-0 my-1">Manage Categories</h5>
+            <h5 className="mx-0 my-1">Gestion des Catégories</h5>
             <Button variant="contained" color="primary" onClick={onAdd}>
                 Ajouter Un Nouveau Catégorie
             </Button>
@@ -231,6 +363,7 @@ const Categorie: React.FC = () => {
                         fullWidth
                         value={formData.nomcategorie}
                         onChange={handleChange}
+                        sx={{ mb: 2 }}
                     />
                     {/* Add other form fields as needed */}
                 </DialogContent>
