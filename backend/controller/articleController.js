@@ -171,8 +171,15 @@ export const updateArticle = async (req, res) => {
         )
 =======
         ).populate('categorie');
+<<<<<<< HEAD
 >>>>>>> a814426 (Connexion effective entre front et back)
+<<<<<<< HEAD
 >>>>>>> 1b487c7 (Connexion effective entre front et back)
+=======
+=======
+        )
+>>>>>>> 5aa68f1 (Soutrali Dashboard V1)
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
@@ -180,6 +187,7 @@ export const updateArticle = async (req, res) => {
 
         res.status(200).json(updatedArticle);
     } catch (err) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -198,11 +206,19 @@ export const updateArticle = async (req, res) => {
         // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
 =======
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
         // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
 =======
         console.error('Erreur lors de la mise à jour de l\'article:', err.message);
 >>>>>>> a814426 (Connexion effective entre front et back)
+<<<<<<< HEAD
 >>>>>>> 1b487c7 (Connexion effective entre front et back)
+=======
+=======
+        // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
+>>>>>>> 5aa68f1 (Soutrali Dashboard V1)
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
         res.status(500).json({ error: err.message });
     }
 };
@@ -244,6 +260,7 @@ export const createArticle = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const newArticle = new articleModel({
 <<<<<<< HEAD
 =======
@@ -264,6 +281,8 @@ export const createArticle = async (req, res) => {
 =======
 
 
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
         const newArticle = new articleModel({
 >>>>>>> c2ad0c0 (Connexion effective entre front et back)
             nomArticle,
@@ -330,27 +349,12 @@ export const getArticleById = async (req, res) => {
 =======
 >>>>>>> 1b487c7 (Connexion effective entre front et back)
     try {
-<<<<<<< HEAD
-        const articles = await articleModel.find({}).populate('categorie');
-        
-=======
-<<<<<<< HEAD
->>>>>>> 7f93ecd (Connexion effective entre front et back)
-        const articles = await articleModel.find().populate('categorie');
-        res.status(200).json(articles);
-    } catch (err) {
-        // console.error('Erreur lors de la récupération des articles:', err.message);
-        res.status(500).json( 'Impossible de récupérer les articles' );
-        console.error('Erreur lors de la récupération des articles:', err.message);
-        res.status(500).json({ error: err.message });
-=======
         const articles = await articleModel.find({}).populate('categorie');
         
         res.status(200).json(articles);
     } catch (err) {
         // console.error('Erreur lors de la récupération des articles:', err.message);
         res.status(500).json( 'Impossible de récupérer les articles' );
->>>>>>> 6ae59ac (Connexion effective entre front et back)
     }
 };
 };

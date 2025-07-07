@@ -1,4 +1,5 @@
 import React, { useEffect, useState, ForwardedRef } from 'react';
+import React, { useEffect, useState, ForwardedRef } from 'react';
 import {
   Box, Typography, Fab, Dialog, DialogTitle, DialogContent,
   DialogActions, IconButton, TextField, Button, Alert, Snackbar,
@@ -153,11 +154,11 @@ const NeumorphicCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-
 // Interface for Item
 interface Item {
   _id: string;
   nomgroupe: string;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -169,6 +170,8 @@ interface Item {
 type SortOrder = 'asc' | 'desc';
 
 =======
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   // Virtuel - sera calculé dynamiquement
 <<<<<<< HEAD
 =======
@@ -187,12 +190,14 @@ type SortOrder = 'asc' | 'desc';
   _categoriesCount?: number;
 }
 
-// Type pour le tri
 type SortOrder = 'asc' | 'desc';
 
 // Animations variants
+<<<<<<< HEAD
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -212,6 +217,7 @@ const itemVariants = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       type: 'spring' as const,  // cast to literal type to satisfy TS
 =======
       type: 'spring', 
@@ -225,6 +231,9 @@ const itemVariants = {
       type: 'spring', 
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+      type: 'spring', 
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
       stiffness: 100,
       damping: 12
     }
@@ -234,6 +243,7 @@ const itemVariants = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Main component
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
@@ -244,6 +254,9 @@ const itemVariants = {
 // Main component
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+// Main component
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
 const Groupe: React.FC = () => {
   const [groupe, setGroupe] = useState<Item[]>([]);
   const [filteredGroupe, setFilteredGroupe] = useState<Item[]>([]);
@@ -257,6 +270,7 @@ const Groupe: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   const [searchQuery, setSearchQuery] = useState('');
@@ -265,6 +279,8 @@ const Groupe: React.FC = () => {
   const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 =======
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   // Search, pagination and sorting states
 <<<<<<< HEAD
 =======
@@ -282,18 +298,17 @@ const Groupe: React.FC = () => {
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
 =======
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Pagination states
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  
-  // Sorting states
   const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   
   // États pour la pagination et le tri déjà définis au-dessus
+<<<<<<< HEAD
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -311,31 +326,6 @@ const Groupe: React.FC = () => {
 
     fetchData();
   }, []);
-  
-  // Appliquer la recherche, le tri et la pagination
-  useEffect(() => {
-    // Filter
-    let result = [...groupe];
-    if (searchQuery) {
-      result = result.filter(item => 
-        item.nomgroupe.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    // Sort
-    result.sort((a, b) => {
-      const valueA = a[sortField];
-      const valueB = b[sortField];
-      
-      if (sortOrder === 'asc') {
-        return valueA > valueB ? 1 : -1;
-      } else {
-        return valueA < valueB ? 1 : -1;
-      }
-    });
-    
-    setFilteredGroupe(result);
-  }, [groupe, searchQuery, sortField, sortOrder]);
 
   useEffect(() => {
     let result = [...groupe];
@@ -354,7 +344,7 @@ const Groupe: React.FC = () => {
         return valueA < valueB ? 1 : -1;
       }
     });
-
+    
     setFilteredGroupe(result);
   }, [groupe, searchQuery, sortField, sortOrder]);
 
@@ -438,6 +428,7 @@ const Groupe: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // Pagination handlers
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
@@ -448,6 +439,9 @@ const Groupe: React.FC = () => {
   // Pagination handlers
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+  // Pagination handlers
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -460,6 +454,7 @@ const Groupe: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // Sorting handler
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
@@ -470,6 +465,9 @@ const Groupe: React.FC = () => {
   // Sorting handler
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+  // Sorting handler
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   const handleSort = (field: 'nomgroupe' | '_id') => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -482,8 +480,12 @@ const Groupe: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+  // Get current rows for pagination
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   // Correct forwardRef with proper typing for Dialog transitions
@@ -509,6 +511,7 @@ const Groupe: React.FC = () => {
     />
   ));
 
+<<<<<<< HEAD
 =======
   // Get current rows for pagination
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -543,6 +546,8 @@ const Groupe: React.FC = () => {
 
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
 =======
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   return (
@@ -563,6 +568,7 @@ const Groupe: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         {/* Barre de recherche */}
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
@@ -573,6 +579,9 @@ const Groupe: React.FC = () => {
         {/* Barre de recherche */}
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+        {/* Barre de recherche */}
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
         <SearchBox>
           <IconButton sx={{ p: '10px' }} aria-label="search">
             <SearchIcon />
@@ -794,6 +803,9 @@ const Groupe: React.FC = () => {
         <NeumorphicCard>
           <Box mb={2} px={2} display="flex" alignItems="center">
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
               Liste des Groupes
             </Typography>
@@ -804,6 +816,7 @@ const Groupe: React.FC = () => {
               color="primary" 
               variant="outlined" 
               size="small" 
+<<<<<<< HEAD
             />
           </Box>
           <Divider sx={{ mb: 2 }} />
@@ -1021,14 +1034,120 @@ const Groupe: React.FC = () => {
               rowsPerPageOptions={[5, 10, 25]}
               labelRowsPerPage="Lignes par page:"
               labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
             />
-          </>
-        )}
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+
+          {loading ? (
+            <Box p={3} textAlign="center">
+              <Typography>Chargement des groupes...</Typography>
+            </Box>
+          ) : (
+            <>
+              <TableContainer component={Paper} elevation={0}>
+                <Table sx={{ minWidth: 700 }} aria-label="customized table">
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell>#</StyledTableCell>
+                      <StyledTableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
+                          Groupe
+                          {sortField === 'nomgroupe' && (
+                            <motion.span 
+                              initial={{ opacity: 0, scale: 0.5 }} 
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                              style={{ marginLeft: '5px' }}
+                            >
+                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+                            </motion.span>
+                          )}
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
+                          Identifiant
+                          {sortField === '_id' && (
+                            <motion.span 
+                              initial={{ opacity: 0, scale: 0.5 }} 
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                              style={{ marginLeft: '5px' }}
+                            >
+                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+                            </motion.span>
+                          )}
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell>Action</StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <AnimatePresence>
+                      {currentGroups.map((item, index) => (
+                        <motion.tr
+                          key={item._id}
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit={{ opacity: 0, y: -10 }}
+                          style={{ originX: 0 }}
+                        >
+                          <StyledTableRow>
+                            <StyledTableCell component="th" scope="row">
+                              {page * rowsPerPage + index + 1}
+                            </StyledTableCell>
+                            <StyledTableCell>
+                              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+                                {item.nomgroupe}
+                              </motion.div>
+                            </StyledTableCell>
+                            <StyledTableCell>{item._id}</StyledTableCell>
+                            <StyledTableCell>
+                              <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s ease' }}>
+                                <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
+                                  <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
+                                  <IconButton color="error" onClick={() => handleDelete(item._id)}>
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </StyledTableCell>
+                          </StyledTableRow>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              <TablePagination
+                component="div"
+                count={filteredGroupe.length}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                labelRowsPerPage="Lignes par page:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+              />
+            </>
+          )}
         </NeumorphicCard>
       </motion.div>
 
+<<<<<<< HEAD
       {/* Floating Action Button to open the modal for adding a new group */}
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
       <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <motion.div
           whileHover={{ scale: 1.1 }}
@@ -1045,6 +1164,7 @@ const Groupe: React.FC = () => {
       </Box>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       <AnimatePresence>
         {open && (
           <Dialog
@@ -1054,12 +1174,15 @@ const Groupe: React.FC = () => {
             TransitionComponent={DialogTransition}
 =======
       {/* Modal for adding or updating a group */}
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
       <AnimatePresence>
         {open && (
-          <Dialog 
-            onClose={handleClose} 
-            open={open} 
+          <Dialog
+            onClose={handleClose}
+            open={open}
             fullWidth
+<<<<<<< HEAD
             TransitionComponent={React.forwardRef((props, ref) => (
               <motion.div
                 ref={ref}
@@ -1071,6 +1194,9 @@ const Groupe: React.FC = () => {
               />
             ))}
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+            TransitionComponent={DialogTransition}
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
           >
             <DialogTitle sx={{ m: 0, p: 2 }}>
               {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
@@ -1137,8 +1263,11 @@ const Groupe: React.FC = () => {
 >>>>>>> ed23bf8 (Soutrali Dashboard V1)
 =======
       {/* Snackbar for success messages */}
+<<<<<<< HEAD
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
       <AnimatePresence>
         {openSnackbar && (
           <Snackbar
@@ -1148,10 +1277,13 @@ const Groupe: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
             TransitionComponent={SnackbarTransition}
 =======
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
             TransitionComponent={React.forwardRef((props, ref) => (
               <motion.div
                 ref={ref}
@@ -1163,6 +1295,7 @@ const Groupe: React.FC = () => {
               />
             ))}
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 =======
             TransitionComponent={SnackbarTransition}
@@ -1170,6 +1303,8 @@ const Groupe: React.FC = () => {
 =======
 >>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 >>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> 6fb3b92 (Soutrali Dashboard V1)
           >
             <Alert 
               onClose={handleCloseSnackbar} 
