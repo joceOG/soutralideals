@@ -38,20 +38,28 @@ export const getAllGroupes = async (req, res) => {
 export const getGroupeById = async (req, res) => {
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
         const groupe = await groupeModel.findById(req.params.id).populate('categories');
 =======
         const groupe = await groupeModel.findById(req.params.id);
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+        const groupe = await groupeModel.findById(req.params.id).populate('categories');
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
 
         if (!groupe) {
             return res.status(404).json({ error: "Groupe non trouvé" });
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         res.status(200).json(groupe.categories);
 =======
         res.status(200).json(groupe);
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+        res.status(200).json(groupe.categories);
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
     } catch (err) {
         console.error("Erreur:", err.message);
         res.status(500).json({ error: err.message });

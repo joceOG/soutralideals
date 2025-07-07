@@ -108,6 +108,7 @@ export const updateArticle = async (req, res) => {
             updatedFields,
             { new: true }
 <<<<<<< HEAD
+<<<<<<< HEAD
         ).populate('categorie');
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -119,6 +120,9 @@ export const updateArticle = async (req, res) => {
         )
 >>>>>>> 6ae59ac (Connexion effective entre front et back)
 >>>>>>> 7f93ecd (Connexion effective entre front et back)
+=======
+        )
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
@@ -126,6 +130,7 @@ export const updateArticle = async (req, res) => {
 
         res.status(200).json(updatedArticle);
     } catch (err) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
@@ -138,6 +143,9 @@ export const updateArticle = async (req, res) => {
         // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
 >>>>>>> 6ae59ac (Connexion effective entre front et back)
 >>>>>>> 7f93ecd (Connexion effective entre front et back)
+=======
+        // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
         res.status(500).json({ error: err.message });
     }
 };
@@ -168,6 +176,7 @@ export const createArticle = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const newArticle = new articleModel({
 =======
         const newArticle = new Article({
@@ -178,6 +187,9 @@ export const createArticle = async (req, res) => {
         const newArticle = new articleModel({
 >>>>>>> 6ae59ac (Connexion effective entre front et back)
 >>>>>>> 7f93ecd (Connexion effective entre front et back)
+=======
+        const newArticle = new articleModel({
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
             nomArticle,
             prixArticle,
             quantiteArticle,
@@ -228,20 +240,12 @@ export const getArticleById = async (req, res) => {
         const article = await articleModel.findById(req.params.id).populate('categorie');
 =======
     try {
-<<<<<<< HEAD
-        const articles = await articleModel.find().populate('categorie');
-        res.status(200).json(articles);
-    } catch (err) {
-        console.error('Erreur lors de la récupération des articles:', err.message);
-        res.status(500).json({ error: err.message });
-=======
         const articles = await articleModel.find({}).populate('categorie');
         
         res.status(200).json(articles);
     } catch (err) {
         // console.error('Erreur lors de la récupération des articles:', err.message);
         res.status(500).json( 'Impossible de récupérer les articles' );
->>>>>>> 6ae59ac (Connexion effective entre front et back)
     }
 };
 

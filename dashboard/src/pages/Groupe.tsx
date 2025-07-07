@@ -149,11 +149,11 @@ const NeumorphicCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-
 // Interface for Item
 interface Item {
   _id: string;
   nomgroupe: string;
+<<<<<<< HEAD
 <<<<<<< HEAD
   _categoriesCount?: number;
 }
@@ -162,14 +162,18 @@ type SortOrder = 'asc' | 'desc';
 
 =======
   // Virtuel - sera calculé dynamiquement
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
   _categoriesCount?: number;
 }
 
-// Type pour le tri
 type SortOrder = 'asc' | 'desc';
 
+<<<<<<< HEAD
 // Animations variants
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -187,10 +191,14 @@ const itemVariants = {
     opacity: 1,
     transition: { 
 <<<<<<< HEAD
+<<<<<<< HEAD
       type: 'spring' as const,  // cast to literal type to satisfy TS
 =======
       type: 'spring', 
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+      type: 'spring' as const,  // cast to literal type to satisfy TS
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
       stiffness: 100,
       damping: 12
     }
@@ -198,9 +206,12 @@ const itemVariants = {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Main component
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
 const Groupe: React.FC = () => {
   const [groupe, setGroupe] = useState<Item[]>([]);
   const [filteredGroupe, setFilteredGroupe] = useState<Item[]>([]);
@@ -212,6 +223,7 @@ const Groupe: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -219,18 +231,19 @@ const Groupe: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 =======
   // Search, pagination and sorting states
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Pagination states
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  
-  // Sorting states
   const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+<<<<<<< HEAD
   
   // États pour la pagination et le tri déjà définis au-dessus
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -248,29 +261,25 @@ const Groupe: React.FC = () => {
 
     fetchData();
   }, []);
-  
-  // Appliquer la recherche, le tri et la pagination
+
   useEffect(() => {
-    // Filter
     let result = [...groupe];
     if (searchQuery) {
       result = result.filter(item => 
         item.nomgroupe.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
-    // Sort
+
     result.sort((a, b) => {
       const valueA = a[sortField];
       const valueB = b[sortField];
-      
       if (sortOrder === 'asc') {
         return valueA > valueB ? 1 : -1;
       } else {
         return valueA < valueB ? 1 : -1;
       }
     });
-    
+
     setFilteredGroupe(result);
   }, [groupe, searchQuery, sortField, sortOrder]);
 
@@ -352,9 +361,12 @@ const Groupe: React.FC = () => {
   };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // Pagination handlers
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -365,9 +377,12 @@ const Groupe: React.FC = () => {
   };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // Sorting handler
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
   const handleSort = (field: 'nomgroupe' | '_id') => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -377,6 +392,7 @@ const Groupe: React.FC = () => {
     }
   };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -408,6 +424,33 @@ const Groupe: React.FC = () => {
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+  const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  // Correct forwardRef with proper typing for Dialog transitions
+  const DialogTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
+    <motion.div
+      ref={ref}
+      {...props}
+      initial={{ opacity: 0, scale: 0.75 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ type: "spring", damping: 15 }}
+    />
+  ));
+
+  const SnackbarTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
+    <motion.div
+      ref={ref}
+      {...props}
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      transition={{ type: "spring", damping: 15 }}
+    />
+  ));
+
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -424,9 +467,12 @@ const Groupe: React.FC = () => {
         </Typography>
         
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         {/* Barre de recherche */}
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
         <SearchBox>
           <IconButton sx={{ p: '10px' }} aria-label="search">
             <SearchIcon />
@@ -647,122 +693,123 @@ const Groupe: React.FC = () => {
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <NeumorphicCard>
           <Box mb={2} px={2} display="flex" alignItems="center">
-          <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-            Liste des Groupes
-          </Typography>
-          <Box flexGrow={1} />
-          <Chip 
-            icon={<FolderIcon />} 
-            label={`${filteredGroupe.length} groupe${filteredGroupe.length > 1 ? 's' : ''}`} 
-            color="primary" 
-            variant="outlined" 
-            size="small" 
-          />
-        </Box>
-        <Divider sx={{ mb: 2 }} />
-
-        {loading ? (
-          <Box p={3} textAlign="center">
-            <Typography>Chargement des groupes...</Typography>
-          </Box>
-        ) : (
-          <>
-            <TableContainer component={Paper} elevation={0}>
-              <Table sx={{ minWidth: 700 }} aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>#</StyledTableCell>
-                    <StyledTableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
-                        Groupe
-                        {sortField === 'nomgroupe' && (
-                          <motion.span 
-                            initial={{ opacity: 0, scale: 0.5 }} 
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ marginLeft: '5px' }}
-                          >
-                            {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                          </motion.span>
-                        )}
-                      </Box>
-                    </StyledTableCell>
-                    <StyledTableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
-                        Identifiant
-                        {sortField === '_id' && (
-                          <motion.span 
-                            initial={{ opacity: 0, scale: 0.5 }} 
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ marginLeft: '5px' }}
-                          >
-                            {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                          </motion.span>
-                        )}
-                      </Box>
-                    </StyledTableCell>
-                    <StyledTableCell>Action</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <AnimatePresence>
-                    {currentGroups.map((item, index) => (
-                      <motion.tr
-                        key={item._id}
-                        variants={itemVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit={{ opacity: 0, y: -10 }}
-                        component={StyledTableRow}
-                      >
-                        <StyledTableCell component="th" scope="row">
-                          {page * rowsPerPage + index + 1}
-                        </StyledTableCell>
-                        <StyledTableCell>
-                          <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                            {item.nomgroupe}
-                          </motion.div>
-                        </StyledTableCell>
-                        <StyledTableCell>{item._id}</StyledTableCell>
-                        <StyledTableCell>
-                          <Box className="action-buttons">
-                            <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
-                              <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
-                                <EditIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
-                              <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </StyledTableCell>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            <TablePagination
-              component="div"
-              count={filteredGroupe.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 25]}
-              labelRowsPerPage="Lignes par page:"
-              labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+              Liste des Groupes
+            </Typography>
+            <Box flexGrow={1} />
+            <Chip 
+              icon={<FolderIcon />} 
+              label={`${filteredGroupe.length} groupe${filteredGroupe.length > 1 ? 's' : ''}`} 
+              color="primary" 
+              variant="outlined" 
+              size="small" 
             />
-          </>
-        )}
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+
+          {loading ? (
+            <Box p={3} textAlign="center">
+              <Typography>Chargement des groupes...</Typography>
+            </Box>
+          ) : (
+            <>
+              <TableContainer component={Paper} elevation={0}>
+                <Table sx={{ minWidth: 700 }} aria-label="customized table">
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell>#</StyledTableCell>
+                      <StyledTableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
+                          Groupe
+                          {sortField === 'nomgroupe' && (
+                            <motion.span 
+                              initial={{ opacity: 0, scale: 0.5 }} 
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                              style={{ marginLeft: '5px' }}
+                            >
+                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+                            </motion.span>
+                          )}
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
+                          Identifiant
+                          {sortField === '_id' && (
+                            <motion.span 
+                              initial={{ opacity: 0, scale: 0.5 }} 
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                              style={{ marginLeft: '5px' }}
+                            >
+                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+                            </motion.span>
+                          )}
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell>Action</StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <AnimatePresence>
+                      {currentGroups.map((item, index) => (
+                        <motion.tr
+                          key={item._id}
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit={{ opacity: 0, y: -10 }}
+                          style={{ originX: 0 }}
+                        >
+                          <StyledTableRow>
+                            <StyledTableCell component="th" scope="row">
+                              {page * rowsPerPage + index + 1}
+                            </StyledTableCell>
+                            <StyledTableCell>
+                              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+                                {item.nomgroupe}
+                              </motion.div>
+                            </StyledTableCell>
+                            <StyledTableCell>{item._id}</StyledTableCell>
+                            <StyledTableCell>
+                              <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s ease' }}>
+                                <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
+                                  <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
+                                  <IconButton color="error" onClick={() => handleDelete(item._id)}>
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </StyledTableCell>
+                          </StyledTableRow>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              <TablePagination
+                component="div"
+                count={filteredGroupe.length}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                labelRowsPerPage="Lignes par page:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+              />
+            </>
+          )}
         </NeumorphicCard>
       </motion.div>
 
-      {/* Floating Action Button to open the modal for adding a new group */}
       <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <motion.div
           whileHover={{ scale: 1.1 }}
@@ -778,23 +825,13 @@ const Groupe: React.FC = () => {
         </motion.div>
       </Box>
 
-      {/* Modal for adding or updating a group */}
       <AnimatePresence>
         {open && (
-          <Dialog 
-            onClose={handleClose} 
-            open={open} 
+          <Dialog
+            onClose={handleClose}
+            open={open}
             fullWidth
-            TransitionComponent={React.forwardRef((props, ref) => (
-              <motion.div
-                ref={ref}
-                {...props}
-                initial={{ opacity: 0, scale: 0.75 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ type: "spring", damping: 15 }}
-              />
-            ))}
+            TransitionComponent={DialogTransition}
           >
             <DialogTitle sx={{ m: 0, p: 2 }}>
               {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
@@ -853,14 +890,18 @@ const Groupe: React.FC = () => {
         )}
       </AnimatePresence>
 
+<<<<<<< HEAD
       {/* Snackbar for success messages */}
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
       <AnimatePresence>
         {openSnackbar && (
           <Snackbar
             open={openSnackbar}
             autoHideDuration={6000}
             onClose={handleCloseSnackbar}
+<<<<<<< HEAD
 <<<<<<< HEAD
             TransitionComponent={SnackbarTransition}
 =======
@@ -875,6 +916,9 @@ const Groupe: React.FC = () => {
               />
             ))}
 >>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
+=======
+            TransitionComponent={SnackbarTransition}
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
           >
             <Alert 
               onClose={handleCloseSnackbar} 

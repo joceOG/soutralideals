@@ -14,11 +14,14 @@ GroupeSchema.virtual('categories', {
     foreignField: 'groupe'    
 });
 
+<<<<<<< HEAD
 =======
          required: true },
 });
 
 >>>>>>> 0b7e280 (Connexion effective entre front et back)
+=======
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
 const groupeModel = mongoose.model('Groupe', GroupeSchema); 
 
 export default groupeModel;
