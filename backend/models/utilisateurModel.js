@@ -71,6 +71,7 @@ UtilisateurSchema.pre("save", async function(next) {
 
    // Virtual
    UtilisateurSchema.virtual('articles', {
+<<<<<<< HEAD
     ref: 'Article',           
     localField: '_id',       
     foreignField: 'owner'    
@@ -79,6 +80,9 @@ UtilisateurSchema.pre("save", async function(next) {
    // Virtual Commandes
    UtilisateurSchema.virtual('commandes', {
     ref: 'Commande',             // Référence à la collection 'Commande'
+=======
+    ref: 'Article',             // Référence à la collection 'Task'
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
     localField: '_id',       
     foreignField: 'owner'    
 });

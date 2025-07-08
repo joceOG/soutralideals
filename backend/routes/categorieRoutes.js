@@ -9,7 +9,11 @@ const upload = multer({ dest: 'uploads/' });
 
 // Routes pour les catégories
 categorieRouter.post("/categorie", upload.single('imagecategorie'), controller.createCategory);
+<<<<<<< HEAD
 categorieRouter.get("/categories", controller.getAllCategories);
+=======
+categorieRouter.get("/categorie", controller.getAllCategories);
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
 categorieRouter.get("/categorie/:id", controller.getCategoryById);
 categorieRouter.put("/categorie/:id", upload.single('imagecategorie'), controller.updateCategoryById);
 categorieRouter.delete("/categorie/:id", controller.deleteCategoryById);

@@ -42,7 +42,11 @@ export const updateCategoryById = async (req, res) => {
         categorie.nomcategorie = nomcategorie || categorie.nomcategorie;
         categorie.groupe = mongoose.Types.ObjectId(groupe) || categorie.groupe;
 
+<<<<<<< HEAD
         const updatedCategorie = await categorie.save();
+=======
+        const updatedCategorie = await categorieModel.save();
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         res.status(200).json(updatedCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -58,7 +62,11 @@ export const createCategory = async (req, res) => {
         const result = await cloudinary.v2.uploader.upload(req.file.path);
         fs.unlinkSync(req.file.path);
 
+<<<<<<< HEAD
         const newCategorie = new categorieModel({
+=======
+        const newCategorie = new Categorie({
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
             nomcategorie,
             imagecategorie: result.secure_url,
             groupe: groupeId,
@@ -75,6 +83,7 @@ export const createCategory = async (req, res) => {
 // Obtenir toutes les catégories
 export const getAllCategories = async (req, res) => {
     try {
+<<<<<<< HEAD
         const categories = await categorieModel
         .find({})
         .populate({
@@ -89,6 +98,9 @@ export const getAllCategories = async (req, res) => {
             path: 'services',
             select: 'nomservice ' 
         })        
+=======
+        const categories = await categorieModel.find({}).populate('groupe');
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });

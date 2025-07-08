@@ -16,4 +16,18 @@ userRouter.get("/logout", controller.logout);
 userRouter.get("/utilisateurs", userController.getAllUsers);
 
 
+<<<<<<< HEAD
 export default userRouter;
+=======
+
+const upload = multer({ dest: 'uploads/' });
+
+router.post("/register", controller.signUp);
+router.post("/login", controller.signIn);
+router.get("/logout", controller.logout);
+
+router.get("/utilisateurs", userController.getAllUsers);
+
+
+export default router;
+>>>>>>> 0b7e280 (Connexion effective entre front et back)

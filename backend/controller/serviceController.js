@@ -40,6 +40,7 @@ export const createService = async (req, res) => {
         fs.unlinkSync(req.file.path);
 
         res.status(201).json(newService);
+<<<<<<< HEAD
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -127,14 +128,84 @@ export const getServicesGroupedByCategorie = async (req, res) => {
 
         res.json(services);
         
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
 };
 
+<<<<<<< HEAD
 
 
+=======
+// Mettre à jour un service
+export const updateService = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nomservice, categorie, nomgroupe } = req.body;
+        const updates = { nomservice, categorie, nomgroupe };
+
+        // Check if a new image is uploaded
+        if (req.file) {
+            // Upload new image to Cloudinary
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: "services",
+            });
+
+            // Update the image URL in the updates object
+            updates.imageservice = result.secure_url;
+
+            // Remove the local file after uploading
+            fs.unlinkSync(req.file.path);
+        }
+
+        // Find and update the service
+        const updatedService = await Service.findByIdAndUpdate(id, updates, {
+            new: true,
+        });
+
+        if (!updatedService) {
+            return res.status(404).json({ error: "Service not found" });
+        }
+
+        res.status(200).json(updatedService);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Obtenir tous les services
+export const getAllServices = async (req, res) => {
+    try {
+        const services = await Service.find().populate({
+            path: "categorie",
+            populate: {
+                path: "groupe",
+            },
+        }); // Populate categorie and groupe if necessary
+        res.json(services);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Obtenir les services par catégorie
+export const getServicesByCategorie = async (req, res) => {
+    try {
+        const { categorie } = req.params;
+        const servicesByCategorie = await Service.find({ nomcategorie: categorie });
+        res.json(servicesByCategorie);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
 // Supprimer un service
 export const deleteService = async (req, res) => {
     try {

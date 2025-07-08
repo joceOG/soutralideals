@@ -37,13 +37,21 @@ export const getAllGroupes = async (req, res) => {
 // Obtenir un groupe par ID
 export const getGroupeById = async (req, res) => {
     try {
+<<<<<<< HEAD
         const groupe = await groupeModel.findById(req.params.id).populate('categories');
+=======
+        const groupe = await groupeModel.findById(req.params.id);
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
 
         if (!groupe) {
             return res.status(404).json({ error: "Groupe non trouvé" });
         }
 
+<<<<<<< HEAD
         res.status(200).json(groupe.categories);
+=======
+        res.status(200).json(groupe);
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
     } catch (err) {
         console.error("Erreur:", err.message);
         res.status(500).json({ error: err.message });

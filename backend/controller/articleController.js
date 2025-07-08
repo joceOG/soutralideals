@@ -1,6 +1,7 @@
 import fs from 'fs';
 import cloudinary from 'cloudinary';
 import articleModel from '../models/articleModel.js';
+<<<<<<< HEAD
 import fs from 'fs';
 import cloudinary from 'cloudinary';
 import articleModel from '../models/articleModel.js';
@@ -9,10 +10,16 @@ import articleModel from '../models/articleModel.js';
 cloudinary.v2.config({
 // Configuration de Cloudinary
 cloudinary.v2.config({
+=======
+
+// Configuration de Cloudinary
+cloudinary.v2.config({
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
     cloud_name: "dm0c8st6k",
     api_key: "541481188898557",
     api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 });
+<<<<<<< HEAD
 });
 
 // Met à jour un article (avec upload d'image)
@@ -36,6 +43,14 @@ export const updateArticle = async (req, res) => {
         let updatedFields = { nomArticle, prixArticle, quantiteArticle, categorie };
 
 
+=======
+
+// Met à jour un article (avec upload d'image)
+export const updateArticle = async (req, res) => {
+    try {
+        const { nomArticle, prixArticle, quantiteArticle, categorie } = req.body;
+
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         let updatedFields = {
             nomArticle,
             prixArticle,
@@ -45,13 +60,17 @@ export const updateArticle = async (req, res) => {
 
         if (req.file) {
             // Upload nouvelle image
+<<<<<<< HEAD
             const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'articles' });
             // Upload nouvelle image
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'articles',
             });
 
             // Supprimer l'image temporaire
+<<<<<<< HEAD
             // Supprimer l'image temporaire
             fs.unlinkSync(req.file.path);
 
@@ -61,6 +80,13 @@ export const updateArticle = async (req, res) => {
 
             // Supprimer l'ancienne image sur Cloudinary si elle existe
             if (articleToUpdate?.photoArticle) {
+=======
+            fs.unlinkSync(req.file.path);
+
+            // Ajouter l'URL de l'image au champ mis à jour
+            updatedFields.photoArticle = result.secure_url;
+
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
             // Supprimer l'ancienne image dans Cloudinary si elle existe
             const articleToUpdate = await articleModel.findById(req.params.id);
             if (articleToUpdate?.photoArticle) {
@@ -69,17 +95,23 @@ export const updateArticle = async (req, res) => {
             }
         }
 
+<<<<<<< HEAD
         const updatedArticle = await articleModel.findByIdAndUpdate(req.params.id, updatedFields, { new: true });
                 await cloudinary.v2.uploader.destroy(publicId);
             }
         }
 
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         const updatedArticle = await articleModel.findByIdAndUpdate(
             req.params.id,
             updatedFields,
             { new: true }
         ).populate('categorie');
+<<<<<<< HEAD
         )
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
@@ -87,7 +119,11 @@ export const updateArticle = async (req, res) => {
 
         res.status(200).json(updatedArticle);
     } catch (err) {
+<<<<<<< HEAD
         // console.error('Erreur lors de la mise à jour de l\'article:', err.message);
+=======
+        console.error('Erreur lors de la mise à jour de l\'article:', err.message);
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         res.status(500).json({ error: err.message });
     }
 };
@@ -99,23 +135,36 @@ export const createArticle = async (req, res) => {
 
         if (!req.file) {
             return res.status(400).json({ error: 'Aucun fichier image téléchargé' });
+<<<<<<< HEAD
             return res.status(400).json({ error: 'Aucun fichier image téléchargé' });
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         }
 
         const result = await cloudinary.v2.uploader.upload(req.file.path, {
             folder: 'articles',
+<<<<<<< HEAD
         const result = await cloudinary.v2.uploader.upload(req.file.path, {
             folder: 'articles',
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         });
 
         fs.unlinkSync(req.file.path);
 
+<<<<<<< HEAD
         const newArticle = new articleModel({
+=======
+        const newArticle = new Article({
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
             nomArticle,
             prixArticle,
             quantiteArticle,
             photoArticle: result.secure_url,
+<<<<<<< HEAD
             photoArticle: result.secure_url,
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
             categorie,
         });
 
@@ -123,13 +172,17 @@ export const createArticle = async (req, res) => {
         res.status(201).json(newArticle);
     } catch (err) {
         console.error('Erreur lors de la création de l\'article:', err.message);
+<<<<<<< HEAD
         console.error('Erreur lors de la création de l\'article:', err.message);
+=======
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         res.status(500).json({ error: err.message });
     }
 };
 
 // Récupère tous les articles
 export const getAllArticles = async (req, res) => {
+<<<<<<< HEAD
 };
 
 // Récupère tous les articles
@@ -152,12 +205,28 @@ export const getArticleById = async (req, res) => {
     try {
         const article = await articleModel.findById(req.params.id).populate('categorie');
         const article = await articleModel.findById(req.params.id).populate('categorie');
+=======
+    try {
+        const articles = await articleModel.find().populate('categorie');
+        res.status(200).json(articles);
+    } catch (err) {
+        console.error('Erreur lors de la récupération des articles:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Récupère un article par ID
+export const getArticleById = async (req, res) => {
+    try {
+        const article = await articleModel.findById(req.params.id).populate('categorie');
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         if (!article) {
             return res.status(404).json({ error: 'Article non trouvé' });
         }
         res.status(200).json(article);
     } catch (err) {
         console.error('Erreur lors de la récupération de l\'article:', err.message);
+<<<<<<< HEAD
         console.error('Erreur lors de la récupération de l\'article:', err.message);
         res.status(500).json({ error: err.message });
     }
@@ -173,10 +242,22 @@ export const deleteArticle = async (req, res) => {
 
         const article = await articleModel.findByIdAndDelete(req.params.id);
 
+=======
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Supprime un article par ID
+export const deleteArticle = async (req, res) => {
+    try {
+        const article = await articleModel.findByIdAndDelete(req.params.id);
+
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
         if (!article) {
             return res.status(404).json({ error: 'Article non trouvé' });
         }
 
+<<<<<<< HEAD
 
         res.status(200).json({ message: 'Article supprimé avec succès' });
     } catch (err) {
@@ -186,3 +267,11 @@ export const deleteArticle = async (req, res) => {
     }
 };
 };
+=======
+        res.status(200).json({ message: 'Article supprimé avec succès' });
+    } catch (err) {
+        console.error('Erreur lors de la suppression de l\'article:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+>>>>>>> 0b7e280 (Connexion effective entre front et back)
