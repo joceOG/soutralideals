@@ -16,21 +16,9 @@ const CategorieSchema = mongoose.Schema({
 });
 
 
-// J'nclure les virtuels dans le  JSON
-CategorieSchema.set('toObject', { virtuals: true });
-CategorieSchema.set('toJSON', { virtuals: true });
-
-
-   // Virtual Categories
+   // Virtual
    CategorieSchema.virtual('articles', {
     ref: 'Article',       
-    localField: '_id',       
-    foreignField: 'categorie'    
-})
-;
-   // Virtual Services
-   CategorieSchema.virtual('services', {
-    ref: 'Service',       
     localField: '_id',       
     foreignField: 'categorie'    
 });

@@ -2,14 +2,12 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import { config } from 'dotenv';
-import userRouter from './routes/userRoutes.js';
+import router from './routes/userRoutes.js';
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
-import smsRouter from './routes/smsRoutes.js';
-import mailRouter from './routes/mailRouter.js';
 
 
 
@@ -18,25 +16,29 @@ import connect from './database/connex.js';
 
 const app = express()
 
+
 /** app middlewares */
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
 config();
 
+
+
+
 /** appliation port */
 const port = process.env.PORT ;
 
+
 /** routes */
-app.use('/api',userRouter) /** apis utilisateur */
+app.use('/api', router) /** apis utilisateur */
 app.use('/api', groupeRouter);
 app.use('/api', categorieRouter);
 app.use('/api', articleRouter);
 app.use('/api', serviceRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
-app.use('/api', smsRouter);
-app.use('/api', mailRouter);
+
 
 app.get('/', (req, res) => {
     try {

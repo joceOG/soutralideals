@@ -42,7 +42,7 @@ export const updateCategoryById = async (req, res) => {
         categorie.nomcategorie = nomcategorie || categorie.nomcategorie;
         categorie.groupe = mongoose.Types.ObjectId(groupe) || categorie.groupe;
 
-        const updatedCategorie = await categorie.save();
+        const updatedCategorie = await categorieModel.save();
         res.status(200).json(updatedCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -58,7 +58,7 @@ export const createCategory = async (req, res) => {
         const result = await cloudinary.v2.uploader.upload(req.file.path);
         fs.unlinkSync(req.file.path);
 
-        const newCategorie = new categorieModel({
+        const newCategorie = new Categorie({
             nomcategorie,
             imagecategorie: result.secure_url,
             groupe: groupeId,
@@ -75,20 +75,7 @@ export const createCategory = async (req, res) => {
 // Obtenir toutes les catégories
 export const getAllCategories = async (req, res) => {
     try {
-        const categories = await categorieModel
-        .find({})
-        .populate({
-            path: 'articles',
-            select: 'nomArticle prixArticle quantiteArticle photoArticle' 
-        })
-        .populate({
-            path: 'groupe',
-            select: 'nomgroupe' 
-        })
-        .populate({
-            path: 'services',
-            select: 'nomservice ' 
-        })        
+        const categories = await categorieModel.find({}).populate('groupe');
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -111,7 +98,7 @@ export const getCategoryById = async (req, res) => {
 // Supprimer une catégorie par ID
 export const deleteCategoryById = async (req, res) => {
     try {
-        const categorie = await categorieModel.findByIdAndDelete(req.params.id);
+        const categorie = await Categorie.findByIdAndDelete(req.params.id);
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
         }

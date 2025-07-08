@@ -86,7 +86,12 @@ export const updateService = async (req, res) => {
 // Obtenir tous les services
 export const getAllServices = async (req, res) => {
     try {
-        const services = await Service.find({}).populate('categorie');
+        const services = await Service.find().populate({
+            path: "categorie",
+            populate: {
+                path: "groupe",
+            },
+        }); // Populate categorie and groupe if necessary
         res.json(services);
     } catch (err) {
         console.error(err);
@@ -95,45 +100,16 @@ export const getAllServices = async (req, res) => {
 };
 
 // Obtenir les services par catégorie
-export const getServicesGroupedByCategorie = async (req, res) => {
+export const getServicesByCategorie = async (req, res) => {
     try {
-        const services = await Service.aggregate([
-            {
-                $lookup: {
-                    from: "categories", 
-                    localField: "categorie",
-                    foreignField: "_id",
-                    as: "categorieData" 
-                }
-            },
-            {
-                $unwind: "$categorieData" 
-            },
-            {
-                $group: {
-                    _id: "$categorieData._id", 
-                    nomcategorie: { $first: "$categorieData.nomcategorie" }, 
-                    imagecategorie: { $first: "$categorieData.imagecategorie" }, 
-                    services: {
-                        $push: {
-                            _id: "$_id",
-                            nomservice: "$nomservice",
-                            imageservice: "$imageservice"
-                        }
-                    }
-                }
-            }
-        ]);
-
-        res.json(services);
-        
+        const { categorie } = req.params;
+        const servicesByCategorie = await Service.find({ nomcategorie: categorie });
+        res.json(servicesByCategorie);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
 };
-
-
 
 // Supprimer un service
 export const deleteService = async (req, res) => {

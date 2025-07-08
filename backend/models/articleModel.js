@@ -10,6 +10,11 @@ const ArticleSchema = new mongoose.Schema({
     photoArticle: { type: String ,
         required:true,
     },
+    owner:{
+        type: mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref:'User'
+    },
     categorie:
      { type: mongoose.Schema.Types.ObjectId,
         required:true,
@@ -17,5 +22,6 @@ const ArticleSchema = new mongoose.Schema({
 });
 
 const articleModel = mongoose.model('Article', ArticleSchema);
+
 
 export default articleModel

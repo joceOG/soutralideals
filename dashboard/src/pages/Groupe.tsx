@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ForwardedRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Fab, Dialog, DialogTitle, DialogContent,
   DialogActions, IconButton, TextField, Button, Alert, Snackbar,
@@ -23,7 +23,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import FolderIcon from '@mui/icons-material/Folder';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants, Transition } from 'framer-motion';
 
 // Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -114,7 +114,7 @@ interface Item {
 
 type SortOrder = 'asc' | 'desc';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
@@ -124,16 +124,18 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const springTransition: Transition = {
+  type: 'spring',
+  stiffness: 100,
+  damping: 12,
+};
+
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: { 
     y: 0, 
     opacity: 1,
-    transition: { 
-      type: 'spring' as const,  // cast to literal type to satisfy TS
-      stiffness: 100,
-      damping: 12
-    }
+    transition: springTransition,
   }
 };
 
@@ -146,7 +148,6 @@ const Groupe: React.FC = () => {
   const [updateId, setUpdateId] = useState<string | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -177,7 +178,6 @@ const Groupe: React.FC = () => {
         item.nomgroupe.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
     result.sort((a, b) => {
       const valueA = a[sortField];
       const valueB = b[sortField];
@@ -187,7 +187,6 @@ const Groupe: React.FC = () => {
         return valueA < valueB ? 1 : -1;
       }
     });
-
     setFilteredGroupe(result);
   }, [groupe, searchQuery, sortField, sortOrder]);
 
@@ -211,7 +210,6 @@ const Groupe: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
     try {
       if (updateId) {
         await axios.put(`http://localhost:3000/api/groupe/${updateId}`, { nomgroupe });
@@ -220,12 +218,16 @@ const Groupe: React.FC = () => {
         await axios.post('http://localhost:3000/api/groupe', { nomgroupe });
         setAlertMessage('Groupe ajouté avec succès');
       }
-  
       setOpenSnackbar(true);
       const response = await axios.get('http://localhost:3000/api/groupe');
       setGroupe(response.data);
     } catch (error) {
       console.error('Failed to submit form:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios Error:', error.response?.data || error.message);
+      } else {
+        console.error('General Error:', error);
+      }
     }
     handleClose();
   };
@@ -266,29 +268,6 @@ const Groupe: React.FC = () => {
   };
 
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  // Correct forwardRef with proper typing for Dialog transitions
-  const DialogTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
-    <motion.div
-      ref={ref}
-      {...props}
-      initial={{ opacity: 0, scale: 0.75 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ type: "spring", damping: 15 }}
-    />
-  ));
-
-  const SnackbarTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
-    <motion.div
-      ref={ref}
-      {...props}
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
-      transition={{ type: "spring", damping: 15 }}
-    />
-  ));
 
   return (
     <motion.div 
@@ -389,40 +368,38 @@ const Groupe: React.FC = () => {
                           initial="hidden"
                           animate="visible"
                           exit={{ opacity: 0, y: -10 }}
-                          style={{ originX: 0 }}
+                          style={{ display: 'table-row' }} // Important pour garder le comportement TR
                         >
-                          <StyledTableRow>
-                            <StyledTableCell component="th" scope="row">
-                              {page * rowsPerPage + index + 1}
-                            </StyledTableCell>
-                            <StyledTableCell>
-                              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                                {item.nomgroupe}
-                              </motion.div>
-                            </StyledTableCell>
-                            <StyledTableCell>{item._id}</StyledTableCell>
-                            <StyledTableCell>
-                              <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s ease' }}>
-                                <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </StyledTableCell>
-                          </StyledTableRow>
+                          <StyledTableCell component="th" scope="row">
+                            {page * rowsPerPage + index + 1}
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+                              {item.nomgroupe}
+                            </motion.div>
+                          </StyledTableCell>
+                          <StyledTableCell>{item._id}</StyledTableCell>
+                          <StyledTableCell>
+                            <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s' }}>
+                              <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
+                                <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
+                                <IconButton color="error" onClick={() => handleDelete(item._id)}>
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </StyledTableCell>
                         </motion.tr>
                       ))}
                     </AnimatePresence>
                   </TableBody>
                 </Table>
               </TableContainer>
-
+              
               <TablePagination
                 component="div"
                 count={filteredGroupe.length}
@@ -439,6 +416,7 @@ const Groupe: React.FC = () => {
         </NeumorphicCard>
       </motion.div>
 
+      {/* Floating Action Button */}
       <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <motion.div
           whileHover={{ scale: 1.1 }}
@@ -454,13 +432,23 @@ const Groupe: React.FC = () => {
         </motion.div>
       </Box>
 
+      {/* Modal */}
       <AnimatePresence>
         {open && (
-          <Dialog
-            onClose={handleClose}
-            open={open}
+          <Dialog 
+            onClose={handleClose} 
+            open={open} 
             fullWidth
-            TransitionComponent={DialogTransition}
+            TransitionComponent={React.forwardRef<HTMLDivElement, any>((props, ref) => (
+              <motion.div
+                ref={ref}
+                {...props}
+                initial={{ opacity: 0, scale: 0.75 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ type: "spring", damping: 15 }}
+              />
+            ))}
           >
             <DialogTitle sx={{ m: 0, p: 2 }}>
               {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
@@ -471,73 +459,53 @@ const Groupe: React.FC = () => {
                   position: 'absolute',
                   right: 8,
                   top: 8,
-                  color: 'grey.500',
+                  color: (theme) => theme.palette.grey[500],
                 }}
               >
                 <CloseIcon />
               </IconButton>
             </DialogTitle>
+
             <DialogContent dividers>
-              <motion.form 
-                onSubmit={handleSubmit}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+              <form id="form-groupe" onSubmit={handleSubmit}>
                 <TextField
-                  label="Nom du Groupe"
+                  autoFocus
+                  margin="dense"
+                  id="nomgroupe"
+                  label="Nom du groupe"
+                  type="text"
+                  fullWidth
                   variant="outlined"
-                  name="nomgroupe"
                   value={nomgroupe}
                   onChange={(e) => setNomgroupe(e.target.value)}
-                  fullWidth
-                  margin="normal"
-                  autoFocus
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <FolderIcon color="primary" />
-                      </InputAdornment>
-                    ),
-                  }}
+                  required
                 />
-                <DialogActions>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button type="submit" variant="contained" color="secondary">
-                      {updateId ? 'Mettre à jour' : 'Enregistrer'}
-                    </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button onClick={handleClose} variant="outlined" color="primary">
-                      Annuler
-                    </Button>
-                  </motion.div>
-                </DialogActions>
-              </motion.form>
+              </form>
             </DialogContent>
+
+            <DialogActions>
+              <Button onClick={handleClose} color="secondary">
+                Annuler
+              </Button>
+              <Button type="submit" form="form-groupe" variant="contained" color="primary">
+                {updateId ? 'Mettre à jour' : 'Ajouter'}
+              </Button>
+            </DialogActions>
           </Dialog>
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {openSnackbar && (
-          <Snackbar
-            open={openSnackbar}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-            TransitionComponent={SnackbarTransition}
-          >
-            <Alert 
-              onClose={handleCloseSnackbar} 
-              severity="success" 
-              sx={{ width: '100%', boxShadow: 3 }}
-              variant="filled"
-            >
-              {alertMessage}
-            </Alert>
-          </Snackbar>
-        )}
-      </AnimatePresence>
+      {/* Snackbar */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </motion.div>
   );
 };
