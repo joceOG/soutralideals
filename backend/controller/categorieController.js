@@ -42,15 +42,7 @@ export const updateCategoryById = async (req, res) => {
         categorie.nomcategorie = nomcategorie || categorie.nomcategorie;
         categorie.groupe = mongoose.Types.ObjectId(groupe) || categorie.groupe;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        const updatedCategorie = await categorie.save();
-=======
         const updatedCategorie = await categorieModel.save();
->>>>>>> 0b7e280 (Connexion effective entre front et back)
-=======
-        const updatedCategorie = await categorie.save();
->>>>>>> 7f93ecd (Connexion effective entre front et back)
         res.status(200).json(updatedCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -66,15 +58,7 @@ export const createCategory = async (req, res) => {
         const result = await cloudinary.v2.uploader.upload(req.file.path);
         fs.unlinkSync(req.file.path);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        const newCategorie = new categorieModel({
-=======
         const newCategorie = new Categorie({
->>>>>>> 0b7e280 (Connexion effective entre front et back)
-=======
-        const newCategorie = new categorieModel({
->>>>>>> 7f93ecd (Connexion effective entre front et back)
             nomcategorie,
             imagecategorie: result.secure_url,
             groupe: groupeId,
@@ -91,34 +75,7 @@ export const createCategory = async (req, res) => {
 // Obtenir toutes les catégories
 export const getAllCategories = async (req, res) => {
     try {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        const categories = await categorieModel
-        .find({})
-        .populate({
-            path: 'articles',
-            select: 'nomArticle prixArticle quantiteArticle photoArticle' 
-        })
-        .populate({
-            path: 'groupe',
-            select: 'nomgroupe' 
-        })
-        .populate({
-            path: 'services',
-            select: 'nomservice ' 
-        })        
-=======
         const categories = await categorieModel.find({}).populate('groupe');
->>>>>>> 0b7e280 (Connexion effective entre front et back)
-=======
-        const categories = await Categorie.find().populate('groupe'); // Populer le groupe si nécessaire
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET,POST');
->>>>>>> 8327079 (get update)
-=======
-        const categories = await categorieModel.find({}).populate('groupe');
->>>>>>> 7f93ecd (Connexion effective entre front et back)
         res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -141,7 +98,7 @@ export const getCategoryById = async (req, res) => {
 // Supprimer une catégorie par ID
 export const deleteCategoryById = async (req, res) => {
     try {
-        const categorie = await categorieModel.findByIdAndDelete(req.params.id);
+        const categorie = await Categorie.findByIdAndDelete(req.params.id);
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
         }

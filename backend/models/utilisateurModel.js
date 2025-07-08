@@ -71,18 +71,7 @@ UtilisateurSchema.pre("save", async function(next) {
 
    // Virtual
    UtilisateurSchema.virtual('articles', {
-<<<<<<< HEAD
-    ref: 'Article',           
-    localField: '_id',       
-    foreignField: 'owner'    
-});
-
-   // Virtual Commandes
-   UtilisateurSchema.virtual('commandes', {
-    ref: 'Commande',             // Référence à la collection 'Commande'
-=======
     ref: 'Article',             // Référence à la collection 'Task'
->>>>>>> 0b7e280 (Connexion effective entre front et back)
     localField: '_id',       
     foreignField: 'owner'    
 });
@@ -91,7 +80,7 @@ UtilisateurSchema.pre("save", async function(next) {
 
 UtilisateurSchema.methods.generateAuthToken= async function (){
     const user=this
-    const token=jwt.sign({_id:user._id.toString()},process.env.JWT_SECRET)
+    const token=jwt.sign({_id:user._id.toString()},'thisisoutrali')
     user.tokens=user.tokens.concat({token})
 
     await user.save()

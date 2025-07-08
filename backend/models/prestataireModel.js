@@ -15,16 +15,6 @@ const PrestataireSchema = mongoose.Schema({
     verifier : { type: String },
 });
 
-<<<<<<< HEAD
-   // Virtual Services
-   PrestataireSchema.virtual('services', {
-    ref: 'Service',       
-    localField: '_id',       
-    foreignField: 'owner'    
-});
-
-=======
->>>>>>> 0b7e280 (Connexion effective entre front et back)
 const prestataireModel = mongoose.model('Prestataire', PrestataireSchema); 
 
 export default prestataireModel;

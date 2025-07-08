@@ -2,21 +2,12 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import { config } from 'dotenv';
-<<<<<<< HEAD
-import userRouter from './routes/userRoutes.js';
-=======
 import router from './routes/userRoutes.js';
->>>>>>> 0b7e280 (Connexion effective entre front et back)
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
-<<<<<<< HEAD
-import smsRouter from './routes/smsRoutes.js';
-import mailRouter from './routes/mailRouter.js';
-=======
->>>>>>> 0b7e280 (Connexion effective entre front et back)
 
 
 
@@ -25,36 +16,29 @@ import connect from './database/connex.js';
 
 const app = express()
 
+
 /** app middlewares */
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
 config();
 
+
+
+
 /** appliation port */
 const port = process.env.PORT ;
-<<<<<<< HEAD
-
-/** routes */
-app.use('/api',userRouter) /** apis utilisateur */
-=======
 
 
 /** routes */
 app.use('/api', router) /** apis utilisateur */
->>>>>>> 0b7e280 (Connexion effective entre front et back)
 app.use('/api', groupeRouter);
 app.use('/api', categorieRouter);
 app.use('/api', articleRouter);
 app.use('/api', serviceRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
-<<<<<<< HEAD
-app.use('/api', smsRouter);
-app.use('/api', mailRouter);
-=======
 
->>>>>>> 0b7e280 (Connexion effective entre front et back)
 
 app.get('/', (req, res) => {
     try {

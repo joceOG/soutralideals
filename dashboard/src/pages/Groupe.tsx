@@ -1,5 +1,4 @@
-import React, { useEffect, useState, ForwardedRef } from 'react';
-import React, { useEffect, useState, ForwardedRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Fab, Dialog, DialogTitle, DialogContent,
   DialogActions, IconButton, TextField, Button, Alert, Snackbar,
@@ -24,7 +23,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import FolderIcon from '@mui/icons-material/Folder';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants, Transition } from 'framer-motion';
 
 // Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -63,54 +62,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     },
   },
   transition: 'all 0.3s ease',
-<<<<<<< HEAD
-}));
-
-const SearchBox = styled(Paper)(({ theme }) => ({
-  padding: '2px 8px',
-  display: 'flex',
-  alignItems: 'center',
-  width: 300,
-  borderRadius: theme.shape.borderRadius * 4,
-  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : alpha(theme.palette.common.white, 0.9),
-  boxShadow: theme.palette.mode === 'dark'
-    ? `inset 2px 2px 5px ${alpha(theme.palette.common.black, 0.5)}, 
-       inset -2px -2px 5px ${alpha(theme.palette.common.white, 0.1)}`
-    : `inset 2px 2px 5px ${alpha(theme.palette.common.black, 0.05)}, 
-       inset -2px -2px 5px ${alpha(theme.palette.common.white, 0.9)}`,
-  '&:hover': {
-    boxShadow: theme.palette.mode === 'dark'
-      ? `inset 2px 2px 8px ${alpha(theme.palette.common.black, 0.6)}, 
-         inset -2px -2px 8px ${alpha(theme.palette.common.white, 0.15)}`
-      : `inset 2px 2px 8px ${alpha(theme.palette.common.black, 0.1)}, 
-         inset -2px -2px 8px ${alpha(theme.palette.common.white, 1)}`
-  },
-  transition: 'all 0.3s ease',
-}));
-
-const NeumorphicCard = styled(Card)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.8) : theme.palette.background.paper,
-  borderRadius: theme.shape.borderRadius * 2,
-  padding: theme.spacing(2),
-  boxShadow: theme.palette.mode === 'dark'
-    ? `5px 5px 10px ${alpha(theme.palette.common.black, 0.5)}, 
-       -5px -5px 10px ${alpha(theme.palette.common.white, 0.05)}`
-    : `5px 5px 10px ${alpha(theme.palette.common.black, 0.05)}, 
-       -5px -5px 10px ${alpha(theme.palette.common.white, 0.8)}`,
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    boxShadow: theme.palette.mode === 'dark'
-      ? `8px 8px 16px ${alpha(theme.palette.common.black, 0.6)}, 
-         -8px -8px 16px ${alpha(theme.palette.common.white, 0.08)}`
-      : `8px 8px 16px ${alpha(theme.palette.common.black, 0.08)}, 
-         -8px -8px 16px ${alpha(theme.palette.common.white, 1)}`
-  },
-=======
-<<<<<<< HEAD
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
 }));
 
 const SearchBox = styled(Paper)(({ theme }) => ({
@@ -158,47 +109,12 @@ const NeumorphicCard = styled(Card)(({ theme }) => ({
 interface Item {
   _id: string;
   nomgroupe: string;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   _categoriesCount?: number;
 }
 
 type SortOrder = 'asc' | 'desc';
 
-=======
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-  // Virtuel - sera calculé dynamiquement
-<<<<<<< HEAD
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-  _categoriesCount?: number;
-}
-
-type SortOrder = 'asc' | 'desc';
-
-<<<<<<< HEAD
-// Animations variants
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-  _categoriesCount?: number;
-}
-
-type SortOrder = 'asc' | 'desc';
-
-// Animations variants
-<<<<<<< HEAD
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
@@ -208,55 +124,21 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const springTransition: Transition = {
+  type: 'spring',
+  stiffness: 100,
+  damping: 12,
+};
+
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: { 
     y: 0, 
     opacity: 1,
-    transition: { 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      type: 'spring' as const,  // cast to literal type to satisfy TS
-=======
-      type: 'spring', 
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-      type: 'spring' as const,  // cast to literal type to satisfy TS
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-      type: 'spring' as const,  // cast to literal type to satisfy TS
-=======
-      type: 'spring', 
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-      type: 'spring', 
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-      stiffness: 100,
-      damping: 12
-    }
+    transition: springTransition,
   }
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-// Main component
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-=======
-// Main component
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-// Main component
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
 const Groupe: React.FC = () => {
   const [groupe, setGroupe] = useState<Item[]>([]);
   const [filteredGroupe, setFilteredGroupe] = useState<Item[]>([]);
@@ -266,49 +148,11 @@ const Groupe: React.FC = () => {
   const [updateId, setUpdateId] = useState<string | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-=======
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-  // Search, pagination and sorting states
-<<<<<<< HEAD
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-<<<<<<< HEAD
-  
-  // États pour la pagination et le tri déjà définis au-dessus
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  
-  // États pour la pagination et le tri déjà définis au-dessus
-<<<<<<< HEAD
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -334,7 +178,6 @@ const Groupe: React.FC = () => {
         item.nomgroupe.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
     result.sort((a, b) => {
       const valueA = a[sortField];
       const valueB = b[sortField];
@@ -344,28 +187,6 @@ const Groupe: React.FC = () => {
         return valueA < valueB ? 1 : -1;
       }
     });
-    
-    setFilteredGroupe(result);
-  }, [groupe, searchQuery, sortField, sortOrder]);
-
-  useEffect(() => {
-    let result = [...groupe];
-    if (searchQuery) {
-      result = result.filter(item => 
-        item.nomgroupe.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    result.sort((a, b) => {
-      const valueA = a[sortField];
-      const valueB = b[sortField];
-      if (sortOrder === 'asc') {
-        return valueA > valueB ? 1 : -1;
-      } else {
-        return valueA < valueB ? 1 : -1;
-      }
-    });
-
     setFilteredGroupe(result);
   }, [groupe, searchQuery, sortField, sortOrder]);
 
@@ -389,7 +210,6 @@ const Groupe: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
     try {
       if (updateId) {
         await axios.put(`http://localhost:3000/api/groupe/${updateId}`, { nomgroupe });
@@ -398,12 +218,16 @@ const Groupe: React.FC = () => {
         await axios.post('http://localhost:3000/api/groupe', { nomgroupe });
         setAlertMessage('Groupe ajouté avec succès');
       }
-  
       setOpenSnackbar(true);
       const response = await axios.get('http://localhost:3000/api/groupe');
       setGroupe(response.data);
     } catch (error) {
       console.error('Failed to submit form:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios Error:', error.response?.data || error.message);
+      } else {
+        console.error('General Error:', error);
+      }
     }
     handleClose();
   };
@@ -425,23 +249,6 @@ const Groupe: React.FC = () => {
     setOpenSnackbar(false);
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  // Pagination handlers
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-=======
-  // Pagination handlers
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-  // Pagination handlers
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -451,23 +258,6 @@ const Groupe: React.FC = () => {
     setPage(0);
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  // Sorting handler
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-=======
-  // Sorting handler
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-  // Sorting handler
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   const handleSort = (field: 'nomgroupe' | '_id') => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -477,79 +267,8 @@ const Groupe: React.FC = () => {
     }
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-  // Get current rows for pagination
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
   const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  // Correct forwardRef with proper typing for Dialog transitions
-  const DialogTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
-    <motion.div
-      ref={ref}
-      {...props}
-      initial={{ opacity: 0, scale: 0.75 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ type: "spring", damping: 15 }}
-    />
-  ));
-
-  const SnackbarTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
-    <motion.div
-      ref={ref}
-      {...props}
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
-      transition={{ type: "spring", damping: 15 }}
-    />
-  ));
-
-<<<<<<< HEAD
-=======
-  // Get current rows for pagination
-  const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-<<<<<<< HEAD
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-  const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  // Correct forwardRef with proper typing for Dialog transitions
-  const DialogTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
-    <motion.div
-      ref={ref}
-      {...props}
-      initial={{ opacity: 0, scale: 0.75 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ type: "spring", damping: 15 }}
-    />
-  ));
-
-  const SnackbarTransition = React.forwardRef<HTMLDivElement, any>((props, ref) => (
-    <motion.div
-      ref={ref}
-      {...props}
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
-      transition={{ type: "spring", damping: 15 }}
-    />
-  ));
-
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -565,23 +284,6 @@ const Groupe: React.FC = () => {
           Groupes
         </Typography>
         
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        {/* Barre de recherche */}
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-=======
-        {/* Barre de recherche */}
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-        {/* Barre de recherche */}
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
         <SearchBox>
           <IconButton sx={{ p: '10px' }} aria-label="search">
             <SearchIcon />
@@ -595,7 +297,6 @@ const Groupe: React.FC = () => {
           />
         </SearchBox>
       </Box>
-<<<<<<< HEAD
 
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <NeumorphicCard>
@@ -667,40 +368,38 @@ const Groupe: React.FC = () => {
                           initial="hidden"
                           animate="visible"
                           exit={{ opacity: 0, y: -10 }}
-                          style={{ originX: 0 }}
+                          style={{ display: 'table-row' }} // Important pour garder le comportement TR
                         >
-                          <StyledTableRow>
-                            <StyledTableCell component="th" scope="row">
-                              {page * rowsPerPage + index + 1}
-                            </StyledTableCell>
-                            <StyledTableCell>
-                              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                                {item.nomgroupe}
-                              </motion.div>
-                            </StyledTableCell>
-                            <StyledTableCell>{item._id}</StyledTableCell>
-                            <StyledTableCell>
-                              <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s ease' }}>
-                                <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </StyledTableCell>
-                          </StyledTableRow>
+                          <StyledTableCell component="th" scope="row">
+                            {page * rowsPerPage + index + 1}
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+                              {item.nomgroupe}
+                            </motion.div>
+                          </StyledTableCell>
+                          <StyledTableCell>{item._id}</StyledTableCell>
+                          <StyledTableCell>
+                            <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s' }}>
+                              <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
+                                <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
+                                <IconButton color="error" onClick={() => handleDelete(item._id)}>
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </StyledTableCell>
                         </motion.tr>
                       ))}
                     </AnimatePresence>
                   </TableBody>
                 </Table>
               </TableContainer>
-
+              
               <TablePagination
                 component="div"
                 count={filteredGroupe.length}
@@ -717,6 +416,7 @@ const Groupe: React.FC = () => {
         </NeumorphicCard>
       </motion.div>
 
+      {/* Floating Action Button */}
       <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <motion.div
           whileHover={{ scale: 1.1 }}
@@ -732,458 +432,14 @@ const Groupe: React.FC = () => {
         </motion.div>
       </Box>
 
+      {/* Modal */}
       <AnimatePresence>
         {open && (
-          <Dialog
-            onClose={handleClose}
-            open={open}
+          <Dialog 
+            onClose={handleClose} 
+            open={open} 
             fullWidth
-            TransitionComponent={DialogTransition}
-          >
-            <DialogTitle sx={{ m: 0, p: 2 }}>
-              {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
-              <IconButton
-                aria-label="close"
-                onClick={handleClose}
-                sx={{
-                  position: 'absolute',
-                  right: 8,
-                  top: 8,
-                  color: 'grey.500',
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent dividers>
-              <motion.form 
-                onSubmit={handleSubmit}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <TextField
-                  label="Nom du Groupe"
-                  variant="outlined"
-                  name="nomgroupe"
-                  value={nomgroupe}
-                  onChange={(e) => setNomgroupe(e.target.value)}
-                  fullWidth
-                  margin="normal"
-                  autoFocus
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <FolderIcon color="primary" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <DialogActions>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button type="submit" variant="contained" color="secondary">
-                      {updateId ? 'Mettre à jour' : 'Enregistrer'}
-                    </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button onClick={handleClose} variant="outlined" color="primary">
-                      Annuler
-                    </Button>
-                  </motion.div>
-                </DialogActions>
-              </motion.form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </AnimatePresence>
-
-=======
-
-      <motion.div variants={containerVariants} initial="hidden" animate="visible">
-        <NeumorphicCard>
-          <Box mb={2} px={2} display="flex" alignItems="center">
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-              Liste des Groupes
-            </Typography>
-            <Box flexGrow={1} />
-            <Chip 
-              icon={<FolderIcon />} 
-              label={`${filteredGroupe.length} groupe${filteredGroupe.length > 1 ? 's' : ''}`} 
-              color="primary" 
-              variant="outlined" 
-              size="small" 
-<<<<<<< HEAD
-            />
-          </Box>
-          <Divider sx={{ mb: 2 }} />
-
-          {loading ? (
-            <Box p={3} textAlign="center">
-              <Typography>Chargement des groupes...</Typography>
-            </Box>
-          ) : (
-            <>
-              <TableContainer component={Paper} elevation={0}>
-                <Table sx={{ minWidth: 700 }} aria-label="customized table">
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell>#</StyledTableCell>
-                      <StyledTableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
-                          Groupe
-                          {sortField === 'nomgroupe' && (
-                            <motion.span 
-                              initial={{ opacity: 0, scale: 0.5 }} 
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                              style={{ marginLeft: '5px' }}
-                            >
-                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                            </motion.span>
-                          )}
-                        </Box>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
-                          Identifiant
-                          {sortField === '_id' && (
-                            <motion.span 
-                              initial={{ opacity: 0, scale: 0.5 }} 
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                              style={{ marginLeft: '5px' }}
-                            >
-                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                            </motion.span>
-                          )}
-                        </Box>
-                      </StyledTableCell>
-                      <StyledTableCell>Action</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <AnimatePresence>
-                      {currentGroups.map((item, index) => (
-                        <motion.tr
-                          key={item._id}
-                          variants={itemVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit={{ opacity: 0, y: -10 }}
-                          style={{ originX: 0 }}
-                        >
-                          <StyledTableRow>
-                            <StyledTableCell component="th" scope="row">
-                              {page * rowsPerPage + index + 1}
-                            </StyledTableCell>
-                            <StyledTableCell>
-                              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                                {item.nomgroupe}
-                              </motion.div>
-                            </StyledTableCell>
-                            <StyledTableCell>{item._id}</StyledTableCell>
-                            <StyledTableCell>
-                              <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s ease' }}>
-                                <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </StyledTableCell>
-                          </StyledTableRow>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              <TablePagination
-                component="div"
-                count={filteredGroupe.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25]}
-                labelRowsPerPage="Lignes par page:"
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
-              />
-            </>
-          )}
-        </NeumorphicCard>
-      </motion.div>
-
-=======
-          <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-            Liste des Groupes
-          </Typography>
-          <Box flexGrow={1} />
-          <Chip 
-            icon={<FolderIcon />} 
-            label={`${filteredGroupe.length} groupe${filteredGroupe.length > 1 ? 's' : ''}`} 
-            color="primary" 
-            variant="outlined" 
-            size="small" 
-          />
-        </Box>
-        <Divider sx={{ mb: 2 }} />
-
-        {loading ? (
-          <Box p={3} textAlign="center">
-            <Typography>Chargement des groupes...</Typography>
-          </Box>
-        ) : (
-          <>
-            <TableContainer component={Paper} elevation={0}>
-              <Table sx={{ minWidth: 700 }} aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>#</StyledTableCell>
-                    <StyledTableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
-                        Groupe
-                        {sortField === 'nomgroupe' && (
-                          <motion.span 
-                            initial={{ opacity: 0, scale: 0.5 }} 
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ marginLeft: '5px' }}
-                          >
-                            {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                          </motion.span>
-                        )}
-                      </Box>
-                    </StyledTableCell>
-                    <StyledTableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
-                        Identifiant
-                        {sortField === '_id' && (
-                          <motion.span 
-                            initial={{ opacity: 0, scale: 0.5 }} 
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ marginLeft: '5px' }}
-                          >
-                            {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                          </motion.span>
-                        )}
-                      </Box>
-                    </StyledTableCell>
-                    <StyledTableCell>Action</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <AnimatePresence>
-                    {currentGroups.map((item, index) => (
-                      <motion.tr
-                        key={item._id}
-                        variants={itemVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit={{ opacity: 0, y: -10 }}
-                        component={StyledTableRow}
-                      >
-                        <StyledTableCell component="th" scope="row">
-                          {page * rowsPerPage + index + 1}
-                        </StyledTableCell>
-                        <StyledTableCell>
-                          <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                            {item.nomgroupe}
-                          </motion.div>
-                        </StyledTableCell>
-                        <StyledTableCell>{item._id}</StyledTableCell>
-                        <StyledTableCell>
-                          <Box className="action-buttons">
-                            <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
-                              <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
-                                <EditIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
-                              <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </StyledTableCell>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            <TablePagination
-              component="div"
-              count={filteredGroupe.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 25]}
-              labelRowsPerPage="Lignes par page:"
-              labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-            />
-          </Box>
-          <Divider sx={{ mb: 2 }} />
-
-          {loading ? (
-            <Box p={3} textAlign="center">
-              <Typography>Chargement des groupes...</Typography>
-            </Box>
-          ) : (
-            <>
-              <TableContainer component={Paper} elevation={0}>
-                <Table sx={{ minWidth: 700 }} aria-label="customized table">
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell>#</StyledTableCell>
-                      <StyledTableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
-                          Groupe
-                          {sortField === 'nomgroupe' && (
-                            <motion.span 
-                              initial={{ opacity: 0, scale: 0.5 }} 
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                              style={{ marginLeft: '5px' }}
-                            >
-                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                            </motion.span>
-                          )}
-                        </Box>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
-                          Identifiant
-                          {sortField === '_id' && (
-                            <motion.span 
-                              initial={{ opacity: 0, scale: 0.5 }} 
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                              style={{ marginLeft: '5px' }}
-                            >
-                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                            </motion.span>
-                          )}
-                        </Box>
-                      </StyledTableCell>
-                      <StyledTableCell>Action</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <AnimatePresence>
-                      {currentGroups.map((item, index) => (
-                        <motion.tr
-                          key={item._id}
-                          variants={itemVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit={{ opacity: 0, y: -10 }}
-                          style={{ originX: 0 }}
-                        >
-                          <StyledTableRow>
-                            <StyledTableCell component="th" scope="row">
-                              {page * rowsPerPage + index + 1}
-                            </StyledTableCell>
-                            <StyledTableCell>
-                              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                                {item.nomgroupe}
-                              </motion.div>
-                            </StyledTableCell>
-                            <StyledTableCell>{item._id}</StyledTableCell>
-                            <StyledTableCell>
-                              <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s ease' }}>
-                                <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
-                                  <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </StyledTableCell>
-                          </StyledTableRow>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              <TablePagination
-                component="div"
-                count={filteredGroupe.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25]}
-                labelRowsPerPage="Lignes par page:"
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
-              />
-            </>
-          )}
-        </NeumorphicCard>
-      </motion.div>
-
-<<<<<<< HEAD
-      {/* Floating Action Button to open the modal for adding a new group */}
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-      <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
-        <motion.div
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Fab 
-            color="secondary" 
-            aria-label="add" 
-            onClick={handleClickOpen}
-          >
-            <AddIcon />
-          </Fab>
-        </motion.div>
-      </Box>
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-      <AnimatePresence>
-        {open && (
-          <Dialog
-            onClose={handleClose}
-            open={open}
-            fullWidth
-            TransitionComponent={DialogTransition}
-=======
-      {/* Modal for adding or updating a group */}
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-      <AnimatePresence>
-        {open && (
-          <Dialog
-            onClose={handleClose}
-            open={open}
-            fullWidth
-<<<<<<< HEAD
-            TransitionComponent={React.forwardRef((props, ref) => (
+            TransitionComponent={React.forwardRef<HTMLDivElement, any>((props, ref) => (
               <motion.div
                 ref={ref}
                 {...props}
@@ -1193,10 +449,6 @@ const Groupe: React.FC = () => {
                 transition={{ type: "spring", damping: 15 }}
               />
             ))}
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-            TransitionComponent={DialogTransition}
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
           >
             <DialogTitle sx={{ m: 0, p: 2 }}>
               {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
@@ -1207,116 +459,53 @@ const Groupe: React.FC = () => {
                   position: 'absolute',
                   right: 8,
                   top: 8,
-                  color: 'grey.500',
+                  color: (theme) => theme.palette.grey[500],
                 }}
               >
                 <CloseIcon />
               </IconButton>
             </DialogTitle>
+
             <DialogContent dividers>
-              <motion.form 
-                onSubmit={handleSubmit}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+              <form id="form-groupe" onSubmit={handleSubmit}>
                 <TextField
-                  label="Nom du Groupe"
+                  autoFocus
+                  margin="dense"
+                  id="nomgroupe"
+                  label="Nom du groupe"
+                  type="text"
+                  fullWidth
                   variant="outlined"
-                  name="nomgroupe"
                   value={nomgroupe}
                   onChange={(e) => setNomgroupe(e.target.value)}
-                  fullWidth
-                  margin="normal"
-                  autoFocus
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <FolderIcon color="primary" />
-                      </InputAdornment>
-                    ),
-                  }}
+                  required
                 />
-                <DialogActions>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button type="submit" variant="contained" color="secondary">
-                      {updateId ? 'Mettre à jour' : 'Enregistrer'}
-                    </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button onClick={handleClose} variant="outlined" color="primary">
-                      Annuler
-                    </Button>
-                  </motion.div>
-                </DialogActions>
-              </motion.form>
+              </form>
             </DialogContent>
+
+            <DialogActions>
+              <Button onClick={handleClose} color="secondary">
+                Annuler
+              </Button>
+              <Button type="submit" form="form-groupe" variant="contained" color="primary">
+                {updateId ? 'Mettre à jour' : 'Ajouter'}
+              </Button>
+            </DialogActions>
           </Dialog>
         )}
       </AnimatePresence>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-      {/* Snackbar for success messages */}
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
-      {/* Snackbar for success messages */}
-<<<<<<< HEAD
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-      <AnimatePresence>
-        {openSnackbar && (
-          <Snackbar
-            open={openSnackbar}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-            TransitionComponent={SnackbarTransition}
-=======
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-            TransitionComponent={React.forwardRef((props, ref) => (
-              <motion.div
-                ref={ref}
-                {...props}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
-                transition={{ type: "spring", damping: 15 }}
-              />
-            ))}
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 382dd35 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
-            TransitionComponent={SnackbarTransition}
->>>>>>> ed23bf8 (Soutrali Dashboard V1)
-=======
->>>>>>> 1a1b001 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
->>>>>>> 94cf045 (Résolution conflit sur Categorie.tsx + mise à jour du dashboard et suppression du fichier imagefrombuffer.d.ts)
-=======
->>>>>>> 6fb3b92 (Soutrali Dashboard V1)
-          >
-            <Alert 
-              onClose={handleCloseSnackbar} 
-              severity="success" 
-              sx={{ width: '100%', boxShadow: 3 }}
-              variant="filled"
-            >
-              {alertMessage}
-            </Alert>
-          </Snackbar>
-        )}
-      </AnimatePresence>
+      {/* Snackbar */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </motion.div>
   );
 };
