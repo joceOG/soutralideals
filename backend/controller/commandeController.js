@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import commandeModel from "../models/commandeModel.js";
 const router = express.Router();
-const Commande = require('../models/Commande');
+const Commande = commandeModel;
 
 // Créer une nouvelle commande
 router.post('/commande', async (req, res) => {
@@ -81,4 +82,56 @@ router.delete('/commande/:id', async (req, res) => {
     }
 });
 
-module.exports = router;
+// Créer une nouvelle commande
+export const createCommande = async (req, res) => {
+  try {
+    const commande = new commandeModel(req.body);
+    const saved = await commande.save();
+    res.status(201).json(saved);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Obtenir toutes les commandes
+export const getAllCommandes = async (_req, res) => {
+  try {
+    const commandes = await commandeModel.find();
+    res.status(200).json(commandes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Obtenir une commande par ID
+export const getCommandeById = async (req, res) => {
+  try {
+    const commande = await commandeModel.findById(req.params.id);
+    if (!commande) return res.status(404).json({ error: "Commande non trouvée" });
+    res.status(200).json(commande);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Mettre à jour une commande par ID
+export const updateCommande = async (req, res) => {
+  try {
+    const commande = await commandeModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!commande) return res.status(404).json({ error: "Commande non trouvée" });
+    res.status(200).json(commande);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Supprimer une commande par ID
+export const deleteCommande = async (req, res) => {
+  try {
+    const commande = await commandeModel.findByIdAndDelete(req.params.id);
+    if (!commande) return res.status(404).json({ error: "Commande non trouvée" });
+    res.status(200).json({ message: "Commande supprimée" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

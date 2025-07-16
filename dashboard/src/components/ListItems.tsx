@@ -10,6 +10,9 @@ import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import CoPresentIcon from '@mui/icons-material/CoPresent';
 import HomeIcon from '@mui/icons-material/Home';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import { Link, useLocation } from 'react-router-dom';
 import { Tooltip, Divider, Typography, Box } from '@mui/material';
 
@@ -45,6 +48,21 @@ export const MainListItems = () => {
       title: "Articles", 
       path: "/article", 
       icon: <ShoppingCartIcon /> 
+    },
+    { 
+      title: "Commandes", 
+      path: "/commande", 
+      icon: <AssignmentIcon /> 
+    },
+    { 
+      title: "Vendeurs", 
+      path: "/vendeur", 
+      icon: <StorefrontIcon /> 
+    },
+    { 
+      title: "Freelancers", 
+      path: "/freelancer", 
+      icon: <WorkOutlineIcon /> 
     },
     { 
       title: "Prestataires", 

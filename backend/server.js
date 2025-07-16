@@ -8,6 +8,9 @@ import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
+import commandeRouter from './routes/commandeRoutes.js'
+import vendeurRouter from './routes/vendeurRoutes.js'
+import freelancerRouter from './routes/freelancerRoutes.js'
 
 
 
@@ -19,7 +22,25 @@ const app = express()
 
 /** app middlewares */
 app.use(morgan('tiny'));
-app.use(cors());
+// Configuration CORS permissive pour le développement
+app.use(cors({
+  origin: true, // Permet toutes les origines
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // Mise en cache des résultats préflight pendant 24h
+}));
+
+// Middleware d'en-têtes CORS supplémentaires
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    return res.status(200).json({});
+  }
+  next();
+});
 app.use(express.json());
 config();
 
@@ -36,6 +57,9 @@ app.use('/api', groupeRouter);
 app.use('/api', categorieRouter);
 app.use('/api', articleRouter);
 app.use('/api', serviceRouter);
+app.use('/api', commandeRouter);
+app.use('/api', vendeurRouter);
+app.use('/api', freelancerRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
 

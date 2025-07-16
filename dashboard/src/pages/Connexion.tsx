@@ -1,19 +1,19 @@
 import * as React from 'react';
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import { Link,useNavigate } from 'react-router-dom'; // Importez Link de react-router-dom
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import axios from 'axios'
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Container,
+  Alert,
+  Grid,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import logo from '../assets/logo.png';
 
 
-
-// TODO remove, this demo shouldn't need to reset the theme.
-const defaultTheme = createTheme();
 
 // Erreur et Succès
 
@@ -59,11 +59,23 @@ const [success, setSuccess] = React.useState('');
   
 
 
+    const theme = useTheme();
+    const gradient = `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
+
     return (
-        <ThemeProvider theme={defaultTheme}>
-            <p>Navbar</p>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: gradient,
+        p: 2,
+      }}
+    >
+            
             <Container component="main" maxWidth="xs">
-                <CssBaseline />
+                
                 <Box
                     sx={{
                         marginTop: 8,
@@ -77,8 +89,9 @@ const [success, setSuccess] = React.useState('');
                         backgroundColor: '#f0f0f0',
                     }}
                 >
-                    <Typography component="h1" variant="h5">
-                        bonjour!
+                    <img src={logo} alt="Logo" style={{ width: 120, marginBottom: 16 }} />
+                    <Typography component="h6" variant="h6" sx={{ fontWeight: 600 }}>
+                        Bienvenue !
                     </Typography>
                     <Typography>connectez vous pour découvrir tout nos fonctionalités</Typography>
                     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
@@ -123,13 +136,12 @@ const [success, setSuccess] = React.useState('');
                                 </Link>
                             </Grid>
                         </Grid>
-                        {error && <p style={{ color: "red" }}>{error}</p>}
-                        {success && <p style={{ color: "green" }}>{success}</p>}
+                        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+                        {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
                     </Box>
                 </Box>
-            </Container>
-            <p>Footer</p>
-        </ThemeProvider>
+                </Container>
+        </Box>
     );
 };
 
