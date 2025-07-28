@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "@vonage/server-sdk": "^3.19.2"
+    "@vonage/server-sdk": "^3.19.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }

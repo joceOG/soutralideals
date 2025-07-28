@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import { config } from 'dotenv';
+import { swaggerDocs } from './swagger.js';
 import router from './routes/userRoutes.js';
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
@@ -31,6 +32,9 @@ config();
 /** appliation port */
 const port = process.env.PORT ;
 
+
+/** Swagger Documentation */
+swaggerDocs(app);
 
 /** routes */
 app.use('/api',router) /** apis utilisateur */
