@@ -4,7 +4,7 @@ import {
     createArticle,
     getAllArticles,
     getArticleById,
-    updateArticle,
+    updateArticleById,
     deleteArticle,
 } from '../controller/articleController.js';
 
@@ -14,7 +14,7 @@ const upload = multer({ dest: 'uploads/' });
 articleRouter.post('/article', upload.single('photoArticle'), createArticle);
 articleRouter.get('/articles', getAllArticles);
 articleRouter.get('/article/:id', getArticleById);
-articleRouter.put('/article/:id', upload.single('photoArticle'), updateArticle);
+articleRouter.put('/article/:id', upload.single('photoArticle'), updateArticleById);
 articleRouter.delete('/article/:id', deleteArticle);
 
 export default articleRouter;

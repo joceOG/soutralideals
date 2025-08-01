@@ -1,6 +1,7 @@
 import fs from 'fs';
 import cloudinary from 'cloudinary';
 import articleModel from '../models/articleModel.js';
+import mongoose from 'mongoose';
 
 // Configuration de Cloudinary
 cloudinary.v2.config({
@@ -10,16 +11,24 @@ cloudinary.v2.config({
 });
 
 // Met à jour un article (avec upload d'image)
-export const updateArticle = async (req, res) => {
+export const updateArticleById = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, categorie } = req.body;
+        const { nomArticle, prixArticle, quantiteArticle, utilisateur, categorie } = req.body;
+        const { path: filePath } = req.file || {};
 
         let updatedFields = {
             nomArticle,
             prixArticle,
             quantiteArticle,
-            categorie,
         };
+
+        if (utilisateur) {
+            updatedFields.utilisateur = mongoose.Types.ObjectId(utilisateur);
+        }
+
+        if (categorie) {
+            updatedFields.categorie = mongoose.Types.ObjectId(categorie);
+        }
 
         if (req.file) {
             // Upload nouvelle image
@@ -30,22 +39,23 @@ export const updateArticle = async (req, res) => {
             // Supprimer l'image temporaire
             fs.unlinkSync(req.file.path);
 
-            // Ajouter l'URL de l'image au champ mis à jour
-            updatedFields.photoArticle = result.secure_url;
-
             // Supprimer l'ancienne image dans Cloudinary si elle existe
             const articleToUpdate = await articleModel.findById(req.params.id);
             if (articleToUpdate?.photoArticle) {
                 const publicId = articleToUpdate.photoArticle.split('/').slice(-2).join('/').split('.')[0];
                 await cloudinary.v2.uploader.destroy(publicId);
             }
+
+            updatedFields.photoArticle = result.secure_url;
         }
 
         const updatedArticle = await articleModel.findByIdAndUpdate(
             req.params.id,
             updatedFields,
             { new: true }
-        ).populate('categorie');
+        )
+        .populate('categorie')
+        .populate('utilisateur');
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
@@ -61,7 +71,9 @@ export const updateArticle = async (req, res) => {
 // Crée un nouvel article avec upload d'image
 export const createArticle = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, categorie } = req.body;
+        const { nomArticle, prixArticle, quantiteArticle, utilisateur, categorie } = req.body;
+        const categorieId = mongoose.Types.ObjectId(categorie);
+        const utilisateurId = mongoose.Types.ObjectId(utilisateur);
 
         if (!req.file) {
             return res.status(400).json({ error: 'Aucun fichier image téléchargé' });
@@ -73,12 +85,13 @@ export const createArticle = async (req, res) => {
 
         fs.unlinkSync(req.file.path);
 
-        const newArticle = new Article({
+        const newArticle = new articleModel({
             nomArticle,
             prixArticle,
             quantiteArticle,
             photoArticle: result.secure_url,
-            categorie,
+            utilisateur : utilisateurId,
+            categorie : categorieId,
         });
 
         await newArticle.save();

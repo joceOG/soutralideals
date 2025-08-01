@@ -6,6 +6,8 @@ import Categorie from '../pages/Categorie';
 import Service from '../pages/Service';
 import Article from '../pages/Article';
 import Prestataire from '../pages/Prestataire';
+import Freelance from '../pages/Freelance';
+import Vendeur from '../pages/Vendeur';
 import Utilisateur from '../pages/Utilisateur';
 import Connexion from '../pages/Connexion';
 
@@ -21,6 +23,8 @@ const AppRouter: React.FC = () => {
       <Route path="/article" element={<Article />} />
       <Route path="/utilisateur" element={<Utilisateur />} />
       <Route path="/prestataire" element={<Prestataire />} />
+      <Route path="/freelance" element={<Freelance />} />
+      <Route path="/vendeur" element={<Vendeur />} />
       <Route path="/connexion" element={<Connexion />} />
     </Routes>
   );

@@ -10,7 +10,7 @@ const ArticleSchema = new mongoose.Schema({
     photoArticle: { type: String ,
         required:true,
     },
-    owner:{
+    utilisateur:{
         type: mongoose.Schema.Types.ObjectId,
         required:true,
         ref:'User'

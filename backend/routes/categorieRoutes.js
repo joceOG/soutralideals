@@ -11,6 +11,7 @@ const upload = multer({ dest: 'uploads/' });
 categorieRouter.post("/categorie", upload.single('imagecategorie'), controller.createCategory);
 categorieRouter.get("/categorie", controller.getAllCategories);
 categorieRouter.get("/categorie/:id", controller.getCategoryById);
+categorieRouter.get("/categorie/groupe/:nomgroupe", controller.getCategoriesByGroupe);
 categorieRouter.put("/categorie/:id", upload.single('imagecategorie'), controller.updateCategoryById);
 categorieRouter.delete("/categorie/:id", controller.deleteCategoryById);
 

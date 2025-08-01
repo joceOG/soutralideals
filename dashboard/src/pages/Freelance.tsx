@@ -1,9 +1,12 @@
+// src/pages/Freelance.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box, Typography, Dialog, DialogActions, DialogContent,
   DialogTitle, Button, TextField, InputAdornment,
   IconButton, MenuItem
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -34,32 +37,45 @@ export interface IService {
   };
 }
 
-export interface IPrestataireData {
+export interface IFreelanceData {
   _id?: string;
   utilisateur: IUtilisateur;
   service: IService;
-  prixprestataire: number;
+  prixfreelance: number;
   localisation: string;
   note: string;
   verifier: boolean;
   cni1?: string;
   cni2?: string;
   selfie?: string;
+  // Nouveaux champs
+  titreprofessionnel?: string;
+  categorieprincipale?: string;
+  niveauxexperience?: string;
+  competences?: string[];  // tableau de string maintenant
+  statut?: string;
+  horaire?: string;
 }
 
-const PrestataireComponent: React.FC = () => {
-  const [prestataires, setPrestataires] = useState<IPrestataireData[]>([]);
+const FreelanceComponent: React.FC = () => {
+  const [freelances, setFreelances] = useState<IFreelanceData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filters, setFilters] = useState<DataTableFilterMeta>({ global: { value: null, matchMode: 'contains' } });
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPrestataire, setSelectedPrestataire] = useState<IPrestataireData | null>(null);
-  const [formData, setFormData] = useState<IPrestataireData>({
+  const [selectedFreelance, setSelectedFreelance] = useState<IFreelanceData | null>(null);
+  const [formData, setFormData] = useState<IFreelanceData>({
     utilisateur: {} as IUtilisateur,
     service: {} as IService,
-    prixprestataire: 0,
+    prixfreelance: 0,
     localisation: '',
     note: '',
     verifier: false,
+    titreprofessionnel: '',
+    categorieprincipale: '',
+    niveauxexperience: '',
+    competences: [],
+    statut: '',
+    horaire: '',
   });
   const [cniFile, setCniFile] = useState<File | null>(null);
   const [cni2File, setCni2File] = useState<File | null>(null);
@@ -74,21 +90,20 @@ const PrestataireComponent: React.FC = () => {
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
-  // useCallback pour stabiliser la fonction et éviter warning react-hooks/exhaustive-deps
-  const fetchPrestataires = useCallback(async () => {
+  const fetchFreelances = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${apiUrl}/prestataire`);
-      setPrestataires(response.data);
+      const response = await axios.get(`${apiUrl}/freelance`);
+      setFreelances(response.data);
     } catch {
-      toast.error("Erreur lors du chargement des prestataires");
+      toast.error("Erreur lors du chargement des freelances");
     } finally {
       setLoading(false);
     }
   }, [apiUrl]);
 
   useEffect(() => {
-    fetchPrestataires();
+    fetchFreelances();
 
     const fetchServices = async () => {
       try {
@@ -101,7 +116,7 @@ const PrestataireComponent: React.FC = () => {
     };
 
     fetchServices();
-  }, [apiUrl, fetchPrestataires]);
+  }, [apiUrl, fetchFreelances]);
 
   const loadUtilisateurs = async () => {
     try {
@@ -130,21 +145,25 @@ const PrestataireComponent: React.FC = () => {
     );
   });
 
-  const onDelete = async (rowData: IPrestataireData) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce prestataire ?')) {
+  const onDelete = async (rowData: IFreelanceData) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce freelance ?')) {
       try {
-        await axios.delete(`${apiUrl}/prestataire/${rowData._id}`);
-        setPrestataires(prestataires.filter(item => item._id !== rowData._id));
-        toast.success('Prestataire supprimé avec succès !');
+        await axios.delete(`${apiUrl}/freelance/${rowData._id}`);
+        setFreelances(freelances.filter(item => item._id !== rowData._id));
+        toast.success('Freelance supprimé avec succès !');
       } catch {
-        toast.error('Erreur lors de la suppression du prestataire.');
+        toast.error('Erreur lors de la suppression du freelance.');
       }
     }
   };
 
-  const onEdit = (rowData: IPrestataireData) => {
-    setSelectedPrestataire(rowData);
-    setFormData(rowData);
+  const onEdit = (rowData: IFreelanceData) => {
+    setSelectedFreelance(rowData);
+    // Pour éviter problème type entre string et string[] dans competences lors édition
+    setFormData({
+      ...rowData,
+      competences: Array.isArray(rowData.competences) ? rowData.competences : (rowData.competences ? [rowData.competences] : []),
+    });
     setCniFile(null);
     setCni2File(null);
     setSelfieFile(null);
@@ -152,14 +171,20 @@ const PrestataireComponent: React.FC = () => {
   };
 
   const onAdd = () => {
-    setSelectedPrestataire(null);
+    setSelectedFreelance(null);
     setFormData({
       utilisateur: {} as IUtilisateur,
       service: {} as IService,
-      prixprestataire: 0,
+      prixfreelance: 0,
       localisation: '',
       note: '',
       verifier: false,
+      titreprofessionnel: '',
+      categorieprincipale: '',
+      niveauxexperience: '',
+      competences: [],
+      statut: '',
+      horaire: '',
     });
     setCniFile(null);
     setCni2File(null);
@@ -178,31 +203,39 @@ const PrestataireComponent: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      const isUpdate = Boolean(selectedPrestataire?._id);
-      const url = isUpdate ? `${apiUrl}/prestataire/${selectedPrestataire?._id}` : `${apiUrl}/prestataire`;
+      const isUpdate = Boolean(selectedFreelance?._id);
+      const url = isUpdate ? `${apiUrl}/freelance/${selectedFreelance?._id}` : `${apiUrl}/freelance`;
       const method = isUpdate ? 'put' : 'post';
 
       const form = new FormData();
       form.append('utilisateur', formData.utilisateur._id);
       form.append('service', formData.service._id);
-      form.append('prixprestataire', formData.prixprestataire.toString());
+      form.append('prixfreelance', formData.prixfreelance.toString());
       form.append('localisation', formData.localisation);
       form.append('note', formData.note);
       form.append('verifier', formData.verifier ? 'true' : 'false');
+
+      // Nouveaux champs
+      form.append('titreprofessionnel', formData.titreprofessionnel || '');
+      form.append('categorieprincipale', formData.categorieprincipale || '');
+      form.append('niveauxexperience', formData.niveauxexperience || '');
+      form.append('competences', JSON.stringify(formData.competences || [])); // JSON.stringify !!
+      form.append('statut', formData.statut || '');
+      form.append('horaire', formData.horaire || '');
+
       if (cniFile) form.append('cni1', cniFile);
       if (cni2File) form.append('cni2', cni2File);
       if (selfieFile) form.append('selfie', selfieFile);
 
-      const response = await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
-      console.log('Réponse après ajout/modif:', response.data);
+      console.log("Formulaire" + formData.titreprofessionnel + " " + formData.categorieprincipale) ;
 
-      // Recharge la liste complète après ajout/modif
-      await fetchPrestataires();
+      await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
+      await fetchFreelances();
 
-      toast.success(isUpdate ? 'Prestataire mis à jour avec succès !' : 'Nouveau prestataire ajouté avec succès !');
+      toast.success(isUpdate ? 'Freelance mis à jour avec succès !' : 'Nouveau freelance ajouté avec succès !');
       setModalOpen(false);
     } catch {
-      toast.error('Erreur lors de la sauvegarde du prestataire.');
+      toast.error('Erreur lors de la sauvegarde du freelance.');
     }
   };
 
@@ -211,11 +244,9 @@ const PrestataireComponent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleImageClick = (url: string) => {
-    setZoomImage(url);
-  };
+  const handleImageClick = (url: string) => setZoomImage(url);
 
-  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie') => (rowData: IPrestataireData) => {
+  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie') => (rowData: IFreelanceData) => {
     const imageUrl = rowData[field];
     return imageUrl ? (
       <img
@@ -226,16 +257,14 @@ const PrestataireComponent: React.FC = () => {
         style={{ objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }}
         onClick={() => handleImageClick(imageUrl)}
       />
-    ) : (
-      <span style={{ color: '#888' }}>Aucune</span>
-    );
+    ) : <span style={{ color: '#888' }}>Aucune</span>;
   };
 
-  const rowIndexTemplate = (rowData: IPrestataireData, options: ColumnBodyOptions) => options.rowIndex + 1;
+  const rowIndexTemplate = (rowData: IFreelanceData, options: ColumnBodyOptions) => options.rowIndex + 1;
 
-  const utilisateurNameTemplate = (rowData: IPrestataireData) => `${rowData.utilisateur?.nom || ''} ${rowData.utilisateur?.prenom || ''}`;
+  const utilisateurNameTemplate = (rowData: IFreelanceData) => `${rowData.utilisateur?.nom || ''} ${rowData.utilisateur?.prenom || ''}`;
 
-  const actionTemplate = (rowData: IPrestataireData) => (
+  const actionTemplate = (rowData: IFreelanceData) => (
     <>
       <IconButton color="error" onClick={() => onDelete(rowData)}><DeleteIcon /></IconButton>
       <IconButton color="primary" onClick={() => onEdit(rowData)}><EditIcon /></IconButton>
@@ -245,25 +274,35 @@ const PrestataireComponent: React.FC = () => {
   return (
     <div>
       <ToastContainer />
-      <Typography variant="h4" gutterBottom>Prestataires</Typography>
+      <Typography variant="h4" gutterBottom>Freelances</Typography>
       <Box sx={{ mt: 2, mb: 2 }}>
         <DataTable
-          value={prestataires}
+          value={freelances}
           paginator
           showGridlines
           rows={10}
           loading={loading}
           dataKey="_id"
           filters={filters}
-          globalFilterFields={['localisation', 'note']}
-          header={<div style={{ display: 'flex', justifyContent: 'space-between' }}><h5>Gestion des Prestataires</h5><Button variant="contained" onClick={onAdd}>Ajouter</Button></div>}
-          emptyMessage="Aucun prestataire trouvé"
+          globalFilterFields={['localisation', 'note', 'titreprofessionnel', 'categorieprincipale']}
+          header={<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <h5>Gestion des Freelances</h5>
+            <Button variant="contained" onClick={onAdd}>Ajouter</Button>
+          </div>}
+          emptyMessage="Aucun freelance trouvé"
           onFilter={(e) => setFilters(e.filters)}
         >
           <Column header="#" body={rowIndexTemplate} />
           <Column header="Utilisateur" body={utilisateurNameTemplate} sortable />
           <Column header="Service" body={(rowData) => rowData.service?.nomservice} sortable />
-          <Column field="prixprestataire" header="Prix" sortable />
+          <Column header="Titre Pro" body={(rowData) => rowData.titreprofessionnel || '-'} />
+          <Column header="Catégorie" body={(rowData) => rowData.categorieprincipale || '-'} />
+          <Column header="Niveau Exp." body={(rowData) => rowData.niveauxexperience || '-'} />
+          <Column header="Compétences" body={(rowData) => (rowData.competences || []).join(', ')} />
+
+          <Column field="statut" header="Statut" />
+          <Column field="horaire" header="Horaire" />
+          <Column field="prixfreelance" header="Prix" sortable />
           <Column field="localisation" header="Localisation" sortable />
           <Column field="note" header="Note" sortable />
           <Column header="CNI 1" body={imageTemplate('cni1')} />
@@ -275,8 +314,9 @@ const PrestataireComponent: React.FC = () => {
       </Box>
 
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedPrestataire ? 'Modifier le Prestataire' : 'Ajouter un Nouveau Prestataire'}</DialogTitle>
+        <DialogTitle>{selectedFreelance ? 'Modifier le Freelance' : 'Ajouter un Nouveau Freelance'}</DialogTitle>
         <DialogContent>
+
           <TextField
             margin="normal"
             fullWidth
@@ -308,7 +348,31 @@ const PrestataireComponent: React.FC = () => {
             ))}
           </TextField>
 
-          <TextField margin="normal" fullWidth label="Prix" name="prixprestataire" type="number" value={formData.prixprestataire} onChange={handleChange} />
+          {/* Champs supplémentaires */}
+          <TextField margin="normal" fullWidth label="Titre Professionnel" name="titreprofessionnel" value={formData.titreprofessionnel} onChange={handleChange} />
+          <TextField margin="normal" fullWidth label="Catégorie Principale" name="categorieprincipale" value={formData.categorieprincipale} onChange={handleChange} />
+          <TextField margin="normal" fullWidth label="Niveau d'Expérience" name="niveauxexperience" value={formData.niveauxexperience} onChange={handleChange} />
+
+          <Autocomplete
+            multiple
+            freeSolo
+            options={[]} // tu peux mettre une liste d'options prédéfinies ici
+            value={formData.competences || []}
+            onChange={(_, newValue) => setFormData(prev => ({ ...prev, competences: newValue }))}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField {...params} label="Compétences" placeholder="Ajouter une compétence" margin="normal" fullWidth />
+            )}
+          />
+
+          <TextField margin="normal" fullWidth label="Statut" name="statut" value={formData.statut} onChange={handleChange} />
+          <TextField margin="normal" fullWidth label="Horaire" name="horaire" value={formData.horaire} onChange={handleChange} />
+
+          <TextField margin="normal" fullWidth label="Prix" name="prixfreelance" type="number" value={formData.prixfreelance} onChange={handleChange} />
           <TextField margin="normal" fullWidth label="Localisation" name="localisation" value={formData.localisation} onChange={handleChange} />
           <TextField margin="normal" fullWidth label="Note" name="note" value={formData.note} onChange={handleChange} />
 
@@ -333,14 +397,21 @@ const PrestataireComponent: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setModalOpen(false)}>Annuler</Button>
-          <Button onClick={handleSave}>{selectedPrestataire ? 'Enregistrer' : 'Ajouter'}</Button>
+          <Button onClick={handleSave}>{selectedFreelance ? 'Enregistrer' : 'Ajouter'}</Button>
         </DialogActions>
       </Dialog>
 
+      {/* Dialog de sélection utilisateur */}
       <Dialog open={showUserDialog} onClose={() => setShowUserDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>Sélectionner un utilisateur</DialogTitle>
         <DialogContent>
-          <TextField fullWidth margin="normal" label="Rechercher" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Rechercher"
+            value={userSearch}
+            onChange={(e) => setUserSearch(e.target.value)}
+          />
           <DataTable
             value={filteredUtilisateurs}
             paginator
@@ -366,6 +437,7 @@ const PrestataireComponent: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Dialog zoom image */}
       <Dialog open={!!zoomImage} onClose={() => setZoomImage(null)} maxWidth="md">
         <DialogTitle>Image</DialogTitle>
         <DialogContent>
@@ -385,4 +457,4 @@ const PrestataireComponent: React.FC = () => {
   );
 };
 
-export default PrestataireComponent;
+export default FreelanceComponent;

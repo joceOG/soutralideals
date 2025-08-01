@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+// Material UI
 import {
   Box, Typography, Fab, Dialog, DialogTitle, DialogContent,
   DialogActions, IconButton, TextField, Button, Alert, Snackbar,
-  InputAdornment, Chip, Divider, alpha, Tooltip, Zoom,
-  TablePagination, Card
+  InputAdornment, Chip, Divider, Tooltip, Zoom, Fade,
+  TablePagination, Card, Paper, InputBase
 } from '@mui/material';
-import axios from 'axios';
-import { styled } from '@mui/material/styles';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell, { tableCellClasses } from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import InputBase from '@mui/material/InputBase';
+import {
+  Table, TableBody, TableCell, tableCellClasses, TableContainer,
+  TableHead, TableRow
+} from '@mui/material';
+import { styled, alpha } from '@mui/material/styles';
+
+// Icons
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -23,7 +23,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import FolderIcon from '@mui/icons-material/Folder';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+
+// Framer Motion
 import { motion, AnimatePresence, Variants, Transition } from 'framer-motion';
+
 
 // Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -140,6 +143,7 @@ const itemVariants: Variants = {
 };
 
 const Groupe: React.FC = () => {
+  
   const [groupe, setGroupe] = useState<Item[]>([]);
   const [filteredGroupe, setFilteredGroupe] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,12 +157,16 @@ const Groupe: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const apiUrl = process.env.REACT_APP_API_URL;
+
+  console.log("API URL:", apiUrl);
+  
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:3000/api/groupe');
+        const response = await axios.get(`${apiUrl}/groupe`);
         setGroupe(response.data);
         setFilteredGroupe(response.data);
       } catch (error) {
@@ -212,17 +220,17 @@ const Groupe: React.FC = () => {
     e.preventDefault();
     try {
       if (updateId) {
-        await axios.put(`http://localhost:3000/api/groupe/${updateId}`, { nomgroupe });
+        await axios.put(`${apiUrl}/groupe/${updateId}`, { nomgroupe });
         setAlertMessage('Groupe mis à jour avec succès');
       } else {
-        await axios.post('http://localhost:3000/api/groupe', { nomgroupe });
+        await axios.post(`${apiUrl}/groupe`, { nomgroupe });
         setAlertMessage('Groupe ajouté avec succès');
       }
       setOpenSnackbar(true);
-      const response = await axios.get('http://localhost:3000/api/groupe');
+      const response = await axios.get(`${apiUrl}/groupe`);
       setGroupe(response.data);
     } catch (error) {
-      console.error('Failed to submit form:', error);
+      console.error('Failed to submit form:' , error);
       if (axios.isAxiosError(error)) {
         console.error('Axios Error:', error.response?.data || error.message);
       } else {
@@ -235,7 +243,8 @@ const Groupe: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
       try {
-        await axios.delete(`http://localhost:3000/api/groupe/${id}`);
+          var apiUrl = process.env.REACT_APP_API_URL;
+        await axios.delete(`${apiUrl}/groupe/${id}`);
         setAlertMessage('Groupe supprimé avec succès');
         setOpenSnackbar(true);
         setGroupe(groupe.filter((item) => item._id !== id));
@@ -284,6 +293,8 @@ const Groupe: React.FC = () => {
           Groupes
         </Typography>
         
+
+        <br></br>
         <SearchBox>
           <IconButton sx={{ p: '10px' }} aria-label="search">
             <SearchIcon />
@@ -380,7 +391,7 @@ const Groupe: React.FC = () => {
                           </StyledTableCell>
                           <StyledTableCell>{item._id}</StyledTableCell>
                           <StyledTableCell>
-                            <Box className="action-buttons" sx={{ opacity: 0, transition: 'opacity 0.3s' }}>
+                            <Box className="action-buttons" sx={{ opacity: 100, transition: 'opacity 0.3s' }}>
                               <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
                                 <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
                                   <EditIcon />
@@ -439,16 +450,7 @@ const Groupe: React.FC = () => {
             onClose={handleClose} 
             open={open} 
             fullWidth
-            TransitionComponent={React.forwardRef<HTMLDivElement, any>((props, ref) => (
-              <motion.div
-                ref={ref}
-                {...props}
-                initial={{ opacity: 0, scale: 0.75 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ type: "spring", damping: 15 }}
-              />
-            ))}
+            TransitionComponent={Fade}
           >
             <DialogTitle sx={{ m: 0, p: 2 }}>
               {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}

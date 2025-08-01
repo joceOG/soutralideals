@@ -4,13 +4,18 @@ import validator from "validator"
 import jwt from "jsonwebtoken"
 
 const UtilisateurSchema = mongoose.Schema({
-    firstname: { 
+    nom: { 
         type: String, 
         required:true,
         trim:true
      
     },
-    surname: {
+    prenom: {
+         type: String,
+         required:true,
+         trim:true
+          },
+    datedenaissance: {
          type: String,
          required:true,
          trim:true
@@ -73,7 +78,29 @@ UtilisateurSchema.pre("save", async function(next) {
    UtilisateurSchema.virtual('articles', {
     ref: 'Article',             // Référence à la collection 'Task'
     localField: '_id',       
-    foreignField: 'owner'    
+    foreignField: 'utilisateur'    
+});
+
+
+ // Virtual
+   UtilisateurSchema.virtual('prestataire', {
+    ref: 'Prestataire',             // Référence à la collection 'Task'
+    localField: '_id',       
+    foreignField: 'utilisateur'    
+});
+
+ // Virtual
+   UtilisateurSchema.virtual('freelance', {
+    ref: 'Freelance',             // Référence à la collection 'Task'
+    localField: '_id',       
+    foreignField: 'utilisateur'    
+});
+
+ // Virtual
+   UtilisateurSchema.virtual('vendeur', {
+    ref: 'Vendeur',             // Référence à la collection 'Task'
+    localField: '_id',       
+    foreignField: 'utilisateur'    
 });
 
 // Methode s'applique a tous les objet
@@ -87,8 +114,6 @@ UtilisateurSchema.methods.generateAuthToken= async function (){
 
     return token
 }
-
-
 
 // Méthode statique pour rechercher un utilisateur par ses identifiants
 UtilisateurSchema.statics.findIdLogin = async (email, password) => {
@@ -121,6 +146,7 @@ UtilisateurSchema.statics.findIdLogin = async (email, password) => {
 //     throw new Error("incorrect email");
 // };
 
-const userModel = mongoose.model("User", UtilisateurSchema);
+const utilisateurModel = mongoose.model("Utilisateur", UtilisateurSchema);
 
-export default userModel;
+export default utilisateurModel;
+

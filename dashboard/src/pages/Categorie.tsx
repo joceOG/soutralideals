@@ -104,15 +104,16 @@ const Categorie: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categorieResponse = await axios.get('http://localhost:3000/api/categorie');
+        const categorieResponse = await axios.get(`${apiUrl}/categorie`);
         setCategorie(categorieResponse.data);
         setFilteredCategorie(categorieResponse.data);
 
-        const groupesResponse = await axios.get('http://localhost:3000/api/groupe');
+        const groupesResponse = await axios.get(`${apiUrl}/groupe`);
         setGroupes(groupesResponse.data);
       } catch (error) {
         console.error('Erreur lors de la récupération des données:', error);
@@ -245,7 +246,7 @@ const Categorie: React.FC = () => {
 
   const deleteCategorie = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:3000/api/categorie/${id}`);
+      await axios.delete(`${apiUrl}/categorie/${id}`);
       setCategorie(categorie.filter(item => item._id !== id));
       toast.success('Catégorie supprimée avec succès');
     } catch (error) {
@@ -268,25 +269,24 @@ const Categorie: React.FC = () => {
 
     const formDataObj = new FormData();
     formDataObj.append('nomcategorie', formData.nomcategorie || '');
-    formDataObj.append('groupe', JSON.stringify(formData.groupe || {}));
+    formDataObj.append('groupe', formData.groupe._id );
     if (file) {
       formDataObj.append('imagecategorie', file);
     }
 
     try {
       if (selectedCategory) {
-        await axios.put(`http://localhost:3000/api/categorie/${selectedCategory._id}`, formDataObj, {
+        await axios.put(`${apiUrl}/categorie/${selectedCategory._id}`, formDataObj, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Catégorie mise à jour avec succès');
       } else {
-        await axios.post('http://localhost:3000/api/categorie', formDataObj, {
+        await axios.post(`${apiUrl}/categorie`, formDataObj, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Catégorie créée avec succès');
       }
-
-      const response = await axios.get('http://localhost:3000/api/categorie');
+      const response = await axios.get(`${apiUrl}/categorie`);
       setCategorie(response.data);
       setFilteredCategorie(response.data);
 

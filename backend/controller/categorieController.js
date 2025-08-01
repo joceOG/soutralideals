@@ -4,7 +4,6 @@ import fs from 'fs';
 import mongoose from 'mongoose';
 import categorieModel from '../models/categorieModel.js';
 
-
 // Configure Cloudinary
 cloudinary.v2.config({
     cloud_name: "dm0c8st6k",
@@ -21,7 +20,7 @@ export const updateCategoryById = async (req, res) => {
         const { nomcategorie, groupe } = req.body;
         const { path: filePath } = req.file || {};
 
-        const categorie = await categorieModel.findById(req.params.id);
+        let categorie = await categorieModel.findById(req.params.id); // 🔁 utiliser let ici
 
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
@@ -40,25 +39,29 @@ export const updateCategoryById = async (req, res) => {
         }
 
         categorie.nomcategorie = nomcategorie || categorie.nomcategorie;
-        categorie.groupe = mongoose.Types.ObjectId(groupe) || categorie.groupe;
+        categorie.groupe = groupe ? mongoose.Types.ObjectId(groupe) : categorie.groupe;
 
-        const updatedCategorie = await categorieModel.save();
+        const updatedCategorie = await categorie.save(); // ✅ ici on appelle .save() sur l'instance
+
         res.status(200).json(updatedCategorie);
     } catch (err) {
         res.status(500).json({ error: err.message });
+        console.log("Erreur : " + err.message);
     }
 };
+
 
 // Créer une nouvelle catégorie
 export const createCategory = async (req, res) => {
     try {
         const { nomcategorie, groupe } = req.body;
-        const groupeId = mongoose.Types.ObjectId(groupe);
-
         const result = await cloudinary.v2.uploader.upload(req.file.path);
         fs.unlinkSync(req.file.path);
 
-        const newCategorie = new Categorie({
+        var groupeId = mongoose.Types.ObjectId(groupe);
+        console.log("Id Groupe" , groupeId); 
+
+        const newCategorie = new categorieModel({
             nomcategorie,
             imagecategorie: result.secure_url,
             groupe: groupeId,
@@ -95,10 +98,32 @@ export const getCategoryById = async (req, res) => {
     }
 };
 
+// controllers/categorieController.js
+
+export const getCategoriesByGroupe = async (req, res) => {
+  try {
+    const { nomgroupe } = req.params;
+
+    const categories = await categorieModel.find()
+      .populate({
+        path: 'groupe',
+        match: { nomgroupe },
+        select: 'nomgroupe',
+      });
+
+    const filteredCategories = categories.filter(cat => cat.groupe);
+
+    res.json(filteredCategories);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err });
+  }
+};
+
+
 // Supprimer une catégorie par ID
 export const deleteCategoryById = async (req, res) => {
     try {
-        const categorie = await Categorie.findByIdAndDelete(req.params.id);
+        const categorie = await categorieModel.findByIdAndDelete(req.params.id);
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
         }
