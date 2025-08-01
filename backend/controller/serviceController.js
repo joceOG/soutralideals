@@ -16,7 +16,7 @@ const upload = multer({ dest: "uploads/" });
 // Créer un nouveau service
 export const createService = async (req, res) => {
     try {
-        const { nomservice, categorie, nomgroupe } = req.body;
+        const { nomservice, categorie, prixmoyen } = req.body;
 
         if (!req.file) {
             return res.status(400).json({ error: "No image file provided" });
@@ -32,7 +32,7 @@ export const createService = async (req, res) => {
             nomservice,
             imageservice,
             categorie,
-            nomgroupe,
+            prixmoyen
         });
 
         await newService.save();
@@ -50,8 +50,8 @@ export const createService = async (req, res) => {
 export const updateService = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nomservice, categorie, nomgroupe } = req.body;
-        const updates = { nomservice, categorie, nomgroupe };
+        const { nomservice, categorie, prixmoyen } = req.body;
+        const updates = { nomservice, categorie, prixmoyen };
 
         // Check if a new image is uploaded
         if (req.file) {
