@@ -9,16 +9,15 @@ import CategoryIcon from '@mui/icons-material/Category';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import CoPresentIcon from '@mui/icons-material/CoPresent';
 import HomeIcon from '@mui/icons-material/Home';
-import DashboardIcon from '@mui/icons-material/Dashboard';
+import WorkIcon from '@mui/icons-material/Work'; // Freelance
+import StorefrontIcon from '@mui/icons-material/Storefront'; // Vendeur
 import { Link, useLocation } from 'react-router-dom';
-import { Tooltip, Divider, Typography, Box } from '@mui/material';
+import { Tooltip, Typography, Box } from '@mui/material';
 
-// Navigation Items avec détection de l'élément actif
 export const MainListItems = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  
-  // Définition des éléments de navigation avec leurs icônes et chemins
+
   const navItems = [
     { 
       title: "Tableau de bord",
@@ -52,16 +51,25 @@ export const MainListItems = () => {
       icon: <CoPresentIcon /> 
     },
     { 
+      title: "Freelances", 
+      path: "/freelance", 
+      icon: <WorkIcon /> 
+    },
+    { 
+      title: "Vendeurs", 
+      path: "/vendeur", 
+      icon: <StorefrontIcon /> 
+    },
+    { 
       title: "Utilisateurs", 
       path: "/utilisateur", 
       icon: <PeopleIcon /> 
     },
   ];
-  
-  // Fonction pour déterminer si un élément est actif
+
   const isActive = (path: string, exact: boolean = false) => {
     if (exact) return currentPath === path;
-    return currentPath.startsWith(path) && path !== '/' || currentPath === path;
+    return (currentPath.startsWith(path) && path !== '/') || currentPath === path;
   };
 
   return (
@@ -108,5 +116,4 @@ export const MainListItems = () => {
   );
 };
 
-// Pour la compatibilité avec le code existant
 export const mainListItems = <MainListItems />;

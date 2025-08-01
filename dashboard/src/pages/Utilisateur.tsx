@@ -1,340 +1,317 @@
-import React, { useEffect, useState } from 'react';
-import { Box, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
-import axios from 'axios';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
-import { Column, ColumnBodyOptions } from 'primereact/column';
+import React, { useState } from 'react';
+import {
+  Box, Typography, Dialog, DialogActions, DialogContent,
+  DialogTitle, Button, TextField, InputAdornment,
+  IconButton
+} from '@mui/material';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export interface Item {
+interface IUtilisateur {
   _id?: string;
-  firstname: string;
-  surname: string;
+  nom: string;
+  prenom: string;
+  datedenaissance: string;
   email: string;
+  motdepasse?: string;
   telephone: string;
   genre: string;
-  note: string;
-  photoProfil?: string;// Cloudinary image URL
-  password?: string; // Password field
+  note?: number;
+  photoProfil?: string;
 }
 
-const Utilisateur: React.FC = () => {
-  const [utilisateurs, setUtilisateurs] = useState<Item[]>([]);
-  const [globalFilter, setGlobalFilter] = useState<string | null>(null);
+const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+const UtilisateurComponent: React.FC = () => {
+  const [utilisateurs, setUtilisateurs] = useState<IUtilisateur[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [filters, setFilters] = useState<DataTableFilterMeta>({
-    'global': { value: null, matchMode: 'contains' }
+  const [filters] = useState<any>({
+    global: { value: null, matchMode: 'contains' }
   });
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [selectedUtilisateur, setSelectedUtilisateur] = useState<Item | null>(null);
-  const [formData, setFormData] = useState<Item>({
-    firstname: '',
-    surname: '',
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedUtilisateur, setSelectedUtilisateur] = useState<IUtilisateur | null>(null);
+  const [formData, setFormData] = useState<IUtilisateur>({
+    nom: '',
+    prenom: '',
+    datedenaissance: '',
     email: '',
+    motdepasse: '',
     telephone: '',
     genre: '',
-    note: '',
-    password: '', // Password field
+    note: undefined,
+    photoProfil: '',
   });
-  const [file, setFile] = useState<File | null>(null); // Separate state for file input
+  const [file, setFile] = useState<File | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/utilisateurs');
-        setUtilisateurs(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Chargement des utilisateurs
+  const fetchUtilisateurs = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${apiUrl}/utilisateur`);
+      setUtilisateurs(response.data);
+    } catch (error) {
+      toast.error("Erreur lors du chargement des utilisateurs");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
+  React.useEffect(() => {
+    fetchUtilisateurs();
   }, []);
 
-  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    let _filters = { ...filters };
-
-    if (_filters['global'] && 'value' in _filters['global']) {
-      _filters['global'].value = value;
+  const handleOpen = (utilisateur: IUtilisateur | null = null) => {
+    setSelectedUtilisateur(utilisateur);
+    if (utilisateur) {
+      setFormData(utilisateur);
+      setFile(null);
     } else {
-      _filters['global'] = { value, matchMode: 'contains' };
+      setFormData({
+        nom: '',
+        prenom: '',
+        datedenaissance: '',
+        email: '',
+        motdepasse: '',
+        telephone: '',
+        genre: '',
+        note: undefined,
+        photoProfil: '',
+      });
+      setFile(null);
     }
-
-    setFilters(_filters);
-    setGlobalFilter(value);
+    setModalOpen(true);
   };
 
-  const onDelete = async (rowData: Item) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+  const handleClose = () => {
+    setSelectedUtilisateur(null);
+    setFile(null);
+    setModalOpen(false);
+  };
+
+  const handleDelete = async (utilisateur: IUtilisateur) => {
+    if (!utilisateur._id) return;
+    if (window.confirm(`Supprimer l'utilisateur ${utilisateur.nom} ${utilisateur.prenom} ?`)) {
       try {
-        await axios.delete(`http://localhost:3000/api/utilisateur/${rowData._id}`);
-        setUtilisateurs(utilisateurs.filter(item => item._id !== rowData._id));
-        toast.success('Utilisateur supprimé avec succès !');
-      } catch (error) {
-        toast.error('Erreur lors de la suppression de l\'utilisateur.');
-        console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+        await axios.delete(`${apiUrl}/utilisateur/${utilisateur._id}`);
+        toast.success("Utilisateur supprimé");
+        fetchUtilisateurs();
+      } catch {
+        toast.error("Erreur lors de la suppression");
       }
     }
   };
 
-  const onEdit = (rowData: Item) => {
-    setSelectedUtilisateur(rowData);
-    setFormData(rowData);
-    setFile(null); // Reset file state when editing
-    setModalOpen(true);
-  };
-
-  const onAdd = () => {
-    setSelectedUtilisateur(null);
-    setFormData({
-      firstname: '',
-      surname: '',
-      email: '',
-      telephone: '',
-      genre: '',
-      note: '',
-      password: '', // Reset this field as well
-    });
-    setFile(null); // Reset file state when adding new user
-    setModalOpen(true);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]); // Save file in the state
-    }
-  };
   const handleSave = async () => {
-    console.log('Form :' , formData) ;
-    
-    const formDataToSend = new FormData();
-    formDataToSend.append('firstname', formData.firstname);
-    formDataToSend.append('surname', formData.surname);
-    formDataToSend.append('email', formData.email);
-    formDataToSend.append('telephone', formData.telephone);
-    formDataToSend.append('genre', formData.genre);
-    formDataToSend.append('note', formData.note);
-    formDataToSend.append('password', formData.password || '');
-
-    if (file) {
-        formDataToSend.append('photoProfil', file);
-    }
-
-
     try {
-        if (selectedUtilisateur) {
-            // Update existing utilisateur
-            const response = await axios.put(`http://localhost:3000/api/utilisateur/${selectedUtilisateur._id}`, formDataToSend, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            setUtilisateurs((prevUtilisateurs) =>
-                prevUtilisateurs.map((item) =>
-                    item._id === selectedUtilisateur._id ? response.data : item
-                )
-            );
-            toast.success('Utilisateur mis à jour avec succès !');
-        } else {
-            // Add new utilisateur
-            const response = await axios.post('http://localhost:3000/api/register', formDataToSend, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            setUtilisateurs([...utilisateurs, response.data]);
-            toast.success('Nouvel utilisateur ajouté avec succès !');
+      const isUpdate = !!selectedUtilisateur?._id;
+      const url = isUpdate ? `${apiUrl}/utilisateur/${selectedUtilisateur?._id}` : `${apiUrl}/register`;
+      const method = isUpdate ? 'put' : 'post';
+
+      const data = new FormData();
+      for (const [key, value] of Object.entries(formData)) {
+        if (key === 'motdepasse' && !value) continue;
+        if (value !== undefined && value !== null) {
+          data.append(key, value.toString());
         }
-        setModalOpen(false);
-    } catch (error) {
-        console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
-        toast.error("Erreur lors de la sauvegarde de l'utilisateur.");
-    }
-};
+      }
+      if (file) {
+        data.append('photoProfil', file);
+      }
 
-
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
-    if (name === 'photoprofil' && files) {
-      setFile(files[0]); // Save the file separately
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value,
+      await axios({
+        method,
+        url,
+        data,
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+
+      toast.success(isUpdate ? "Utilisateur mis à jour" : "Utilisateur ajouté");
+      fetchUtilisateurs();
+      handleClose();
+    } catch (error) {
+      toast.error("Erreur lors de la sauvegarde");
+      console.error(error);
     }
   };
 
-  const renderHeader = () => (
-    <div className="table-header">
-      <h5 className="mx-0 my-1">Manage Utilisateurs</h5>
-      <Button variant="contained" color="primary" onClick={onAdd}>
-        Ajouter Un Nouvel Utilisateur
-      </Button>
-    </div>
+  const filteredUtilisateurs = utilisateurs.filter(u =>
+    `${u.nom} ${u.prenom}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (u.telephone?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-  const header = renderHeader();
-
-  const rowIndexTemplate = (rowData: Item, options: ColumnBodyOptions) => {
-    return options.rowIndex + 1;
-  };
-
-  const imageTemplate = (rowData: Item) => (
-    <img
-      src={rowData.photoProfil || 'https://res.cloudinary.com/your-cloud-name/image/upload/v0/default-profile.png'} // Provide a default URL if no image is available
-      alt="Profile"
-      style={{
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        objectFit: 'cover',
-      }}
-    />
-  );
-  
-
-  const actionTemplate = (rowData: Item) => (
-    <React.Fragment>
-      <IconButton
-        className='mr-2'
-        aria-label="delete"
-        color="error"
-        size="large"
-        onClick={() => onDelete(rowData)}
-      >
-        <DeleteIcon />
-      </IconButton>
-
-      <IconButton
-        className='mr-2'
-        aria-label="edit"
-        color="primary"
-        size="large"
-        onClick={() => onEdit(rowData)}
-      >
+  const actionBodyTemplate = (rowData: IUtilisateur) => (
+    <Box>
+      <IconButton color="primary" onClick={() => handleOpen(rowData)}>
         <EditIcon />
       </IconButton>
-    </React.Fragment>
+      <IconButton color="error" onClick={() => handleDelete(rowData)}>
+        <DeleteIcon />
+      </IconButton>
+    </Box>
   );
 
-  return (
-    <div>
-      <ToastContainer />
-      <Typography variant="h4" gutterBottom>
-        Utilisateurs
-      </Typography>
-      <Typography variant="body1">
-        Liste des utilisateurs
-      </Typography>
+  const photoBodyTemplate = (rowData: IUtilisateur) =>
+    rowData.photoProfil ? (
+      <img
+        src={rowData.photoProfil}
+        alt={`${rowData.nom} ${rowData.prenom}`}
+        style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover' }}
+      />
+    ) : (
+      <span style={{ color: '#999' }}>Aucune</span>
+    );
 
-      <Box sx={{ mt: 2, mb: 2 }}>
-        <div className="datatable-doc-demo">
-          <DataTable
-            value={utilisateurs}
-            paginator
-            showGridlines
-            rows={10}
-            loading={loading}
-            dataKey="_id"
-            filters={filters}
-            globalFilterFields={['nom', 'prenom', 'email']}
-            header={header}
-            emptyMessage="Aucun utilisateur trouvé"
-            onFilter={(e) => setFilters(e.filters)}
-          >
-            <Column header="#" body={rowIndexTemplate} />
-            <Column header="Image" body={imageTemplate} />
-            <Column field="_id" header="Identifiant" sortable />
-            <Column field="nom" header="Nom" sortable />
-            <Column field="prenom" header="Prénom" sortable />
-            <Column field="email" header="Email" sortable />
-            <Column header="Actions" body={actionTemplate} />
-         
-          </DataTable>
-        </div>
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? (value === '' ? undefined : Number(value)) : value
+    }));
+  };
+
+  return (
+    <Box m={2}>
+      <ToastContainer />
+      <Typography variant="h4" gutterBottom>Gestion des Utilisateurs</Typography>
+
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Recherche..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
+          }}
+          sx={{ width: 300 }}
+        />
+        <Button variant="contained" onClick={() => handleOpen(null)}>Ajouter Utilisateur</Button>
       </Box>
 
-      {/* Modal for Add/Edit Utilisateur */}
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
-        <DialogTitle>{selectedUtilisateur ? 'Modifier l\'Utilisateur' : 'Ajouter un Nouvel Utilisateur'}</DialogTitle>
+    <DataTable
+      value={filteredUtilisateurs}
+      paginator
+      rows={10}
+      loading={loading}
+      dataKey="_id"
+      emptyMessage="Aucun utilisateur trouvé"
+      filters={filters}
+      globalFilterFields={['nom', 'prenom', 'email', 'telephone']}
+    >
+      <Column field="_id" header="Identifiant" sortable />
+      <Column field="nom" header="Nom" sortable />
+      <Column field="prenom" header="Prénom" sortable />
+      <Column field="datedenaissance" header="Date de naissance" sortable />
+      <Column field="email" header="Email" sortable />
+      <Column field="telephone" header="Téléphone" sortable />
+      <Column field="genre" header="Genre" sortable />
+      <Column field="note" header="Note" sortable />
+      <Column header="Photo" body={photoBodyTemplate} />
+      <Column header="Actions" body={actionBodyTemplate} />
+    </DataTable>
+
+
+      <Dialog open={modalOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>{selectedUtilisateur?._id ? "Modifier Utilisateur" : "Ajouter Utilisateur"}</DialogTitle>
         <DialogContent>
           <TextField
-            margin="normal"
-            fullWidth
+            margin="dense"
             label="Nom"
-            name="firstname"
-            value={formData.firstname}
+            name="nom"
+            fullWidth
+            value={formData.nom}
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
-            fullWidth
+            margin="dense"
             label="Prénom"
-            name="surname"
-            value={formData.surname}
+            name="prenom"
+            fullWidth
+            value={formData.prenom}
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
+            margin="dense"
+            label="Date de naissance"
+            type="date"
+            name="datedenaissance"
+            InputLabelProps={{ shrink: true }}
             fullWidth
+            value={formData.datedenaissance}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
             label="Email"
             name="email"
+            type="email"
+            fullWidth
             value={formData.email}
             onChange={handleChange}
           />
+          {!selectedUtilisateur?._id && (
+            <TextField
+              margin="dense"
+              label="Mot de passe"
+              name="motdepasse"
+              type="password"
+              fullWidth
+              value={formData.motdepasse || ''}
+              onChange={handleChange}
+            />
+          )}
           <TextField
-            margin="normal"
-            fullWidth
+            margin="dense"
             label="Téléphone"
             name="telephone"
+            fullWidth
             value={formData.telephone}
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
-            fullWidth
+            margin="dense"
             label="Genre"
             name="genre"
+            fullWidth
             value={formData.genre}
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
-            fullWidth
+            margin="dense"
             label="Note"
             name="note"
-            value={formData.note}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="normal"
+            type="number"
             fullWidth
-            type="password"
-            label="Mot de Passe"
-            name="password"
-            value={formData.password}
+            value={formData.note ?? ''}
             onChange={handleChange}
           />
-          <input
-            type="file"
-            onChange={handleFileChange}
-          />
+
+          <Box mt={2}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setFile(e.target.files?.[0] ?? null)}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalOpen(false)} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={handleSave} color="primary">
-            {selectedUtilisateur ? 'Enregistrer' : 'Ajouter'}
+          <Button onClick={handleClose}>Annuler</Button>
+          <Button variant="contained" onClick={handleSave}>
+            {selectedUtilisateur?._id ? "Enregistrer" : "Ajouter"}
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   );
 };
 
-export default Utilisateur;
+export default UtilisateurComponent;

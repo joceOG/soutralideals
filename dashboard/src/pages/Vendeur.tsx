@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box, Typography, Dialog, DialogActions, DialogContent,
   DialogTitle, Button, TextField, InputAdornment,
-  IconButton, MenuItem
+  IconButton
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -21,25 +21,11 @@ export interface IUtilisateur {
   telephone?: string;
 }
 
-export interface IService {
-  _id: string;
-  nomservice: string;
-  categorie: {
-    _id: string;
-    nomcategorie: string;
-    groupe: {
-      _id: string;
-      nomgroupe: string;
-    };
-  };
-}
-
-export interface IPrestataireData {
+export interface IVendeurData {
   _id?: string;
   utilisateur: IUtilisateur;
-  service: IService;
-  prixprestataire: number;
   localisation: string;
+  zonedelivraison: string;
   note: string;
   verifier: boolean;
   cni1?: string;
@@ -47,17 +33,16 @@ export interface IPrestataireData {
   selfie?: string;
 }
 
-const PrestataireComponent: React.FC = () => {
-  const [prestataires, setPrestataires] = useState<IPrestataireData[]>([]);
+const VendeurComponent: React.FC = () => {
+  const [vendeurs, setVendeurs] = useState<IVendeurData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filters, setFilters] = useState<DataTableFilterMeta>({ global: { value: null, matchMode: 'contains' } });
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPrestataire, setSelectedPrestataire] = useState<IPrestataireData | null>(null);
-  const [formData, setFormData] = useState<IPrestataireData>({
+  const [selectedVendeur, setSelectedVendeur] = useState<IVendeurData | null>(null);
+  const [formData, setFormData] = useState<IVendeurData>({
     utilisateur: {} as IUtilisateur,
-    service: {} as IService,
-    prixprestataire: 0,
     localisation: '',
+    zonedelivraison: '',
     note: '',
     verifier: false,
   });
@@ -70,38 +55,25 @@ const PrestataireComponent: React.FC = () => {
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const apiUrl = process.env.REACT_APP_API_URL || '';
-  const [services, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
   // useCallback pour stabiliser la fonction et éviter warning react-hooks/exhaustive-deps
-  const fetchPrestataires = useCallback(async () => {
+  const fetchVendeurs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${apiUrl}/prestataire`);
-      setPrestataires(response.data);
+      const response = await axios.get(`${apiUrl}/vendeur`);
+      setVendeurs(response.data);
     } catch {
-      toast.error("Erreur lors du chargement des prestataires");
+      toast.error("Erreur lors du chargement des vendeurs");
     } finally {
       setLoading(false);
     }
   }, [apiUrl]);
 
   useEffect(() => {
-    fetchPrestataires();
-
-    const fetchServices = async () => {
-      try {
-        const res = await axios.get(`${apiUrl}/service`);
-        const filtered = res.data.filter((s: IService) => s.categorie?.groupe?.nomgroupe === 'Métiers');
-        setServices(filtered);
-      } catch {
-        toast.error("Erreur lors du chargement des services");
-      }
-    };
-
-    fetchServices();
-  }, [apiUrl, fetchPrestataires]);
+    fetchVendeurs();
+  }, [apiUrl, fetchVendeurs]);
 
   const loadUtilisateurs = async () => {
     try {
@@ -130,20 +102,20 @@ const PrestataireComponent: React.FC = () => {
     );
   });
 
-  const onDelete = async (rowData: IPrestataireData) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce prestataire ?')) {
+  const onDelete = async (rowData: IVendeurData) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce vendeur ?')) {
       try {
-        await axios.delete(`${apiUrl}/prestataire/${rowData._id}`);
-        setPrestataires(prestataires.filter(item => item._id !== rowData._id));
-        toast.success('Prestataire supprimé avec succès !');
+        await axios.delete(`${apiUrl}/vendeur/${rowData._id}`);
+        setVendeurs(vendeurs.filter(item => item._id !== rowData._id));
+        toast.success('Vendeur supprimé avec succès !');
       } catch {
-        toast.error('Erreur lors de la suppression du prestataire.');
+        toast.error('Erreur lors de la suppression du vendeur.');
       }
     }
   };
 
-  const onEdit = (rowData: IPrestataireData) => {
-    setSelectedPrestataire(rowData);
+  const onEdit = (rowData: IVendeurData) => {
+    setSelectedVendeur(rowData);
     setFormData(rowData);
     setCniFile(null);
     setCni2File(null);
@@ -152,12 +124,11 @@ const PrestataireComponent: React.FC = () => {
   };
 
   const onAdd = () => {
-    setSelectedPrestataire(null);
+    setSelectedVendeur(null);
     setFormData({
       utilisateur: {} as IUtilisateur,
-      service: {} as IService,
-      prixprestataire: 0,
       localisation: '',
+      zonedelivraison: '',
       note: '',
       verifier: false,
     });
@@ -177,16 +148,20 @@ const PrestataireComponent: React.FC = () => {
   };
 
   const handleSave = async () => {
+  if (!formData.utilisateur || !formData.utilisateur._id) {
+    toast.error("Veuillez sélectionner un utilisateur avant de sauvegarder.");
+    return;
+  }
+
     try {
-      const isUpdate = Boolean(selectedPrestataire?._id);
-      const url = isUpdate ? `${apiUrl}/prestataire/${selectedPrestataire?._id}` : `${apiUrl}/prestataire`;
+      const isUpdate = Boolean(selectedVendeur?._id);
+      const url = isUpdate ? `${apiUrl}/vendeur/${selectedVendeur?._id}` : `${apiUrl}/vendeur`;
       const method = isUpdate ? 'put' : 'post';
 
       const form = new FormData();
-      form.append('utilisateur', formData.utilisateur._id);
-      form.append('service', formData.service._id);
-      form.append('prixprestataire', formData.prixprestataire.toString());
+      form.append('utilisateur', formData.utilisateur._id); // <- s'assure que c'est bien défini
       form.append('localisation', formData.localisation);
+      form.append('zonedelivraison', formData.zonedelivraison);
       form.append('note', formData.note);
       form.append('verifier', formData.verifier ? 'true' : 'false');
       if (cniFile) form.append('cni1', cniFile);
@@ -196,15 +171,15 @@ const PrestataireComponent: React.FC = () => {
       const response = await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
       console.log('Réponse après ajout/modif:', response.data);
 
-      // Recharge la liste complète après ajout/modif
-      await fetchPrestataires();
-
-      toast.success(isUpdate ? 'Prestataire mis à jour avec succès !' : 'Nouveau prestataire ajouté avec succès !');
+      await fetchVendeurs();
+      toast.success(isUpdate ? 'Vendeur mis à jour avec succès !' : 'Nouveau vendeur ajouté avec succès !');
       setModalOpen(false);
-    } catch {
-      toast.error('Erreur lors de la sauvegarde du prestataire.');
+    } catch (error: any) {
+      console.error(error.response?.data || error);
+      toast.error('Erreur lors de la sauvegarde du vendeur.');
     }
   };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -215,7 +190,7 @@ const PrestataireComponent: React.FC = () => {
     setZoomImage(url);
   };
 
-  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie') => (rowData: IPrestataireData) => {
+  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie') => (rowData: IVendeurData) => {
     const imageUrl = rowData[field];
     return imageUrl ? (
       <img
@@ -231,11 +206,11 @@ const PrestataireComponent: React.FC = () => {
     );
   };
 
-  const rowIndexTemplate = (rowData: IPrestataireData, options: ColumnBodyOptions) => options.rowIndex + 1;
+  const rowIndexTemplate = (rowData: IVendeurData, options: ColumnBodyOptions) => options.rowIndex + 1;
 
-  const utilisateurNameTemplate = (rowData: IPrestataireData) => `${rowData.utilisateur?.nom || ''} ${rowData.utilisateur?.prenom || ''}`;
+  const utilisateurNameTemplate = (rowData: IVendeurData) => `${rowData.utilisateur?.nom || ''} ${rowData.utilisateur?.prenom || ''}`;
 
-  const actionTemplate = (rowData: IPrestataireData) => (
+  const actionTemplate = (rowData: IVendeurData) => (
     <>
       <IconButton color="error" onClick={() => onDelete(rowData)}><DeleteIcon /></IconButton>
       <IconButton color="primary" onClick={() => onEdit(rowData)}><EditIcon /></IconButton>
@@ -245,10 +220,10 @@ const PrestataireComponent: React.FC = () => {
   return (
     <div>
       <ToastContainer />
-      <Typography variant="h4" gutterBottom>Prestataires</Typography>
+      <Typography variant="h4" gutterBottom>Vendeurs</Typography>
       <Box sx={{ mt: 2, mb: 2 }}>
         <DataTable
-          value={prestataires}
+          value={vendeurs}
           paginator
           showGridlines
           rows={10}
@@ -256,15 +231,15 @@ const PrestataireComponent: React.FC = () => {
           dataKey="_id"
           filters={filters}
           globalFilterFields={['localisation', 'note']}
-          header={<div style={{ display: 'flex', justifyContent: 'space-between' }}><h5>Gestion des Prestataires</h5><Button variant="contained" onClick={onAdd}>Ajouter</Button></div>}
-          emptyMessage="Aucun prestataire trouvé"
+          header={<div style={{ display: 'flex', justifyContent: 'space-between' }}><h5>Gestion des Vendeurs</h5><Button variant="contained" onClick={onAdd}>Ajouter</Button></div>}
+          emptyMessage="Aucun vendeur trouvé"
           onFilter={(e) => setFilters(e.filters)}
         >
           <Column header="#" body={rowIndexTemplate} />
           <Column header="Utilisateur" body={utilisateurNameTemplate} sortable />
           <Column header="Service" body={(rowData) => rowData.service?.nomservice} sortable />
-          <Column field="prixprestataire" header="Prix" sortable />
           <Column field="localisation" header="Localisation" sortable />
+          <Column field="zonedelivraison" header="Zone de Livraison" sortable />
           <Column field="note" header="Note" sortable />
           <Column header="CNI 1" body={imageTemplate('cni1')} />
           <Column header="CNI 2" body={imageTemplate('cni2')} />
@@ -275,7 +250,7 @@ const PrestataireComponent: React.FC = () => {
       </Box>
 
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedPrestataire ? 'Modifier le Prestataire' : 'Ajouter un Nouveau Prestataire'}</DialogTitle>
+        <DialogTitle>{selectedVendeur ? 'Modifier le Vendeur' : 'Ajouter un Nouveau Vendeur'}</DialogTitle>
         <DialogContent>
           <TextField
             margin="normal"
@@ -292,24 +267,8 @@ const PrestataireComponent: React.FC = () => {
             }}
           />
 
-          <TextField
-            margin="normal"
-            select
-            fullWidth
-            label="Service"
-            value={formData.service?._id || ''}
-            onChange={(e) => {
-              const selected = services.find(s => s._id === e.target.value);
-              if (selected) setFormData(prev => ({ ...prev, service: selected }));
-            }}
-          >
-            {services.map(service => (
-              <MenuItem key={service._id} value={service._id}>{service.nomservice}</MenuItem>
-            ))}
-          </TextField>
-
-          <TextField margin="normal" fullWidth label="Prix" name="prixprestataire" type="number" value={formData.prixprestataire} onChange={handleChange} />
           <TextField margin="normal" fullWidth label="Localisation" name="localisation" value={formData.localisation} onChange={handleChange} />
+          <TextField margin="normal" fullWidth label="Zone de livraison" name="zonedelivraison" value={formData.zonedelivraison} onChange={handleChange} />
           <TextField margin="normal" fullWidth label="Note" name="note" value={formData.note} onChange={handleChange} />
 
           <Box sx={{ mt: 1, mb: 1 }}>
@@ -333,7 +292,7 @@ const PrestataireComponent: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setModalOpen(false)}>Annuler</Button>
-          <Button onClick={handleSave}>{selectedPrestataire ? 'Enregistrer' : 'Ajouter'}</Button>
+          <Button onClick={handleSave}>{selectedVendeur ? 'Enregistrer' : 'Ajouter'}</Button>
         </DialogActions>
       </Dialog>
 
@@ -385,4 +344,4 @@ const PrestataireComponent: React.FC = () => {
   );
 };
 
-export default PrestataireComponent;
+export default VendeurComponent;

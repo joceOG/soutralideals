@@ -1,20 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Box, Fab, IconButton, MenuItem, Select, Snackbar, TextField, Typography } from '@mui/material';
+import {
+  Alert, Box, IconButton, MenuItem, Snackbar, TextField,
+  Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, InputAdornment
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Close';
+import { alpha } from '@mui/material/styles';
 import axios from 'axios';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import { Dialog } from 'primereact/dialog';
-import { Button } from 'primereact/button';
-import AddIcon from '@mui/icons-material/Add';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { motion } from 'framer-motion';
 
 interface Item {
   _id: string;
   nomservice: string;
   imageservice: string;
+  prixmoyen?: number;
   categorie: {
     _id: string;
     nomcategorie: string;
@@ -34,21 +42,25 @@ interface Option {
 const Service: React.FC = () => {
   const [service, setService] = useState<Item[]>([]);
   const [nomservice, setNomService] = useState('');
+  const [prixMoyen, setPrixMoyen] = useState<number | ''>('');
   const [imageservice, setImageService] = useState<File | null>(null);
-  const [visible, setVisible] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [open, setOpen] = useState(false);
   const [categorie, setCategorie] = useState<Option[]>([]);
   const [groupe, setGroupe] = useState<Option[]>([]);
   const [selectedCategorie, setSelectedCategorie] = useState<string | null>(null);
   const [selectedGroupe, setSelectedGroupe] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentService, setCurrentService] = useState<Item | null>(null);
   const [openSnackbarSuccess, setOpenSnackbarSuccess] = useState(false);
   const [openSnackbarError, setOpenSnackbarError] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // Track if editing
-  const [currentService, setCurrentService] = useState<Item | null>(null); // Current service being edited
+  const [searchTerm, setSearchTerm] = useState('');
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/services');
+        const response = await axios.get(`${apiUrl}/service`);
         setService(response.data);
       } catch (error) {
         console.error(error);
@@ -60,7 +72,7 @@ const Service: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/categorie');
+        const response = await axios.get(`${apiUrl}/categorie`);
         const options = response.data.map((cat: any) => ({
           label: cat.nomcategorie,
           value: cat._id,
@@ -76,7 +88,7 @@ const Service: React.FC = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/groupe');
+        const response = await axios.get(`${apiUrl}/groupe`);
         const options = response.data.map((grp: any) => ({
           label: grp.nomgroupe,
           value: grp._id,
@@ -90,43 +102,48 @@ const Service: React.FC = () => {
   }, []);
 
   const handleClickOpen = () => {
-    setVisible(true);
-    setIsEditing(false); // Ensure it's a new service
+    setOpen(true);
+    setIsEditing(false);
+    resetForm();
   };
 
   const handleClose = () => {
-    setVisible(false);
+    setOpen(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
     setNomService('');
+    setPrixMoyen('');
     setImageService(null);
+    setFile(null);
     setSelectedCategorie(null);
     setSelectedGroupe(null);
     setCurrentService(null);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    if (e.target.files && e.target.files[0]) {
       setImageService(e.target.files[0]);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const formData = new FormData();
     formData.append('nomservice', nomservice);
     if (selectedCategorie) formData.append('categorie', selectedCategorie);
-    if (selectedGroupe) formData.append('nomgroupe', selectedGroupe);
+    if (prixMoyen !== '') formData.append('prixmoyen', prixMoyen.toString());
     if (imageservice) formData.append('imageservice', imageservice);
 
     try {
       if (isEditing && currentService) {
-        // Update service
-        await axios.put(`http://localhost:3000/api/service/${currentService._id}`, formData, {
+        await axios.put(`${apiUrl}/service/${currentService._id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         toast.success('Service mis à jour avec succès!');
       } else {
-        // Create new service
-        await axios.post('http://localhost:3000/api/service', formData, {
+        await axios.post(`${apiUrl}/service`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         toast.success('Service créé avec succès!');
@@ -134,7 +151,7 @@ const Service: React.FC = () => {
 
       setOpenSnackbarSuccess(true);
       handleClose();
-      const response = await axios.get('http://localhost:3000/api/service');
+      const response = await axios.get(`${apiUrl}/service`);
       setService(response.data);
     } catch (error) {
       console.error(error);
@@ -143,19 +160,19 @@ const Service: React.FC = () => {
   };
 
   const onEdit = (rowData: Item) => {
-    setVisible(true);
-    setIsEditing(true); // Set editing to true
+    setOpen(true);
+    setIsEditing(true);
     setCurrentService(rowData);
     setNomService(rowData.nomservice);
-    setSelectedCategorie(rowData.categorie._id);
-    setSelectedGroupe(rowData.categorie.groupe._id);
-    // You may also set the image if required
+    setPrixMoyen(rowData.prixmoyen || '');
+    setSelectedCategorie(rowData.categorie?._id || null);
+    setSelectedGroupe(rowData.categorie?.groupe?._id || null);
   };
 
   const onDelete = async (rowData: Item) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette Service ?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce service ?')) {
       try {
-        await axios.delete(`http://localhost:3000/api/service/${rowData._id}`);
+        await axios.delete(`${apiUrl}/service/${rowData._id}`);
         setService(service.filter((item) => item._id !== rowData._id));
         toast.success('Service supprimé avec succès!');
       } catch (error) {
@@ -165,82 +182,191 @@ const Service: React.FC = () => {
     }
   };
 
+  const filteredServices = service.filter((item) =>
+    item.nomservice.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.categorie?.nomcategorie?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.categorie?.groupe?.nomgroupe?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div>
-      <Typography variant="h4" gutterBottom>
-        Services
-      </Typography>
-      <Dialog visible={visible} onHide={handleClose} header={isEditing ? "Modifier Service" : "Ajouter Service"}>
-        <form onSubmit={handleSubmit}>
-          <div className="flex flex-column px-8 py-5 gap-4">
+      <Typography variant="h4" gutterBottom>Services</Typography>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleClickOpen}>
+          Ajouter un nouveau service
+        </Button>
+        <TextField
+          label="Rechercher"
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: searchTerm && (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setSearchTerm('')} size="small">
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ m: 0, p: 2 }}>
+          {isEditing ? "Modifier le service" : "Ajouter un nouveau service"}
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{ position: 'absolute', right: 8, top: 8, color: 'grey.500' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers>
+          <motion.form
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            onSubmit={handleSubmit}
+          >
             <TextField
               autoFocus
               margin="dense"
               label="Nom du service"
               type="text"
               fullWidth
-              variant="standard"
+              variant="outlined"
               value={nomservice}
               onChange={(e) => setNomService(e.target.value)}
+              sx={{ mb: 2 }}
             />
-
             <TextField
               margin="dense"
-              type="file"
+              label="Prix moyen"
+              type="number"
               fullWidth
-              variant="standard"
-              onChange={handleImageChange}
+              variant="outlined"
+              value={prixMoyen}
+              onChange={(e) => setPrixMoyen(Number(e.target.value) || '')}
+              sx={{ mb: 2 }}
             />
-
-            <TextField
-              select
-              label="Catégorie"
-              value={selectedCategorie || ''}
-              onChange={(e) => setSelectedCategorie(e.target.value)}
-              fullWidth
-              variant="standard"
-            >
-              <MenuItem value="" disabled>Select Catégorie</MenuItem>
-              {categorie.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
             <TextField
               select
               label="Groupe"
               value={selectedGroupe || ''}
               onChange={(e) => setSelectedGroupe(e.target.value)}
               fullWidth
-              variant="standard"
+              variant="outlined"
+              sx={{ mb: 2 }}
             >
-              <MenuItem value="" disabled>Select Groupe</MenuItem>
+              <MenuItem value="" disabled>Sélectionner Groupe</MenuItem>
               {groupe.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
+                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Catégorie"
+              value={selectedCategorie || ''}
+              onChange={(e) => setSelectedCategorie(e.target.value)}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 2 }}
+            >
+              <MenuItem value="" disabled>Sélectionner Catégorie</MenuItem>
+              {categorie.map((option) => (
+                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
               ))}
             </TextField>
 
-            <Button label={isEditing ? "Mettre à jour" : "Enregistrer"} type="submit" className="p-button-success" />
-          </div> 
-        </form>
-      </Dialog>
-      <Box sx={{ mt: 2, mb: 2 }}>
-        <div className="datatable-doc-demo">
-          <DataTable value={service} paginator rows={10} dataKey="_id" emptyMessage="Aucun service trouvé">
-            <Column field="_id" header="ID" sortable />
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="upload-service-image"
+              type="file"
+              onChange={(e) => {
+                handleImageChange(e);
+                if (e.target.files?.[0]) setFile(e.target.files[0]);
+              }}
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                mt: 2,
+                p: 2,
+                borderRadius: 2,
+                bgcolor: theme => alpha(theme.palette.background.paper, 0.8),
+                boxShadow: theme => `inset 2px 2px 5px ${alpha(theme.palette.mode === 'dark' ? '#000000' : '#a3b1c6', 0.5)},
+                                  inset -2px -2px 5px ${alpha(theme.palette.mode === 'dark' ? '#0c1a2c' : '#FFFFFF', 0.5)}`
+              }}
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <label htmlFor="upload-service-image">
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    component="span"
+                    startIcon={<PhotoCameraIcon />}
+                    sx={{ mb: 2 }}
+                  >
+                    {file ? 'Changer l\'image' : 'Sélectionner une image'}
+                  </Button>
+                </label>
+              </motion.div>
 
-            <Column header="Image" body={(rowData) => (
-              <img src={rowData.imageservice} alt="service" style={{ width: '40px', height: '40px',borderRadius:'50%' }} />
-            )} />
-            <Column field="nomservice" header="Service" sortable />
-            <Column field="categorie.nomcategorie" header="Catégorie" sortable />
-            <Column field="categorie.groupe.nomgroupe" header="Groupe" sortable />
-       
-            <Column header="Actions" body={(rowData) => (
+              {file && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                    <Typography variant="body2" color="textSecondary">{file.name}</Typography>
+                    <IconButton size="small" onClick={() => setFile(null)}>
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </motion.div>
+              )}
+            </Box>
+          </motion.form>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">Annuler</Button>
+          <Button onClick={handleSubmit} color="primary" variant="contained">
+            {isEditing ? "Mettre à jour" : "Enregistrer"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Box sx={{ mt: 2, mb: 2 }}>
+        <DataTable value={filteredServices} paginator rows={10} dataKey="_id" emptyMessage="Aucun service trouvé">
+          <Column field="_id" header="ID" sortable />
+          <Column
+            header="Image"
+            body={(rowData) => (
+              <img
+                src={rowData.imageservice}
+                alt="service"
+                style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+              />
+            )}
+          />
+          <Column field="nomservice" header="Service" sortable />
+          <Column field="prixmoyen" header="Prix Moyen (€)" sortable />
+          <Column header="Catégorie" sortable body={(rowData: Item) => rowData.categorie?.nomcategorie || 'Non défini'} />
+          <Column header="Groupe" sortable body={(rowData: Item) => rowData.categorie?.groupe?.nomgroupe || 'Non défini'} />
+          <Column
+            header="Actions"
+            body={(rowData) => (
               <>
                 <IconButton color="primary" onClick={() => onEdit(rowData)}>
                   <EditIcon />
@@ -249,33 +375,18 @@ const Service: React.FC = () => {
                   <DeleteIcon />
                 </IconButton>
               </>
-            )} />
-          </DataTable>
-        </div>
+            )}
+          />
+        </DataTable>
       </Box>
-      <Fab color="primary" aria-label="add" onClick={handleClickOpen}>
-        <AddIcon />
-      </Fab>
+
       <ToastContainer />
-      <Snackbar
-        open={openSnackbarSuccess}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbarSuccess(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity="success" onClose={() => setOpenSnackbarSuccess(false)}>
-          Service ajouté avec succès!
-        </Alert>
+
+      <Snackbar open={openSnackbarSuccess} autoHideDuration={3000} onClose={() => setOpenSnackbarSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="success" onClose={() => setOpenSnackbarSuccess(false)}>Service ajouté avec succès!</Alert>
       </Snackbar>
-      <Snackbar
-        open={openSnackbarError}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbarError(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity="error" onClose={() => setOpenSnackbarError(false)}>
-          Une erreur s'est produite lors de l'ajout du service.
-        </Alert>
+      <Snackbar open={openSnackbarError} autoHideDuration={3000} onClose={() => setOpenSnackbarError(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="error" onClose={() => setOpenSnackbarError(false)}>Une erreur s'est produite.</Alert>
       </Snackbar>
     </div>
   );

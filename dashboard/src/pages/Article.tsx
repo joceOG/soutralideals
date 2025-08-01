@@ -12,6 +12,7 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  InputAdornment
 } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -22,6 +23,8 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { styled } from '@mui/material/styles';
 
@@ -84,15 +87,16 @@ const Article: React.FC = () => {
     prixArticle: '',
     quantiteArticle: 0,
   });
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch articles and categories
+  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
         const articleResponse = await axios.get('http://localhost:3000/api/articles');
         setArticles(articleResponse.data);
 
-        const categorieResponse = await axios.get('http://localhost:3000/api/categorie');
+        const categorieResponse = await axios.get('http://localhost:3000/api/categorie/groupe/E-marché');
         const options = categorieResponse.data.map((cat: any) => ({
           label: cat.nomcategorie,
           value: cat._id,
@@ -135,12 +139,11 @@ const Article: React.FC = () => {
 
     if (selectedFile) formData.append('photoArticle', selectedFile);
 
-
     const url = isEditMode
       ? `http://localhost:3000/api/article/${currentArticle._id}`
       : 'http://localhost:3000/api/article';
 
-    const method = isEditMode ? 'put':'post';
+    const method = isEditMode ? 'put' : 'post';
 
     try {
       const response = await axios({
@@ -194,57 +197,87 @@ const Article: React.FC = () => {
     setOpen(true);
   };
 
+  const filteredArticles = articles.filter((item) =>
+    item.nomArticle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.prixArticle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.quantiteArticle.toString().includes(searchTerm) ||
+    item.categorie?.nomcategorie?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div>
       <Typography variant="h4" gutterBottom>
         Articles
       </Typography>
-      <Box sx={{ mt: 2, mb: 2 }}>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Button variant="contained" color="primary" onClick={handleClickOpen}>
           Ajouter Un Nouveau Article
         </Button>
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 700 }} aria-label="customized table">
-            <TableHead>
-              <TableRow>
-                <StyledTableCell>#</StyledTableCell>
-                <StyledTableCell>Nom Article</StyledTableCell>
-                <StyledTableCell>Prix Article</StyledTableCell>
-                <StyledTableCell>Quantité Article</StyledTableCell>
-                <StyledTableCell>Photo Article</StyledTableCell>
-                <StyledTableCell>Catégorie</StyledTableCell>
-                <StyledTableCell>Action</StyledTableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {articles.map((item, index) => (
-                <StyledTableRow key={item._id}>
-                  <StyledTableCell>{index + 1}</StyledTableCell>
-                  <StyledTableCell>{item.nomArticle}</StyledTableCell>
-                  <StyledTableCell>{item.prixArticle}</StyledTableCell>
-                  <StyledTableCell>{item.quantiteArticle}</StyledTableCell>
-                  <StyledTableCell>
-                    {item.photoArticle ? (
-                      <img src={item.photoArticle} alt={item.nomArticle} width={50} />
-                    ) : (
-                      'No Image'
-                    )}
-                  </StyledTableCell>
-                  <StyledTableCell>{item.categorie?.nomcategorie || 'N/A'}</StyledTableCell>
-                  <StyledTableCell>
-                    <IconButton color="primary" onClick={() => handleEdit(item)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </StyledTableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <TextField
+          label="Rechercher"
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: searchTerm && (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setSearchTerm('')} size="small">
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
       </Box>
+
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 700 }} aria-label="customized table">
+          <TableHead>
+            <TableRow>
+              <StyledTableCell>#</StyledTableCell>
+              <StyledTableCell>Nom Article</StyledTableCell>
+              <StyledTableCell>Prix Article</StyledTableCell>
+              <StyledTableCell>Quantité Article</StyledTableCell>
+              <StyledTableCell>Photo Article</StyledTableCell>
+              <StyledTableCell>Catégorie</StyledTableCell>
+              <StyledTableCell>Action</StyledTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredArticles.map((item, index) => (
+              <StyledTableRow key={item._id}>
+                <StyledTableCell>{index + 1}</StyledTableCell>
+                <StyledTableCell>{item.nomArticle}</StyledTableCell>
+                <StyledTableCell>{item.prixArticle}</StyledTableCell>
+                <StyledTableCell>{item.quantiteArticle}</StyledTableCell>
+                <StyledTableCell>
+                  {item.photoArticle ? (
+                    <img src={item.photoArticle} alt={item.nomArticle} width={50} />
+                  ) : (
+                    'No Image'
+                  )}
+                </StyledTableCell>
+                <StyledTableCell>{item.categorie?.nomcategorie || 'N/A'}</StyledTableCell>
+                <StyledTableCell>
+                  <IconButton color="primary" onClick={() => handleEdit(item)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => handleDelete(item._id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </StyledTableCell>
+              </StyledTableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{isEditMode ? 'Modifier Article' : 'Ajouter Un Nouveau Article'}</DialogTitle>
