@@ -28,6 +28,8 @@ import ClearIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { styled } from '@mui/material/styles';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 // Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -89,14 +91,13 @@ const Article: React.FC = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const articleResponse = await axios.get('http://localhost:3000/api/articles');
+        const articleResponse = await axios.get(`${apiUrl}/articles`);
         setArticles(articleResponse.data);
 
-        const categorieResponse = await axios.get('http://localhost:3000/api/categorie/groupe/E-marché');
+        const categorieResponse = await axios.get(`${apiUrl}/categorie/groupe/E-marché`);
         const options = categorieResponse.data.map((cat: any) => ({
           label: cat.nomcategorie,
           value: cat._id,
@@ -140,8 +141,8 @@ const Article: React.FC = () => {
     if (selectedFile) formData.append('photoArticle', selectedFile);
 
     const url = isEditMode
-      ? `http://localhost:3000/api/article/${currentArticle._id}`
-      : 'http://localhost:3000/api/article';
+      ? `${apiUrl}/article/${currentArticle._id}`
+      : `${apiUrl}/article`;
 
     const method = isEditMode ? 'put' : 'post';
 
@@ -172,7 +173,7 @@ const Article: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
       try {
-        await axios.delete(`http://localhost:3000/api/article/${id}`);
+        await axios.delete(`${apiUrl}/api/article/${id}`);
         setArticles(articles.filter((item) => item._id !== id));
         setAlertMessage('Article supprimé avec succès');
       } catch (error) {

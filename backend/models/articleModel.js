@@ -13,7 +13,7 @@ const ArticleSchema = new mongoose.Schema({
     utilisateur:{
         type: mongoose.Schema.Types.ObjectId,
         required:true,
-        ref:'User'
+        ref:'Utilisateur'
     },
     categorie:
      { type: mongoose.Schema.Types.ObjectId,
