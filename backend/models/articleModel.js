@@ -10,10 +10,10 @@ const ArticleSchema = new mongoose.Schema({
     photoArticle: { type: String ,
         required:true,
     },
-    utilisateur:{
+    vendeur:{
         type: mongoose.Schema.Types.ObjectId,
         required:true,
-        ref:'Utilisateur'
+        ref:'Vendeur'
     },
     categorie:
      { type: mongoose.Schema.Types.ObjectId,
