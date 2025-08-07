@@ -10,10 +10,10 @@ cloudinary.v2.config({
     api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 });
 
-// Met à jour un article (avec upload d'image)
+// ✅ Met à jour un article (avec upload d'image)
 export const updateArticleById = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, utilisateur, categorie } = req.body;
+        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie } = req.body;
         const { path: filePath } = req.file || {};
 
         let updatedFields = {
@@ -22,8 +22,8 @@ export const updateArticleById = async (req, res) => {
             quantiteArticle,
         };
 
-        if (utilisateur) {
-            updatedFields.utilisateur = mongoose.Types.ObjectId(utilisateur);
+        if (vendeur) {
+            updatedFields.vendeur = mongoose.Types.ObjectId(vendeur);
         }
 
         if (categorie) {
@@ -55,7 +55,13 @@ export const updateArticleById = async (req, res) => {
             { new: true }
         )
         .populate('categorie')
-        .populate('utilisateur');
+        .populate({
+            path: 'vendeur',
+            populate: {
+                path: 'utilisateur',
+                model: 'Utilisateur'
+            }
+        });
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
@@ -68,12 +74,12 @@ export const updateArticleById = async (req, res) => {
     }
 };
 
-// Crée un nouvel article avec upload d'image
+// ✅ Crée un nouvel article avec upload d'image
 export const createArticle = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, utilisateur, categorie } = req.body;
+        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie } = req.body;
         const categorieId = mongoose.Types.ObjectId(categorie);
-        const utilisateurId = mongoose.Types.ObjectId(utilisateur);
+        const vendeurId = mongoose.Types.ObjectId(vendeur);
 
         if (!req.file) {
             return res.status(400).json({ error: 'Aucun fichier image téléchargé' });
@@ -90,22 +96,44 @@ export const createArticle = async (req, res) => {
             prixArticle,
             quantiteArticle,
             photoArticle: result.secure_url,
-            utilisateur : utilisateurId,
-            categorie : categorieId,
+            vendeur: vendeurId,
+            categorie: categorieId,
         });
 
-        await newArticle.save();
-        res.status(201).json(newArticle);
+        const savedArticle = await newArticle.save();
+
+        // ✅ Correction ici : une seule utilisation de populate avec un tableau
+        const populatedArticle = await savedArticle.populate([
+            { path: 'categorie' },
+            {
+                path: 'vendeur',
+                populate: {
+                    path: 'utilisateur',
+                    model: 'Utilisateur'
+                }
+            }
+        ]);
+
+        res.status(201).json(populatedArticle);
     } catch (err) {
         console.error('Erreur lors de la création de l\'article:', err.message);
         res.status(500).json({ error: err.message });
     }
 };
 
-// Récupère tous les articles
+// ✅ Récupère tous les articles
 export const getAllArticles = async (req, res) => {
     try {
-        const articles = await articleModel.find().populate('categorie');
+        const articles = await articleModel.find()
+            .populate('categorie')
+            .populate({
+                path: 'vendeur',
+                populate: {
+                    path: 'utilisateur',
+                    model: 'Utilisateur'
+                }
+            });
+
         res.status(200).json(articles);
     } catch (err) {
         console.error('Erreur lors de la récupération des articles:', err.message);
@@ -113,13 +141,23 @@ export const getAllArticles = async (req, res) => {
     }
 };
 
-// Récupère un article par ID
+// ✅ Récupère un article par ID
 export const getArticleById = async (req, res) => {
     try {
-        const article = await articleModel.findById(req.params.id).populate('categorie');
+        const article = await articleModel.findById(req.params.id)
+            .populate('categorie')
+            .populate({
+                path: 'vendeur',
+                populate: {
+                    path: 'utilisateur',
+                    model: 'Utilisateur'
+                }
+            });
+
         if (!article) {
             return res.status(404).json({ error: 'Article non trouvé' });
         }
+
         res.status(200).json(article);
     } catch (err) {
         console.error('Erreur lors de la récupération de l\'article:', err.message);
@@ -127,7 +165,7 @@ export const getArticleById = async (req, res) => {
     }
 };
 
-// Supprime un article par ID
+// ✅ Supprime un article par ID
 export const deleteArticle = async (req, res) => {
     try {
         const article = await articleModel.findByIdAndDelete(req.params.id);

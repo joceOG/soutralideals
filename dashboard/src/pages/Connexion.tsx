@@ -19,6 +19,7 @@ const defaultTheme = createTheme();
 
 
 const Connexion: React.FC = () => {
+     const apiUrl = process.env.REACT_APP_API_URL || '';
     const navigate=useNavigate()
     const [error, setError] = React.useState('');
 const [success, setSuccess] = React.useState('');
@@ -35,7 +36,7 @@ const [success, setSuccess] = React.useState('');
         let password=data.get('password')
 
         try {
-            const response = await axios.post("http://localhost:3000/api/login", {
+            const response = await axios.post(`${apiUrl}/api/login`, {
                 email,
                 password,
             });

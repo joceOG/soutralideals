@@ -30,6 +30,14 @@ const VendeurSchema = mongoose.Schema({
 
 }, { timestamps: true });
 
+
+   // Virtual
+   VendeurSchema.virtual('article', {
+    ref: 'Article',       
+    localField: '_id',       
+    foreignField: 'vendeur'    
+});
+
 const vendeurModel = mongoose.model('Vendeur', VendeurSchema);
 
 export default vendeurModel;
