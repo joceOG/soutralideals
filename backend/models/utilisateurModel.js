@@ -12,7 +12,6 @@ const UtilisateurSchema = mongoose.Schema({
     },
     prenom: {
          type: String,
-         required:true,
          trim:true
           },
     datedenaissance: {
