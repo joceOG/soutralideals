@@ -17,14 +17,12 @@ const UtilisateurSchema = mongoose.Schema({
           },
     datedenaissance: {
          type: String,
-         required:true,
          trim:true
           },
     email: 
         {  
             type:String,
             trim:true,
-            required:true,
             lowercase:true,
             validate(value){
            if(!validator.isEmail(value)){
