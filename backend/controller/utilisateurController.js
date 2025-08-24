@@ -38,11 +38,11 @@ export const signUp = async (req, res) => {
     } = req.body;
 
     const existingUser = await Utilisateur.findOne({
-      $or: [{ email }, { nom }]
+      $or: [{ email }, { telephone }]
     });
 
     if (existingUser) {
-      const error = existingUser.email === email ? 'Email déjà utilisé' : 'Nom déjà utilisé';
+      const error = existingUser.email === email ? 'Email déjà utilisé' : 'Numero de Téléphone déjà utilisé';
       return res.status(400).json({ error });
     }
 
