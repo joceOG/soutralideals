@@ -17,14 +17,12 @@ const UtilisateurSchema = mongoose.Schema({
           },
     datedenaissance: {
          type: String,
-         required:true,
          trim:true
           },
     email: 
         {  
             type:String,
             trim:true,
-            required:true,
             lowercase:true,
             validate(value){
            if(!validator.isEmail(value)){
@@ -42,7 +40,9 @@ const UtilisateurSchema = mongoose.Schema({
             }
         }
             },
-            telephone: { type: String },
+            telephone: { type: String , 
+                 required:true,
+             },
             genre: { type: String },
             note: { type: String },
             photoProfil: { type: String },

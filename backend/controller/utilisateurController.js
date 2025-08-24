@@ -37,12 +37,18 @@ export const signUp = async (req, res) => {
       motdepasse, telephone, genre, note
     } = req.body;
 
+    // 🔎 Vérification de l'existence par email ou téléphone
     const existingUser = await Utilisateur.findOne({
-      $or: [{ email }, { nom }]
+      $or: [{ email }, { telephone }]
     });
 
     if (existingUser) {
-      const error = existingUser.email === email ? 'Email déjà utilisé' : 'Nom déjà utilisé';
+      let error = '';
+      if (existingUser.email === email) {
+        error = 'Email déjà utilisé';
+      } else if (existingUser.telephone === telephone) {
+        error = 'Téléphone déjà utilisé';
+      }
       return res.status(400).json({ error });
     }
 
@@ -72,16 +78,22 @@ export const signUp = async (req, res) => {
   }
 };
 
+
 // ✅ CONNEXION
 export const signIn = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, telephone, password } = req.body;
 
   try {
-    const utilisateur = await Utilisateur.findOne({ email });
+    // 🔎 Recherche par email OU téléphone
+    const utilisateur = await Utilisateur.findOne({
+      $or: [{ email }, { telephone }]
+    });
+
     if (!utilisateur) {
       return res.status(400).json({ error: "Utilisateur non trouvé" });
     }
 
+    // 🔑 Vérification du mot de passe
     const isMatch = await bcrypt.compare(password, utilisateur.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Mot de passe incorrect" });
@@ -93,6 +105,7 @@ export const signIn = async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 };
+
 
 // ✅ DECONNEXION
 export const logout = (req, res) => {
