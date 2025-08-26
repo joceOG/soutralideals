@@ -42,7 +42,7 @@ export const signUp = async (req, res) => {
     });
 
     if (existingUser) {
-      const error = existingUser.email === email ? 'Email déjà utilisé' : 'Numero de Téléphone déjà utilisé';
+      const error = existingUser.email === email ? 'Email utilisé' : 'Numero de Téléphone déjà utilisé';
       return res.status(400).json({ error });
     }
 
