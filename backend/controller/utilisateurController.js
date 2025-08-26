@@ -39,20 +39,26 @@ export const signUp = async (req, res) => {
 
     console.log("📥 Données reçues:", req.body);
 
-
-    const existingUser = await Utilisateur.findOne({
-      $or: [
-        { email: email },
-        { telephone: telephone }
-      ]
-    });
-
-
-
-    if (existingUser) {
-      const error = existingUser.email === email ? 'Email utilisé' : 'Numero de Téléphone déjà utilisé';
-      return res.status(400).json({ error });
+    const conditions = [];
+    if (email && email.trim() !== "") {
+      conditions.push({ email: email });
     }
+    if (telephone && telephone.trim() !== "") {
+      conditions.push({ telephone: telephone });
+    }
+
+    let existingUser = null;
+    if (conditions.length > 0) {
+      existingUser = await Utilisateur.findOne({ $or: conditions });
+    }
+
+if (existingUser) {
+  let error = '';
+  if (email && existingUser.email === email) error = 'Email déjà utilisé';
+  else if (telephone && existingUser.telephone === telephone) error = 'Numéro de téléphone déjà utilisé';
+
+  return res.status(400).json({ error });
+}
 
     let photoProfil = '';
     if (req.file) {
