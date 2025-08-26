@@ -37,9 +37,17 @@ export const signUp = async (req, res) => {
       motdepasse, telephone, genre, note
     } = req.body;
 
+    console.log("📥 Données reçues:", req.body);
+
+
     const existingUser = await Utilisateur.findOne({
-      $or: [{ email }, { telephone }]
+      $or: [
+        { email: email },
+        { telephone: telephone }
+      ]
     });
+
+
 
     if (existingUser) {
       const error = existingUser.email === email ? 'Email utilisé' : 'Numero de Téléphone déjà utilisé';
