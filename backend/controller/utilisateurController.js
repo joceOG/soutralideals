@@ -88,25 +88,44 @@ if (existingUser) {
 
 // ✅ CONNEXION
 export const signIn = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, telephone, password } = req.body;
 
   try {
-    const utilisateur = await Utilisateur.findOne({ email });
+    // Construire les conditions de recherche dynamiques
+    const conditions = [];
+    if (email && email.trim() !== "") {
+      conditions.push({ email });
+    }
+    if (telephone && telephone.trim() !== "") {
+      conditions.push({ telephone });
+    }
+
+    if (conditions.length === 0) {
+      return res.status(400).json({ error: "Veuillez fournir un email ou un téléphone" });
+    }
+
+    // Recherche par email ou téléphone
+    const utilisateur = await Utilisateur.findOne({ $or: conditions });
+
     if (!utilisateur) {
       return res.status(400).json({ error: "Utilisateur non trouvé" });
     }
 
+    // Vérification du mot de passe
     const isMatch = await bcrypt.compare(password, utilisateur.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Mot de passe incorrect" });
     }
 
+    // Création du token
     const token = createToken(utilisateur._id);
     res.status(200).json({ utilisateur, token });
   } catch (e) {
+    console.error("❌ Erreur signIn:", e);
     res.status(500).json({ error: e.message });
   }
 };
+
 
 // ✅ DECONNEXION
 export const logout = (req, res) => {
