@@ -115,7 +115,7 @@ export const signIn = async (req, res) => {
     console.log("👉 Email reçu:", email);
 console.log("👉 Téléphone reçu:", telephone);
 console.log("👉 Password reçu:", `"${password}"`);
-console.log("👉 Utilisateur trouvé:", utilisateur ? utilisateur._id + " " + utilisater.nom + utilisateur.prenom : "Aucun");
+console.log("👉 Utilisateur trouvé:", utilisateur ? utilisateur._id + " " + utilisateur.nom + utilisateur.prenom : "Aucun");
 console.log("👉 Hash stocké:", utilisateur ? utilisateur.password : "—");
 
     // Vérification du mot de passe
