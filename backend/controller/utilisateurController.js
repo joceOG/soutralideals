@@ -111,8 +111,12 @@ export const signIn = async (req, res) => {
       return res.status(400).json({ error: "Utilisateur non trouvé" });
     }
 
-     console.log("👉 Password reçu:", `"${password}"`);
       console.log("👉 Hash en DB:", utilisateur.password);
+    console.log("👉 Email reçu:", email);
+console.log("👉 Téléphone reçu:", telephone);
+console.log("👉 Password reçu:", `"${password}"`);
+console.log("👉 Utilisateur trouvé:", utilisateur ? utilisateur._id : "Aucun");
+console.log("👉 Hash stocké:", utilisateur ? utilisateur.password : "—");
 
     // Vérification du mot de passe
     const isMatch = await bcrypt.compare(password, utilisateur.password);
