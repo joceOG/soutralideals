@@ -111,6 +111,9 @@ export const signIn = async (req, res) => {
       return res.status(400).json({ error: "Utilisateur non trouvé" });
     }
 
+     console.log("👉 Password reçu:", `"${password}"`);
+      console.log("👉 Hash en DB:", utilisateur.password);
+
     // Vérification du mot de passe
     const isMatch = await bcrypt.compare(password, utilisateur.password);
     if (!isMatch) {
