@@ -19,7 +19,7 @@ interface IUtilisateur {
   prenom: string;
   datedenaissance: string;
   email: string;
-  motdepasse?: string;
+  password?: string;   // ✅ uniformisé
   telephone: string;
   genre: string;
   note?: number;
@@ -41,7 +41,7 @@ const UtilisateurComponent: React.FC = () => {
     prenom: '',
     datedenaissance: '',
     email: '',
-    motdepasse: '',
+    password: '',   // ✅ uniformisé
     telephone: '',
     genre: '',
     note: undefined,
@@ -50,7 +50,7 @@ const UtilisateurComponent: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Chargement des utilisateurs
+  // 🔹 Chargement des utilisateurs
   const fetchUtilisateurs = async () => {
     setLoading(true);
     try {
@@ -78,7 +78,7 @@ const UtilisateurComponent: React.FC = () => {
         prenom: '',
         datedenaissance: '',
         email: '',
-        motdepasse: '',
+        password: '',   // ✅ uniformisé
         telephone: '',
         genre: '',
         note: undefined,
@@ -116,7 +116,7 @@ const UtilisateurComponent: React.FC = () => {
 
       const data = new FormData();
       for (const [key, value] of Object.entries(formData)) {
-        if (key === 'motdepasse' && !value) continue;
+        if (key === 'password' && !value) continue; // ✅ uniformisé
         if (value !== undefined && value !== null) {
           data.append(key, value.toString());
         }
@@ -197,28 +197,27 @@ const UtilisateurComponent: React.FC = () => {
         <Button variant="contained" onClick={() => handleOpen(null)}>Ajouter Utilisateur</Button>
       </Box>
 
-    <DataTable
-      value={filteredUtilisateurs}
-      paginator
-      rows={10}
-      loading={loading}
-      dataKey="_id"
-      emptyMessage="Aucun utilisateur trouvé"
-      filters={filters}
-      globalFilterFields={['nom', 'prenom', 'email', 'telephone']}
-    >
-      <Column field="_id" header="Identifiant" sortable />
-      <Column field="nom" header="Nom" sortable />
-      <Column field="prenom" header="Prénom" sortable />
-      <Column field="datedenaissance" header="Date de naissance" sortable />
-      <Column field="email" header="Email" sortable />
-      <Column field="telephone" header="Téléphone" sortable />
-      <Column field="genre" header="Genre" sortable />
-      <Column field="note" header="Note" sortable />
-      <Column header="Photo" body={photoBodyTemplate} />
-      <Column header="Actions" body={actionBodyTemplate} />
-    </DataTable>
-
+      <DataTable
+        value={filteredUtilisateurs}
+        paginator
+        rows={10}
+        loading={loading}
+        dataKey="_id"
+        emptyMessage="Aucun utilisateur trouvé"
+        filters={filters}
+        globalFilterFields={['nom', 'prenom', 'email', 'telephone']}
+      >
+        <Column field="_id" header="Identifiant" sortable />
+        <Column field="nom" header="Nom" sortable />
+        <Column field="prenom" header="Prénom" sortable />
+        <Column field="datedenaissance" header="Date de naissance" sortable />
+        <Column field="email" header="Email" sortable />
+        <Column field="telephone" header="Téléphone" sortable />
+        <Column field="genre" header="Genre" sortable />
+        <Column field="note" header="Note" sortable />
+        <Column header="Photo" body={photoBodyTemplate} />
+        <Column header="Actions" body={actionBodyTemplate} />
+      </DataTable>
 
       <Dialog open={modalOpen} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{selectedUtilisateur?._id ? "Modifier Utilisateur" : "Ajouter Utilisateur"}</DialogTitle>
@@ -262,10 +261,10 @@ const UtilisateurComponent: React.FC = () => {
             <TextField
               margin="dense"
               label="Mot de passe"
-              name="motdepasse"
+              name="password"   // ✅ uniformisé
               type="password"
               fullWidth
-              value={formData.motdepasse || ''}
+              value={formData.password || ''}
               onChange={handleChange}
             />
           )}
