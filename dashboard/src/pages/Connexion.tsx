@@ -1,137 +1,127 @@
-import * as React from 'react';
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import { Link,useNavigate } from 'react-router-dom'; // Importez Link de react-router-dom
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import axios from 'axios'
+import * as React from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Box,
+  Button,
+  Container,
+  CssBaseline,
+  Grid,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import axios from "axios";
 
-
-
-// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
-// Erreur et Succès
-
-
 const Connexion: React.FC = () => {
-     const apiUrl = process.env.REACT_APP_API_URL || '';
-    const navigate=useNavigate()
-    const [error, setError] = React.useState('');
-const [success, setSuccess] = React.useState('');
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        // console.log({
-        //     email: data.get('email'),
-        //     password: data.get('password'),
-        // });
-        setError("");
-        setSuccess("");
-        let email=data.get('email')
-        let password=data.get('password')
+  const apiUrl = process.env.REACT_APP_API_URL || "";
+  const navigate = useNavigate();
 
-        try {
-            const response = await axios.post(`${apiUrl}/api/login`, {
-                email,
-                password,
-            });
-            // setSuccess("Login successful! Token: " + response.data.token);
-            setSuccess("Login successful! " + response.data.token);
-            setTimeout(()=>{
-            navigate('/')
-            },3000)
-            
-        } catch (err) {
-            // if (err.response) {
-            //     setError(err.response.data.error);
-            // } else {
-                setError("An unexpected error occurred.");
-            // }
-        }
-    };
+  const [identifiant, setIdentifiant] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
+    if (!identifiant.trim() || !password.trim()) {
+      return setError("Identifiant ou mot de passe requis");
+    }
 
-  
+    try {
+      const response = await axios.post(`${apiUrl}/login`, {
+        identifiant: identifiant.trim(),
+        password: password.trim(),
+      });
 
+      setSuccess("Connexion réussie 🎉");
+      localStorage.setItem("token", response.data.token);
+      setTimeout(() => navigate("/"), 1000);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === "object" && err !== null && "response" in err) {
+        // @ts-ignore
+        setError(err.response?.data?.error || "Erreur inattendue");
+      } else {
+        setError("Erreur inattendue");
+      }
+    }
+  };
 
-    return (
-        <ThemeProvider theme={defaultTheme}>
-            <p>Navbar</p>
-            <Container component="main" maxWidth="xs">
-                <CssBaseline />
-                <Box
-                    sx={{
-                        marginTop: 8,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        borderRadius: '10px',
-                        backgroundImage: 'url("chemin/vers/votre/image.jpg")',
-                        backgroundSize: 'cover',
-                        padding: '20px',
-                        backgroundColor: '#f0f0f0',
-                    }}
-                >
-                    <Typography component="h1" variant="h5">
-                        bonjour!
-                    </Typography>
-                    <Typography>connectez vous pour découvrir tout nos fonctionalités</Typography>
-                    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-                        Email*
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="email"
-                            name="email"
-                            autoComplete="email"
-                            autoFocus
-                        />
-                        Password*
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
-                        />
-                        <Grid item xs>
-                            <Link to="#">
-                                Mot de passe oublié
-                            </Link>
-                        </Grid>
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
-                        >
-                            se connecter
-                        </Button>
-                        <Grid container>
-                            <Grid item>
-                                envie de nous rejoindre ?
-                                <Link to="/inscription" style={{ textDecoration: 'none', color: 'blue' }}>
-                                    crée un compte
-                                </Link>
-                            </Grid>
-                        </Grid>
-                        {error && <p style={{ color: "red" }}>{error}</p>}
-                        {success && <p style={{ color: "green" }}>{success}</p>}
-                    </Box>
-                </Box>
-            </Container>
-            <p>Footer</p>
-        </ThemeProvider>
-    );
+  return (
+    <ThemeProvider theme={defaultTheme}>
+      <p>Navbar</p>
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            borderRadius: "10px",
+            padding: "20px",
+            backgroundColor: "#f0f0f0",
+          }}
+        >
+          <Typography component="h1" variant="h5">
+            Bonjour!
+          </Typography>
+          <Typography>
+            Connectez-vous pour découvrir toutes nos fonctionnalités
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="identifiant"
+              name="identifiant"
+              label="Identifiant (Email ou Téléphone)"
+              autoFocus
+              value={identifiant}
+              onChange={(e) => setIdentifiant(e.target.value)}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Mot de passe"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Grid item xs>
+              <Link to="#">Mot de passe oublié</Link>
+            </Grid>
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+              Se connecter
+            </Button>
+            <Grid container>
+              <Grid item>
+                Envie de nous rejoindre ?{" "}
+                <Link to="/inscription" style={{ textDecoration: "none", color: "blue" }}>
+                  Créez un compte
+                </Link>
+              </Grid>
+            </Grid>
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {success && <p style={{ color: "green" }}>{success}</p>}
+          </Box>
+        </Box>
+      </Container>
+      <p>Footer</p>
+    </ThemeProvider>
+  );
 };
 
 export default Connexion;

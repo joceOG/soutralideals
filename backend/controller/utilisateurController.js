@@ -1,9 +1,8 @@
 import multer from 'multer';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import Utilisateur from '../models/utilisateurModel.js';
+import validator from 'validator';
 
 // Config Cloudinary
 cloudinary.v2.config({
@@ -14,71 +13,42 @@ cloudinary.v2.config({
 
 // Config Multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/utilisateurs');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+  destination: (req, file, cb) => cb(null, 'uploads/utilisateurs'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
-
 export const upload = multer({ storage });
-
-const maxAge = 3 * 24 * 60 * 60 * 1000;
-const createToken = (id) => {
-  return jwt.sign({ id }, process.env.TOKEN_SECRET || '123456', { expiresIn: maxAge });
-};
 
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const {
-      nom, prenom, datedenaissance, email,
-      motdepasse, telephone, genre, note
-    } = req.body;
+    const { nom, prenom, datedenaissance, email, password, telephone, genre, note } = req.body;
 
-    console.log("📥 Données reçues:", req.body);
-
+    // Vérification unicité email/téléphone
     const conditions = [];
-    if (email && email.trim() !== "") {
-      conditions.push({ email: email });
+    if (email) conditions.push({ email });
+    if (telephone) conditions.push({ telephone });
+    const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
+
+    if (existingUser) {
+      let error = '';
+      if (email && existingUser.email === email) error = 'Email déjà utilisé';
+      else if (telephone && existingUser.telephone === telephone) error = 'Numéro de téléphone déjà utilisé';
+      return res.status(400).json({ error });
     }
-    if (telephone && telephone.trim() !== "") {
-      conditions.push({ telephone: telephone });
-    }
 
-    let existingUser = null;
-    if (conditions.length > 0) {
-      existingUser = await Utilisateur.findOne({ $or: conditions });
-    }
-
-if (existingUser) {
-  let error = '';
-  if (email && existingUser.email === email) error = 'Email déjà utilisé';
-  else if (telephone && existingUser.telephone === telephone) error = 'Numéro de téléphone déjà utilisé';
-
-  return res.status(400).json({ error });
-}
-
+    // Upload photo si présent
     let photoProfil = '';
     if (req.file) {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: 'users',
-      });
+      const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
       photoProfil = result.secure_url;
       fs.unlinkSync(req.file.path);
     }
 
-    const hashedPassword = await bcrypt.hash(motdepasse, 10);
-
-    const newUser = new Utilisateur({
-      nom, prenom, datedenaissance, email,
-      password: hashedPassword, telephone,
-      genre, note, photoProfil
-    });
-
+    // Création de l'utilisateur
+    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil });
     await newUser.save();
-    const token = createToken(newUser._id);
+
+    const token = await newUser.generateAuthToken();
 
     res.status(201).json({ utilisateur: newUser, token });
   } catch (e) {
@@ -88,55 +58,27 @@ if (existingUser) {
 
 // ✅ CONNEXION
 export const signIn = async (req, res) => {
-  const { email, telephone, password } = req.body;
-
   try {
-    // Construire les conditions de recherche dynamiques
-    const conditions = [];
-    if (email && email.trim() !== "") {
-      conditions.push({ email });
-    }
-    if (telephone && telephone.trim() !== "") {
-      conditions.push({ telephone });
-    }
+    let { identifiant, password } = req.body;
 
-    if (conditions.length === 0) {
-      return res.status(400).json({ error: "Veuillez fournir un email ou un téléphone" });
-    }
+    identifiant = identifiant?.trim() || '';
+    password = password?.trim() || '';
+     
+    if (!identifiant) return res.status(400).json({ error: 'Email ou téléphone requis' });
+    if (!password) return res.status(400).json({ error: 'Mot de passe requis' });
 
-    // Recherche par email ou téléphone
-    const utilisateur = await Utilisateur.findOne({ $or: conditions });
+    const user = await Utilisateur.findByCredentials(identifiant, password);
+    const token = await user.generateAuthToken();
 
-    if (!utilisateur) {
-      return res.status(400).json({ error: "Utilisateur non trouvé" });
-    }
-
-    console.log("👉 Hash en DB:", utilisateur.password);
-    console.log("👉 Email reçu:", email);
-    console.log("👉 Téléphone reçu:", telephone);
-    console.log("👉 Password reçu:", `"${password}"`);
-    console.log("👉 Utilisateur trouvé:", utilisateur ? utilisateur._id + " " + utilisateur.nom + utilisateur.prenom : "Aucun");
-    console.log("👉 Hash stocké:", utilisateur ? utilisateur.password : "—");
-
-    // Vérification du mot de passe
-    const isMatch = await bcrypt.compare(password, utilisateur.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: "Mot de passe incorrect" });
-    }
-
-    // Création du token
-    const token = createToken(utilisateur._id);
-    res.status(200).json({ utilisateur, token });
+    res.status(200).json({ message: 'Connexion réussie', utilisateur: user, token });
   } catch (e) {
-    console.error("❌ Erreur signIn:", e);
-    res.status(500).json({ error: e.message });
+    res.status(400).json({ error: e.message });
   }
 };
 
-
-// ✅ DECONNEXION
+// ✅ DECONNEXION (statique)
 export const logout = (req, res) => {
-  res.status(200).json({ message: 'Déconnexion réussie (statique)' });
+  res.status(200).json({ message: 'Déconnexion réussie' });
 };
 
 // ✅ LISTER TOUS LES UTILISATEURS
@@ -153,9 +95,7 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const utilisateur = await Utilisateur.findById(req.params.id);
-    if (!utilisateur) {
-      return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    }
+    if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json(utilisateur);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -167,25 +107,20 @@ export const updateUserById = async (req, res) => {
   try {
     const updates = req.body;
 
+    // Upload photo si présent
     if (req.file) {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: 'users',
-      });
+      const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
       updates.photoProfil = result.secure_url;
       fs.unlinkSync(req.file.path);
     }
 
-    if (updates.password) {
-      updates.password = await bcrypt.hash(updates.password, 10);
-    }
+    const user = await Utilisateur.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
 
-    const utilisateur = await Utilisateur.findByIdAndUpdate(req.params.id, updates, { new: true });
+    Object.assign(user, updates);
+    await user.save(); // déclenche pre('save') pour hasher le password si modifié
 
-    if (!utilisateur) {
-      return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    }
-
-    res.status(200).json(utilisateur);
+    res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -195,9 +130,7 @@ export const updateUserById = async (req, res) => {
 export const deleteUserById = async (req, res) => {
   try {
     const utilisateur = await Utilisateur.findByIdAndDelete(req.params.id);
-    if (!utilisateur) {
-      return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    }
+    if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
   } catch (err) {
     res.status(500).json({ error: err.message });
