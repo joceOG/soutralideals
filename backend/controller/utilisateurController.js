@@ -61,20 +61,42 @@ export const signIn = async (req, res) => {
   try {
     let { identifiant, password } = req.body;
 
-    identifiant = identifiant?.trim() || '';
-    password = password?.trim() || '';
-     
-    if (!identifiant) return res.status(400).json({ error: 'Email ou téléphone requis' });
-    if (!password) return res.status(400).json({ error: 'Mot de passe requis' });
+    // 🔹 Sécurité : forcer en string + trim
+    identifiant = identifiant ? String(identifiant).trim() : '';
+    password = password ? String(password).trim() : '';
 
-    const user = await Utilisateur.findByCredentials(identifiant, password);
+    console.log("📥 Requête reçue signIn:", { identifiant, password });
+
+    // 🔹 Vérification des champs
+    if (!identifiant) {
+      return res.status(400).json({ error: 'Email ou téléphone requis' });
+    }
+    if (!password) {
+      return res.status(400).json({ error: 'Mot de passe requis' });
+    }
+
+    // 🔹 Recherche utilisateur via méthode statique
+    let user;
+    try {
+      user = await Utilisateur.findByCredentials(identifiant, password);
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    // 🔹 Génération du token
     const token = await user.generateAuthToken();
 
-    res.status(200).json({ message: 'Connexion réussie', utilisateur: user, token });
+    res.status(200).json({
+      message: 'Connexion réussie',
+      utilisateur: user,
+      token
+    });
   } catch (e) {
-    res.status(400).json({ error: e.message });
+    console.error("❌ Erreur signIn:", e);
+    res.status(500).json({ error: "Erreur interne du serveur" });
   }
 };
+
 
 // ✅ DECONNEXION (statique)
 export const logout = (req, res) => {
