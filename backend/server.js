@@ -4,18 +4,19 @@ import cors from 'cors';
 import { config } from 'dotenv';
 import { swaggerDocs } from './swagger.js';
 import router from './routes/userRoutes.js';
+import utilisateurRouter from './routes/utilisateurRoutes.js';
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
-import smsRouter from './routes/smsRoutes.js';
-import mailRouter from './routes/mailRouter.js';
-
+import freelanceRouter from './routes/freelanceRoutes.js';
+import vendeurRouter from './routes/vendeurRoutes.js';
 
 
 /** import connection file */
 import connect from './database/connex.js';
+
 
 const app = express()
 
@@ -37,15 +38,15 @@ const port = process.env.PORT ;
 swaggerDocs(app);
 
 /** routes */
-app.use('/api',router) /** apis utilisateur */
+app.use('/api', utilisateurRouter) /** apis utilisateur */
 app.use('/api', groupeRouter);
 app.use('/api', categorieRouter);
 app.use('/api', articleRouter);
 app.use('/api', serviceRouter);
 // app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRouter);
-app.use('/api', smsRouter);
-app.use('/api', mailRouter);
+app.use('/api', freelanceRouter);
+app.use('/api', vendeurRouter);
 
 
 app.get('/', (req, res) => {

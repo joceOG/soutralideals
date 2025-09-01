@@ -8,59 +8,112 @@ import GroupIcon from '@mui/icons-material/Group';
 import CategoryIcon from '@mui/icons-material/Category';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import CoPresentIcon from '@mui/icons-material/CoPresent';
-import HomeIcon from '@mui/icons-material/Home';  // Nouvel import pour l'icône Home
-import { Link } from 'react-router-dom';
+import HomeIcon from '@mui/icons-material/Home';
+import WorkIcon from '@mui/icons-material/Work'; // Freelance
+import StorefrontIcon from '@mui/icons-material/Storefront'; // Vendeur
+import { Link, useLocation } from 'react-router-dom';
+import { Tooltip, Typography, Box } from '@mui/material';
 
-export const mainListItems = (
-  <React.Fragment>
-    {/* Nouvel élément Home */}
-    <ListItemButton component={Link} to="/">
-      <ListItemIcon>
-        <HomeIcon />
-      </ListItemIcon>
-      <ListItemText primary="Home" />
-    </ListItemButton>
+export const MainListItems = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
 
-    <ListItemButton component={Link} to="/groupe">
-      <ListItemIcon>
-        <GroupIcon />
-      </ListItemIcon>
-      <ListItemText primary="Groupe" />
-    </ListItemButton>
+  const navItems = [
+    { 
+      title: "Tableau de bord",
+      path: "/", 
+      icon: <HomeIcon />,
+      exact: true
+    },
+    { 
+      title: "Groupes", 
+      path: "/groupe", 
+      icon: <GroupIcon /> 
+    },
+    { 
+      title: "Catégories", 
+      path: "/categorie", 
+      icon: <CategoryIcon /> 
+    },
+    { 
+      title: "Services", 
+      path: "/service", 
+      icon: <DesignServicesIcon /> 
+    },
+    { 
+      title: "Articles", 
+      path: "/article", 
+      icon: <ShoppingCartIcon /> 
+    },
+    { 
+      title: "Prestataires", 
+      path: "/prestataire", 
+      icon: <CoPresentIcon /> 
+    },
+    { 
+      title: "Freelances", 
+      path: "/freelance", 
+      icon: <WorkIcon /> 
+    },
+    { 
+      title: "Vendeurs", 
+      path: "/vendeur", 
+      icon: <StorefrontIcon /> 
+    },
+    { 
+      title: "Utilisateurs", 
+      path: "/utilisateur", 
+      icon: <PeopleIcon /> 
+    },
+  ];
 
-    <ListItemButton component={Link} to="/categorie">
-      <ListItemIcon>
-        <CategoryIcon />
-      </ListItemIcon>
-      <ListItemText primary="Catégorie" />
-    </ListItemButton>
+  const isActive = (path: string, exact: boolean = false) => {
+    if (exact) return currentPath === path;
+    return (currentPath.startsWith(path) && path !== '/') || currentPath === path;
+  };
 
-    <ListItemButton component={Link} to="/service">
-      <ListItemIcon>
-        <DesignServicesIcon />
-      </ListItemIcon>
-      <ListItemText primary="Service" />
-    </ListItemButton>
+  return (
+    <React.Fragment>
+      <Box sx={{ px: 3, py: 2 }}>
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            fontSize: '0.75rem',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'text.secondary',
+            mb: 1
+          }}
+        >
+          Navigation principale
+        </Typography>
+      </Box>
+      
+      {navItems.map((item) => (
+        <Tooltip 
+          key={item.path}
+          title={item.title} 
+          placement="right"
+          arrow
+          enterDelay={500}
+        >
+          <ListItemButton 
+            component={Link} 
+            to={item.path}
+            selected={isActive(item.path, item.exact)}
+          >
+            <ListItemIcon>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText 
+              primary={item.title} 
+            />
+          </ListItemButton>
+        </Tooltip>
+      ))}
+    </React.Fragment>
+  );
+};
 
-    <ListItemButton component={Link} to="/article">
-      <ListItemIcon>
-        <ShoppingCartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Article" />
-    </ListItemButton>
-
-    <ListItemButton component={Link} to="/utilisateur">
-      <ListItemIcon>
-        <PeopleIcon />
-      </ListItemIcon>
-      <ListItemText primary="Utilisateur" />
-    </ListItemButton>
-
-    <ListItemButton component={Link} to="/prestataire">
-      <ListItemIcon>
-        <CoPresentIcon />
-      </ListItemIcon>
-      <ListItemText primary="Prestataire" />
-    </ListItemButton>
-  </React.Fragment>
-);
+export const mainListItems = <MainListItems />;

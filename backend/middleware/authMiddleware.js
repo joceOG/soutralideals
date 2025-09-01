@@ -1,79 +1,27 @@
-const jwt = require("jsonwebtoken");
-const utilisateurModel = require("../models/utilisateurModel");
-require("dotenv").config({ path: "../.env" });
+// middleware/auth.js
+import jwt from 'jsonwebtoken';
+import Utilisateur from '../models/utilisateurModel.js';
 
-//////////////////////////////////||
-// on verifie si l'utlisateur a //||
-/// un token                      ||
-//////////////////////////////////||
+const auth = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
 
-
-
-
-// on utlisera cette fonction pour limiter
-// les utlisateurs qui sont des visiteurs
-// aux utiisateur qui sont abonnée.
-//Un visiteur n'aura pas acces et certaine page du site
-
-module.exports.checkUser = (req, res, next) => {
-  const token = req.cookies.jwt;
- 
-  console.log(token);
-  if (token) {
-    //////////////////////////////////||
-    // on verifie si son token est    ||
-    // compatible a notre token_secret||
-    ///                               ||
-    //////////////////////////////////||
-
-    jwt.verify(token, process.env.TOKEN_SECRET, async (err, decodedToken) => {
-      if (err) {
-        console.log(err);
-        res.user = null;
-        // res.cookie("jwt", "", { maxAge: 1 });
-        next();
-      } else {
-        //////////////////////////////////||
-        // apres verif on recupere l'id du||
-        /// user pour trouver le user     ||
-        //////////////////////////////////||
-
-        let user = await userModel.findById(decodedToken.id);
-        res.user = user;
-
-        console.log(user);
-        next();
-      }
-    });
-  } else {
-    res.user = null;
-    console.log("pas de token");
-
-    res.status(400).send("pas de reponse");
-    next();
-  }
-};
-
-module.exports.requireAuth = (req, res, next) => {
-  const token = req.cookies.jwt;
-  console.log(token);
-
-  if (token) {
-    try {
-      jwt.verify(token, process.env.TOKEN_SECRET, async (err, decodedToken) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(decodedToken.id);
-          res.status(200).json(decodedToken.id);
-          next();
-        }
-      });
-    } catch (error) {
-      res.status(200).json(error);
+    if (!token) {
+      return res.status(401).json({ error: 'Token manquant. Authentification requise.' });
     }
-  } else {
-    console.log("Pas de token aussi ici !");
+
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    const utilisateur = await Utilisateur.findById(decoded.id);
+
+    if (!utilisateur) {
+      return res.status(401).json({ error: 'Utilisateur non trouvé. Authentification échouée.' });
+    }
+
+    req.utilisateur = utilisateur;
     next();
+  } catch (err) {
+    res.status(401).json({ error: 'Token invalide ou expiré.' });
   }
 };
+
+export default auth;

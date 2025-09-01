@@ -121,6 +121,44 @@ categorieRouter.get("/categorie/:id", controller.getCategoryById);
  */
 categorieRouter.put("/categorie/:id", upload.single('imagecategorie'), controller.updateCategoryById);
 
+
+
+/**
+ * @swagger
+ * /api/categorie/groupe/{nomgroupe}:
+ *   get:
+ *     summary: Récupérer les catégories par nom de groupe
+ *     tags: [Catégories]
+ *     parameters:
+ *       - in: path
+ *         name: nomgroupe
+ *         required: true
+ *         description: Nom du groupe
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des catégories du groupe récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   nom:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   imagecategorie:
+ *                     type: string
+ *       404:
+ *         description: Groupe non trouvé
+ */
+categorieRouter.get("/categorie/groupe/:nomgroupe", controller.getCategoriesByGroupe);
+
 /**
  * @swagger
  * /api/categorie/{id}:

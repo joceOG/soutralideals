@@ -1,27 +1,17 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-const PrestataireSchema = mongoose.Schema({
-    idutilisateur: { type: String },
-    nomprenom : { type : String } ,
-    telephone : { type : String },
-    idservice: { type: String },
-    nomservice: { type: String },
-    prixmoyen: { type: String },
-    localisation: { type: String },
-    note: { type: String },
-    cni1 : { type: Buffer },
-    cni2 : { type: Buffer },
-    selfie: { type: Buffer },
-    verifier : { type: String },
-});
+const prestataireSchema = new mongoose.Schema({
+  utilisateur: { type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur", required: true },
+  service: { type: mongoose.Schema.Types.ObjectId, ref: "Service", required: true },
+  prixprestataire: { type: Number, required: true },
+  localisation: { type: String, required: true },
+  note: { type: String },
+  cni1: { type: String },   // URL de l'image (Cloudinary)
+  cni2: { type: String },
+  selfie: { type: String },
+  verifier: { type: Boolean, default: false },
+}, { timestamps: true });
 
-   // Virtual Services
-   PrestataireSchema.virtual('services', {
-    ref: 'Service',       
-    localField: '_id',       
-    foreignField: 'owner'    
-});
-
-const prestataireModel = mongoose.model('Prestataire', PrestataireSchema); 
+const prestataireModel = mongoose.model("Prestataire", prestataireSchema);
 
 export default prestataireModel;
