@@ -10,6 +10,11 @@ const ArticleSchema = new mongoose.Schema({
     photoArticle: { type: String ,
         required:true,
     },
+    vendeur:{
+        type: mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref:'Vendeur'
+    },
     categorie:
      { type: mongoose.Schema.Types.ObjectId,
         required:true,
