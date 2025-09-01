@@ -4,7 +4,7 @@ import {
     createArticle,
     getAllArticles,
     getArticleById,
-    updateArticle,
+    updateArticleById,
     deleteArticle,
 } from '../controller/articleController.js';
 
@@ -134,7 +134,8 @@ articleRouter.get('/article/:id', getArticleById);
  *       404:
  *         description: Article non trouvé
  */
-articleRouter.put('/article/:id', upload.single('photoArticle'), updateArticle);
+articleRouter.put('/article/:id', upload.single('photoArticle'), updateArticleById);
+
 
 /**
  * @swagger
@@ -156,5 +157,7 @@ articleRouter.put('/article/:id', upload.single('photoArticle'), updateArticle);
  *         description: Article non trouvé
  */
 articleRouter.delete('/article/:id', deleteArticle);
+
+
 
 export default articleRouter;

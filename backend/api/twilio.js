@@ -5,7 +5,7 @@ import { resolve } from 'path';
 
 config({ path: resolve('../.env') });
 
-const accountSid = '';
+const accountSid = 'ACxx';
 const authToken = '';
 // const client = twilio(accountSid, authToken);
 

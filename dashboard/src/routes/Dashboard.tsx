@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { styled} from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
@@ -13,27 +13,18 @@ import Link from '@mui/material/Link';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { List } from '@mui/material';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import { List, Avatar, Tooltip, Zoom } from '@mui/material';
 import { mainListItems } from '../components/ListItems';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from '../pages/Home';
-import Groupe from '../pages/Groupe';
-import Categorie from '../pages/Categorie';
-import Service from '../pages/Service';
-import Article from '../pages/Article';
-import Prestataire from '../pages/Prestataire';
-import Utilisateur from '../pages/Utilisateur';
-import Connexion from '../pages/Connexion';
-import Test from '../pages/text';
-//import { mainListItems, secondaryListItems } from './listItems';
-//import Chart from './Chart';
-//import Deposits from './Deposits';
-//import Orders from './Orders';
+import { BrowserRouter as Router } from 'react-router-dom';
+import AppRouter from './AppRouter';
+import { alpha } from '@mui/material/styles';
 
 function Copyright(props: any) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
+      {'Copyright '}
       <Link color="inherit" href="https://mui.com/">
         Your Website
       </Link>{' '}
@@ -78,6 +69,11 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
         duration: theme.transitions.duration.enteringScreen,
       }),
       boxSizing: 'border-box',
+      backgroundColor: theme.palette.mode === 'light' ? '#f8f9fa' : '#1e1e2f',
+      borderRight: `1px solid ${theme.palette.mode === 'light' ? '#e0e0e0' : '#2d2d3f'}`,
+      boxShadow: theme.palette.mode === 'light' 
+        ? '2px 0 10px rgba(0,0,0,0.03)' 
+        : '2px 0 10px rgba(0,0,0,0.2)',
       ...(!open && {
         overflowX: 'hidden',
         transition: theme.transitions.create('width', {
@@ -93,10 +89,12 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
-// TODO remove, this demo shouldn't need to reset the theme.
+interface DashboardProps {
+  toggleThemeMode: () => void;  
+  themeMode: 'light' | 'dark';  
+}
 
-
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => {
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
@@ -109,7 +107,7 @@ const Dashboard: React.FC = () => {
         <AppBar position="absolute" open={open}>
           <Toolbar
             sx={{
-              pr: '24px', // keep right padding when drawer closed
+              pr: '24px', 
             }}
           >
             <IconButton
@@ -124,20 +122,85 @@ const Dashboard: React.FC = () => {
             >
               <MenuIcon />
             </IconButton>
-            <Typography
-              component="h1"
-              variant="h6"
-              color="inherit"
-              noWrap
-              sx={{ flexGrow: 1 }}
+            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+              <Typography
+                component="h1"
+                variant="h5"
+                color="inherit"
+                noWrap
+                sx={{ 
+                  fontWeight: 700,
+                  backgroundImage: themeMode === 'light' ? 
+                    'linear-gradient(90deg, #FFFFFF 0%, #F0F0F0 100%)' : 
+                    'linear-gradient(90deg, #FFFFFF 30%, #B0B0B0 100%)',
+                  backgroundClip: 'text',
+                  textFillColor: 'transparent',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mr: 2
+                }}
+              >
+                SOUTRALI DEALS
+              </Typography>
+            </Box>
+            
+            <Tooltip 
+              title={themeMode === 'light' ? "Passer en mode sombre" : "Passer en mode clair"}
+              TransitionComponent={Zoom}
+              arrow
             >
-              Soutrali Deals
-            </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+              <IconButton 
+                onClick={toggleThemeMode} 
+                color="inherit"
+                sx={{
+                  mr: 2,
+                  transition: 'all 0.3s',
+                  '&:hover': {
+                    transform: 'rotate(30deg)'
+                  }
+                }}
+              >
+                {themeMode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+              </IconButton>
+            </Tooltip>
+            
+            <Tooltip title="Notifications" TransitionComponent={Zoom} arrow>
+              <IconButton color="inherit">
+                <Badge 
+                  badgeContent={4} 
+                  color="secondary"
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      animation: 'pulse 2s infinite',
+                      '@keyframes pulse': {
+                        '0%': { transform: 'scale(1)' },
+                        '50%': { transform: 'scale(1.1)' },
+                        '100%': { transform: 'scale(1)' },
+                      }
+                    }
+                  }}
+                >
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+            
+            <Tooltip title="Profil utilisateur" TransitionComponent={Zoom} arrow>
+              <Avatar 
+                sx={{ 
+                  cursor: 'pointer',
+                  ml: 1, 
+                  bgcolor: alpha('#fff', 0.15),
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                    boxShadow: '0 0 8px rgba(255,255,255,0.5)'
+                  }
+                }}
+              >
+                SD
+              </Avatar>
+            </Tooltip>
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>
@@ -155,10 +218,84 @@ const Dashboard: React.FC = () => {
           </Toolbar>
           <Divider />
 
-          <List component="nav">
-            {mainListItems}
-          </List>
-      
+          <Box
+            sx={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              py: 2
+            }}
+          >
+            <List 
+              component="nav"
+              sx={{
+                py: 1,
+                px: 1.5,
+                '& .MuiListItemButton-root': {
+                  my: 1,  // Espacement aéré entre les éléments (augmenté de 0.5 à 1)
+                  mx: 1,
+                  borderRadius: 2,
+                  transition: 'all 0.2s',
+                  
+                  // Effet de hover amélioré
+                  '&:hover': {
+                    backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.08)' : 'rgba(0, 157, 179, 0.15)',
+                    transform: 'translateX(4px)'
+                  },
+                  
+                  // Mise en évidence renforcée de l'élément actif
+                  '&.Mui-selected': {
+                    backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.12)' : 'rgba(0, 157, 179, 0.2)',
+                    '&:hover': {
+                      backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.18)' : 'rgba(0, 157, 179, 0.25)',
+                    },
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      left: 0,
+                      top: '20%',  // Bordure plus grande (25% → 20%)
+                      height: '60%', // Bordure plus grande (50% → 60%)
+                      width: 4,     // Bordure plus épaisse (3px → 4px)
+                      backgroundColor: themeMode === 'light' ? '#009DB3' : '#33B5CC',
+                      borderTopRightRadius: 4,
+                      borderBottomRightRadius: 4
+                    }
+                  }
+                },
+                
+                // Icônes plus grandes et expressives
+                '& .MuiListItemIcon-root': {
+                  minWidth: 44,  // Légèrement plus grand (40 → 44)
+                  color: themeMode === 'light' ? '#009DB3' : '#33B5CC',
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '1.4rem'  // Icônes plus grandes
+                  }
+                },
+                
+                // Meilleure lisibilité des textes
+                '& .MuiListItemText-primary': {
+                  fontSize: '1rem',  // 16px minimum
+                  letterSpacing: '0.01em',
+                  '.Mui-selected &': {
+                    fontWeight: 600  // Texte en gras si actif
+                  }
+                },
+              }}
+            >
+              {mainListItems}
+            </List>
+            
+            <Box sx={{ flexGrow: 1 }} />
+            
+            <Box sx={{ 
+              p: 2, 
+              opacity: 0.6,
+              textAlign: 'center',
+              fontSize: '0.75rem'
+            }}>
+              Version 1.0.0
+            </Box>
+          </Box>
         </Drawer>
         <Box
           component="main"
@@ -173,21 +310,8 @@ const Dashboard: React.FC = () => {
           }}
         >
           <Toolbar />
-          <Box  sx={{ mt: 5, mb: 4 , mr:4 , ml:4 }}>
-
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/groupe" element={<Groupe />} />
-            <Route path="/categorie" element={<Categorie />} />
-            <Route path="/service" element={<Service />} />
-            <Route path="/article" element={<Article />} />
-            <Route path="/utilisateur" element={< Utilisateur />} />
-            <Route path="/prestataire" element={<Prestataire />} />
-            <Route path="/connexion" element={<Connexion />} />
-            <Route path="/test" element={<Test />} />
-            
-          </Routes>
-
+          <Box sx={{ mt: 5, mb: 4, mr:4, ml:4 }}>
+            <AppRouter />
           </Box>
           <Copyright sx={{ pt: 4 }} />
         </Box>
