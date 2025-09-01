@@ -1,13 +1,17 @@
 import { Router } from "express";
+import multer from "multer";
 import {
-    createPrestataire,
-    getAllPrestataires,
-    getPrestataireById,
-    updatePrestataire,
-    deletePrestataire,
+  createPrestataire,
+  getAllPrestataires,
+  getPrestataireById,
+  updatePrestataire,
+  deletePrestataire,
 } from "../controller/prestataireController.js";
 
+const upload = multer({ dest: "uploads/" }); // stockage temporaire pour Cloudinary
+
 const prestataireRouter = Router();
+
 
 /**
  * @swagger
@@ -43,8 +47,11 @@ const prestataireRouter = Router();
  *       400:
  *         description: Données invalides
  */
-prestataireRouter.post("/prestataire", createPrestataire);
-
+prestataireRouter.post("/prestataire", createPrestataire);prestataireRouter.post('/prestataire', upload.fields([
+  { name: 'cni1', maxCount: 1 },
+  { name: 'cni2', maxCount: 1 },
+  { name: 'selfie', maxCount: 1 },
+]), createPrestataire);
 /**
  * @swagger
  * /api/prestataires:
@@ -138,7 +145,12 @@ prestataireRouter.get("/prestataire/:id", getPrestataireById);
  *       404:
  *         description: Prestataire non trouvé
  */
-prestataireRouter.put("/prestataire/:id", updatePrestataire);
+
+prestataireRouter.put('/prestataire/:id', upload.fields([
+  { name: 'cni1', maxCount: 1 },
+  { name: 'cni2', maxCount: 1 },
+  { name: 'selfie', maxCount: 1 },
+]), updatePrestataire);
 
 /**
  * @swagger
@@ -160,5 +172,8 @@ prestataireRouter.put("/prestataire/:id", updatePrestataire);
  *         description: Prestataire non trouvé
  */
 prestataireRouter.delete("/prestataire/:id", deletePrestataire);
+
+
+
 
 export default prestataireRouter;

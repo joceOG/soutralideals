@@ -13,6 +13,8 @@ const serviceRoute = require("./controller/serviceController");
 const categorieRoute = require("./controller/categorieController");
 const utilisateurRoute = require("./controller/utilisateurController");
 const prestataireRoute = require("./controller/prestataireController");
+const freelanceRoute = require("./controller/freelanceController");
+const vendeurRoute = require("./controller/vendeurController");
 const articleRoute = require("./controller/articleController");
 
 const app = express();
@@ -40,6 +42,8 @@ app.use('/api', articleRoute);
 app.use('/api', serviceRoute);
 app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRoute);
+app.use('/api', freelanceRoute);
+app.use('/api', vendeurRoute);
 
 // Middleware pour enregistrer les requêtes et les réponses
 app.use((req, res, next) => {
