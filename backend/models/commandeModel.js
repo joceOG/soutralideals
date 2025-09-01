@@ -84,14 +84,7 @@ const CommandeSchema = mongoose.Schema({
     dateCreation: {
         type: Date,
         default: Date.now
-    },
-    owner:{
-        type:mongoose.Schema.Types.ObjectId,
-        required:true,
-        trim:true,
-        ref:"User"
     }
-
 
 })
 
