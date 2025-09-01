@@ -11,7 +11,11 @@ const Test = () => {
         axios
             .get('http://localhost:3000/api/groupe')
             .then((response) => {
+<<<<<<< HEAD
                 setCategories(response.data); 
+=======
+                setCategories(response.data); // Assurez-vous que `response.data` contient une liste d'objets groupe avec `id` et `nomgroupe`.
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
                
             })
             .catch((error) => {
@@ -25,14 +29,22 @@ const Test = () => {
             axios
                 .get(`http://localhost:3000/api/groupe/${selectedCategory}`) // Utilisation de l'ID dans l'URL
                 .then((response) => {
+<<<<<<< HEAD
                     setSubcategories(response.data); 
+=======
+                    setSubcategories(response.data); // Assurez-vous que le backend renvoie les sous-catégories liées.
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
                   
                 })
                 .catch((error) => {
                     console.error('Erreur lors du chargement des sous-catégories:', error);
                 });
         } else {
+<<<<<<< HEAD
             setSubcategories([]); // Réinitialise les sous-catégories si aucun groupe n'est sélectionné
+=======
+            setSubcategories([]); // Réinitialiser les sous-catégories si aucun groupe n'est sélectionné
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
         }
     }, [selectedCategory]);
 
@@ -63,7 +75,11 @@ const Test = () => {
                 <option value="">-- Sélectionnez une sous-catégorie --</option>
                 {subcategories.map((subcategory, index) => (
                     <option key={index} value={subcategory._id} >
+<<<<<<< HEAD
                         {subcategory.nomcategorie} {/* Ajustement selon la structure des sous-catégories */}
+=======
+                        {subcategory.nomcategorie} {/* Ajustez selon la structure des sous-catégories */}
+>>>>>>> ed23bf8 (Soutrali Dashboard V1)
                     </option>
                 ))}
             </select>

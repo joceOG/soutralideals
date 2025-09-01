@@ -18,7 +18,7 @@
     "@types/react-slick": "^0.23.13",
     "axios": "^1.6.7",
     "bootstrap": "^5.3.3",
-    "imagefrombuffer": "^1.0.12",
+    "framer-motion": "^12.23.0",
     "primeflex": "^3.3.1",
     "primeicons": "^7.0.0",
     "primereact": "^10.8.2",

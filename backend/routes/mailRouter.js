@@ -1,9 +1,11 @@
 
 import {Router} from  "express"
-import { sendEmail } from "../Api/nodemailer.js";
 
+import { sendEmail } from "../api/nodemailer.js";
 
 const mailRouter = Router()
+
+
 
 
 /**
@@ -39,8 +41,10 @@ const mailRouter = Router()
  *       500:
  *         description: Erreur lors de l'envoi de l'email
  */
+
+
+
+
 mailRouter.post("/email", sendEmail);
-
-
 
 export default mailRouter;

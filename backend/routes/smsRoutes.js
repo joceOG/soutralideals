@@ -1,12 +1,7 @@
 
 import {Router} from  "express"
-import * as sendSms from "../Api/infobip.js";
-import * as smsTwilio from "../Api/twilio.js";
-
-
-
-
-
+import * as sendSms from "../api/infobip.js";
+import * as smsTwilio from "../api/twilio.js";
 
 const smsRouter = Router()
 
@@ -126,8 +121,5 @@ smsRouter.post('/tsend-sms', smsTwilio.sendSMS);
  *         description: Erreur lors de l'envoi du message
  */
 smsRouter.post('/tsend-whatsapp', smsTwilio.sendWhatsAppMessage);
-
-
-
 
 export default smsRouter;
