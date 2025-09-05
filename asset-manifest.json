@@ -1,22 +1,22 @@
 {
   "files": {
-    "main.css": "/static/css/main.004b5c9a.css",
-    "main.js": "/static/js/main.ed548062.js",
-    "static/js/453.6a97e087.chunk.js": "/static/js/453.6a97e087.chunk.js",
-    "static/media/InterVariable-Italic.woff2": "/static/media/InterVariable-Italic.e295f70fe3e2df296c7b.woff2",
-    "static/media/InterVariable.woff2": "/static/media/InterVariable.a0e477f2f1f9d2376fde.woff2",
-    "static/media/primeicons.svg": "/static/media/primeicons.6ed59f962963a4a73af2.svg",
-    "static/media/primeicons.eot": "/static/media/primeicons.ff0c4cd79b2ffca2de54.eot",
-    "static/media/primeicons.woff": "/static/media/primeicons.8931fda1930c3bd21e96.woff",
-    "static/media/primeicons.ttf": "/static/media/primeicons.a5c2a53d1ff7a9ff5933.ttf",
-    "static/media/primeicons.woff2": "/static/media/primeicons.024b32cc7bf399b1a847.woff2",
-    "index.html": "/index.html",
-    "main.004b5c9a.css.map": "/static/css/main.004b5c9a.css.map",
-    "main.ed548062.js.map": "/static/js/main.ed548062.js.map",
-    "453.6a97e087.chunk.js.map": "/static/js/453.6a97e087.chunk.js.map"
+    "main.css": "/soutralideals/static/css/main.78f8d3cb.css",
+    "main.js": "/soutralideals/static/js/main.99301b41.js",
+    "static/js/453.6a97e087.chunk.js": "/soutralideals/static/js/453.6a97e087.chunk.js",
+    "static/media/InterVariable-Italic.woff2": "/soutralideals/static/media/InterVariable-Italic.e295f70fe3e2df296c7b.woff2",
+    "static/media/InterVariable.woff2": "/soutralideals/static/media/InterVariable.a0e477f2f1f9d2376fde.woff2",
+    "static/media/primeicons.svg": "/soutralideals/static/media/primeicons.6ed59f962963a4a73af2.svg",
+    "static/media/primeicons.eot": "/soutralideals/static/media/primeicons.ff0c4cd79b2ffca2de54.eot",
+    "static/media/primeicons.woff": "/soutralideals/static/media/primeicons.8931fda1930c3bd21e96.woff",
+    "static/media/primeicons.ttf": "/soutralideals/static/media/primeicons.a5c2a53d1ff7a9ff5933.ttf",
+    "static/media/primeicons.woff2": "/soutralideals/static/media/primeicons.024b32cc7bf399b1a847.woff2",
+    "index.html": "/soutralideals/index.html",
+    "main.78f8d3cb.css.map": "/soutralideals/static/css/main.78f8d3cb.css.map",
+    "main.99301b41.js.map": "/soutralideals/static/js/main.99301b41.js.map",
+    "453.6a97e087.chunk.js.map": "/soutralideals/static/js/453.6a97e087.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.004b5c9a.css",
-    "static/js/main.ed548062.js"
+    "static/css/main.78f8d3cb.css",
+    "static/js/main.99301b41.js"
   ]
 }
