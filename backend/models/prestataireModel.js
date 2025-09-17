@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 // Exemple de sous-schema localisationSchema
 const localisationSchema = new mongoose.Schema({
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
+  latitude: { type: Number, required: false },
+  longitude: { type: Number, required : false},
 }, { _id: false }); // _id: false pour ne pas créer d'ID supplémentaire
 
 const prestataireSchema = new mongoose.Schema({
@@ -11,7 +11,7 @@ const prestataireSchema = new mongoose.Schema({
   service: { type: mongoose.Schema.Types.ObjectId, ref: "Service", required: true },
   prixprestataire: { type: Number, required: true },
   localisation: { type: String, required: true },
-  localisationmaps: localisationSchema, // ✅ ajouté
+  localisationmaps:{ type: localisationSchema , required : false  } ,// ✅ ajouté
   note: { type: String },
   verifier: { type: Boolean, default: false },
 
@@ -31,7 +31,7 @@ const prestataireSchema = new mongoose.Schema({
   tarifHoraireMax: { type: Number },
 
   // Diplômes / Certificats
-  diplomeCertificat: [diplomeCertificatSchema],
+  diplomeCertificat: [{ type : String }],
   attestationAssurance: { type: String },
   numeroAssurance: { type: String },
   numeroRCCM: { type: String },
