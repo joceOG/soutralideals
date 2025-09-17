@@ -293,7 +293,12 @@ const onAdd = () => {
       form.append('localisation', formData.localisation);
       form.append('note', formData.note || '');
       form.append('verifier', formData.verifier ? 'true' : 'false');
-      form.append('localisationmaps', JSON.stringify(formData.localisationmaps));
+          // 🔹 Localisationmaps : stringify JSON
+      form.append('localisationmaps', JSON.stringify({
+        latitude: formData.localisationmaps.latitude || 0,
+        longitude: formData.localisationmaps.longitude || 0
+      }));
+
 
       // Identité / fichiers
       if (cniFile) form.append('cni1', cniFile);
@@ -427,7 +432,13 @@ const onAdd = () => {
           <Column header="Service" body={(rowData) => rowData.service?.nomservice} sortable />
           <Column field="prixprestataire" header="Prix" sortable />
           <Column field="localisation" header="Localisation" sortable />
-          <Column field="localisationmaps" header="Localisation MAP" sortable />
+            <Column
+                header="Localisation MAP"
+                body={(rowData: IPrestataireData) =>
+                  `Lat: ${rowData.localisationmaps?.latitude || 0}, Lon: ${rowData.localisationmaps?.longitude || 0}`
+                }
+                sortable
+              />
           <Column field="note" header="Note" sortable />
           <Column header="CNI 1" body={imageTemplate('cni1')} />
           <Column header="CNI 2" body={imageTemplate('cni2')} />
@@ -490,7 +501,46 @@ const onAdd = () => {
 
           <TextField margin="normal" fullWidth label="Prix" name="prixprestataire" type="number" value={formData.prixprestataire} onChange={handleChange} />
           <TextField margin="normal" fullWidth label="Localisation" name="localisation" value={formData.localisation} onChange={handleChange} />
-
+            {/* Localisation Maps */}
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Localisation Maps
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Latitude"
+                  type="number"
+                  value={formData.localisationmaps.latitude}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      localisationmaps: {
+                        ...prev.localisationmaps,
+                        latitude: parseFloat(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Longitude"
+                  type="number"
+                  value={formData.localisationmaps.longitude}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      localisationmaps: {
+                        ...prev.localisationmaps,
+                        longitude: parseFloat(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+              </Box>
+            </Box>
           <TextField margin="normal" fullWidth label="Note" name="note" value={formData.note} onChange={handleChange} />
 
           <Box sx={{ mt: 1, mb: 1 }}>
