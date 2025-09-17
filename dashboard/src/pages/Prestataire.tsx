@@ -2,7 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box, Typography, Dialog, DialogActions, DialogContent,
   DialogTitle, Button, TextField, InputAdornment,
-  IconButton, MenuItem
+  IconButton, MenuItem,
+  Autocomplete,
+  Chip
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -12,6 +14,8 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnBodyOptions } from 'primereact/column';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FilterMatchMode } from 'primereact/api';
+
 
 export interface IUtilisateur {
   _id: string;
@@ -34,37 +38,102 @@ export interface IService {
   };
 }
 
+export interface ILocalisation {
+  latitude: number;
+  longitude: number;
+}
+
+
 export interface IPrestataireData {
   _id?: string;
   utilisateur: IUtilisateur;
   service: IService;
   prixprestataire: number;
   localisation: string;
-  note: string;
+  localisationmaps: ILocalisation;
+  note?: string;
   verifier: boolean;
+
+  // Identité / fichiers
   cni1?: string;
   cni2?: string;
   selfie?: string;
+  numeroCNI?: string;
+
+  // Métier
+  specialite?: string[];
+  anneeExperience?: string;
+  description?: string;
+  rayonIntervention?: number; // km
+  zoneIntervention?: string[];
+  tarifHoraireMin?: number;
+  tarifHoraireMax?: number;
+
+  // Diplômes / Certificats
+  diplomeCertificat?: string[];
+  attestationAssurance?: string;
+  numeroAssurance?: string;
+  numeroRCCM?: string;
+
+  // Stats
+  nbMission?: number;
+  revenus?: number;
+  clients?: IUtilisateur[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const PrestataireComponent: React.FC = () => {
   const [prestataires, setPrestataires] = useState<IPrestataireData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [filters, setFilters] = useState<DataTableFilterMeta>({ global: { value: null, matchMode: 'contains' } });
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPrestataire, setSelectedPrestataire] = useState<IPrestataireData | null>(null);
-  const [formData, setFormData] = useState<IPrestataireData>({
-    utilisateur: {} as IUtilisateur,
-    service: {} as IService,
-    prixprestataire: 0,
-    localisation: '',
-    note: '',
-    verifier: false,
-  });
+const [formData, setFormData] = useState<IPrestataireData>({
+  utilisateur: {} as IUtilisateur,
+  service: {} as IService,
+  prixprestataire: 0,
+  localisation: '',
+  localisationmaps: { latitude: 0, longitude: 0 },
+  note: '',
+  verifier: false,
+
+  // Identité / fichiers
+  cni1: '',
+  cni2: '',
+  selfie: '',
+  numeroCNI: '',
+
+  // Métier
+  specialite: [],
+  anneeExperience: '',
+  description: '',
+  rayonIntervention: 0,
+  zoneIntervention: [],
+  tarifHoraireMin: 0,
+  tarifHoraireMax: 0,
+
+  // Diplômes / Certificats
+  diplomeCertificat: [],
+  attestationAssurance: '',
+  numeroAssurance: '',
+  numeroRCCM: '',
+
+  // Stats
+  nbMission: 0,
+  revenus: 0,
+  clients: [],
+
+  // Dates
+  createdAt: '',
+  updatedAt: '',
+});
   const [cniFile, setCniFile] = useState<File | null>(null);
   const [cni2File, setCni2File] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
-
+    const [attestationAssuranceFile, setAttestationAssuranceFile] = useState<File | null>(null);
   const [utilisateurs, setUtilisateurs] = useState<IUtilisateur[]>([]);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
@@ -151,23 +220,55 @@ const PrestataireComponent: React.FC = () => {
     setModalOpen(true);
   };
 
-  const onAdd = () => {
-    setSelectedPrestataire(null);
-    setFormData({
-      utilisateur: {} as IUtilisateur,
-      service: {} as IService,
-      prixprestataire: 0,
-      localisation: '',
-      note: '',
-      verifier: false,
-    });
-    setCniFile(null);
-    setCni2File(null);
-    setSelfieFile(null);
-    setModalOpen(true);
-  };
+const onAdd = () => {
+  setSelectedPrestataire(null);
+  setFormData({
+    utilisateur: {} as IUtilisateur,
+    service: {} as IService,
+    prixprestataire: 0,
+    localisation: '',
+    localisationmaps: { latitude: 0, longitude: 0 },
+    note: '',
+    verifier: false,
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cni' | 'cni2' | 'selfie') => {
+    // Identité / fichiers
+    cni1: '',
+    cni2: '',
+    selfie: '',
+    numeroCNI: '',
+
+    // Métier
+    specialite: [],
+    anneeExperience: '',
+    description: '',
+    rayonIntervention: 0,
+    zoneIntervention: [],
+    tarifHoraireMin: 0,
+    tarifHoraireMax: 0,
+
+    // Diplômes / Certificats
+    diplomeCertificat: [],
+    numeroAssurance: '',
+    numeroRCCM: '',
+
+    // Stats
+    nbMission: 0,
+    revenus: 0,
+    clients: [],
+
+    // Dates
+    createdAt: '',
+    updatedAt: '',
+  });
+  setCniFile(null);
+  setCni2File(null);
+  setSelfieFile(null);
+  setAttestationAssuranceFile(null);
+  setModalOpen(true);
+};
+
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cni' | 'cni2' | 'selfie' | 'attestationAssurance') => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (type === 'cni') setCniFile(file);
@@ -179,30 +280,56 @@ const PrestataireComponent: React.FC = () => {
   const handleSave = async () => {
     try {
       const isUpdate = Boolean(selectedPrestataire?._id);
-      const url = isUpdate ? `${apiUrl}/prestataire/${selectedPrestataire?._id}` : `${apiUrl}/prestataire`;
+      const url = isUpdate
+        ? `${apiUrl}/prestataire/${selectedPrestataire?._id}`
+        : `${apiUrl}/prestataire`;
       const method = isUpdate ? 'put' : 'post';
 
       const form = new FormData();
+      // Informations principales
       form.append('utilisateur', formData.utilisateur._id);
       form.append('service', formData.service._id);
       form.append('prixprestataire', formData.prixprestataire.toString());
       form.append('localisation', formData.localisation);
-      form.append('note', formData.note);
+      form.append('note', formData.note || '');
       form.append('verifier', formData.verifier ? 'true' : 'false');
+      form.append('localisationmaps', JSON.stringify(formData.localisationmaps));
+
+      // Identité / fichiers
       if (cniFile) form.append('cni1', cniFile);
       if (cni2File) form.append('cni2', cni2File);
       if (selfieFile) form.append('selfie', selfieFile);
+      if (formData.numeroCNI) form.append('numeroCNI', formData.numeroCNI);
 
-      const response = await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
-      console.log('Réponse après ajout/modif:', response.data);
+      // Métier
+      if (formData.specialite?.length) form.append('specialite', JSON.stringify(formData.specialite));
+      if (formData.anneeExperience) form.append('anneeExperience', formData.anneeExperience);
+      if (formData.description) form.append('description', formData.description);
+      if (formData.rayonIntervention) form.append('rayonIntervention', formData.rayonIntervention.toString());
+      if (formData.zoneIntervention?.length) form.append('zoneIntervention', JSON.stringify(formData.zoneIntervention));
+      if (formData.tarifHoraireMin) form.append('tarifHoraireMin', formData.tarifHoraireMin.toString());
+      if (formData.tarifHoraireMax) form.append('tarifHoraireMax', formData.tarifHoraireMax.toString());
 
-      // Recharge la liste complète après ajout/modif
+      // Diplômes / Certificats
+      if (formData.diplomeCertificat?.length) form.append('diplomeCertificat', JSON.stringify(formData.diplomeCertificat));
+
+      // Assurance / RCCM
+      if (attestationAssuranceFile) form.append('attestationAssurance', attestationAssuranceFile);
+      if (formData.numeroAssurance) form.append('numeroAssurance', formData.numeroAssurance);
+      if (formData.numeroRCCM) form.append('numeroRCCM', formData.numeroRCCM);
+
+      // Stats / clients
+      if (formData.nbMission) form.append('nbMission', formData.nbMission.toString());
+      if (formData.revenus) form.append('revenus', formData.revenus.toString());
+      if (formData.clients?.length) form.append('clients', JSON.stringify(formData.clients));
+
+      await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
       await fetchPrestataires();
-
-      toast.success(isUpdate ? 'Prestataire mis à jour avec succès !' : 'Nouveau prestataire ajouté avec succès !');
+      toast.success(isUpdate ? 'Prestataire mis à jour !' : 'Prestataire ajouté !');
       setModalOpen(false);
-    } catch {
-      toast.error('Erreur lors de la sauvegarde du prestataire.');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erreur lors de la sauvegarde du prestataire');
     }
   };
 
@@ -215,7 +342,7 @@ const PrestataireComponent: React.FC = () => {
     setZoomImage(url);
   };
 
-  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie') => (rowData: IPrestataireData) => {
+  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie' | 'attestationAssurance' ) => (rowData: IPrestataireData) => {
     const imageUrl = rowData[field];
     return imageUrl ? (
       <img
@@ -242,34 +369,87 @@ const PrestataireComponent: React.FC = () => {
     </>
   );
 
+
+
   return (
     <div>
       <ToastContainer />
       <Typography variant="h4" gutterBottom>Prestataires</Typography>
       <Box sx={{ mt: 2, mb: 2 }}>
-        <DataTable
-          value={prestataires}
-          paginator
-          showGridlines
-          rows={10}
-          loading={loading}
-          dataKey="_id"
-          filters={filters}
-          globalFilterFields={['localisation', 'note']}
-          header={<div style={{ display: 'flex', justifyContent: 'space-between' }}><h5>Gestion des Prestataires</h5><Button variant="contained" onClick={onAdd}>Ajouter</Button></div>}
-          emptyMessage="Aucun prestataire trouvé"
-          onFilter={(e) => setFilters(e.filters)}
-        >
+<DataTable
+  value={prestataires}
+  paginator
+  showGridlines
+  rows={10}
+  loading={loading}
+  dataKey="_id"
+  filters={filters}
+  globalFilterFields={[
+    'utilisateur.nom',
+    'utilisateur.prenom',
+    'service.nomservice',
+    'localisation',
+    'note'
+  ]}
+  header={
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Typography variant="h6">Gestion des Prestataires</Typography>
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <TextField
+          size="small"
+          placeholder="Rechercher..."
+          value={(filters['global'] as any)?.value || ''}   // <-- cast "as any"
+          onChange={(e) =>
+            setFilters((prev) => ({
+              ...prev,
+              global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+            }))
+          }
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Button variant="contained" onClick={onAdd}>
+          Ajouter
+        </Button>
+      </Box>
+    </Box>
+  }
+  emptyMessage="Aucun prestataire trouvé"
+  onFilter={(e) => setFilters(e.filters)}
+>
           <Column header="#" body={rowIndexTemplate} />
           <Column header="Utilisateur" body={utilisateurNameTemplate} sortable />
           <Column header="Service" body={(rowData) => rowData.service?.nomservice} sortable />
           <Column field="prixprestataire" header="Prix" sortable />
           <Column field="localisation" header="Localisation" sortable />
+          <Column field="localisationmaps" header="Localisation MAP" sortable />
           <Column field="note" header="Note" sortable />
           <Column header="CNI 1" body={imageTemplate('cni1')} />
           <Column header="CNI 2" body={imageTemplate('cni2')} />
           <Column header="Selfie" body={imageTemplate('selfie')} />
           <Column header="Vérification" body={(rowData) => rowData.verifier ? '✅' : '❌'} />
+          <Column header="Spécialités" body={(rowData) => rowData.specialite?.join(', ')} />
+          <Column header="Année Exp." field="anneeExperience" sortable />
+          <Column header="Description" field="description" />
+          <Column header="Rayon Intervention (km)" field="rayonIntervention" sortable />
+          <Column header="Zones Intervention" body={(rowData) => rowData.zoneIntervention?.join(', ')} />
+          <Column header="Tarif Min" field="tarifHoraireMin" sortable />
+          <Column header="Tarif Max" field="tarifHoraireMax" sortable />
+          <Column header="Diplômes / Certificats" body={(rowData) =>
+            rowData.diplomeCertificat?.map((d: { nomDiplome: any; anneeObtention: any; }) => `${d.nomDiplome} (${d.anneeObtention})`).join(', ')
+          } />
+          <Column header="Assurance" body={(rowData) => rowData.numeroAssurance || '-'} />
+           <Column header="Attestation d'Assurance" body={imageTemplate('attestationAssurance')} />
+          <Column header="Numero RCCM" body={(rowData) => rowData.numeroRCCM || '-'} />
+          <Column header="Nb Missions" field="nbMission" sortable />
+          <Column header="Revenus" field="revenus" sortable />
+          <Column header="Clients" body={(rowData) => rowData.clients?.map((c: { nom: any; prenom: any; }) => `${c.nom} ${c.prenom}`).join(', ')} />
+          <Column header="Actions" body={actionTemplate} />
           <Column header="Actions" body={actionTemplate} />
         </DataTable>
       </Box>
@@ -310,6 +490,7 @@ const PrestataireComponent: React.FC = () => {
 
           <TextField margin="normal" fullWidth label="Prix" name="prixprestataire" type="number" value={formData.prixprestataire} onChange={handleChange} />
           <TextField margin="normal" fullWidth label="Localisation" name="localisation" value={formData.localisation} onChange={handleChange} />
+
           <TextField margin="normal" fullWidth label="Note" name="note" value={formData.note} onChange={handleChange} />
 
           <Box sx={{ mt: 1, mb: 1 }}>
@@ -324,6 +505,66 @@ const PrestataireComponent: React.FC = () => {
             <Typography>Selfie</Typography>
             <input type="file" onChange={(e) => handleFileChange(e, 'selfie')} accept="image/*" />
           </Box>
+
+              {/* Métier */}
+                        <Autocomplete
+            multiple
+            freeSolo
+            options={[]} // liste prédéfinie si nécessaire
+            value={formData.specialite || []}
+            onChange={(_, newValue) =>
+              setFormData(prev => ({ ...prev, specialite: newValue }))
+            }
+            renderTags={(value: string[], getTagProps) =>
+              value.map((option: string, index: number) => (
+                <Chip
+                  label={option}
+                  {...getTagProps({ index })} // pas besoin de key
+                />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Spécialités"
+                placeholder="Ajouter une spécialité"
+                margin="normal"
+              />
+            )}
+          />
+              <TextField margin="normal" fullWidth label="Année d'expérience" name="anneeExperience" value={formData.anneeExperience} onChange={handleChange} />
+              <TextField margin="normal" fullWidth label="Description" name="description" value={formData.description} onChange={handleChange} multiline rows={3} />
+              <TextField margin="normal" fullWidth label="Rayon d'intervention (km)" name="rayonIntervention" type="number" value={formData.rayonIntervention} onChange={handleChange} />
+              <TextField margin="normal" fullWidth label="Zones d'intervention (séparées par des virgules)" name="zoneIntervention" value={formData.zoneIntervention?.join(', ') || ''} onChange={(e) => setFormData(prev => ({ ...prev, zoneIntervention: e.target.value.split(',').map(s => s.trim()) }))} />
+              <TextField margin="normal" fullWidth label="Tarif horaire min" name="tarifHoraireMin" type="number" value={formData.tarifHoraireMin} onChange={handleChange} />
+              <TextField margin="normal" fullWidth label="Tarif horaire max" name="tarifHoraireMax" type="number" value={formData.tarifHoraireMax} onChange={handleChange} />
+          
+              {/* Diplômes / certificats */}
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Diplômes / Certificats (JSON)"
+                name="diplomeCertificat"
+                value={JSON.stringify(formData.diplomeCertificat || [])}
+                onChange={(e) => {
+                  try {
+                    setFormData(prev => ({ ...prev, diplomeCertificat: JSON.parse(e.target.value) }));
+                  } catch {}
+                }}
+              />
+          
+              {/* Assurances / RCCM */}
+            <Box sx={{ mt: 1, mb: 1 }}>
+              <Typography>Attestation d'Assurance</Typography>
+              <input type="file" onChange={(e) => handleFileChange(e, 'attestationAssurance')} accept="image/*" />
+            </Box>
+              <TextField margin="normal" fullWidth label="Numéro Assurance" name="numeroAssurance" value={formData.numeroAssurance} onChange={handleChange} />
+              <TextField margin="normal" fullWidth label="Numéro RCCM" name="numeroRCCM" value={formData.numeroRCCM} onChange={handleChange} />
+          
+              {/* Stats */}
+              <TextField margin="normal" fullWidth label="Nombre de missions" name="nbMission" type="number" value={formData.nbMission} onChange={handleChange} />
+              <TextField margin="normal" fullWidth label="Revenus" name="revenus" type="number" value={formData.revenus} onChange={handleChange} />
+          
 
           <Box sx={{ mt: 2 }}>
             <label>
