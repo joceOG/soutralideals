@@ -13,11 +13,46 @@ cloudinary.v2.config({
 // ✅ Créer prestataire
 export const createPrestataire = async (req, res) => {
   try {
-    // ... ton code actuel pour créer le prestataire ...
-
-    const newPrestataire = new prestataireModel({
+    const {
       utilisateur,
       service,
+      prixprestataire,
+      localisation,
+      note,
+      verifier,
+      specialite,
+      anneeExperience,
+      description,
+      rayonIntervention,
+      zoneIntervention,
+      localisationmaps,
+      tarifHoraireMin,
+      tarifHoraireMax,
+      numeroCNI,
+      numeroRCCM,
+      numeroAssurance,
+      nbMission,
+      revenus,
+      clients
+    } = req.body;
+
+    // 🔹 Parsing sécurisé localisationmaps
+    let parsedLocalisation = null;
+    if (localisationmaps) {
+      if (typeof localisationmaps === "string") {
+        try {
+          parsedLocalisation = JSON.parse(localisationmaps);
+        } catch (err) {
+          console.warn("Impossible de parser localisationmaps, on ignore", err);
+        }
+      } else if (typeof localisationmaps === "object" && localisationmaps.latitude && localisationmaps.longitude) {
+        parsedLocalisation = localisationmaps;
+      }
+    }
+
+    const newPrestataire = new prestataireModel({
+      utilisateur: mongoose.Types.ObjectId(utilisateur), // ✅ bien défini
+      service: mongoose.Types.ObjectId(service),
       prixprestataire,
       localisation,
       note,
@@ -35,21 +70,19 @@ export const createPrestataire = async (req, res) => {
       numeroAssurance,
       nbMission,
       revenus,
-      clients : Array.isArray(clients) ? req.body.clients : [],
+      clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
       diplomeCertificat,
       ...uploads,
     });
 
     await newPrestataire.save();
 
-    // 🔹 Populer utilisateur et service
     const populatedPrestataire = await prestataireModel.findById(newPrestataire._id)
-      .populate('utilisateur')
-      .populate('service')
-      .populate('clients'); // si tu veux renvoyer les clients complets aussi
+      .populate("utilisateur")
+      .populate("service")
+      .populate("clients");
 
     res.status(201).json(populatedPrestataire);
-
   } catch (err) {
     console.error("Erreur création prestataire:", err.message);
     res.status(500).json({ error: err.message });
