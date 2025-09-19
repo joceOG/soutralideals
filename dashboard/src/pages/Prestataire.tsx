@@ -601,7 +601,7 @@ const onAdd = () => {
                     setFormData(prev => ({ ...prev, diplomeCertificat: JSON.parse(e.target.value) }));
                   } catch {}
                 }}
-              />
+              /> 
           
               {/* Assurances / RCCM */}
             <Box sx={{ mt: 1, mb: 1 }}>
