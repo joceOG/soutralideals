@@ -99,7 +99,7 @@ export const createPrestataire = async (req, res) => {
       numeroAssurance,
       nbMission,
       revenus,
-      clients : Array.isArray(req.body.clients) ? req.body.clients : [],
+      clients : Array.isArray(clients) ? req.body.clients : [],
       diplomeCertificat,
       ...uploads,
     });
