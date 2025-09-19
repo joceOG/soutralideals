@@ -13,72 +13,8 @@ cloudinary.v2.config({
 // ✅ Créer prestataire
 export const createPrestataire = async (req, res) => {
   try {
-    const {
-      utilisateur,
-      service,
-      prixprestataire,
-      localisation,
-      note,
-      verifier,
-      specialite,
-      anneeExperience,
-      description,
-      rayonIntervention,
-      zoneIntervention,
-      localisationmaps,
-      tarifHoraireMin,
-      tarifHoraireMax,
-      numeroCNI,
-      numeroRCCM,
-      numeroAssurance,
-      nbMission,
-      revenus,
-      clients
-    } = req.body;
+    // ... ton code actuel pour créer le prestataire ...
 
-    // 🔹 Parsing sécurisé de localisationmaps
-    let parsedLocalisation = { latitude: 0, longitude: 0 };
-    if (localisationmaps) {
-      if (typeof localisationmaps === "string") {
-        try {
-          const parsed = JSON.parse(localisationmaps);
-          if (parsed?.latitude !== undefined && parsed?.longitude !== undefined) {
-            parsedLocalisation = parsed;
-          }
-        } catch (err) {
-          console.warn("Impossible de parser localisationmaps, valeurs par défaut utilisées", err);
-        }
-      } else if (typeof localisationmaps === "object" && localisationmaps.latitude !== undefined && localisationmaps.longitude !== undefined) {
-        parsedLocalisation = localisationmaps;
-      }
-    }
-
-    // 🔹 Upload fichiers simples
-    const uploads = {};
-    for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
-      if (req.files?.[field]?.[0]) {
-        const result = await cloudinary.v2.uploader.upload(req.files[field][0].path, { folder: "prestataires" });
-        uploads[field] = result.secure_url;
-        fs.unlinkSync(req.files[field][0].path);
-      }
-    }
-
-    // 🔹 Diplômes / certificats
-    const diplomeCertificat = [];
-    if (req.files?.diplomeCertificat) {
-      for (const file of req.files.diplomeCertificat) {
-        const result = await cloudinary.v2.uploader.upload(file.path, { folder: "prestataires/diplomes" });
-        diplomeCertificat.push({
-          filename: file.originalname,
-          url: result.secure_url,
-          type: file.mimetype.includes("pdf") ? "pdf" : "image",
-          uploadedAt: new Date()
-        });
-        fs.unlinkSync(file.path);
-      }
-    }
-
-    // 🔹 Création prestataire
     const newPrestataire = new prestataireModel({
       utilisateur,
       service,
@@ -91,7 +27,7 @@ export const createPrestataire = async (req, res) => {
       description,
       rayonIntervention,
       zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
-      localisationmaps: parsedLocalisation,  // ✅ Toujours un objet valide
+      localisationmaps: parsedLocalisation,
       tarifHoraireMin,
       tarifHoraireMax,
       numeroCNI,
@@ -105,7 +41,14 @@ export const createPrestataire = async (req, res) => {
     });
 
     await newPrestataire.save();
-    res.status(201).json(newPrestataire);
+
+    // 🔹 Populer utilisateur et service
+    const populatedPrestataire = await prestataireModel.findById(newPrestataire._id)
+      .populate('utilisateur')
+      .populate('service')
+      .populate('clients'); // si tu veux renvoyer les clients complets aussi
+
+    res.status(201).json(populatedPrestataire);
 
   } catch (err) {
     console.error("Erreur création prestataire:", err.message);

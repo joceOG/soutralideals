@@ -132,28 +132,49 @@ export const getUserById = async (req, res) => {
 // ✅ MODIFIER UN UTILISATEUR
 export const updateUserById = async (req, res) => {
   try {
-    const updates = req.body;
+    // 1️⃣ Champs autorisés à être mis à jour par le front
+    const allowedFields = [
+      'nom',
+      'prenom',
+      'email',
+      'telephone',
+      'genre',
+      'note',
+      'datedenaissance',
+      'role' // uniquement si tu veux autoriser la modification
+    ];
 
-    // Vérification du rôle
-    if (updates.role && !["Prestataire","Vendeur","Freelance","Client"].includes(updates.role)) {
+    // 2️⃣ Construire l'objet safeUpdates avec uniquement les champs autorisés
+    const safeUpdates = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) safeUpdates[key] = req.body[key];
+    }
+
+    // 3️⃣ Vérification du rôle si présent
+    if (safeUpdates.role && !['Prestataire', 'Vendeur', 'Freelance', 'Client'].includes(safeUpdates.role)) {
       return res.status(400).json({ error: "Rôle invalide" });
     }
 
-    // Upload photo si présent
+    // 4️⃣ Upload photoProfil si présent
     if (req.file) {
       const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
-      updates.photoProfil = result.secure_url;
+      safeUpdates.photoProfil = result.secure_url;
       fs.unlinkSync(req.file.path);
     }
 
+    // 5️⃣ Chercher l'utilisateur
     const user = await Utilisateur.findById(req.params.id);
     if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
 
-    Object.assign(user, updates);
-    await user.save(); // déclenche pre('save') pour hasher le password si modifié
+    // 6️⃣ Mettre à jour uniquement les champs autorisés
+    Object.assign(user, safeUpdates);
+
+    // 7️⃣ Sauvegarder l'utilisateur (pré-save pour hasher le mot de passe si modifié)
+    await user.save();
 
     res.status(200).json(user);
   } catch (err) {
+    console.error("❌ Erreur updateUserById:", err);
     res.status(500).json({ error: err.message });
   }
 };
