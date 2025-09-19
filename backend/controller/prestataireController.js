@@ -99,7 +99,7 @@ export const createPrestataire = async (req, res) => {
       numeroAssurance,
       nbMission,
       revenus,
-      clients: clients ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
+      clients : Array.isArray(req.body.clients) ? req.body.clients : [],
       diplomeCertificat,
       ...uploads,
     });
