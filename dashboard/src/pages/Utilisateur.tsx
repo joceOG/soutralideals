@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import {
   Box, Typography, Dialog, DialogActions, DialogContent,
   DialogTitle, Button, TextField, InputAdornment,
-  IconButton
+  IconButton,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -24,6 +27,7 @@ interface IUtilisateur {
   genre: string;
   note?: number;
   photoProfil?: string;
+  role: "Client" | "Prestataire" | "Vendeur" | "Freelance"; // ✅ nouveau
 }
 
 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
@@ -36,17 +40,18 @@ const UtilisateurComponent: React.FC = () => {
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUtilisateur, setSelectedUtilisateur] = useState<IUtilisateur | null>(null);
-  const [formData, setFormData] = useState<IUtilisateur>({
-    nom: '',
-    prenom: '',
-    datedenaissance: '',
-    email: '',
-    password: '',   // ✅ uniformisé
-    telephone: '',
-    genre: '',
-    note: undefined,
-    photoProfil: '',
-  });
+const [formData, setFormData] = useState<IUtilisateur>({
+  nom: '',
+  prenom: '',
+  datedenaissance: '',
+  email: '',
+  password: '',
+  telephone: '',
+  genre: '',
+  note: undefined,
+  photoProfil: '',
+  role: "Client", // valeur par défaut
+});
   const [file, setFile] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -83,6 +88,7 @@ const UtilisateurComponent: React.FC = () => {
         genre: '',
         note: undefined,
         photoProfil: '',
+         role: "Client",
       });
       setFile(null);
     }
@@ -210,6 +216,7 @@ const UtilisateurComponent: React.FC = () => {
         <Column field="_id" header="Identifiant" sortable />
         <Column field="nom" header="Nom" sortable />
         <Column field="prenom" header="Prénom" sortable />
+        <Column field="role" header="Rôle" sortable />
         <Column field="datedenaissance" header="Date de naissance" sortable />
         <Column field="email" header="Email" sortable />
         <Column field="telephone" header="Téléphone" sortable />
@@ -238,6 +245,19 @@ const UtilisateurComponent: React.FC = () => {
             value={formData.prenom}
             onChange={handleChange}
           />
+            <InputLabel id="role-label">Rôle</InputLabel>
+            <Select
+              labelId="role-label"
+              name="role"
+              value={formData.role}
+              onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as IUtilisateur['role'] }))}
+              fullWidth
+            >
+              <MenuItem value="Client">Client</MenuItem>
+              <MenuItem value="Prestataire">Prestataire</MenuItem>
+              <MenuItem value="Vendeur">Vendeur</MenuItem>
+              <MenuItem value="Freelance">Freelance</MenuItem>
+            </Select>
           <TextField
             margin="dense"
             label="Date de naissance"

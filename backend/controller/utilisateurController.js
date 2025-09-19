@@ -21,7 +21,11 @@ export const upload = multer({ storage });
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note } = req.body;
+    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
+
+    if (!role || !["Prestataire","Vendeur","Freelance","Client"].includes(role)) {
+      return res.status(400).json({ error: "Rôle invalide ou manquant" });
+    }
 
     // Vérification unicité email/téléphone
     const conditions = [];
@@ -45,7 +49,7 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil });
+    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role });
     await newUser.save();
 
     const token = await newUser.generateAuthToken();
@@ -129,6 +133,11 @@ export const getUserById = async (req, res) => {
 export const updateUserById = async (req, res) => {
   try {
     const updates = req.body;
+
+    // Vérification du rôle
+    if (updates.role && !["Prestataire","Vendeur","Freelance","Client"].includes(updates.role)) {
+      return res.status(400).json({ error: "Rôle invalide" });
+    }
 
     // Upload photo si présent
     if (req.file) {

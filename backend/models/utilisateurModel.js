@@ -21,7 +21,7 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     trim: true,
     lowercase: true,
-    unique: true, // unicité
+    unique: true,
     validate(value) {
       if (!validator.isEmail(value)) {
         throw new Error('Email invalide');
@@ -41,11 +41,19 @@ const UtilisateurSchema = new mongoose.Schema({
   },
   telephone: { 
     type: String,
-    unique: true // unicité
+    unique: true
   },
   genre: { type: String },
   note: { type: String },
   photoProfil: { type: String },
+
+  // ✅ Ajout du rôle Client
+  role: { 
+    type: String, 
+    enum: ["Prestataire", "Vendeur", "Freelance", "Client"], 
+    required: true 
+  },
+
   tokens: [{
     token: { type: String, required: true }
   }]
@@ -62,10 +70,10 @@ UtilisateurSchema.pre("save", async function(next) {
   next();
 });
 
-// Méthode pour générer un token JWT
+// Génération token JWT incluant le rôle
 UtilisateurSchema.methods.generateAuthToken = async function() {
   const user = this;
-  const token = jwt.sign({ _id: user._id.toString() }, 'thisisoutrali');
+  const token = jwt.sign({ _id: user._id.toString(), role: user.role }, 'thisisoutrali');
   user.tokens = user.tokens.concat({ token });
   await user.save();
   return token;
