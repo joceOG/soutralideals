@@ -10,7 +10,7 @@ cloudinary.v2.config({
   api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 });
 
-// ✅ Créer prestataire
+
 export const createPrestataire = async (req, res) => {
   try {
     const {
@@ -33,35 +33,71 @@ export const createPrestataire = async (req, res) => {
       numeroAssurance,
       nbMission,
       revenus,
-      clients
+      clients,
     } = req.body;
 
-    // 🔹 Parsing sécurisé localisationmaps
+    // 🔹 Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
       if (typeof localisationmaps === "string") {
         try {
           parsedLocalisation = JSON.parse(localisationmaps);
         } catch (err) {
-          console.warn("Impossible de parser localisationmaps, on ignore", err);
+          console.warn("Impossible de parser localisationmaps:", err);
         }
-      } else if (typeof localisationmaps === "object" && localisationmaps.latitude && localisationmaps.longitude) {
+      } else if (
+        typeof localisationmaps === "object" &&
+        localisationmaps.latitude &&
+        localisationmaps.longitude
+      ) {
         parsedLocalisation = localisationmaps;
       }
     }
 
+    // 🔹 Upload fichiers (Multer met les fichiers dans req.files)
+    let diplomeCertificat = [];
+    if (req.files?.diplomeCertificat) {
+      for (const file of req.files.diplomeCertificat) {
+        const uploaded = await uploadToCloudinary(file.path, "diplomes");
+        diplomeCertificat.push(uploaded.secure_url);
+      }
+    }
+
+    let uploads = {};
+    if (req.files?.cni1) {
+      const uploaded = await uploadToCloudinary(req.files.cni1[0].path, "cni");
+      uploads.cni1 = uploaded.secure_url;
+    }
+    if (req.files?.cni2) {
+      const uploaded = await uploadToCloudinary(req.files.cni2[0].path, "cni");
+      uploads.cni2 = uploaded.secure_url;
+    }
+    if (req.files?.selfie) {
+      const uploaded = await uploadToCloudinary(req.files.selfie[0].path, "selfies");
+      uploads.selfie = uploaded.secure_url;
+    }
+
+    // 🔹 Création Prestataire
     const newPrestataire = new prestataireModel({
-      utilisateur: mongoose.Types.ObjectId(utilisateur), // ✅ bien défini
+      utilisateur: mongoose.Types.ObjectId(utilisateur),
       service: mongoose.Types.ObjectId(service),
       prixprestataire,
       localisation,
       note,
       verifier: verifier === "true" || verifier === true,
-      specialite: specialite ? (Array.isArray(specialite) ? specialite : [specialite]) : [],
+      specialite: specialite
+        ? Array.isArray(specialite)
+          ? specialite
+          : [specialite]
+        : [],
       anneeExperience,
       description,
       rayonIntervention,
-      zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
+      zoneIntervention: zoneIntervention
+        ? Array.isArray(zoneIntervention)
+          ? zoneIntervention
+          : [zoneIntervention]
+        : [],
       localisationmaps: parsedLocalisation,
       tarifHoraireMin,
       tarifHoraireMax,
@@ -70,14 +106,17 @@ export const createPrestataire = async (req, res) => {
       numeroAssurance,
       nbMission,
       revenus,
-      clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
+      clients: Array.isArray(clients)
+        ? clients.map((id) => mongoose.Types.ObjectId(id))
+        : [],
       diplomeCertificat,
       ...uploads,
     });
 
     await newPrestataire.save();
 
-    const populatedPrestataire = await prestataireModel.findById(newPrestataire._id)
+    const populatedPrestataire = await prestataireModel
+      .findById(newPrestataire._id)
       .populate("utilisateur")
       .populate("service")
       .populate("clients");
@@ -88,6 +127,7 @@ export const createPrestataire = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 // ✅ Mettre à jour un prestataire
