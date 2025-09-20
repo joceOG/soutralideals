@@ -231,6 +231,23 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
               sx={{
                 py: 1,
                 px: 1.5,
+                flexGrow: 1,
+                overflowY: 'auto', // ✅ SCROLL VERTICAL
+                overflowX: 'hidden',
+                maxHeight: 'calc(100vh - 140px)', // ✅ HAUTEUR MAXIMALE ADAPTATIVE
+                '&::-webkit-scrollbar': { // ✅ STYLE SCROLLBAR CUSTOM
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: 'transparent',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: themeMode === 'light' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.3)',
+                  borderRadius: '3px',
+                  '&:hover': {
+                    background: themeMode === 'light' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.5)',
+                  }
+                },
                 '& .MuiListItemButton-root': {
                   my: 1,  // Espacement aéré entre les éléments (augmenté de 0.5 à 1)
                   mx: 1,

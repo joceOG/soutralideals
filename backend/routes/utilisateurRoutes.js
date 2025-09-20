@@ -23,6 +23,7 @@ utilisateurRouter.get("/logout", utilisateurController.logout);
 // --- UTILISATEUR CRUD ---
 utilisateurRouter.get("/utilisateur", utilisateurController.getAllUsers);
 utilisateurRouter.get("/utilisateur/:id", utilisateurController.getUserById);
+utilisateurRouter.get("/utilisateur/:id/roles", utilisateurController.getUserRoles);
 utilisateurRouter.put("/utilisateur/:id", upload.single('photoProfil'), utilisateurController.updateUserById);
 utilisateurRouter.delete("/utilisateur/:id", utilisateurController.deleteUserById);
 

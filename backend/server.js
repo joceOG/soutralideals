@@ -10,6 +10,11 @@ import prestataireRouter from './routes/prestataireRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
 import freelanceRouter from './routes/freelanceRoutes.js';
 import vendeurRouter from './routes/vendeurRoutes.js';
+// ✅ NOUVEAUX IMPORTS POUR LES MODULES AJOUTÉS
+import commandeRouter from './routes/commandeRoutes.js';
+import notificationRouter from './routes/notificationRoutes.js';
+import messageRouter from './routes/messageRoutes.js';
+import prestationRouter from './routes/prestationRoutes.js';
 
 
 /** import connection file */
@@ -23,6 +28,11 @@ const app = express()
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
+// ✅ Forcer l'encodage UTF-8 pour toutes les réponses JSON
+app.use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    next();
+});
 config();
 
 
@@ -42,6 +52,12 @@ app.use('/api', serviceRouter);
 app.use('/api', prestataireRouter);
 app.use('/api', freelanceRouter);
 app.use('/api', vendeurRouter);
+
+// ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
+app.use('/api', commandeRouter);
+app.use('/api', notificationRouter);
+app.use('/api', messageRouter);
+app.use('/api', prestationRouter);
 
 
 app.get('/', (req, res) => {
