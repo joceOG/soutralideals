@@ -22,7 +22,7 @@ const uploadToCloudinary = async (filePath, folder) => {
   }
 };
 
-
+// ✅ Créer un prestataire
 export const createPrestataire = async (req, res) => {
   try {
     const {
@@ -48,7 +48,7 @@ export const createPrestataire = async (req, res) => {
       clients,
     } = req.body;
 
-    // 🔹 Parsing localisationmaps
+    // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
       if (typeof localisationmaps === "string") {
@@ -57,39 +57,36 @@ export const createPrestataire = async (req, res) => {
         } catch (err) {
           console.warn("Impossible de parser localisationmaps:", err);
         }
-      } else if (
-        typeof localisationmaps === "object" &&
-        localisationmaps.latitude &&
-        localisationmaps.longitude
-      ) {
+      } else if (typeof localisationmaps === "object" && localisationmaps.latitude && localisationmaps.longitude) {
         parsedLocalisation = localisationmaps;
       }
     }
 
-    // 🔹 Upload fichiers (Multer met les fichiers dans req.files)
+    // Upload diplômes
     let diplomeCertificat = [];
     if (req.files?.diplomeCertificat) {
       for (const file of req.files.diplomeCertificat) {
-        const uploaded = await uploadToCloudinary(file.path, "diplomes");
+        const uploaded = await uploadToCloudinary(file.path, "prestataires/diplomes");
         diplomeCertificat.push(uploaded.secure_url);
       }
     }
 
+    // Upload fichiers simples
     let uploads = {};
     if (req.files?.cni1) {
-      const uploaded = await uploadToCloudinary(req.files.cni1[0].path, "cni");
-      uploads.cni1 = uploaded.secure_url;
+      uploads.cni1 = (await uploadToCloudinary(req.files.cni1[0].path, "prestataires/cni")).secure_url;
     }
     if (req.files?.cni2) {
-      const uploaded = await uploadToCloudinary(req.files.cni2[0].path, "cni");
-      uploads.cni2 = uploaded.secure_url;
+      uploads.cni2 = (await uploadToCloudinary(req.files.cni2[0].path, "prestataires/cni")).secure_url;
     }
     if (req.files?.selfie) {
-      const uploaded = await uploadToCloudinary(req.files.selfie[0].path, "selfies");
-      uploads.selfie = uploaded.secure_url;
+      uploads.selfie = (await uploadToCloudinary(req.files.selfie[0].path, "prestataires/selfies")).secure_url;
+    }
+    if (req.files?.attestationAssurance) {
+      uploads.attestationAssurance = (await uploadToCloudinary(req.files.attestationAssurance[0].path, "prestataires/assurance")).secure_url;
     }
 
-    // 🔹 Création Prestataire
+    // Création prestataire
     const newPrestataire = new prestataireModel({
       utilisateur: mongoose.Types.ObjectId(utilisateur),
       service: mongoose.Types.ObjectId(service),
@@ -97,19 +94,11 @@ export const createPrestataire = async (req, res) => {
       localisation,
       note,
       verifier: verifier === "true" || verifier === true,
-      specialite: specialite
-        ? Array.isArray(specialite)
-          ? specialite
-          : [specialite]
-        : [],
+      specialite: specialite ? (Array.isArray(specialite) ? specialite : [specialite]) : [],
       anneeExperience,
       description,
       rayonIntervention,
-      zoneIntervention: zoneIntervention
-        ? Array.isArray(zoneIntervention)
-          ? zoneIntervention
-          : [zoneIntervention]
-        : [],
+      zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
       localisationmaps: parsedLocalisation,
       tarifHoraireMin,
       tarifHoraireMax,
@@ -118,9 +107,7 @@ export const createPrestataire = async (req, res) => {
       numeroAssurance,
       nbMission,
       revenus,
-      clients: Array.isArray(clients)
-        ? clients.map((id) => mongoose.Types.ObjectId(id))
-        : [],
+      clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
       diplomeCertificat,
       ...uploads,
     });
@@ -139,8 +126,6 @@ export const createPrestataire = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
 
 // ✅ Mettre à jour un prestataire
 export const updatePrestataire = async (req, res) => {
@@ -168,7 +153,7 @@ export const updatePrestataire = async (req, res) => {
       clients
     } = req.body;
 
-    // 🔹 Parsing sécurisé de localisationmaps
+    // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
       if (typeof localisationmaps === "string") {
@@ -205,31 +190,28 @@ export const updatePrestataire = async (req, res) => {
       ...(clients && { clients: clients.map(id => mongoose.Types.ObjectId(id)) }),
     };
 
-    // 🔹 Upload fichiers simples
+    // Upload fichiers simples
     for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
       if (req.files?.[field]?.[0]) {
-        const result = await cloudinary.v2.uploader.upload(req.files[field][0].path, { folder: "prestataires" });
+        const result = await uploadToCloudinary(req.files[field][0].path, `prestataires/${field}`);
         updates[field] = result.secure_url;
-        fs.unlinkSync(req.files[field][0].path);
       }
     }
 
-    // 🔹 Diplômes avec métadonnées
+    // Diplômes
     if (req.files?.diplomeCertificat) {
       updates.diplomeCertificat = [];
       for (const file of req.files.diplomeCertificat) {
-        const result = await cloudinary.v2.uploader.upload(file.path, { folder: "prestataires/diplomes" });
+        const result = await uploadToCloudinary(file.path, "prestataires/diplomes");
         updates.diplomeCertificat.push({
           filename: file.originalname,
           url: result.secure_url,
           type: file.mimetype.includes("pdf") ? "pdf" : "image",
           uploadedAt: new Date()
         });
-        fs.unlinkSync(file.path);
       }
     }
 
-    // 🔹 Update dans MongoDB
     const prestataire = await prestataireModel.findByIdAndUpdate(req.params.id, updates, { new: true })
       .populate("utilisateur")
       .populate({ path: "service", populate: { path: "categorie", populate: { path: "groupe" } } })
@@ -243,8 +225,6 @@ export const updatePrestataire = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
 
 // ✅ Lire tous les prestataires
 export const getAllPrestataires = async (req, res) => {
@@ -288,6 +268,7 @@ export const getPrestataireById = async (req, res) => {
   }
 };
 
+// ✅ Supprimer un prestataire
 export const deletePrestataire = async (req, res) => {
   try {
     const prestataire = await prestataireModel.findByIdAndDelete(req.params.id);

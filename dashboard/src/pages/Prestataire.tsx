@@ -461,7 +461,6 @@ const onAdd = () => {
           <Column header="Revenus" field="revenus" sortable />
           <Column header="Clients" body={(rowData) => rowData.clients?.map((c: { nom: any; prenom: any; }) => `${c.nom} ${c.prenom}`).join(', ')} />
           <Column header="Actions" body={actionTemplate} />
-          <Column header="Actions" body={actionTemplate} />
         </DataTable>
       </Box>
 
