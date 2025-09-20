@@ -461,7 +461,6 @@ const onAdd = () => {
           <Column header="Revenus" field="revenus" sortable />
           <Column header="Clients" body={(rowData) => rowData.clients?.map((c: { nom: any; prenom: any; }) => `${c.nom} ${c.prenom}`).join(', ')} />
           <Column header="Actions" body={actionTemplate} />
-          <Column header="Actions" body={actionTemplate} />
         </DataTable>
       </Box>
 
@@ -601,7 +600,7 @@ const onAdd = () => {
                     setFormData(prev => ({ ...prev, diplomeCertificat: JSON.parse(e.target.value) }));
                   } catch {}
                 }}
-              />
+              /> 
           
               {/* Assurances / RCCM */}
             <Box sx={{ mt: 1, mb: 1 }}>
