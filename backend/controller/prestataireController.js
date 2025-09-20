@@ -1,14 +1,26 @@
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
-import cloudinary from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
 // Config Cloudinary
-cloudinary.v2.config({
+cloudinary.config({
   cloud_name: "dm0c8st6k",
   api_key: "541481188898557",
   api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 });
+
+// 🔹 Fonction utilitaire upload Cloudinary
+const uploadToCloudinary = async (filePath, folder) => {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, { folder });
+    fs.unlinkSync(filePath); // supprimer le fichier local
+    return result;
+  } catch (err) {
+    console.error("Erreur upload Cloudinary:", err.message);
+    throw err;
+  }
+};
 
 
 export const createPrestataire = async (req, res) => {
