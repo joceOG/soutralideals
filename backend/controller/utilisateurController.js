@@ -2,6 +2,9 @@ import multer from 'multer';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 import Utilisateur from '../models/utilisateurModel.js';
+import prestataireModel from '../models/prestataireModel.js';
+import freelanceModel from '../models/freelanceModel.js';
+import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
 
 // Config Cloudinary
@@ -186,6 +189,48 @@ export const deleteUserById = async (req, res) => {
     if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ RÔLES UTILISATEUR AGRÉGÉS
+export const getUserRoles = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await Utilisateur.findById(id).lean();
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    // Rôle de base
+    const roles = new Set(['CLIENT']);
+
+    // Vérifier existence des documents liés
+    const [prestataire, freelance, vendeur] = await Promise.all([
+      prestataireModel.findOne({ utilisateur: id }).lean(),
+      freelanceModel.findOne({ utilisateur: id }).lean(),
+      vendeurModel.findOne({ utilisateur: id }).lean(),
+    ]);
+
+    if (prestataire) roles.add('PRESTATAIRE');
+    if (freelance) roles.add('FREELANCE');
+    if (vendeur) roles.add('VENDEUR');
+
+    // L’admin peut être déterminé par un champ futur, placeholder ici
+    if (user.role === 'ADMIN' || user.isAdmin === true) roles.add('ADMIN');
+
+    // Statuts détaillés par rôle
+    const details = {
+      prestataire: prestataire ? { id: prestataire._id, verifier: !!prestataire.verifier } : null,
+      freelance: freelance ? { id: freelance._id, accountStatus: freelance.accountStatus || 'Pending' } : null,
+      vendeur: vendeur ? { id: vendeur._id, verifier: !!vendeur.verifier } : null,
+    };
+
+    return res.status(200).json({
+      utilisateur: { _id: user._id, nom: user.nom, prenom: user.prenom, email: user.email, telephone: user.telephone },
+      roles: Array.from(roles),
+      details,
+    });
+  } catch (err) {
+    console.error('Erreur getUserRoles:', err.message);
     res.status(500).json({ error: err.message });
   }
 };

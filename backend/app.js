@@ -16,6 +16,9 @@ const prestataireRoute = require("./controller/prestataireController");
 const freelanceRoute = require("./controller/freelanceController");
 const vendeurRoute = require("./controller/vendeurController");
 const articleRoute = require("./controller/articleController");
+const favoriteRouter = require('./routes/favoriteRoutes');
+const reportRouter = require('./routes/reportRoutes');
+const prestationRoute = require('./controller/prestationController');
 
 const app = express();
 
@@ -44,6 +47,9 @@ app.use('/api', utilisateurRoute);
 app.use('/api', prestataireRoute);
 app.use('/api', freelanceRoute);
 app.use('/api', vendeurRoute);
+app.use('/api', favoriteRouter);
+app.use('/api', reportRouter);
+app.use('/api', prestationRoute);
 
 // Middleware pour enregistrer les requêtes et les réponses
 app.use((req, res, next) => {
