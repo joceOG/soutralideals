@@ -204,7 +204,7 @@ const [formData, setFormData] = useState<IUtilisateur>({
       </Box>
 
       <DataTable
-        value={filteredUtilisateurs}
+        value={filteredUtilisateurs || []}
         paginator
         rows={10}
         loading={loading}

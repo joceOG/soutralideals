@@ -477,7 +477,7 @@ const PrestationsComponent: React.FC = () => {
 
       {/* 📊 TABLEAU PRINCIPAL */}
       <DataTable
-        value={filteredPrestations}
+        value={filteredPrestations || []}
         paginator
         rows={15}
         loading={loading}

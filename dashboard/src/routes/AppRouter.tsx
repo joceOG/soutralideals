@@ -19,6 +19,13 @@ import Prestations from '../pages/Prestations';
 import Promotions from '../pages/Promotions';
 import Paiements from '../pages/Paiements';
 import Statistiques from '../pages/Statistiques';
+// ✅ GOOGLE MAPS COMPONENTS
+import PrestatairesMap from '../components/GoogleMaps/PrestatairesMap';
+import VendeursMap from '../components/GoogleMaps/VendeursMap';
+import FreelancesMap from '../components/GoogleMaps/FreelancesMap';
+import GeographicAnalytics from '../components/GoogleMaps/GeographicAnalytics';
+// ✅ PAGE PRINCIPALE GÉOLOCALISATION
+import Geolocalisation from '../pages/Geolocalisation';
 
 // Ce composant ne contient que les routes, sans le BrowserRouter
 // Le BrowserRouter est maintenant dans Dashboard.tsx
@@ -48,6 +55,13 @@ const AppRouter: React.FC = () => {
       <Route path="/promotions" element={<Promotions />} />
       <Route path="/paiements" element={<Paiements />} />
       <Route path="/statistiques" element={<Statistiques />} />
+      
+      {/* ✅ GÉOLOCALISATION - SECTION DÉDIÉE */}
+      <Route path="/geolocalisation" element={<Geolocalisation />} />
+      <Route path="/prestataires-map" element={<PrestatairesMap />} />
+      <Route path="/vendeurs-map" element={<VendeursMap />} />
+      <Route path="/freelances-map" element={<FreelancesMap />} />
+      <Route path="/geographic-analytics" element={<GeographicAnalytics />} />
       
       {/* 🚧 ROUTES À VENIR (pages temporaires ou placeholders) */}
       <Route path="/avis" element={<div>Module Avis & Notes - En cours de développement</div>} />

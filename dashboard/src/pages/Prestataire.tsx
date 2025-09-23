@@ -382,7 +382,7 @@ const onAdd = () => {
       <Typography variant="h4" gutterBottom>Prestataires</Typography>
       <Box sx={{ mt: 2, mb: 2 }}>
 <DataTable
-  value={prestataires}
+  value={prestataires || []}
   paginator
   showGridlines
   rows={10}
@@ -632,7 +632,7 @@ const onAdd = () => {
         <DialogContent>
           <TextField fullWidth margin="normal" label="Rechercher" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
           <DataTable
-            value={filteredUtilisateurs}
+            value={filteredUtilisateurs || []}
             paginator
             rows={5}
             loading={loadingUtilisateurs}

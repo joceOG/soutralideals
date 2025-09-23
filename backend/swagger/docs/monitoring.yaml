@@ -1,0 +1,300 @@
+# 📊 DOCUMENTATION SWAGGER - MONITORING & OPTIMISATIONS
+
+paths:
+  /health:
+    get:
+      tags:
+        - Monitoring
+      summary: "🏥 Vérification de l'état de l'API"
+      description: "Endpoint de santé pour vérifier l'état de l'API, la mémoire, l'uptime et les performances"
+      operationId: "getHealth"
+      responses:
+        '200':
+          description: "API en bonne santé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+              example:
+                status: "OK"
+                timestamp: "2024-01-15T10:30:00.000Z"
+                uptime: 3600
+                memory:
+                  rss: 100593664
+                  heapTotal: 48250880
+                  heapUsed: 43367920
+                  external: 22232457
+                  arrayBuffers: 18453136
+                version: "1.0.0"
+        '500':
+          description: "API en erreur"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Service indisponible"
+                code: 500
+
+  /metrics:
+    get:
+      tags:
+        - Monitoring
+      summary: "📈 Métriques de performance"
+      description: "Récupère les métriques détaillées de performance de l'API"
+      operationId: "getMetrics"
+      responses:
+        '200':
+          description: "Métriques récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metrics'
+              example:
+                timestamp: "2024-01-15T10:30:00.000Z"
+                uptime: 3600
+                memory:
+                  used: "42 MB"
+                  total: "46 MB"
+                cpu:
+                  user: 3671000
+                  system: 1890000
+                platform: "win32"
+                nodeVersion: "v22.2.0"
+        '500':
+          description: "Erreur lors de la récupération des métriques"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cache/stats:
+    get:
+      tags:
+        - Cache
+      summary: "💾 Statistiques du cache Redis"
+      description: "Récupère les statistiques détaillées du cache Redis (hits, misses, hit rate)"
+      operationId: "getCacheStats"
+      responses:
+        '200':
+          description: "Statistiques du cache récupérées"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CacheStats'
+              example:
+                cache:
+                  hits: 150
+                  misses: 50
+                  sets: 200
+                  deletes: 10
+                  hitRate: 0.75
+                  total: 200
+                timestamp: "2024-01-15T10:30:00.000Z"
+                status: "OK"
+        '500':
+          description: "Cache non disponible"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Cache non disponible"
+                message: "Redis connection failed"
+
+  /:
+    get:
+      tags:
+        - Monitoring
+      summary: "🏠 Informations de l'API"
+      description: "Endpoint racine avec informations sur l'API, documentation et endpoints disponibles"
+      operationId: "getApiInfo"
+      responses:
+        '200':
+          description: "Informations de l'API"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "SoutraLi Deals API"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  documentation:
+                    type: string
+                    example: "http://localhost:3000/api-docs"
+                  health:
+                    type: string
+                    example: "http://localhost:3000/health"
+                  metrics:
+                    type: string
+                    example: "http://localhost:3000/metrics"
+                  endpoints:
+                    type: object
+                    properties:
+                      users:
+                        type: string
+                        example: "/api/utilisateur"
+                      services:
+                        type: string
+                        example: "/api/service"
+                      orders:
+                        type: string
+                        example: "/api/commande"
+                      messages:
+                        type: string
+                        example: "/api/message"
+                      notifications:
+                        type: string
+                        example: "/api/notification"
+
+components:
+  schemas:
+    HealthCheck:
+      type: object
+      required:
+        - status
+        - timestamp
+        - uptime
+        - memory
+        - version
+      properties:
+        status:
+          type: string
+          enum: [OK, ERROR]
+          description: "Statut de l'API"
+          example: "OK"
+        timestamp:
+          type: string
+          format: date-time
+          description: "Horodatage de la vérification"
+          example: "2024-01-15T10:30:00.000Z"
+        uptime:
+          type: number
+          description: "Temps de fonctionnement en secondes"
+          example: 3600
+        memory:
+          type: object
+          properties:
+            rss:
+              type: number
+              description: "Mémoire résidente en octets"
+              example: 100593664
+            heapTotal:
+              type: number
+              description: "Taille totale du heap en octets"
+              example: 48250880
+            heapUsed:
+              type: number
+              description: "Mémoire heap utilisée en octets"
+              example: 43367920
+            external:
+              type: number
+              description: "Mémoire externe en octets"
+              example: 22232457
+            arrayBuffers:
+              type: number
+              description: "Buffers de tableaux en octets"
+              example: 18453136
+        version:
+          type: string
+          description: "Version de l'API"
+          example: "1.0.0"
+
+    Metrics:
+      type: object
+      required:
+        - timestamp
+        - uptime
+        - memory
+        - cpu
+        - platform
+        - nodeVersion
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: "Horodatage des métriques"
+          example: "2024-01-15T10:30:00.000Z"
+        uptime:
+          type: number
+          description: "Temps de fonctionnement en secondes"
+          example: 3600
+        memory:
+          type: object
+          properties:
+            used:
+              type: string
+              description: "Mémoire utilisée"
+              example: "42 MB"
+            total:
+              type: string
+              description: "Mémoire totale"
+              example: "46 MB"
+        cpu:
+          type: object
+          properties:
+            user:
+              type: number
+              description: "Temps CPU utilisateur en microsecondes"
+              example: 3671000
+            system:
+              type: number
+              description: "Temps CPU système en microsecondes"
+              example: 1890000
+        platform:
+          type: string
+          description: "Plateforme d'exécution"
+          example: "win32"
+        nodeVersion:
+          type: string
+          description: "Version de Node.js"
+          example: "v22.2.0"
+
+    CacheStats:
+      type: object
+      required:
+        - cache
+        - timestamp
+        - status
+      properties:
+        cache:
+          type: object
+          properties:
+            hits:
+              type: number
+              description: "Nombre de hits du cache"
+              example: 150
+            misses:
+              type: number
+              description: "Nombre de misses du cache"
+              example: 50
+            sets:
+              type: number
+              description: "Nombre de mises en cache"
+              example: 200
+            deletes:
+              type: number
+              description: "Nombre de suppressions"
+              example: 10
+            hitRate:
+              type: number
+              description: "Taux de réussite du cache (0-1)"
+              example: 0.75
+            total:
+              type: number
+              description: "Total des requêtes"
+              example: 200
+        timestamp:
+          type: string
+          format: date-time
+          description: "Horodatage des statistiques"
+          example: "2024-01-15T10:30:00.000Z"
+        status:
+          type: string
+          enum: [OK, ERROR]
+          description: "Statut du cache"
+          example: "OK"

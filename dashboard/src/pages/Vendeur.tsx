@@ -200,7 +200,7 @@ const VendeurComponent: React.FC = () => {
       street: '',
       city: '',
       postalCode: '',
-      country: 'Cameroun'
+      country: 'Côte d\'Ivoire'
     },
     businessPhone: '',
     businessEmail: '',
@@ -291,25 +291,52 @@ const VendeurComponent: React.FC = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${apiUrl}/vendeur`);
-      setVendeurs(response.data);
-    } catch {
+      
+      // ✅ VÉRIFICATION ET SÉCURISATION DES DONNÉES
+      if (response.data && Array.isArray(response.data)) {
+        setVendeurs(response.data);
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        // Si l'API retourne { data: [...] }
+        setVendeurs(response.data.data);
+      } else {
+        // Fallback : tableau vide si les données ne sont pas valides
+        console.warn('Données API invalides, utilisation d\'un tableau vide');
+        setVendeurs([]);
+      }
+    } catch (error) {
+      console.error('Erreur API vendeurs:', error);
       toast.error("Erreur lors du chargement des vendeurs");
+      setVendeurs([]); // ✅ Assurer qu'on a toujours un tableau
     } finally {
       setLoading(false);
     }
   }, [apiUrl]);
 
   useEffect(() => {
-    fetchVendeurs();
+    // ✅ Éviter les appels API multiples
+    if (apiUrl) {
+      fetchVendeurs();
+    }
   }, [apiUrl, fetchVendeurs]);
 
   const loadUtilisateurs = async () => {
     try {
       setLoadingUtilisateurs(true);
       const res = await axios.get(`${apiUrl}/utilisateur`);
-      setUtilisateurs(res.data);
-    } catch {
+      
+      // ✅ VÉRIFICATION ET SÉCURISATION DES DONNÉES
+      if (res.data && Array.isArray(res.data)) {
+        setUtilisateurs(res.data);
+      } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
+        setUtilisateurs(res.data.data);
+      } else {
+        console.warn('Données utilisateurs invalides, utilisation d\'un tableau vide');
+        setUtilisateurs([]);
+      }
+    } catch (error) {
+      console.error('Erreur API utilisateurs:', error);
       toast.error("Erreur lors du chargement des utilisateurs");
+      setUtilisateurs([]); // ✅ Assurer qu'on a toujours un tableau
     } finally {
       setLoadingUtilisateurs(false);
     }
@@ -321,14 +348,17 @@ const VendeurComponent: React.FC = () => {
     setShowUserDialog(true);
   };
 
-  const filteredUtilisateurs = utilisateurs.filter(u => {
-    const search = userSearch.toLowerCase();
-    return (
-      u.nom.toLowerCase().includes(search) ||
-      u.prenom.toLowerCase().includes(search) ||
-      (u.email?.toLowerCase().includes(search) ?? false)
-    );
-  });
+  const filteredUtilisateurs = React.useMemo(() => {
+    if (!utilisateurs || !Array.isArray(utilisateurs)) return [];
+    return utilisateurs.filter(u => {
+      const search = userSearch.toLowerCase();
+      return (
+        u.nom.toLowerCase().includes(search) ||
+        u.prenom.toLowerCase().includes(search) ||
+        (u.email?.toLowerCase().includes(search) ?? false)
+      );
+    });
+  }, [utilisateurs, userSearch]);
 
   const onDelete = async (rowData: IVendeurData) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce vendeur ?')) {
@@ -407,7 +437,7 @@ const VendeurComponent: React.FC = () => {
         street: '',
         city: '',
         postalCode: '',
-        country: 'Cameroun'
+        country: 'Côte d\'Ivoire'
       },
       businessPhone: '',
       businessEmail: '',
@@ -602,7 +632,7 @@ const VendeurComponent: React.FC = () => {
       <Typography variant="h4" gutterBottom>Vendeurs</Typography>
       <Box sx={{ mt: 2, mb: 2 }}>
         <DataTable
-          value={vendeurs}
+          value={Array.isArray(vendeurs) ? vendeurs : []}
           paginator
           showGridlines
           rows={10}
@@ -891,7 +921,7 @@ const VendeurComponent: React.FC = () => {
         <DialogContent>
           <TextField fullWidth margin="normal" label="Rechercher" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
           <DataTable
-            value={filteredUtilisateurs}
+            value={Array.isArray(filteredUtilisateurs) ? filteredUtilisateurs : []}
             paginator
             rows={5}
             loading={loadingUtilisateurs}

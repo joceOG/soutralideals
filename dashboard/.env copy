@@ -1,2 +1,3 @@
 # REACT_APP_API_URL=https://soutralideals-backend.onrender.com/api
 REACT_APP_API_URL=http://localhost:3000/api
+REACT_APP_GOOGLE_MAPS_API_KEY=AIzaSyDO27pFOR7FnTBeM0LorESw6Dr4UvYo-iQ

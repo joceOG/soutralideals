@@ -3,6 +3,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import morgan from 'morgan';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { config } from 'dotenv';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -25,9 +27,14 @@ import favoriteRouter from './routes/favoriteRoutes.js';
 import mailRouter from './routes/mailRouter.js';
 import smsRouter from './routes/smsRoutes.js';
 import reportRouter from './routes/reportRoutes.js';
+import googleMapsRouter from './routes/googleMapsRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
+
+// 🚀 IMPORTS DES MIDDLEWARES D'OPTIMISATION
+import logger, { httpLogger, authLogger, transactionLogger, userActionLogger } from './middleware/logger.js';
+import { cacheMiddleware, sessionCache } from './middleware/cache.js';
 
 const app = express()
 const httpServer = createServer(app);
@@ -43,6 +50,55 @@ const io = new Server(httpServer, {
 
 
 /** app middlewares */
+// 🛡️ SÉCURITÉ - Helmet pour les headers HTTP
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// 🛡️ RATE LIMITING - Protection contre les abus
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limite chaque IP à 100 requêtes par windowMs
+  message: {
+    error: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard.',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// 🛡️ RATE LIMITING STRICT pour les routes d'authentification
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limite à 5 tentatives de connexion par IP
+  message: {
+    error: 'Trop de tentatives de connexion, veuillez réessayer plus tard.',
+    retryAfter: '15 minutes'
+  },
+  skipSuccessfulRequests: true,
+});
+
+app.use(limiter);
+app.use('/api/utilisateur/login', authLimiter);
+app.use('/api/utilisateur/register', authLimiter);
+
+// 📝 LOGGING AVANCÉ
+app.use(httpLogger);
+app.use(authLogger);
+app.use(transactionLogger);
+app.use(userActionLogger);
+
+// 💾 CACHE ET SESSIONS
+app.use(sessionCache);
+
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
@@ -61,15 +117,15 @@ const port = process.env.PORT ;
 
 
 /** routes */
-app.use('/api', utilisateurRouter) /** apis utilisateur */
-app.use('/api', groupeRouter);
-app.use('/api', categorieRouter);
-app.use('/api', articleRouter);
-app.use('/api', serviceRouter);
-// app.use('/api', utilisateurRoute);
-app.use('/api', prestataireRouter);
-app.use('/api', freelanceRouter);
-app.use('/api', vendeurRouter);
+// 🚀 ROUTES AVEC CACHE POUR LES DONNÉES FRÉQUENTES
+app.use('/api', cacheMiddleware(300), utilisateurRouter) /** apis utilisateur */
+app.use('/api', cacheMiddleware(600), groupeRouter); // Cache 10 minutes
+app.use('/api', cacheMiddleware(600), categorieRouter); // Cache 10 minutes
+app.use('/api', cacheMiddleware(300), articleRouter); // Cache 5 minutes
+app.use('/api', cacheMiddleware(300), serviceRouter); // Cache 5 minutes
+app.use('/api', cacheMiddleware(300), prestataireRouter); // Cache 5 minutes
+app.use('/api', cacheMiddleware(300), freelanceRouter); // Cache 5 minutes
+app.use('/api', cacheMiddleware(300), vendeurRouter); // Cache 5 minutes
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -81,16 +137,211 @@ app.use('/api', favoriteRouter);
 app.use('/api', mailRouter);
 app.use('/api', smsRouter);
 app.use('/api', reportRouter);
+app.use('/api/maps', googleMapsRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// 🏥 HEALTH CHECK - Surveillance de l'état de l'API
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     tags: [Monitoring]
+ *     summary: 🏥 Vérification de l'état de l'API
+ *     description: Endpoint de santé pour vérifier l'état de l'API, la mémoire, l'uptime et les performances
+ *     responses:
+ *       200:
+ *         description: API en bonne santé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthCheck'
+ *             example:
+ *               status: "OK"
+ *               timestamp: "2024-01-15T10:30:00.000Z"
+ *               uptime: 3600
+ *               memory:
+ *                 rss: 100593664
+ *                 heapTotal: 48250880
+ *                 heapUsed: 43367920
+ *                 external: 22232457
+ *                 arrayBuffers: 18453136
+ *               version: "1.0.0"
+ *       500:
+ *         description: API en erreur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        version: '1.0.0'
+    });
+});
+
+// 📊 METRICS - Endpoint de métriques basiques
+/**
+ * @swagger
+ * /metrics:
+ *   get:
+ *     tags: [Monitoring]
+ *     summary: 📈 Métriques de performance
+ *     description: Récupère les métriques détaillées de performance de l'API
+ *     responses:
+ *       200:
+ *         description: Métriques récupérées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Metrics'
+ *             example:
+ *               timestamp: "2024-01-15T10:30:00.000Z"
+ *               uptime: 3600
+ *               memory:
+ *                 used: "42 MB"
+ *                 total: "46 MB"
+ *               cpu:
+ *                 user: 3671000
+ *                 system: 1890000
+ *               platform: "win32"
+ *               nodeVersion: "v22.2.0"
+ *       500:
+ *         description: Erreur lors de la récupération des métriques
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+app.get('/metrics', (req, res) => {
+    res.status(200).json({
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: {
+            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+        },
+        cpu: process.cpuUsage(),
+        platform: process.platform,
+        nodeVersion: process.version
+    });
+});
+
+// 💾 CACHE STATS - Statistiques du cache Redis
+/**
+ * @swagger
+ * /cache/stats:
+ *   get:
+ *     tags: [Cache]
+ *     summary: 💾 Statistiques du cache Redis
+ *     description: Récupère les statistiques détaillées du cache Redis (hits, misses, hit rate)
+ *     responses:
+ *       200:
+ *         description: Statistiques du cache récupérées
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CacheStats'
+ *             example:
+ *               cache:
+ *                 hits: 150
+ *                 misses: 50
+ *                 sets: 200
+ *                 deletes: 10
+ *                 hitRate: 0.75
+ *                 total: 200
+ *               timestamp: "2024-01-15T10:30:00.000Z"
+ *               status: "OK"
+ *       500:
+ *         description: Cache non disponible
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: "Cache non disponible"
+ *               message: "Redis connection failed"
+ */
+app.get('/cache/stats', async (req, res) => {
+    try {
+        const { getCacheStats } = await import('./middleware/cache.js');
+        const stats = getCacheStats();
+        res.status(200).json({
+            cache: stats,
+            timestamp: new Date().toISOString(),
+            status: 'OK'
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: 'Cache non disponible',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     tags: [Monitoring]
+ *     summary: 🏠 Informations de l'API
+ *     description: Endpoint racine avec informations sur l'API, documentation et endpoints disponibles
+ *     responses:
+ *       200:
+ *         description: Informations de l'API
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "SoutraLi Deals API"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0.0"
+ *                 documentation:
+ *                   type: string
+ *                   example: "http://localhost:3000/api-docs"
+ *                 health:
+ *                   type: string
+ *                   example: "http://localhost:3000/health"
+ *                 metrics:
+ *                   type: string
+ *                   example: "http://localhost:3000/metrics"
+ *                 endpoints:
+ *                   type: object
+ *                   properties:
+ *                     users:
+ *                       type: string
+ *                       example: "/api/utilisateur"
+ *                     services:
+ *                       type: string
+ *                       example: "/api/service"
+ *                     orders:
+ *                       type: string
+ *                       example: "/api/commande"
+ *                     messages:
+ *                       type: string
+ *                       example: "/api/message"
+ *                     notifications:
+ *                       type: string
+ *                       example: "/api/notification"
+ */
 app.get('/', (req, res) => {
     try {
         res.json({
             message: "SoutraLi Deals API",
             version: "1.0.0",
             documentation: "http://localhost:3000/api-docs",
+            health: "http://localhost:3000/health",
+            metrics: "http://localhost:3000/metrics",
             endpoints: {
                 users: "/api/utilisateur",
                 services: "/api/service",

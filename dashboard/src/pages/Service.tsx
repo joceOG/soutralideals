@@ -348,7 +348,7 @@ const Service: React.FC = () => {
       </Dialog>
 
       <Box sx={{ mt: 2, mb: 2 }}>
-        <DataTable value={filteredServices} paginator rows={10} dataKey="_id" emptyMessage="Aucun service trouvé">
+        <DataTable value={filteredServices || []} paginator rows={10} dataKey="_id" emptyMessage="Aucun service trouvé">
           <Column field="_id" header="ID" sortable />
           <Column
             header="Image"
