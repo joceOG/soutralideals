@@ -1,0 +1,250 @@
+# 🛡️ DOCUMENTATION SWAGGER - SÉCURITÉ & OPTIMISATIONS
+
+paths:
+  /api/utilisateur/login:
+    post:
+      tags:
+        - Authentification
+      summary: "🔐 Connexion utilisateur"
+      description: "Authentification avec rate limiting (5 tentatives/15min par IP)"
+      security:
+        - rateLimit: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: "Email de l'utilisateur"
+                  example: "user@soutralideals.com"
+                password:
+                  type: string
+                  minLength: 8
+                  description: "Mot de passe de l'utilisateur"
+                  example: "motdepasse123"
+      responses:
+        '200':
+          description: "Connexion réussie"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: "Token JWT"
+                  user:
+                    type: object
+                    description: "Informations utilisateur"
+        '401':
+          description: "Identifiants invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: "Trop de tentatives de connexion"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+              example:
+                error: "Trop de tentatives de connexion, veuillez réessayer plus tard."
+                retryAfter: "15 minutes"
+
+  /api/utilisateur/register:
+    post:
+      tags:
+        - Authentification
+      summary: "📝 Inscription utilisateur"
+      description: "Création de compte avec rate limiting (5 tentatives/15min par IP)"
+      security:
+        - rateLimit: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom
+                - prenom
+                - email
+                - telephone
+                - password
+                - role
+              properties:
+                nom:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  pattern: "^[a-zA-ZÀ-ÿ\\s]+$"
+                  description: "Nom de l'utilisateur"
+                  example: "Kouassi"
+                prenom:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  pattern: "^[a-zA-ZÀ-ÿ\\s]+$"
+                  description: "Prénom de l'utilisateur"
+                  example: "Jean"
+                email:
+                  type: string
+                  format: email
+                  description: "Email de l'utilisateur"
+                  example: "jean.kouassi@soutralideals.com"
+                telephone:
+                  type: string
+                  pattern: "^\\+225[0-9]{8}$"
+                  description: "Numéro de téléphone ivoirien"
+                  example: "+22512345678"
+                password:
+                  type: string
+                  minLength: 8
+                  pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"
+                  description: "Mot de passe (min 8 caractères, 1 minuscule, 1 majuscule, 1 chiffre)"
+                  example: "MotDePasse123"
+                role:
+                  type: string
+                  enum: [Client, Prestataire, Vendeur, Freelance]
+                  description: "Rôle de l'utilisateur"
+                  example: "Client"
+      responses:
+        '201':
+          description: "Compte créé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Utilisateur créé avec succès"
+                  user:
+                    type: object
+                    description: "Informations utilisateur créé"
+        '400':
+          description: "Données de validation invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: "Trop de tentatives d'inscription"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+components:
+  securitySchemes:
+    rateLimit:
+      type: apiKey
+      in: header
+      name: X-Rate-Limit
+      description: "Rate limiting appliqué (100 req/15min par IP, 5 auth/15min par IP)"
+    
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Token JWT pour l'authentification"
+      x-rate-limit: "100 requêtes par 15 minutes"
+
+  schemas:
+    RateLimitError:
+      type: object
+      required:
+        - error
+        - retryAfter
+      properties:
+        error:
+          type: string
+          description: "Message d'erreur de rate limiting"
+          example: "Trop de requêtes depuis cette IP, veuillez réessayer plus tard."
+        retryAfter:
+          type: string
+          description: "Temps d'attente avant nouvelle tentative"
+          example: "15 minutes"
+      example:
+        error: "Trop de requêtes depuis cette IP, veuillez réessayer plus tard."
+        retryAfter: "15 minutes"
+
+    ValidationError:
+      type: object
+      required:
+        - error
+        - details
+      properties:
+        error:
+          type: string
+          description: "Message d'erreur général"
+          example: "Données de validation invalides"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: "Champ en erreur"
+                example: "email"
+              message:
+                type: string
+                description: "Message d'erreur spécifique"
+                example: "Email invalide"
+              value:
+                type: string
+                description: "Valeur fournie"
+                example: "email-invalide"
+      example:
+        error: "Données de validation invalides"
+        details:
+          - field: "email"
+            message: "Email invalide"
+            value: "email-invalide"
+          - field: "password"
+            message: "Le mot de passe doit contenir au moins 8 caractères"
+            value: "123"
+
+    SecurityHeaders:
+      type: object
+      description: "Headers de sécurité appliqués par Helmet"
+      properties:
+        "X-Content-Type-Options":
+          type: string
+          example: "nosniff"
+        "X-Frame-Options":
+          type: string
+          example: "DENY"
+        "X-XSS-Protection":
+          type: string
+          example: "1; mode=block"
+        "Strict-Transport-Security":
+          type: string
+          example: "max-age=31536000; includeSubDomains"
+        "Content-Security-Policy":
+          type: string
+          example: "default-src 'self'; style-src 'self' 'unsafe-inline'"
+
+    CacheHeaders:
+      type: object
+      description: "Headers de cache pour les réponses"
+      properties:
+        "Cache-Control":
+          type: string
+          example: "public, max-age=300"
+        "ETag":
+          type: string
+          example: "\"abc123\""
+        "Last-Modified":
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00.000Z"

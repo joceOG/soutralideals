@@ -68,6 +68,114 @@ const options = {
               description: 'Données retournées'
             }
           }
+        },
+        HealthCheck: {
+          type: 'object',
+          properties: {
+            status: {
+              type: 'string',
+              enum: ['OK', 'ERROR'],
+              description: 'Statut de l\'API'
+            },
+            timestamp: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Horodatage de la vérification'
+            },
+            uptime: {
+              type: 'number',
+              description: 'Temps de fonctionnement en secondes'
+            },
+            memory: {
+              type: 'object',
+              properties: {
+                rss: { type: 'number', description: 'Mémoire résidente' },
+                heapTotal: { type: 'number', description: 'Taille totale du heap' },
+                heapUsed: { type: 'number', description: 'Mémoire heap utilisée' },
+                external: { type: 'number', description: 'Mémoire externe' },
+                arrayBuffers: { type: 'number', description: 'Buffers de tableaux' }
+              }
+            },
+            version: {
+              type: 'string',
+              description: 'Version de l\'API'
+            }
+          }
+        },
+        Metrics: {
+          type: 'object',
+          properties: {
+            timestamp: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Horodatage des métriques'
+            },
+            uptime: {
+              type: 'number',
+              description: 'Temps de fonctionnement en secondes'
+            },
+            memory: {
+              type: 'object',
+              properties: {
+                used: { type: 'string', description: 'Mémoire utilisée' },
+                total: { type: 'string', description: 'Mémoire totale' }
+              }
+            },
+            cpu: {
+              type: 'object',
+              properties: {
+                user: { type: 'number', description: 'Temps CPU utilisateur' },
+                system: { type: 'number', description: 'Temps CPU système' }
+              }
+            },
+            platform: {
+              type: 'string',
+              description: 'Plateforme d\'exécution'
+            },
+            nodeVersion: {
+              type: 'string',
+              description: 'Version de Node.js'
+            }
+          }
+        },
+        CacheStats: {
+          type: 'object',
+          properties: {
+            cache: {
+              type: 'object',
+              properties: {
+                hits: { type: 'number', description: 'Nombre de hits du cache' },
+                misses: { type: 'number', description: 'Nombre de misses du cache' },
+                sets: { type: 'number', description: 'Nombre de mises en cache' },
+                deletes: { type: 'number', description: 'Nombre de suppressions' },
+                hitRate: { type: 'number', description: 'Taux de réussite du cache' },
+                total: { type: 'number', description: 'Total des requêtes' }
+              }
+            },
+            timestamp: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Horodatage des statistiques'
+            },
+            status: {
+              type: 'string',
+              enum: ['OK', 'ERROR'],
+              description: 'Statut du cache'
+            }
+          }
+        },
+        RateLimitError: {
+          type: 'object',
+          properties: {
+            error: {
+              type: 'string',
+              description: 'Message d\'erreur de rate limiting'
+            },
+            retryAfter: {
+              type: 'string',
+              description: 'Temps d\'attente avant nouvelle tentative'
+            }
+          }
         }
       }
     },
@@ -135,6 +243,22 @@ const options = {
       {
         name: 'Signalements',
         description: 'Système de signalement et modération'
+      },
+      {
+        name: 'Google Maps',
+        description: 'Services de géolocalisation et cartographie'
+      },
+      {
+        name: 'Monitoring',
+        description: 'Surveillance et métriques de l\'API'
+      },
+      {
+        name: 'Cache',
+        description: 'Gestion du cache Redis et statistiques'
+      },
+      {
+        name: 'Logs',
+        description: 'Système de logging et surveillance'
       }
     ]
   },

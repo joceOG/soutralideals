@@ -1,0 +1,439 @@
+paths:
+  /api/maps/geocode:
+    post:
+      summary: Convertir une adresse en coordonnées GPS
+      tags: [Google Maps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  type: string
+                  example: "Douala, Cameroun"
+                  description: "Adresse à géocoder"
+      responses:
+        200:
+          description: Géocodage réussi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  coordinates:
+                    type: object
+                    properties:
+                      lat:
+                        type: number
+                        example: 4.0483
+                      lng:
+                        type: number
+                        example: 9.7043
+                  formattedAddress:
+                    type: string
+                    example: "Douala, Cameroun"
+                  placeId:
+                    type: string
+                    example: "ChIJ..."
+        400:
+          description: Erreur de géocodage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/maps/reverse-geocode:
+    post:
+      summary: Convertir des coordonnées GPS en adresse
+      tags: [Google Maps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - lat
+                - lng
+              properties:
+                lat:
+                  type: number
+                  example: 4.0483
+                  description: "Latitude"
+                lng:
+                  type: number
+                  example: 9.7043
+                  description: "Longitude"
+      responses:
+        200:
+          description: Géocodage inverse réussi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  address:
+                    type: string
+                    example: "Douala, Cameroun"
+                  placeId:
+                    type: string
+                    example: "ChIJ..."
+        400:
+          description: Erreur de géocodage inverse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/maps/distance:
+    post:
+      summary: Calculer la distance et le temps de trajet
+      tags: [Google Maps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - origin
+                - destination
+              properties:
+                origin:
+                  type: string
+                  example: "Douala, Cameroun"
+                  description: "Point de départ"
+                destination:
+                  type: string
+                  example: "Yaoundé, Cameroun"
+                  description: "Point d'arrivée"
+                mode:
+                  type: string
+                  enum: [driving, walking, bicycling, transit]
+                  default: driving
+                  description: "Mode de transport"
+      responses:
+        200:
+          description: Calcul de distance réussi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  distance:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                        example: "240 km"
+                      value:
+                        type: number
+                        example: 240000
+                  duration:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                        example: "3 heures 15 minutes"
+                      value:
+                        type: number
+                        example: 11700
+        400:
+          description: Erreur de calcul
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/maps/nearby:
+    get:
+      summary: Rechercher des lieux à proximité
+      tags: [Google Maps]
+      parameters:
+        - in: query
+          name: lat
+          required: true
+          schema:
+            type: number
+          description: "Latitude"
+        - in: query
+          name: lng
+          required: true
+          schema:
+            type: number
+          description: "Longitude"
+        - in: query
+          name: radius
+          schema:
+            type: integer
+            default: 5000
+          description: "Rayon de recherche en mètres"
+        - in: query
+          name: type
+          schema:
+            type: string
+            default: establishment
+          description: "Type de lieu"
+        - in: query
+          name: keyword
+          schema:
+            type: string
+          description: "Mot-clé de recherche"
+      responses:
+        200:
+          description: Lieux trouvés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  places:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        placeId:
+                          type: string
+                          example: "ChIJ..."
+                        name:
+                          type: string
+                          example: "Restaurant Le Bistrot"
+                        vicinity:
+                          type: string
+                          example: "Douala, Cameroun"
+                        rating:
+                          type: number
+                          example: 4.5
+                        geometry:
+                          type: object
+                          properties:
+                            lat:
+                              type: number
+                              example: 4.0483
+                            lng:
+                              type: number
+                              example: 9.7043
+        400:
+          description: Erreur de recherche
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/maps/directions:
+    post:
+      summary: Obtenir un itinéraire détaillé
+      tags: [Google Maps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - origin
+                - destination
+              properties:
+                origin:
+                  type: string
+                  example: "Douala, Cameroun"
+                  description: "Point de départ"
+                destination:
+                  type: string
+                  example: "Yaoundé, Cameroun"
+                  description: "Point d'arrivée"
+                mode:
+                  type: string
+                  enum: [driving, walking, bicycling, transit]
+                  default: driving
+                  description: "Mode de transport"
+      responses:
+        200:
+          description: Itinéraire calculé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  distance:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                        example: "240 km"
+                      value:
+                        type: number
+                        example: 240000
+                  duration:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                        example: "3 heures 15 minutes"
+                      value:
+                        type: number
+                        example: 11700
+                  startAddress:
+                    type: string
+                    example: "Douala, Cameroun"
+                  endAddress:
+                    type: string
+                    example: "Yaoundé, Cameroun"
+                  steps:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        instruction:
+                          type: string
+                          example: "Prendre la N3 vers Yaoundé"
+                        distance:
+                          type: string
+                          example: "240 km"
+                        duration:
+                          type: string
+                          example: "3 heures 15 minutes"
+                  polyline:
+                    type: string
+                    example: "encoded_polyline_string"
+        400:
+          description: Erreur de calcul d'itinéraire
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/maps/validate-address:
+    post:
+      summary: Valider une adresse
+      tags: [Google Maps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  type: string
+                  example: "Douala, Cameroun"
+                  description: "Adresse à valider"
+      responses:
+        200:
+          description: Validation d'adresse réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  isValid:
+                    type: boolean
+                    example: true
+                  coordinates:
+                    type: object
+                    properties:
+                      lat:
+                        type: number
+                        example: 4.0483
+                      lng:
+                        type: number
+                        example: 9.7043
+                  formattedAddress:
+                    type: string
+                    example: "Douala, Cameroun"
+        400:
+          description: Adresse invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/maps/service-area:
+    post:
+      summary: Calculer une zone de couverture de service
+      tags: [Google Maps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - lat
+                - lng
+                - radius
+              properties:
+                lat:
+                  type: number
+                  example: 4.0483
+                  description: "Latitude du centre"
+                lng:
+                  type: number
+                  example: 9.7043
+                  description: "Longitude du centre"
+                radius:
+                  type: number
+                  example: 10
+                  description: "Rayon en kilomètres"
+      responses:
+        200:
+          description: Zone de couverture calculée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  center:
+                    type: object
+                    properties:
+                      lat:
+                        type: number
+                        example: 4.0483
+                      lng:
+                        type: number
+                        example: 9.7043
+                  radius:
+                    type: number
+                    example: 10
+                  points:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        lat:
+                          type: number
+                        lng:
+                          type: number
+        400:
+          description: Erreur de calcul de zone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

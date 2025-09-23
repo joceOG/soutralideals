@@ -77,7 +77,7 @@ const CommandesComponent: React.FC = () => {
       ville: '',
       telephone: '',
       codePostal: '',
-      pays: 'Cameroun'
+      pays: 'Côte d\'Ivoire'
     },
     articles: [],
     prixArticles: 0,
@@ -136,7 +136,7 @@ const CommandesComponent: React.FC = () => {
           ville: '',
           telephone: '',
           codePostal: '',
-          pays: 'Cameroun'
+          pays: 'Côte d\'Ivoire'
         },
         articles: [],
         prixArticles: 0,

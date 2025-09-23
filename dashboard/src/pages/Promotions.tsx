@@ -321,7 +321,7 @@ const Promotions: React.FC = () => {
         <LinearProgress />
       ) : (
         <DataTable
-          value={filteredPromotions}
+          value={filteredPromotions || []}
           paginator
           rows={10}
           rowsPerPageOptions={[5, 10, 25]}

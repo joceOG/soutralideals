@@ -23,8 +23,15 @@ import ReportIcon from '@mui/icons-material/Report';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+// ✅ ICÔNES POUR LA GÉOLOCALISATION
+import MapIcon from '@mui/icons-material/Map';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PublicIcon from '@mui/icons-material/Public';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
 import { Link, useLocation } from 'react-router-dom';
-import { Tooltip, Typography, Box, Badge } from '@mui/material';
+import { Tooltip, Typography, Box, Badge, Collapse, List } from '@mui/material';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 
 // ✅ INTERFACE TYPESCRIPT POUR LES ÉLÉMENTS DE NAVIGATION
 interface NavItem {
@@ -33,11 +40,13 @@ interface NavItem {
   icon: React.ReactElement;
   exact?: boolean;
   badge?: number;
+  children?: NavItem[]; // ✅ Pour les sous-menus
 }
 
 export const MainListItems = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
 
   const navItems: NavItem[] = [
     { 
@@ -138,6 +147,34 @@ export const MainListItems = () => {
       path: "/statistiques", 
       icon: <AssessmentIcon /> 
     },
+    // ✅ GÉOLOCALISATION - SECTION DÉDIÉE
+    { 
+      title: "Géolocalisation", 
+      path: "/geolocalisation", 
+      icon: <MapIcon />,
+      children: [
+        { 
+          title: "Prestataires Map", 
+          path: "/prestataires-map", 
+          icon: <LocationOnIcon /> 
+        },
+        { 
+          title: "Vendeurs Map", 
+          path: "/vendeurs-map", 
+          icon: <PublicIcon /> 
+        },
+        { 
+          title: "Freelances Map", 
+          path: "/freelances-map", 
+          icon: <LocationOnIcon /> 
+        },
+        { 
+          title: "Analytics Géographiques", 
+          path: "/geographic-analytics", 
+          icon: <AnalyticsIcon /> 
+        }
+      ]
+    },
     { 
       title: "Paramètres", 
       path: "/parametres", 
@@ -154,6 +191,16 @@ export const MainListItems = () => {
     if (exact) return currentPath === path;
     return (currentPath.startsWith(path) && path !== '/') || currentPath === path;
   };
+
+  const handleToggle = (path: string) => {
+    setExpandedItems(prev => 
+      prev.includes(path) 
+        ? prev.filter(item => item !== path)
+        : [...prev, path]
+    );
+  };
+
+  const isExpanded = (path: string) => expandedItems.includes(path);
 
   return (
     <React.Fragment>
@@ -174,32 +221,68 @@ export const MainListItems = () => {
       </Box>
       
       {navItems.map((item) => (
-        <Tooltip 
-          key={item.path}
-          title={item.title} 
-          placement="right"
-          arrow
-          enterDelay={500}
-        >
-          <ListItemButton 
-            component={Link} 
-            to={item.path}
-            selected={isActive(item.path, item.exact)}
+        <React.Fragment key={item.path}>
+          <Tooltip 
+            title={item.title} 
+            placement="right"
+            arrow
+            enterDelay={500}
           >
-            <ListItemIcon>
-              {item.badge ? (
-                <Badge badgeContent={item.badge} color="error">
-                  {item.icon}
-                </Badge>
-              ) : (
-                item.icon
+            <ListItemButton 
+              component={item.children ? 'div' : Link}
+              to={item.children ? undefined : item.path}
+              onClick={item.children ? () => handleToggle(item.path) : undefined}
+              selected={isActive(item.path, item.exact)}
+            >
+              <ListItemIcon>
+                {item.badge ? (
+                  <Badge badgeContent={item.badge} color="error">
+                    {item.icon}
+                  </Badge>
+                ) : (
+                  item.icon
+                )}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.title} 
+              />
+              {item.children && (
+                isExpanded(item.path) ? <ExpandLess /> : <ExpandMore />
               )}
-            </ListItemIcon>
-            <ListItemText 
-              primary={item.title} 
-            />
-          </ListItemButton>
-        </Tooltip>
+            </ListItemButton>
+          </Tooltip>
+          
+          {/* ✅ SOUS-MENUS POUR LA GÉOLOCALISATION */}
+          {item.children && (
+            <Collapse in={isExpanded(item.path)} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {item.children.map((child) => (
+                  <Tooltip 
+                    key={child.path}
+                    title={child.title} 
+                    placement="right"
+                    arrow
+                    enterDelay={500}
+                  >
+                    <ListItemButton 
+                      component={Link} 
+                      to={child.path}
+                      selected={isActive(child.path, child.exact)}
+                      sx={{ pl: 4 }}
+                    >
+                      <ListItemIcon>
+                        {child.icon}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={child.title} 
+                      />
+                    </ListItemButton>
+                  </Tooltip>
+                ))}
+              </List>
+            </Collapse>
+          )}
+        </React.Fragment>
       ))}
     </React.Fragment>
   );
