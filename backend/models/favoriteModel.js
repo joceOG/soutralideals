@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const FavoriteSchema = new mongoose.Schema(
   {
-    utilisateur: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur', required: true },
+    utilisateur: { type: mongoose.Schema.Types.ObjectId, ref: 'utilisateur', required: true },
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
     title: { type: String, required: true },
     image: { type: String },
@@ -12,6 +12,7 @@ const FavoriteSchema = new mongoose.Schema(
 
 FavoriteSchema.index({ utilisateur: 1, service: 1, title: 1 }, { unique: true, sparse: true });
 
-module.exports = mongoose.model('Favorite', FavoriteSchema);
+const Favorite = mongoose.model('Favorite', FavoriteSchema);
+export default Favorite;
 
 

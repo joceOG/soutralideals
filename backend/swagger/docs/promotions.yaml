@@ -1,0 +1,575 @@
+paths:
+  /api/promotion:
+    post:
+      summary: Créer une nouvelle promotion
+      tags: [Promotions]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - titre
+                - description
+                - typePromotion
+                - valeur
+                - dateDebut
+                - dateFin
+              properties:
+                titre:
+                  type: string
+                  example: "Réduction 50% sur tous les services"
+                  description: "Titre de la promotion"
+                description:
+                  type: string
+                  example: "Profitez de notre offre exceptionnelle"
+                  description: "Description de la promotion"
+                typePromotion:
+                  type: string
+                  enum: [pourcentage, montant_fixe, livraison_gratuite, produit_gratuit]
+                  example: "pourcentage"
+                  description: "Type de promotion"
+                valeur:
+                  type: number
+                  example: 50
+                  description: "Valeur de la promotion"
+                dateDebut:
+                  type: string
+                  format: date-time
+                  example: "2024-01-01T00:00:00Z"
+                  description: "Date de début"
+                dateFin:
+                  type: string
+                  format: date-time
+                  example: "2024-12-31T23:59:59Z"
+                  description: "Date de fin"
+                image:
+                  type: string
+                  format: binary
+                  description: "Image de la promotion"
+                conditions:
+                  type: string
+                  example: "Commande minimum 10000 FCFA"
+                  description: "Conditions d'application"
+                servicesCibles:
+                  type: array
+                  items:
+                    type: string
+                  example: ["64a1b2c3d4e5f6789abcdef1"]
+                  description: "IDs des services ciblés"
+                utilisateursCibles:
+                  type: array
+                  items:
+                    type: string
+                  example: ["64a1b2c3d4e5f6789abcdef2"]
+                  description: "IDs des utilisateurs ciblés"
+                limiteUtilisation:
+                  type: integer
+                  example: 100
+                  description: "Limite d'utilisation"
+                actif:
+                  type: boolean
+                  default: true
+                  description: "Statut actif de la promotion"
+      responses:
+        201:
+          description: Promotion créée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  titre:
+                    type: string
+                  description:
+                    type: string
+                  typePromotion:
+                    type: string
+                  valeur:
+                    type: number
+                  dateDebut:
+                    type: string
+                    format: date-time
+                  dateFin:
+                    type: string
+                    format: date-time
+                  image:
+                    type: string
+                  actif:
+                    type: boolean
+                  createdAt:
+                    type: string
+                    format: date-time
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Obtenir toutes les promotions
+      tags: [Promotions]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de promotions par page
+        - in: query
+          name: actif
+          schema:
+            type: boolean
+          description: Filtrer par statut actif
+        - in: query
+          name: typePromotion
+          schema:
+            type: string
+          description: Filtrer par type de promotion
+      responses:
+        200:
+          description: Promotions récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  promotions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        titre:
+                          type: string
+                        description:
+                          type: string
+                        typePromotion:
+                          type: string
+                        valeur:
+                          type: number
+                        dateDebut:
+                          type: string
+                          format: date-time
+                        dateFin:
+                          type: string
+                          format: date-time
+                        image:
+                          type: string
+                        actif:
+                          type: boolean
+                        vues:
+                          type: integer
+                        clics:
+                          type: integer
+                        conversions:
+                          type: integer
+                        createdAt:
+                          type: string
+                          format: date-time
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  total:
+                    type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/promotions/actives:
+    get:
+      summary: Obtenir les promotions actives
+      tags: [Promotions]
+      responses:
+        200:
+          description: Promotions actives récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    titre:
+                      type: string
+                    description:
+                      type: string
+                    typePromotion:
+                      type: string
+                    valeur:
+                      type: number
+                    dateDebut:
+                      type: string
+                      format: date-time
+                    dateFin:
+                      type: string
+                      format: date-time
+                    image:
+                      type: string
+                    vues:
+                      type: integer
+                    clics:
+                      type: integer
+                    conversions:
+                      type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/promotion/{id}:
+    get:
+      summary: Obtenir une promotion par ID
+      tags: [Promotions]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la promotion
+      responses:
+        200:
+          description: Promotion trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  titre:
+                    type: string
+                  description:
+                    type: string
+                  typePromotion:
+                    type: string
+                  valeur:
+                    type: number
+                  dateDebut:
+                    type: string
+                    format: date-time
+                  dateFin:
+                    type: string
+                    format: date-time
+                  image:
+                    type: string
+                  conditions:
+                    type: string
+                  servicesCibles:
+                    type: array
+                    items:
+                      type: string
+                  utilisateursCibles:
+                    type: array
+                    items:
+                      type: string
+                  limiteUtilisation:
+                    type: integer
+                  actif:
+                    type: boolean
+                  vues:
+                    type: integer
+                  clics:
+                    type: integer
+                  conversions:
+                    type: integer
+                  createdAt:
+                    type: string
+                    format: date-time
+        404:
+          description: Promotion non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour une promotion
+      tags: [Promotions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la promotion
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                titre:
+                  type: string
+                description:
+                  type: string
+                typePromotion:
+                  type: string
+                  enum: [pourcentage, montant_fixe, livraison_gratuite, produit_gratuit]
+                valeur:
+                  type: number
+                dateDebut:
+                  type: string
+                  format: date-time
+                dateFin:
+                  type: string
+                  format: date-time
+                image:
+                  type: string
+                  format: binary
+                conditions:
+                  type: string
+                servicesCibles:
+                  type: array
+                  items:
+                    type: string
+                utilisateursCibles:
+                  type: array
+                  items:
+                    type: string
+                limiteUtilisation:
+                  type: integer
+                actif:
+                  type: boolean
+      responses:
+        200:
+          description: Promotion mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Promotion non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer une promotion
+      tags: [Promotions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la promotion
+      responses:
+        200:
+          description: Promotion supprimée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Promotion non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/promotions/stats:
+    get:
+      summary: Obtenir les statistiques des promotions
+      tags: [Promotions]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Statistiques récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPromotions:
+                    type: integer
+                    example: 25
+                    description: "Nombre total de promotions"
+                  promotionsActives:
+                    type: integer
+                    example: 15
+                    description: "Promotions actives"
+                  promotionsExpirees:
+                    type: integer
+                    example: 10
+                    description: "Promotions expirées"
+                  totalVues:
+                    type: integer
+                    example: 5000
+                    description: "Total des vues"
+                  totalClics:
+                    type: integer
+                    example: 500
+                    description: "Total des clics"
+                  totalConversions:
+                    type: integer
+                    example: 50
+                    description: "Total des conversions"
+                  tauxConversion:
+                    type: number
+                    example: 10.0
+                    description: "Taux de conversion (%)"
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/promotion/{id}/vue:
+    patch:
+      summary: Incrémenter les vues d'une promotion
+      tags: [Promotions]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la promotion
+      responses:
+        200:
+          description: Vues incrémentées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vues:
+                    type: integer
+                    example: 101
+        404:
+          description: Promotion non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/promotion/{id}/clic:
+    patch:
+      summary: Incrémenter les clics d'une promotion
+      tags: [Promotions]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la promotion
+      responses:
+        200:
+          description: Clics incrémentés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clics:
+                    type: integer
+                    example: 11
+        404:
+          description: Promotion non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/promotion/{id}/conversion:
+    patch:
+      summary: Incrémenter les conversions d'une promotion
+      tags: [Promotions]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la promotion
+      responses:
+        200:
+          description: Conversions incrémentées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversions:
+                    type: integer
+                    example: 2
+        404:
+          description: Promotion non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

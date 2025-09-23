@@ -1,0 +1,259 @@
+paths:
+  /api/sms:
+    post:
+      summary: Envoyer un SMS via Infobip
+      tags: [SMS]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Votre code de vérification est 123456"
+                  description: "Contenu du message SMS"
+                to:
+                  type: string
+                  example: "+237123456789"
+                  description: "Numéro de téléphone destinataire"
+      responses:
+        200:
+          description: SMS envoyé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "SMS envoyé avec succès"
+                  messageId:
+                    type: string
+                    example: "msg_123456789"
+                  status:
+                    type: string
+                    example: "sent"
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/send-whatsapp:
+    post:
+      summary: Envoyer un message WhatsApp via Infobip
+      tags: [SMS]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - to
+              properties:
+                message:
+                  type: string
+                  example: "Bonjour ! Votre commande a été confirmée."
+                  description: "Contenu du message WhatsApp"
+                to:
+                  type: string
+                  example: "+237123456789"
+                  description: "Numéro de téléphone destinataire"
+                mediaUrl:
+                  type: string
+                  example: "https://example.com/image.jpg"
+                  description: "URL du média à joindre (optionnel)"
+      responses:
+        200:
+          description: Message WhatsApp envoyé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Message WhatsApp envoyé avec succès"
+                  messageId:
+                    type: string
+                    example: "wa_msg_123456789"
+                  status:
+                    type: string
+                    example: "sent"
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tsend-sms:
+    post:
+      summary: Envoyer un SMS via Twilio
+      tags: [SMS]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - body
+                - to
+              properties:
+                body:
+                  type: string
+                  example: "Votre code de vérification est 123456"
+                  description: "Contenu du message SMS"
+                to:
+                  type: string
+                  example: "+237123456789"
+                  description: "Numéro de téléphone destinataire"
+                from:
+                  type: string
+                  example: "+1234567890"
+                  description: "Numéro d'expéditeur (optionnel)"
+      responses:
+        200:
+          description: SMS envoyé avec succès via Twilio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "SMS envoyé avec succès via Twilio"
+                  sid:
+                    type: string
+                    example: "SM1234567890abcdef"
+                  status:
+                    type: string
+                    example: "queued"
+                  to:
+                    type: string
+                    example: "+237123456789"
+                  from:
+                    type: string
+                    example: "+1234567890"
+                  body:
+                    type: string
+                    example: "Votre code de vérification est 123456"
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tsend-whatsapp:
+    post:
+      summary: Envoyer un message WhatsApp via Twilio
+      tags: [SMS]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - body
+                - to
+              properties:
+                body:
+                  type: string
+                  example: "Bonjour ! Votre commande a été confirmée."
+                  description: "Contenu du message WhatsApp"
+                to:
+                  type: string
+                  example: "+237123456789"
+                  description: "Numéro de téléphone destinataire"
+                mediaUrl:
+                  type: string
+                  example: "https://example.com/image.jpg"
+                  description: "URL du média à joindre (optionnel)"
+                from:
+                  type: string
+                  example: "whatsapp:+1234567890"
+                  description: "Numéro d'expéditeur WhatsApp (optionnel)"
+      responses:
+        200:
+          description: Message WhatsApp envoyé avec succès via Twilio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Message WhatsApp envoyé avec succès via Twilio"
+                  sid:
+                    type: string
+                    example: "WH1234567890abcdef"
+                  status:
+                    type: string
+                    example: "queued"
+                  to:
+                    type: string
+                    example: "whatsapp:+237123456789"
+                  from:
+                    type: string
+                    example: "whatsapp:+1234567890"
+                  body:
+                    type: string
+                    example: "Bonjour ! Votre commande a été confirmée."
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

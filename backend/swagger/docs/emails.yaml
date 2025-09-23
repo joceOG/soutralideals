@@ -1,0 +1,87 @@
+paths:
+  /api/email:
+    post:
+      summary: Envoyer un email
+      tags: [Emails]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to
+              properties:
+                to:
+                  type: string
+                  format: email
+                  example: "utilisateur@example.com"
+                  description: "Adresse email destinataire"
+                subject:
+                  type: string
+                  example: "Email de Confirmation"
+                  description: "Sujet de l'email"
+                text:
+                  type: string
+                  example: "Félicitation vous êtes inscrit"
+                  description: "Contenu textuel de l'email"
+                html:
+                  type: string
+                  example: "<h1>Bienvenue !</h1><p>Félicitation vous êtes inscrit</p>"
+                  description: "Contenu HTML de l'email (optionnel)"
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      filename:
+                        type: string
+                        example: "document.pdf"
+                      path:
+                        type: string
+                        example: "/path/to/document.pdf"
+                      contentType:
+                        type: string
+                        example: "application/pdf"
+                  description: "Pièces jointes (optionnel)"
+      responses:
+        200:
+          description: Email envoyé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "E-mail envoyé avec succès"
+                  messageId:
+                    type: string
+                    example: "<abc123@example.com>"
+                  accepted:
+                    type: array
+                    items:
+                      type: string
+                    example: ["utilisateur@example.com"]
+                  rejected:
+                    type: array
+                    items:
+                      type: string
+                    example: []
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

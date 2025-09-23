@@ -1,0 +1,267 @@
+paths:
+  /api/prestataire:
+    post:
+      summary: Créer un nouveau prestataire
+      tags: [Prestataires]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idUtilisateur
+                - idservice
+                - nomservice
+                - prixmoyen
+                - localisation
+              properties:
+                idUtilisateur:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef1"
+                  description: "ID de l'utilisateur"
+                cni:
+                  type: string
+                  format: base64
+                  description: "Image CNI en base64"
+                selfie:
+                  type: string
+                  format: base64
+                  description: "Photo selfie en base64"
+                verifier:
+                  type: boolean
+                  default: false
+                  description: "Statut de vérification"
+                idservice:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef0"
+                  description: "ID du service"
+                nomservice:
+                  type: string
+                  example: "Plomberie"
+                  description: "Nom du service"
+                prixmoyen:
+                  type: number
+                  example: 25000
+                  description: "Prix moyen du service"
+                localisation:
+                  type: string
+                  example: "Douala, Cameroun"
+                  description: "Localisation du prestataire"
+                note:
+                  type: number
+                  example: 4.5
+                  description: "Note du prestataire"
+                description:
+                  type: string
+                  example: "Prestataire professionnel avec 5 ans d'expérience"
+                  description: "Description du prestataire"
+                disponibilite:
+                  type: string
+                  enum: [disponible, occupe, indisponible]
+                  default: "disponible"
+                  description: "Statut de disponibilité"
+      responses:
+        201:
+          description: Prestataire créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Prestataire créé avec succès"
+                  prestataire:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      idUtilisateur:
+                        type: string
+                      idservice:
+                        type: string
+                      nomservice:
+                        type: string
+                      prixmoyen:
+                        type: number
+                      localisation:
+                        type: string
+                      verifier:
+                        type: boolean
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Obtenir tous les prestataires
+      tags: [Prestataires]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de prestataires par page
+        - in: query
+          name: verifier
+          schema:
+            type: boolean
+          description: Filtrer par statut de vérification
+        - in: query
+          name: localisation
+          schema:
+            type: string
+          description: Filtrer par localisation
+        - in: query
+          name: service
+          schema:
+            type: string
+          description: Filtrer par service
+      responses:
+        200:
+          description: Liste des prestataires récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prestataires:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        idUtilisateur:
+                          type: object
+                        idservice:
+                          type: object
+                        nomservice:
+                          type: string
+                        prixmoyen:
+                          type: number
+                        localisation:
+                          type: string
+                        verifier:
+                          type: boolean
+                        note:
+                          type: number
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/prestataire/{id}:
+    get:
+      summary: Obtenir un prestataire par ID
+      tags: [Prestataires]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du prestataire
+      responses:
+        200:
+          description: Prestataire trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Prestataire non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour un prestataire
+      tags: [Prestataires]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du prestataire
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prixmoyen:
+                  type: number
+                localisation:
+                  type: string
+                description:
+                  type: string
+                disponibilite:
+                  type: string
+                  enum: [disponible, occupe, indisponible]
+                verifier:
+                  type: boolean
+      responses:
+        200:
+          description: Prestataire mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Prestataire non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer un prestataire
+      tags: [Prestataires]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du prestataire
+      responses:
+        200:
+          description: Prestataire supprimé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Prestataire non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

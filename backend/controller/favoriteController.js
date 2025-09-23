@@ -1,5 +1,5 @@
-const Favorite = require('../models/favoriteModel');
-const Utilisateur = require('../models/utilisateurModel');
+import Favorite from '../models/favoriteModel.js';
+import Utilisateur from '../models/utilisateurModel.js';
 
 export const addFavorite = async (req, res) => {
   try {

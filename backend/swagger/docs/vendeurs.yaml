@@ -1,0 +1,266 @@
+paths:
+  /api/vendeur:
+    post:
+      summary: Créer un nouveau vendeur
+      tags: [Vendeurs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom
+                - prenom
+                - email
+                - telephone
+              properties:
+                nom:
+                  type: string
+                  example: "Dupont"
+                  description: "Nom du vendeur"
+                prenom:
+                  type: string
+                  example: "Marie"
+                  description: "Prénom du vendeur"
+                email:
+                  type: string
+                  format: email
+                  example: "marie.dupont@example.com"
+                  description: "Adresse email"
+                telephone:
+                  type: string
+                  example: "+237123456789"
+                  description: "Numéro de téléphone"
+                adresse:
+                  type: string
+                  example: "Douala, Cameroun"
+                  description: "Adresse du vendeur"
+                specialite:
+                  type: string
+                  example: "Électronique"
+                  description: "Spécialité du vendeur"
+                entreprise:
+                  type: string
+                  example: "TechStore"
+                  description: "Nom de l'entreprise"
+                siret:
+                  type: string
+                  example: "12345678901234"
+                  description: "Numéro SIRET"
+                verifie:
+                  type: boolean
+                  default: false
+                  description: "Statut de vérification"
+                note:
+                  type: number
+                  example: 4.5
+                  description: "Note du vendeur"
+      responses:
+        201:
+          description: Vendeur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  nom:
+                    type: string
+                  prenom:
+                    type: string
+                  email:
+                    type: string
+                  telephone:
+                    type: string
+                  specialite:
+                    type: string
+                  verifie:
+                    type: boolean
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Obtenir tous les vendeurs
+      tags: [Vendeurs]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de vendeurs par page
+        - in: query
+          name: specialite
+          schema:
+            type: string
+          description: Filtrer par spécialité
+        - in: query
+          name: verifie
+          schema:
+            type: boolean
+          description: Filtrer par statut de vérification
+        - in: query
+          name: entreprise
+          schema:
+            type: string
+          description: Filtrer par entreprise
+      responses:
+        200:
+          description: Liste des vendeurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vendeurs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        nom:
+                          type: string
+                        prenom:
+                          type: string
+                        email:
+                          type: string
+                        telephone:
+                          type: string
+                        specialite:
+                          type: string
+                        entreprise:
+                          type: string
+                        verifie:
+                          type: boolean
+                        note:
+                          type: number
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/vendeur/{id}:
+    get:
+      summary: Obtenir un vendeur par ID
+      tags: [Vendeurs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du vendeur
+      responses:
+        200:
+          description: Vendeur trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Vendeur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour un vendeur
+      tags: [Vendeurs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du vendeur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                prenom:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                telephone:
+                  type: string
+                adresse:
+                  type: string
+                specialite:
+                  type: string
+                entreprise:
+                  type: string
+                siret:
+                  type: string
+                verifie:
+                  type: boolean
+      responses:
+        200:
+          description: Vendeur mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Vendeur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer un vendeur
+      tags: [Vendeurs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du vendeur
+      responses:
+        200:
+          description: Vendeur supprimé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Vendeur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

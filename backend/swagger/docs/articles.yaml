@@ -1,0 +1,267 @@
+paths:
+  /api/article:
+    post:
+      summary: Créer un nouvel article
+      tags: [Articles]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - nomArticle
+                - prixArticle
+                - quantiteArticle
+                - categorie
+              properties:
+                nomArticle:
+                  type: string
+                  example: "Smartphone Samsung Galaxy"
+                  description: "Nom de l'article"
+                prixArticle:
+                  type: number
+                  example: 150000
+                  description: "Prix de l'article en FCFA"
+                quantiteArticle:
+                  type: number
+                  example: 10
+                  description: "Quantité disponible"
+                categorie:
+                  type: string
+                  example: "Électronique"
+                  description: "Catégorie de l'article"
+                description:
+                  type: string
+                  example: "Smartphone haut de gamme avec écran 6.1 pouces"
+                  description: "Description de l'article"
+                marque:
+                  type: string
+                  example: "Samsung"
+                  description: "Marque de l'article"
+                modele:
+                  type: string
+                  example: "Galaxy S23"
+                  description: "Modèle de l'article"
+                image:
+                  type: string
+                  format: binary
+                  description: "Image de l'article"
+                vendeur:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef1"
+                  description: "ID du vendeur"
+      responses:
+        201:
+          description: Article créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  nomArticle:
+                    type: string
+                  prixArticle:
+                    type: number
+                  quantiteArticle:
+                    type: number
+                  categorie:
+                    type: string
+                  image:
+                    type: string
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Obtenir tous les articles
+      tags: [Articles]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre d'articles par page
+        - in: query
+          name: categorie
+          schema:
+            type: string
+          description: Filtrer par catégorie
+        - in: query
+          name: marque
+          schema:
+            type: string
+          description: Filtrer par marque
+        - in: query
+          name: prixMin
+          schema:
+            type: number
+          description: Prix minimum
+        - in: query
+          name: prixMax
+          schema:
+            type: number
+          description: Prix maximum
+        - in: query
+          name: vendeur
+          schema:
+            type: string
+          description: Filtrer par vendeur
+      responses:
+        200:
+          description: Liste des articles récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        nomArticle:
+                          type: string
+                        prixArticle:
+                          type: number
+                        quantiteArticle:
+                          type: number
+                        categorie:
+                          type: string
+                        marque:
+                          type: string
+                        modele:
+                          type: string
+                        image:
+                          type: string
+                        vendeur:
+                          type: object
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/article/{id}:
+    get:
+      summary: Obtenir un article par ID
+      tags: [Articles]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'article
+      responses:
+        200:
+          description: Article trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Article non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour un article
+      tags: [Articles]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'article
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nomArticle:
+                  type: string
+                prixArticle:
+                  type: number
+                quantiteArticle:
+                  type: number
+                categorie:
+                  type: string
+                description:
+                  type: string
+                marque:
+                  type: string
+                modele:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Article mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Article non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer un article
+      tags: [Articles]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'article
+      responses:
+        200:
+          description: Article supprimé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Article non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

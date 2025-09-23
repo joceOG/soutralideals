@@ -1,0 +1,246 @@
+paths:
+  /api/freelancer:
+    post:
+      summary: Créer un nouveau freelancer
+      tags: [Freelancers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom
+                - prenom
+                - email
+                - telephone
+                - specialite
+              properties:
+                nom:
+                  type: string
+                  example: "Martin"
+                  description: "Nom du freelancer"
+                prenom:
+                  type: string
+                  example: "Sophie"
+                  description: "Prénom du freelancer"
+                email:
+                  type: string
+                  format: email
+                  example: "sophie.martin@example.com"
+                  description: "Adresse email"
+                telephone:
+                  type: string
+                  example: "+237123456789"
+                  description: "Numéro de téléphone"
+                specialite:
+                  type: string
+                  example: "Développement Web"
+                  description: "Spécialité du freelancer"
+                experience:
+                  type: number
+                  example: 3
+                  description: "Années d'expérience"
+                tarifHoraire:
+                  type: number
+                  example: 15000
+                  description: "Tarif horaire en FCFA"
+                portfolio:
+                  type: string
+                  example: "https://portfolio.sophie.com"
+                  description: "Lien vers le portfolio"
+                disponibilite:
+                  type: string
+                  enum: [disponible, occupe, indisponible]
+                  default: "disponible"
+                  description: "Statut de disponibilité"
+                localisation:
+                  type: string
+                  example: "Douala, Cameroun"
+                  description: "Localisation du freelancer"
+      responses:
+        201:
+          description: Freelancer créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  nom:
+                    type: string
+                  prenom:
+                    type: string
+                  email:
+                    type: string
+                  specialite:
+                    type: string
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Obtenir tous les freelancers
+      tags: [Freelancers]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de freelancers par page
+        - in: query
+          name: specialite
+          schema:
+            type: string
+          description: Filtrer par spécialité
+        - in: query
+          name: localisation
+          schema:
+            type: string
+          description: Filtrer par localisation
+        - in: query
+          name: disponibilite
+          schema:
+            type: string
+            enum: [disponible, occupe, indisponible]
+          description: Filtrer par disponibilité
+      responses:
+        200:
+          description: Liste des freelancers récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    nom:
+                      type: string
+                    prenom:
+                      type: string
+                    email:
+                      type: string
+                    specialite:
+                      type: string
+                    experience:
+                      type: number
+                    tarifHoraire:
+                      type: number
+                    disponibilite:
+                      type: string
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/freelancer/{id}:
+    get:
+      summary: Obtenir un freelancer par ID
+      tags: [Freelancers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du freelancer
+      responses:
+        200:
+          description: Freelancer trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Freelancer non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour un freelancer
+      tags: [Freelancers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du freelancer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                specialite:
+                  type: string
+                tarifHoraire:
+                  type: number
+                portfolio:
+                  type: string
+                disponibilite:
+                  type: string
+                  enum: [disponible, occupe, indisponible]
+                localisation:
+                  type: string
+      responses:
+        200:
+          description: Freelancer mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Freelancer non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer un freelancer
+      tags: [Freelancers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du freelancer
+      responses:
+        200:
+          description: Freelancer supprimé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Freelancer non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

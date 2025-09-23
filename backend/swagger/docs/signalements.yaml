@@ -1,0 +1,118 @@
+paths:
+  /api/reports:
+    post:
+      summary: Créer un signalement
+      tags: [Signalements]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - description
+                - reportedUserId
+              properties:
+                type:
+                  type: string
+                  enum: [spam, harcèlement, contenu_inapproprié, fraude, autre]
+                  example: "spam"
+                  description: "Type de signalement"
+                description:
+                  type: string
+                  example: "Ce profil envoie des messages publicitaires non sollicités"
+                  description: "Description détaillée du signalement"
+                reportedUserId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef1"
+                  description: "ID de l'utilisateur signalé"
+                reportedServiceId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef2"
+                  description: "ID du service signalé (optionnel)"
+                reportedArticleId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef3"
+                  description: "ID de l'article signalé (optionnel)"
+                reportedMessageId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef4"
+                  description: "ID du message signalé (optionnel)"
+                evidence:
+                  type: array
+                  items:
+                    type: string
+                  example: ["https://example.com/screenshot1.jpg", "https://example.com/screenshot2.jpg"]
+                  description: "URLs des preuves (captures d'écran, etc.)"
+                priority:
+                  type: string
+                  enum: [low, medium, high, urgent]
+                  default: medium
+                  description: "Priorité du signalement"
+                category:
+                  type: string
+                  enum: [utilisateur, service, article, message, commande, paiement]
+                  example: "utilisateur"
+                  description: "Catégorie de l'élément signalé"
+      responses:
+        201:
+          description: Signalement créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: "64a1b2c3d4e5f6789abcdef5"
+                  type:
+                    type: string
+                    example: "spam"
+                  description:
+                    type: string
+                    example: "Ce profil envoie des messages publicitaires non sollicités"
+                  reportedUserId:
+                    type: string
+                    example: "64a1b2c3d4e5f6789abcdef1"
+                  reporterId:
+                    type: string
+                    example: "64a1b2c3d4e5f6789abcdef6"
+                  status:
+                    type: string
+                    enum: [en_attente, en_cours, résolu, rejeté]
+                    example: "en_attente"
+                  priority:
+                    type: string
+                    example: "medium"
+                  category:
+                    type: string
+                    example: "utilisateur"
+                  evidence:
+                    type: array
+                    items:
+                      type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

@@ -1,0 +1,306 @@
+paths:
+  /api/commande:
+    post:
+      summary: Créer une nouvelle commande
+      tags: [Commandes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - infoCommande
+                - articles
+                - prixArticles
+                - prixLivraison
+                - prixTotal
+              properties:
+                infoCommande:
+                  type: object
+                  required:
+                    - addresse
+                    - ville
+                    - telephone
+                    - codePostal
+                    - pays
+                  properties:
+                    addresse:
+                      type: string
+                      example: "123 Rue de la Paix"
+                      description: "Adresse de livraison"
+                    ville:
+                      type: string
+                      example: "Douala"
+                      description: "Ville de livraison"
+                    telephone:
+                      type: string
+                      example: "+237123456789"
+                      description: "Téléphone de contact"
+                    codePostal:
+                      type: string
+                      example: "12345"
+                      description: "Code postal"
+                    pays:
+                      type: string
+                      example: "Cameroun"
+                      description: "Pays de livraison"
+                articles:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - nom
+                      - quantité
+                      - image
+                      - prix
+                    properties:
+                      nom:
+                        type: string
+                        example: "Produit A"
+                        description: "Nom de l'article"
+                      quantité:
+                        type: number
+                        example: 2
+                        description: "Quantité commandée"
+                      image:
+                        type: string
+                        example: "https://example.com/image.jpg"
+                        description: "Image de l'article"
+                      prix:
+                        type: number
+                        example: 15000
+                        description: "Prix unitaire"
+                prixArticles:
+                  type: number
+                  example: 30000
+                  description: "Prix total des articles"
+                prixLivraison:
+                  type: number
+                  example: 5000
+                  description: "Prix de livraison"
+                prixTotal:
+                  type: number
+                  example: 35000
+                  description: "Prix total de la commande"
+                statusCommande:
+                  type: string
+                  enum: [En cours, En attente, Livrée, Annulée]
+                  example: "En cours"
+                  description: "Statut de la commande"
+      responses:
+        201:
+          description: Commande créée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  DateCommande:
+                    type: string
+                  DetailsCommande:
+                    type: string
+                  article:
+                    type: string
+                  utilisateur:
+                    type: string
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/commandes:
+    get:
+      summary: Obtenir toutes les commandes
+      tags: [Commandes]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de commandes par page
+        - in: query
+          name: status
+          schema:
+            type: string
+          description: Filtrer par statut
+        - in: query
+          name: utilisateur
+          schema:
+            type: string
+          description: Filtrer par utilisateur
+      responses:
+        200:
+          description: Liste des commandes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commandes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        DateCommande:
+                          type: string
+                        DetailsCommande:
+                          type: string
+                        article:
+                          type: object
+                        utilisateur:
+                          type: object
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/commande/{id}:
+    get:
+      summary: Obtenir une commande par ID
+      tags: [Commandes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la commande
+      responses:
+        200:
+          description: Commande trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Commande non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour une commande
+      tags: [Commandes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la commande
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                DateCommande:
+                  type: string
+                  format: date
+                DetailsCommande:
+                  type: string
+                status:
+                  type: string
+                  enum: [en_attente, en_cours, livree, annulee]
+      responses:
+        200:
+          description: Commande mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Commande non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer une commande
+      tags: [Commandes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la commande
+      responses:
+        200:
+          description: Commande supprimée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Commande non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/commandes/stats:
+    get:
+      summary: Obtenir les statistiques des commandes
+      tags: [Commandes]
+      responses:
+        200:
+          description: Statistiques récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCommandes:
+                    type: integer
+                    example: 150
+                    description: "Nombre total de commandes"
+                  commandesEnCours:
+                    type: integer
+                    example: 25
+                    description: "Commandes en cours"
+                  commandesLivrees:
+                    type: integer
+                    example: 120
+                    description: "Commandes livrées"
+                  chiffreAffaires:
+                    type: number
+                    example: 2500000
+                    description: "Chiffre d'affaires total"
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

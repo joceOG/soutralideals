@@ -4,6 +4,9 @@ import { Server } from 'socket.io';
 import morgan from 'morgan';
 import cors from 'cors';
 import { config } from 'dotenv';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import swaggerConfig from './swagger/swagger.config.js';
 import utilisateurRouter from './routes/utilisateurRoutes.js';
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
@@ -18,6 +21,10 @@ import notificationRouter from './routes/notificationRoutes.js';
 import messageRouter from './routes/messageRoutes.js';
 import prestationRouter from './routes/prestationRoutes.js';
 import promotionRouter from './routes/promotionRoutes.js';
+import favoriteRouter from './routes/favoriteRoutes.js';
+import mailRouter from './routes/mailRouter.js';
+import smsRouter from './routes/smsRoutes.js';
+import reportRouter from './routes/reportRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -46,8 +53,8 @@ app.use((req, res, next) => {
 });
 config();
 
-
-
+// ✅ CONFIGURATION SWAGGER
+const swaggerSpec = swaggerConfig;
 
 /** appliation port */
 const port = process.env.PORT ;
@@ -70,15 +77,32 @@ app.use('/api', notificationRouter);
 app.use('/api', messageRouter);
 app.use('/api', prestationRouter);
 app.use('/api', promotionRouter);
+app.use('/api', favoriteRouter);
+app.use('/api', mailRouter);
+app.use('/api', smsRouter);
+app.use('/api', reportRouter);
 
+// ✅ ROUTE SWAGGER UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
     try {
-        res.json("Get Request")
+        res.json({
+            message: "SoutraLi Deals API",
+            version: "1.0.0",
+            documentation: "http://localhost:3000/api-docs",
+            endpoints: {
+                users: "/api/utilisateur",
+                services: "/api/service",
+                orders: "/api/commande",
+                messages: "/api/message",
+                notifications: "/api/notification"
+            }
+        });
     } catch (error) {
-        res.json(error)
+        res.json({ error: error.message });
     }
-})
+});
 
 
 

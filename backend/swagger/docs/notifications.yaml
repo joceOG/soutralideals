@@ -1,0 +1,507 @@
+paths:
+  /api/notification:
+    post:
+      summary: Créer une notification
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user
+                - title
+                - message
+                - type
+              properties:
+                user:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef1"
+                  description: "ID de l'utilisateur destinataire"
+                title:
+                  type: string
+                  example: "Nouvelle commande"
+                  description: "Titre de la notification"
+                message:
+                  type: string
+                  example: "Vous avez reçu une nouvelle commande"
+                  description: "Message de la notification"
+                type:
+                  type: string
+                  enum: [info, warning, error, success, chat, order, promotion, system]
+                  example: "order"
+                  description: "Type de notification"
+                data:
+                  type: object
+                  example: {"orderId": "64a1b2c3d4e5f6789abcdef2"}
+                  description: "Données additionnelles"
+                relatedId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef2"
+                  description: "ID de l'entité liée"
+                relatedType:
+                  type: string
+                  enum: [Commande, Message, Promotion, Service, Article, Prestation, Utilisateur]
+                  example: "Commande"
+                  description: "Type de l'entité liée"
+                priority:
+                  type: string
+                  enum: [low, normal, high, urgent]
+                  default: normal
+                  description: "Priorité de la notification"
+                channels:
+                  type: array
+                  items:
+                    type: string
+                    enum: [in_app, push, email, sms]
+                  default: [in_app]
+                  description: "Canaux de notification"
+                expiresAt:
+                  type: string
+                  format: date-time
+                  example: "2024-12-31T23:59:59Z"
+                  description: "Date d'expiration"
+      responses:
+        201:
+          description: Notification créée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  user:
+                    type: string
+                  title:
+                    type: string
+                  message:
+                    type: string
+                  type:
+                    type: string
+                  read:
+                    type: boolean
+                    default: false
+                  priority:
+                    type: string
+                  channels:
+                    type: array
+                  createdAt:
+                    type: string
+                    format: date-time
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notifications:
+    get:
+      summary: Obtenir toutes les notifications (admin)
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de notifications par page
+        - in: query
+          name: read
+          schema:
+            type: boolean
+          description: Filtrer par statut de lecture
+        - in: query
+          name: type
+          schema:
+            type: string
+          description: Filtrer par type
+        - in: query
+          name: userId
+          schema:
+            type: string
+          description: Filtrer par utilisateur
+      responses:
+        200:
+          description: Notifications récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        user:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            nom:
+                              type: string
+                            prenom:
+                              type: string
+                            email:
+                              type: string
+                        title:
+                          type: string
+                        message:
+                          type: string
+                        type:
+                          type: string
+                        read:
+                          type: boolean
+                        priority:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  total:
+                    type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notifications/user/{userId}:
+    get:
+      summary: Obtenir les notifications d'un utilisateur
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de notifications par page
+        - in: query
+          name: read
+          schema:
+            type: boolean
+          description: Filtrer par statut de lecture
+        - in: query
+          name: type
+          schema:
+            type: string
+          description: Filtrer par type
+      responses:
+        200:
+          description: Notifications utilisateur récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      type: object
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  total:
+                    type: integer
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notification/{id}/read:
+    patch:
+      summary: Marquer une notification comme lue
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la notification
+      responses:
+        200:
+          description: Notification marquée comme lue avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  read:
+                    type: boolean
+                    example: true
+                  readAt:
+                    type: string
+                    format: date-time
+        404:
+          description: Notification non trouvée ou déjà lue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notifications/user/{userId}/read-all:
+    patch:
+      summary: Marquer toutes les notifications d'un utilisateur comme lues
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        200:
+          description: Toutes les notifications marquées comme lues avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notification/{id}/archive:
+    patch:
+      summary: Archiver une notification
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la notification
+      responses:
+        200:
+          description: Notification archivée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Notification non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notification/{id}:
+    delete:
+      summary: Supprimer une notification
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la notification
+      responses:
+        200:
+          description: Notification supprimée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Notification non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notifications/stats:
+    get:
+      summary: Obtenir les statistiques des notifications
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Statistiques récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalNotifications:
+                    type: integer
+                    example: 500
+                    description: "Nombre total de notifications"
+                  readNotifications:
+                    type: integer
+                    example: 450
+                    description: "Notifications lues"
+                  unreadNotifications:
+                    type: integer
+                    example: 50
+                    description: "Notifications non lues"
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/notifications/bulk:
+    post:
+      summary: Envoyer des notifications en masse
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userIds
+                - title
+                - message
+                - type
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  example: ["64a1b2c3d4e5f6789abcdef1", "64a1b2c3d4e5f6789abcdef2"]
+                  description: "Liste des IDs utilisateurs"
+                title:
+                  type: string
+                  example: "Promotion spéciale"
+                  description: "Titre de la notification"
+                message:
+                  type: string
+                  example: "Découvrez nos offres spéciales"
+                  description: "Message de la notification"
+                type:
+                  type: string
+                  enum: [info, warning, error, success, chat, order, promotion, system]
+                  example: "promotion"
+                  description: "Type de notification"
+                data:
+                  type: object
+                  description: "Données additionnelles"
+                relatedId:
+                  type: string
+                  description: "ID de l'entité liée"
+                relatedType:
+                  type: string
+                  enum: [Commande, Message, Promotion, Service, Article, Prestation, Utilisateur]
+                  description: "Type de l'entité liée"
+                priority:
+                  type: string
+                  enum: [low, normal, high, urgent]
+                  default: normal
+                  description: "Priorité de la notification"
+                channels:
+                  type: array
+                  items:
+                    type: string
+                    enum: [in_app, push, email, sms]
+                  default: [in_app]
+                  description: "Canaux de notification"
+                expiresAt:
+                  type: string
+                  format: date-time
+                  description: "Date d'expiration"
+      responses:
+        201:
+          description: Notifications créées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "5 notifications créées avec succès"
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

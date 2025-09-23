@@ -1,0 +1,206 @@
+paths:
+  /api/groupe:
+    post:
+      summary: Créer un nouveau groupe
+      tags: [Groupes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nomgroupe
+              properties:
+                nomgroupe:
+                  type: string
+                  example: "Bâtiment"
+                  description: "Nom du groupe"
+                description:
+                  type: string
+                  example: "Services liés à la construction et rénovation"
+                  description: "Description du groupe"
+                icone:
+                  type: string
+                  example: "🏗️"
+                  description: "Icône du groupe"
+                couleur:
+                  type: string
+                  example: "#FF6B6B"
+                  description: "Couleur du groupe"
+                actif:
+                  type: boolean
+                  default: true
+                  description: "Statut actif du groupe"
+      responses:
+        201:
+          description: Groupe créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  nomgroupe:
+                    type: string
+                  description:
+                    type: string
+                  icone:
+                    type: string
+                  couleur:
+                    type: string
+                  actif:
+                    type: boolean
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Obtenir tous les groupes
+      tags: [Groupes]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de groupes par page
+        - in: query
+          name: actif
+          schema:
+            type: boolean
+          description: Filtrer par statut actif
+      responses:
+        200:
+          description: Liste des groupes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    nomgroupe:
+                      type: string
+                    description:
+                      type: string
+                    icone:
+                      type: string
+                    couleur:
+                      type: string
+                    actif:
+                      type: boolean
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/groupe/{id}:
+    get:
+      summary: Obtenir un groupe par ID
+      tags: [Groupes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du groupe
+      responses:
+        200:
+          description: Groupe trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Groupe non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour un groupe
+      tags: [Groupes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du groupe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nomgroupe:
+                  type: string
+                description:
+                  type: string
+                icone:
+                  type: string
+                couleur:
+                  type: string
+                actif:
+                  type: boolean
+      responses:
+        200:
+          description: Groupe mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Groupe non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer un groupe
+      tags: [Groupes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du groupe
+      responses:
+        200:
+          description: Groupe supprimé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Groupe non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

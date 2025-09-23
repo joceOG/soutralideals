@@ -1,0 +1,273 @@
+paths:
+  /api/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      tags: [Utilisateurs]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - nom
+                - email
+                - password
+                - telephone
+                - role
+              properties:
+                nom:
+                  type: string
+                  example: "Dupont"
+                  description: "Nom de famille"
+                prenom:
+                  type: string
+                  example: "Jean"
+                  description: "Prénom"
+                datedenaissance:
+                  type: string
+                  example: "1990-01-15"
+                  description: "Date de naissance"
+                email:
+                  type: string
+                  format: email
+                  example: "jean.dupont@example.com"
+                  description: "Adresse email"
+                password:
+                  type: string
+                  example: "motdepasse123"
+                  description: "Mot de passe"
+                telephone:
+                  type: string
+                  example: "+237123456789"
+                  description: "Numéro de téléphone"
+                genre:
+                  type: string
+                  enum: [homme, femme]
+                  example: "homme"
+                  description: "Genre"
+                note:
+                  type: string
+                  example: "4.5"
+                  description: "Note de l'utilisateur"
+                role:
+                  type: string
+                  enum: [Prestataire, Vendeur, Freelance, Client]
+                  example: "Client"
+                  description: "Rôle de l'utilisateur"
+                photoProfil:
+                  type: string
+                  format: binary
+                  description: "Photo de profil"
+      responses:
+        201:
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Utilisateur créé avec succès"
+                  utilisateur:
+                    type: object
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/login:
+    post:
+      summary: Connexion d'un utilisateur
+      tags: [Utilisateurs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifiant
+                - password
+              properties:
+                identifiant:
+                  type: string
+                  example: "jean.dupont@example.com"
+                  description: "Email ou numéro de téléphone"
+                password:
+                  type: string
+                  example: "motdepasse123"
+                  description: "Mot de passe"
+      responses:
+        200:
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  utilisateur:
+                    type: object
+        400:
+          description: Identifiants incorrects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/logout:
+    get:
+      summary: Déconnexion d'un utilisateur
+      tags: [Utilisateurs]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Déconnexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        401:
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/utilisateur:
+    get:
+      summary: Obtenir tous les utilisateurs
+      tags: [Utilisateurs]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Nombre d'utilisateurs par page
+      responses:
+        200:
+          description: Liste des utilisateurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  utilisateurs:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+
+  /api/utilisateur/{id}:
+    get:
+      summary: Obtenir un utilisateur par ID
+      tags: [Utilisateurs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        200:
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mettre à jour un utilisateur
+      tags: [Utilisateurs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                prenom:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                telephone:
+                  type: string
+      responses:
+        200:
+          description: Utilisateur mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer un utilisateur
+      tags: [Utilisateurs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        200:
+          description: Utilisateur supprimé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        404:
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

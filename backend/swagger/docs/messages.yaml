@@ -1,0 +1,423 @@
+paths:
+  /api/message:
+    post:
+      summary: Envoyer un message
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - receiverId
+                - content
+              properties:
+                receiverId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef1"
+                  description: "ID du destinataire"
+                content:
+                  type: string
+                  example: "Bonjour, comment allez-vous ?"
+                  description: "Contenu du message"
+                messageType:
+                  type: string
+                  enum: [text, image, video, audio, document]
+                  default: text
+                  description: "Type de message"
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        example: "https://example.com/file.jpg"
+                      fileType:
+                        type: string
+                        example: "image/jpeg"
+                      fileName:
+                        type: string
+                        example: "photo.jpg"
+                      fileSize:
+                        type: number
+                        example: 1024000
+                replyTo:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef2"
+                  description: "ID du message auquel répondre"
+                pieceJointe:
+                  type: string
+                  format: binary
+                  description: "Fichier joint"
+      responses:
+        201:
+          description: Message envoyé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  sender:
+                    type: string
+                  receiver:
+                    type: string
+                  content:
+                    type: string
+                  messageType:
+                    type: string
+                  status:
+                    type: string
+                    example: "sent"
+                  conversationId:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/messages/conversations/{userId}:
+    get:
+      summary: Obtenir les conversations d'un utilisateur
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        200:
+          description: Conversations récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    conversationId:
+                      type: string
+                    lastMessage:
+                      type: object
+                    participantDetails:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          nom:
+                            type: string
+                          prenom:
+                            type: string
+                          photoProfil:
+                            type: string
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/messages/conversation/{conversationId}:
+    get:
+      summary: Obtenir les messages d'une conversation
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: string
+          description: ID de la conversation
+      responses:
+        200:
+          description: Messages de la conversation récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    sender:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        nom:
+                          type: string
+                        prenom:
+                          type: string
+                        photoProfil:
+                          type: string
+                    receiver:
+                      type: object
+                    content:
+                      type: string
+                    messageType:
+                      type: string
+                    status:
+                      type: string
+                    conversationId:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+        404:
+          description: Conversation non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/messages/mark-read:
+    patch:
+      summary: Marquer des messages comme lus
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                conversationId:
+                  type: string
+                  example: "user1_user2"
+                  description: "ID de la conversation"
+                messageIds:
+                  type: array
+                  items:
+                    type: string
+                  example: ["64a1b2c3d4e5f6789abcdef1", "64a1b2c3d4e5f6789abcdef2"]
+                  description: "IDs des messages à marquer comme lus"
+      responses:
+        200:
+          description: Messages marqués comme lus avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        400:
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/message/{messageId}/user:
+    delete:
+      summary: Supprimer un message pour un utilisateur
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+          description: ID du message
+      responses:
+        200:
+          description: Message supprimé avec succès pour cet utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        403:
+          description: Non autorisé à supprimer ce message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Message non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/messages/search:
+    get:
+      summary: Rechercher des messages
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+          description: Terme de recherche
+        - in: query
+          name: conversationId
+          schema:
+            type: string
+          description: Filtrer par conversation
+      responses:
+        200:
+          description: Messages trouvés avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    content:
+                      type: string
+                    sender:
+                      type: object
+                    createdAt:
+                      type: string
+                      format: date-time
+        400:
+          description: Terme de recherche requis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/messages/stats:
+    get:
+      summary: Obtenir les statistiques des messages
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Statistiques récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalMessages:
+                    type: integer
+                    example: 1250
+                    description: "Nombre total de messages"
+                  unreadMessages:
+                    type: integer
+                    example: 15
+                    description: "Messages non lus"
+                  sentMessages:
+                    type: integer
+                    example: 600
+                    description: "Messages envoyés"
+                  receivedMessages:
+                    type: integer
+                    example: 650
+                    description: "Messages reçus"
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/messages/unread/{userId}:
+    get:
+      summary: Obtenir les messages non lus d'un utilisateur
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        200:
+          description: Messages non lus récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    sender:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        nom:
+                          type: string
+                        prenom:
+                          type: string
+                        photoProfil:
+                          type: string
+                    content:
+                      type: string
+                    messageType:
+                      type: string
+                    status:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
