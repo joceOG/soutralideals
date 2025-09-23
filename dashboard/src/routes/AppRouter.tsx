@@ -15,6 +15,10 @@ import Commandes from '../pages/Commandes';
 import Notifications from '../pages/Notifications';
 import Messages from '../pages/Messages';
 import Prestations from '../pages/Prestations';
+// ✅ NOUVELLES PAGES CRÉÉES
+import Promotions from '../pages/Promotions';
+import Paiements from '../pages/Paiements';
+import Statistiques from '../pages/Statistiques';
 
 // Ce composant ne contient que les routes, sans le BrowserRouter
 // Le BrowserRouter est maintenant dans Dashboard.tsx
@@ -40,12 +44,15 @@ const AppRouter: React.FC = () => {
       {/* ✅ PRESTATIONS MODULE COMPLET */}
       <Route path="/prestations" element={<Prestations />} />
       
+      {/* ✅ NOUVELLES PAGES CRÉÉES */}
+      <Route path="/promotions" element={<Promotions />} />
+      <Route path="/paiements" element={<Paiements />} />
+      <Route path="/statistiques" element={<Statistiques />} />
+      
       {/* 🚧 ROUTES À VENIR (pages temporaires ou placeholders) */}
-      <Route path="/paiements" element={<div>Module Paiements - En cours de développement</div>} />
       <Route path="/avis" element={<div>Module Avis & Notes - En cours de développement</div>} />
       <Route path="/signalements" element={<div>Module Signalements - En cours de développement</div>} />
       <Route path="/verifications" element={<div>Module Vérifications - En cours de développement</div>} />
-      <Route path="/statistiques" element={<div>Module Statistiques - En cours de développement</div>} />
       <Route path="/parametres" element={<div>Module Paramètres - En cours de développement</div>} />
       <Route path="/support" element={<div>Module Support - En cours de développement</div>} />
     </Routes>
