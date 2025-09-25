@@ -18,16 +18,15 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-email: {  
-  type: String,
-  trim: true,
-  lowercase: true,
-  unique: true,
-  sparse: true, // permet plusieurs null
-  default: null,
-  validate(value) {
-    if (value && !validator.isEmail(value)) { 
-      throw new Error("Email invalide");
+  email: {  
+    type: String,
+    trim: true,
+    lowercase: true,
+    unique: true,
+    validate(value) {
+      if (!validator.isEmail(value)) {
+        throw new Error('Email invalide');
+      }
     }
   },
   password: { 
