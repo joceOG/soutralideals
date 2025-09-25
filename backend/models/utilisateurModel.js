@@ -21,7 +21,6 @@ email: {
   type: String,
   trim: true,
   lowercase: true,
-  unique: true,
   sparse: true, // permet plusieurs null
   default: null,
   validate(value) {
