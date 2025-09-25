@@ -22,10 +22,11 @@ email: {
   trim: true,
   lowercase: true,
   unique: true,
-  sparse: true, // ✅ important quand unique mais pas obligatoire
+  sparse: true, // permet plusieurs null
+  default: null,
   validate(value) {
     if (value && !validator.isEmail(value)) { 
-      throw new Error('Email invalide');
+      throw new Error("Email invalide");
     }
   }
 },

@@ -24,17 +24,25 @@ export const upload = multer({ storage });
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
+    let { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
 
     if (!role || !["Prestataire","Vendeur","Freelance","Client"].includes(role)) {
       return res.status(400).json({ error: "Rôle invalide ou manquant" });
+    }
+
+    // Normaliser email vide → null
+    if (email === "") {
+      email = null;
     }
 
     // Vérification unicité email/téléphone
     const conditions = [];
     if (email) conditions.push({ email });
     if (telephone) conditions.push({ telephone });
-    const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
+
+    const existingUser = conditions.length > 0 
+      ? await Utilisateur.findOne({ $or: conditions }) 
+      : null;
 
     if (existingUser) {
       let error = '';
@@ -52,7 +60,18 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role });
+    const newUser = new Utilisateur({ 
+      nom, 
+      prenom, 
+      datedenaissance, 
+      email, 
+      password, 
+      telephone, 
+      genre, 
+      note, 
+      photoProfil, 
+      role 
+    });
     await newUser.save();
 
     const token = await newUser.generateAuthToken();
@@ -62,6 +81,7 @@ export const signUp = async (req, res) => {
     res.status(400).json({ error: e.message });
   }
 };
+
 
 
 // ✅ CONNEXION
