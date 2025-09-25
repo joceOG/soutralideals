@@ -248,3 +248,805 @@ components:
           type: string
           format: date-time
           example: "2024-01-15T10:30:00.000Z"
+
+  # 🛡️ NOUVELLES ROUTES DE SÉCURITÉ
+  /api/security/user/{utilisateurId}:
+    get:
+      tags:
+        - Sécurité
+      summary: "🛡️ Informations de sécurité d'un utilisateur"
+      description: "Récupérer toutes les informations de sécurité d'un utilisateur (2FA, sessions, alertes)"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "Informations de sécurité récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      utilisateurId:
+                        type: string
+                        example: "64f1a2b3c4d5e6f7g8h9i0j1"
+                      twoFactorEnabled:
+                        type: boolean
+                        description: "2FA activé"
+                        example: true
+                      lastLogin:
+                        type: string
+                        format: date-time
+                        example: "2024-01-15T10:30:00.000Z"
+                      activeSessions:
+                        type: integer
+                        description: "Nombre de sessions actives"
+                        example: 2
+                      securityAlerts:
+                        type: integer
+                        description: "Nombre d'alertes de sécurité"
+                        example: 3
+                      trustedDevices:
+                        type: integer
+                        description: "Nombre d'appareils de confiance"
+                        example: 1
+        404:
+          description: "Utilisateur non trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/user/{utilisateurId}/stats:
+    get:
+      tags:
+        - Sécurité
+      summary: "📊 Statistiques de sécurité d'un utilisateur"
+      description: "Récupérer les statistiques de sécurité détaillées d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "Statistiques récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      totalLogins:
+                        type: integer
+                        example: 45
+                      failedLogins:
+                        type: integer
+                        example: 3
+                      lastFailedLogin:
+                        type: string
+                        format: date-time
+                        example: "2024-01-10T14:20:00.000Z"
+                      securityScore:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                        example: 85
+                      alertsCount:
+                        type: integer
+                        example: 3
+                      sessionsCount:
+                        type: integer
+                        example: 2
+
+  /api/security/user/{utilisateurId}/2fa/enable:
+    post:
+      tags:
+        - Sécurité
+      summary: "🔐 Activer l'authentification à deux facteurs"
+      description: "Activer la 2FA pour un utilisateur et générer un QR code"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "2FA activé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "2FA activé avec succès"
+                  data:
+                    type: object
+                    properties:
+                      secret:
+                        type: string
+                        description: "Clé secrète pour l'authentificateur"
+                        example: "JBSWY3DPEHPK3PXP"
+                      qrCode:
+                        type: string
+                        description: "URL du QR code"
+                        example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+                      backupCodes:
+                        type: array
+                        items:
+                          type: string
+                        description: "Codes de récupération"
+                        example: ["12345678", "87654321", "11223344"]
+        400:
+          description: "2FA déjà activé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/user/{utilisateurId}/2fa/verify:
+    post:
+      tags:
+        - Sécurité
+      summary: "✅ Vérifier le code 2FA"
+      description: "Vérifier un code 2FA pour finaliser l'activation"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: "Code 2FA à 6 chiffres"
+                  example: "123456"
+      responses:
+        200:
+          description: "Code 2FA vérifié avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "2FA activé avec succès"
+        400:
+          description: "Code 2FA invalide"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/user/{utilisateurId}/2fa/disable:
+    post:
+      tags:
+        - Sécurité
+      summary: "❌ Désactiver l'authentification à deux facteurs"
+      description: "Désactiver la 2FA pour un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  description: "Mot de passe de confirmation"
+                  example: "motdepasse123"
+      responses:
+        200:
+          description: "2FA désactivé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "2FA désactivé avec succès"
+        400:
+          description: "Mot de passe incorrect"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/user/{utilisateurId}/sessions:
+    get:
+      tags:
+        - Sécurité
+      summary: "📱 Sessions actives d'un utilisateur"
+      description: "Récupérer la liste des sessions actives d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "Sessions récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sessionId:
+                          type: string
+                          example: "sess_123456789"
+                        device:
+                          type: string
+                          example: "iPhone 13 Pro"
+                        browser:
+                          type: string
+                          example: "Safari 15.0"
+                        location:
+                          type: string
+                          example: "Abidjan, Côte d'Ivoire"
+                        ipAddress:
+                          type: string
+                          example: "197.149.90.123"
+                        isCurrent:
+                          type: boolean
+                          example: true
+                        lastActivity:
+                          type: string
+                          format: date-time
+                          example: "2024-01-15T10:30:00.000Z"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2024-01-15T09:00:00.000Z"
+
+  /api/security/user/{utilisateurId}/sessions/{sessionId}:
+    delete:
+      tags:
+        - Sécurité
+      summary: "🚪 Terminer une session"
+      description: "Terminer une session spécifique d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de la session"
+          example: "sess_123456789"
+      responses:
+        200:
+          description: "Session terminée avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Session terminée avec succès"
+        404:
+          description: "Session non trouvée"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/user/{utilisateurId}/history:
+    get:
+      tags:
+        - Sécurité
+      summary: "📜 Historique de connexion"
+      description: "Récupérer l'historique des connexions d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: "Numéro de page"
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: "Nombre d'éléments par page"
+          example: 20
+      responses:
+        200:
+          description: "Historique récupéré avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "hist_123456789"
+                        action:
+                          type: string
+                          example: "login"
+                        success:
+                          type: boolean
+                          example: true
+                        ipAddress:
+                          type: string
+                          example: "197.149.90.123"
+                        userAgent:
+                          type: string
+                          example: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)"
+                        location:
+                          type: string
+                          example: "Abidjan, Côte d'Ivoire"
+                        timestamp:
+                          type: string
+                          format: date-time
+                          example: "2024-01-15T10:30:00.000Z"
+
+  /api/security/user/{utilisateurId}/alerts:
+    get:
+      tags:
+        - Sécurité
+      summary: "🚨 Alertes de sécurité"
+      description: "Récupérer les alertes de sécurité d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, unread, read]
+            default: all
+          description: "Filtrer par statut"
+          example: "unread"
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+          description: "Filtrer par priorité"
+          example: "high"
+      responses:
+        200:
+          description: "Alertes récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "alert_123456789"
+                        type:
+                          type: string
+                          example: "suspicious_login"
+                        title:
+                          type: string
+                          example: "Connexion suspecte détectée"
+                        message:
+                          type: string
+                          example: "Une connexion depuis un nouvel appareil a été détectée"
+                        priority:
+                          type: string
+                          enum: [low, medium, high, critical]
+                          example: "high"
+                        isRead:
+                          type: boolean
+                          example: false
+                        metadata:
+                          type: object
+                          properties:
+                            ipAddress:
+                              type: string
+                              example: "197.149.90.123"
+                            location:
+                              type: string
+                              example: "Abidjan, Côte d'Ivoire"
+                            device:
+                              type: string
+                              example: "iPhone 13 Pro"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2024-01-15T10:30:00.000Z"
+
+  /api/security/user/{utilisateurId}/alerts/{alertId}/read:
+    patch:
+      tags:
+        - Sécurité
+      summary: "✅ Marquer une alerte comme lue"
+      description: "Marquer une alerte de sécurité comme lue"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'alerte"
+          example: "alert_123456789"
+      responses:
+        200:
+          description: "Alerte marquée comme lue avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Alerte marquée comme lue"
+        404:
+          description: "Alerte non trouvée"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/user/{utilisateurId}/devices:
+    get:
+      tags:
+        - Sécurité
+      summary: "📱 Appareils de confiance"
+      description: "Récupérer la liste des appareils de confiance d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "Appareils récupérés avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "device_123456789"
+                        name:
+                          type: string
+                          example: "Mon iPhone"
+                        type:
+                          type: string
+                          example: "mobile"
+                        fingerprint:
+                          type: string
+                          example: "abc123def456"
+                        lastUsed:
+                          type: string
+                          format: date-time
+                          example: "2024-01-15T10:30:00.000Z"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2024-01-10T09:00:00.000Z"
+
+  /api/security/user/{utilisateurId}/devices/{deviceId}:
+    delete:
+      tags:
+        - Sécurité
+      summary: "🗑️ Supprimer un appareil de confiance"
+      description: "Supprimer un appareil de confiance d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'appareil"
+          example: "device_123456789"
+      responses:
+        200:
+          description: "Appareil supprimé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Appareil supprimé avec succès"
+        404:
+          description: "Appareil non trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/user/{utilisateurId}/settings:
+    put:
+      tags:
+        - Sécurité
+      summary: "⚙️ Paramètres de sécurité"
+      description: "Mettre à jour les paramètres de sécurité d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emailNotifications:
+                  type: boolean
+                  description: "Notifications par email"
+                  example: true
+                smsNotifications:
+                  type: boolean
+                  description: "Notifications par SMS"
+                  example: false
+                loginAlerts:
+                  type: boolean
+                  description: "Alertes de connexion"
+                  example: true
+                suspiciousActivityAlerts:
+                  type: boolean
+                  description: "Alertes d'activité suspecte"
+                  example: true
+                sessionTimeout:
+                  type: integer
+                  description: "Timeout de session en minutes"
+                  example: 30
+                maxConcurrentSessions:
+                  type: integer
+                  description: "Nombre maximum de sessions simultanées"
+                  example: 3
+      responses:
+        200:
+          description: "Paramètres mis à jour avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Paramètres mis à jour avec succès"
+                  data:
+                    type: object
+                    properties:
+                      emailNotifications:
+                        type: boolean
+                        example: true
+                      smsNotifications:
+                        type: boolean
+                        example: false
+                      loginAlerts:
+                        type: boolean
+                        example: true
+                      suspiciousActivityAlerts:
+                        type: boolean
+                        example: true
+                      sessionTimeout:
+                        type: integer
+                        example: 30
+                      maxConcurrentSessions:
+                        type: integer
+                        example: 3
+
+  /api/security/stats:
+    get:
+      tags:
+        - Sécurité
+      summary: "📊 Statistiques globales de sécurité (Admin)"
+      description: "Récupérer les statistiques globales de sécurité (réservé aux administrateurs)"
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: "Statistiques récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      totalUsers:
+                        type: integer
+                        description: "Nombre total d'utilisateurs"
+                        example: 1250
+                      usersWith2FA:
+                        type: integer
+                        description: "Utilisateurs avec 2FA activé"
+                        example: 800
+                      totalSessions:
+                        type: integer
+                        description: "Nombre total de sessions actives"
+                        example: 2000
+                      securityAlerts:
+                        type: integer
+                        description: "Nombre total d'alertes de sécurité"
+                        example: 150
+                      failedLogins:
+                        type: integer
+                        description: "Tentatives de connexion échouées (24h)"
+                        example: 25
+                      securityScore:
+                        type: number
+                        description: "Score de sécurité global (0-100)"
+                        example: 85.5
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+

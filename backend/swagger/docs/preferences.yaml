@@ -1,0 +1,739 @@
+# 🎯 DOCUMENTATION SWAGGER - PRÉFÉRENCES UTILISATEURS
+
+paths:
+  /api/preferences:
+    post:
+      tags:
+        - Préférences
+      summary: "🎯 Créer ou mettre à jour les préférences utilisateur"
+      description: "Créer de nouvelles préférences ou mettre à jour les préférences existantes d'un utilisateur"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - utilisateurId
+              properties:
+                utilisateurId:
+                  type: string
+                  description: "ID de l'utilisateur"
+                  example: "64f1a2b3c4d5e6f7g8h9i0j1"
+                langue:
+                  type: string
+                  enum: [fr, en, es, de, it, pt]
+                  description: "Langue préférée"
+                  example: "fr"
+                devise:
+                  type: string
+                  enum: [XOF, EUR, USD, GBP, CAD]
+                  description: "Devise préférée"
+                  example: "XOF"
+                pays:
+                  type: string
+                  description: "Pays de l'utilisateur"
+                  example: "Côte d'Ivoire"
+                fuseauHoraire:
+                  type: string
+                  description: "Fuseau horaire"
+                  example: "Africa/Abidjan"
+                formatDate:
+                  type: string
+                  enum: [DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD]
+                  description: "Format de date préféré"
+                  example: "DD/MM/YYYY"
+                formatHeure:
+                  type: string
+                  enum: [24h, 12h]
+                  description: "Format d'heure préféré"
+                  example: "24h"
+                notifications:
+                  type: object
+                  properties:
+                    email:
+                      type: boolean
+                      description: "Notifications par email"
+                      example: true
+                    push:
+                      type: boolean
+                      description: "Notifications push"
+                      example: true
+                    sms:
+                      type: boolean
+                      description: "Notifications SMS"
+                      example: false
+                theme:
+                  type: string
+                  enum: [light, dark, auto]
+                  description: "Thème d'affichage"
+                  example: "light"
+                confidentialite:
+                  type: object
+                  properties:
+                    profilPublic:
+                      type: boolean
+                      description: "Profil public"
+                      example: false
+                    partageDonnees:
+                      type: boolean
+                      description: "Partage des données"
+                      example: false
+      responses:
+        200:
+          description: "Préférences créées/mises à jour avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Préférences mises à jour avec succès"
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        400:
+          description: "Données invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: "Non authentifié"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: "Erreur serveur"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/preferences/user/{utilisateurId}:
+    get:
+      tags:
+        - Préférences
+      summary: "📋 Récupérer les préférences d'un utilisateur"
+      description: "Récupérer toutes les préférences d'un utilisateur spécifique"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "Préférences récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        404:
+          description: "Préférences non trouvées"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: "Non authentifié"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Préférences
+      summary: "🔄 Mettre à jour les préférences d'un utilisateur"
+      description: "Mettre à jour complètement les préférences d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                langue:
+                  type: string
+                  enum: [fr, en, es, de, it, pt]
+                  description: "Langue préférée"
+                  example: "fr"
+                devise:
+                  type: string
+                  enum: [XOF, EUR, USD, GBP, CAD]
+                  description: "Devise préférée"
+                  example: "XOF"
+                pays:
+                  type: string
+                  description: "Pays de l'utilisateur"
+                  example: "Côte d'Ivoire"
+                fuseauHoraire:
+                  type: string
+                  description: "Fuseau horaire"
+                  example: "Africa/Abidjan"
+                formatDate:
+                  type: string
+                  enum: [DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD]
+                  description: "Format de date préféré"
+                  example: "DD/MM/YYYY"
+                formatHeure:
+                  type: string
+                  enum: [24h, 12h]
+                  description: "Format d'heure préféré"
+                  example: "24h"
+                notifications:
+                  type: object
+                  properties:
+                    email:
+                      type: boolean
+                      description: "Notifications par email"
+                      example: true
+                    push:
+                      type: boolean
+                      description: "Notifications push"
+                      example: true
+                    sms:
+                      type: boolean
+                      description: "Notifications SMS"
+                      example: false
+                theme:
+                  type: string
+                  enum: [light, dark, auto]
+                  description: "Thème d'affichage"
+                  example: "light"
+                confidentialite:
+                  type: object
+                  properties:
+                    profilPublic:
+                      type: boolean
+                      description: "Profil public"
+                      example: false
+                    partageDonnees:
+                      type: boolean
+                      description: "Partage des données"
+                      example: false
+      responses:
+        200:
+          description: "Préférences mises à jour avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Préférences mises à jour avec succès"
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        400:
+          description: "Données invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: "Utilisateur non trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Préférences
+      summary: "🗑️ Supprimer les préférences d'un utilisateur"
+      description: "Supprimer définitivement les préférences d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "Préférences supprimées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Préférences supprimées avec succès"
+        404:
+          description: "Préférences non trouvées"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/preferences/user/{utilisateurId}/language:
+    patch:
+      tags:
+        - Préférences
+      summary: "🌍 Changer la langue d'un utilisateur"
+      description: "Mettre à jour uniquement la langue préférée d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - langue
+              properties:
+                langue:
+                  type: string
+                  enum: [fr, en, es, de, it, pt]
+                  description: "Nouvelle langue préférée"
+                  example: "en"
+      responses:
+        200:
+          description: "Langue mise à jour avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Langue mise à jour avec succès"
+                  data:
+                    type: object
+                    properties:
+                      langue:
+                        type: string
+                        example: "en"
+        400:
+          description: "Langue invalide"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/preferences/user/{utilisateurId}/currency:
+    patch:
+      tags:
+        - Préférences
+      summary: "💰 Changer la devise d'un utilisateur"
+      description: "Mettre à jour uniquement la devise préférée d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - devise
+              properties:
+                devise:
+                  type: string
+                  enum: [XOF, EUR, USD, GBP, CAD]
+                  description: "Nouvelle devise préférée"
+                  example: "EUR"
+      responses:
+        200:
+          description: "Devise mise à jour avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Devise mise à jour avec succès"
+                  data:
+                    type: object
+                    properties:
+                      devise:
+                        type: string
+                        example: "EUR"
+        400:
+          description: "Devise invalide"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/preferences/user/{utilisateurId}/country:
+    patch:
+      tags:
+        - Préférences
+      summary: "🌍 Changer le pays d'un utilisateur"
+      description: "Mettre à jour uniquement le pays d'un utilisateur"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pays
+              properties:
+                pays:
+                  type: string
+                  description: "Nouveau pays"
+                  example: "France"
+                fuseauHoraire:
+                  type: string
+                  description: "Nouveau fuseau horaire"
+                  example: "Europe/Paris"
+      responses:
+        200:
+          description: "Pays mis à jour avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Pays mis à jour avec succès"
+                  data:
+                    type: object
+                    properties:
+                      pays:
+                        type: string
+                        example: "France"
+                      fuseauHoraire:
+                        type: string
+                        example: "Europe/Paris"
+        400:
+          description: "Données invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/preferences/user/{utilisateurId}/reset:
+    patch:
+      tags:
+        - Préférences
+      summary: "🔄 Réinitialiser les préférences d'un utilisateur"
+      description: "Remettre les préférences d'un utilisateur aux valeurs par défaut"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: utilisateurId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        200:
+          description: "Préférences réinitialisées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Préférences réinitialisées avec succès"
+                  data:
+                    $ref: '#/components/schemas/UserPreferences'
+        404:
+          description: "Utilisateur non trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/preferences/admin:
+    get:
+      tags:
+        - Préférences
+      summary: "📊 Récupérer toutes les préférences (Admin)"
+      description: "Récupérer toutes les préférences de tous les utilisateurs (réservé aux administrateurs)"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: "Numéro de page"
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: "Nombre d'éléments par page"
+          example: 10
+        - name: langue
+          in: query
+          schema:
+            type: string
+            enum: [fr, en, es, de, it, pt]
+          description: "Filtrer par langue"
+          example: "fr"
+        - name: devise
+          in: query
+          schema:
+            type: string
+            enum: [XOF, EUR, USD, GBP, CAD]
+          description: "Filtrer par devise"
+          example: "XOF"
+      responses:
+        200:
+          description: "Liste des préférences récupérée avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserPreferences'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 10
+                      total:
+                        type: integer
+                        example: 150
+                      pages:
+                        type: integer
+                        example: 15
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/preferences/stats:
+    get:
+      tags:
+        - Préférences
+      summary: "📈 Statistiques des préférences (Admin)"
+      description: "Récupérer les statistiques globales des préférences utilisateurs"
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: "Statistiques récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      totalPreferences:
+                        type: integer
+                        description: "Nombre total de préférences"
+                        example: 1250
+                      langues:
+                        type: object
+                        description: "Répartition par langue"
+                        example:
+                          fr: 800
+                          en: 300
+                          es: 150
+                      devises:
+                        type: object
+                        description: "Répartition par devise"
+                        example:
+                          XOF: 900
+                          EUR: 200
+                          USD: 150
+                      themes:
+                        type: object
+                        description: "Répartition par thème"
+                        example:
+                          light: 1000
+                          dark: 200
+                          auto: 50
+                      notifications:
+                        type: object
+                        description: "Répartition des notifications"
+                        example:
+                          email: 1200
+                          push: 1100
+                          sms: 800
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    UserPreferences:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: "ID unique des préférences"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        utilisateurId:
+          type: string
+          description: "ID de l'utilisateur"
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        langue:
+          type: string
+          enum: [fr, en, es, de, it, pt]
+          description: "Langue préférée"
+          example: "fr"
+        devise:
+          type: string
+          enum: [XOF, EUR, USD, GBP, CAD]
+          description: "Devise préférée"
+          example: "XOF"
+        pays:
+          type: string
+          description: "Pays de l'utilisateur"
+          example: "Côte d'Ivoire"
+        fuseauHoraire:
+          type: string
+          description: "Fuseau horaire"
+          example: "Africa/Abidjan"
+        formatDate:
+          type: string
+          enum: [DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD]
+          description: "Format de date préféré"
+          example: "DD/MM/YYYY"
+        formatHeure:
+          type: string
+          enum: [24h, 12h]
+          description: "Format d'heure préféré"
+          example: "24h"
+        notifications:
+          type: object
+          properties:
+            email:
+              type: boolean
+              description: "Notifications par email"
+              example: true
+            push:
+              type: boolean
+              description: "Notifications push"
+              example: true
+            sms:
+              type: boolean
+              description: "Notifications SMS"
+              example: false
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          description: "Thème d'affichage"
+          example: "light"
+        confidentialite:
+          type: object
+          properties:
+            profilPublic:
+              type: boolean
+              description: "Profil public"
+              example: false
+            partageDonnees:
+              type: boolean
+              description: "Partage des données"
+              example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: "Date de création"
+          example: "2024-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Date de dernière mise à jour"
+          example: "2024-01-15T10:30:00.000Z"

@@ -28,6 +28,10 @@ import mailRouter from './routes/mailRouter.js';
 import smsRouter from './routes/smsRoutes.js';
 import reportRouter from './routes/reportRoutes.js';
 import googleMapsRouter from './routes/googleMapsRoutes.js';
+import avisRouter from './routes/avisRoutes.js';
+import historyRouter from './routes/historyRoutes.js';
+import userPreferencesRouter from './routes/userPreferencesRoutes.js';
+import securityRouter from './routes/securityRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -35,6 +39,7 @@ import connect from './database/connex.js';
 // 🚀 IMPORTS DES MIDDLEWARES D'OPTIMISATION
 import logger, { httpLogger, authLogger, transactionLogger, userActionLogger } from './middleware/logger.js';
 import { cacheMiddleware, sessionCache } from './middleware/cache.js';
+import { simpleCache } from './middleware/simpleCache.js';
 
 const app = express()
 const httpServer = createServer(app);
@@ -117,15 +122,15 @@ const port = process.env.PORT ;
 
 
 /** routes */
-// 🚀 ROUTES AVEC CACHE POUR LES DONNÉES FRÉQUENTES
-app.use('/api', cacheMiddleware(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', cacheMiddleware(600), groupeRouter); // Cache 10 minutes
-app.use('/api', cacheMiddleware(600), categorieRouter); // Cache 10 minutes
-app.use('/api', cacheMiddleware(300), articleRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), serviceRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), prestataireRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), vendeurRouter); // Cache 5 minutes
+// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
+app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
+app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
+app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
+app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), prestataireRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -137,6 +142,11 @@ app.use('/api', favoriteRouter);
 app.use('/api', mailRouter);
 app.use('/api', smsRouter);
 app.use('/api', reportRouter);
+app.use('/api', avisRouter);
+app.use('/api', historyRouter);
+app.use('/api', userPreferencesRouter);
+// Cache simple pour les routes de sécurité (sans Redis)
+app.use('/api', simpleCache(300), securityRouter);
 app.use('/api/maps', googleMapsRouter);
 
 // ✅ ROUTE SWAGGER UI

@@ -19,6 +19,8 @@ import HandymanIcon from '@mui/icons-material/Handyman';
 import PaymentIcon from '@mui/icons-material/Payment';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import StarIcon from '@mui/icons-material/Star';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import HistoryIcon from '@mui/icons-material/History';
 import ReportIcon from '@mui/icons-material/Report';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -130,6 +132,16 @@ export const MainListItems = () => {
       title: "Avis & Notes", 
       path: "/avis", 
       icon: <StarIcon /> 
+    },
+    { 
+      title: "Favoris", 
+      path: "/favoris", 
+      icon: <FavoriteIcon /> 
+    },
+    { 
+      title: "Historique", 
+      path: "/historique", 
+      icon: <HistoryIcon /> 
     },
     { 
       title: "Signalements", 
