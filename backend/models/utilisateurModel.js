@@ -17,6 +17,7 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+<<<<<<< HEAD
   email: {  
     type: String,
     trim: true,
@@ -26,6 +27,18 @@ const UtilisateurSchema = new mongoose.Schema({
       if (!validator.isEmail(value)) {
         throw new Error('Email invalide');
       }
+=======
+email: {  
+  type: String,
+  trim: true,
+  lowercase: true,
+  unique: true,
+  sparse: true, // permet plusieurs null
+  default: null,
+  validate(value) {
+    if (value && !validator.isEmail(value)) { 
+      throw new Error("Email invalide");
+>>>>>>> d750449 (Eviter les emails vide)
     }
   },
   password: { 
