@@ -17,18 +17,18 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  email: {  
-    type: String,
-    trim: true,
-    lowercase: true,
-    unique: true,
-    required: false,
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error('Email invalide');
-      }
+email: {  
+  type: String,
+  trim: true,
+  lowercase: true,
+  unique: true,
+  sparse: true, // ✅ important quand unique mais pas obligatoire
+  validate(value) {
+    if (value && !validator.isEmail(value)) { 
+      throw new Error('Email invalide');
     }
-  },
+  }
+},
   password: { 
     type: String,
     required: true,
@@ -42,7 +42,8 @@ const UtilisateurSchema = new mongoose.Schema({
   },
   telephone: { 
     type: String,
-    unique: true
+    unique: true,
+      sparse: true 
   },
   genre: { type: String },
   note: { type: String },
