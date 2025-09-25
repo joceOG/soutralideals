@@ -40,7 +40,7 @@ export const upload = multer({ storage });
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role, phoneVerificationToken } = req.body;
+    let { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
 
     const otpEnforced = process.env.OTP_REQUIRED === 'true';
     let normalizedPhone = telephone ? normalizePhone(telephone) : null;
@@ -77,11 +77,19 @@ export const signUp = async (req, res) => {
     // Convertir le rôle en format backend
     const normalizedRole = roleMap[role.toLowerCase()];
 
+    // Normaliser email vide → null
+    if (email === "") {
+      email = null;
+    }
+
     // Vérification unicité email/téléphone
     const conditions = [];
     if (email) conditions.push({ email });
-    if (telephone) conditions.push({ telephone: normalizedPhone || telephone });
-    const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
+    if (telephone) conditions.push({ telephone });
+
+    const existingUser = conditions.length > 0 
+      ? await Utilisateur.findOne({ $or: conditions }) 
+      : null;
 
     if (existingUser) {
       let error = '';
@@ -99,18 +107,17 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({
-      nom,
-      prenom,
-      datedenaissance,
-      email,
-      password,
-      telephone: normalizedPhone || telephone,
-      telephoneVerified: telephoneVerified,
-      genre,
-      note,
-      photoProfil,
-      role: normalizedRole,
+    const newUser = new Utilisateur({ 
+      nom, 
+      prenom, 
+      datedenaissance, 
+      email, 
+      password, 
+      telephone, 
+      genre, 
+      note, 
+      photoProfil, 
+      role 
     });
     await newUser.save();
 
@@ -159,6 +166,7 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
 
   return user;
 };
+
 
 
 // ✅ CONNEXION
