@@ -28,6 +28,7 @@ import VendeursMap from '../components/GoogleMaps/VendeursMap';
 import FreelancesMap from '../components/GoogleMaps/FreelancesMap';
 import GeographicAnalytics from '../components/GoogleMaps/GeographicAnalytics';
 import Parametres from '../pages/Parametres/Parametres';
+import ImportPrestataires from '../pages/ImportPrestataires';
 
 // Ce composant ne contient que les routes, sans le BrowserRouter
 // Le BrowserRouter est maintenant dans Dashboard.tsx
@@ -41,6 +42,7 @@ const AppRouter: React.FC = () => {
       <Route path="/article" element={<Article />} />
       <Route path="/utilisateur" element={<Utilisateur />} />
       <Route path="/prestataire" element={<Prestataire />} />
+      <Route path="/import-prestataires" element={<ImportPrestataires />} />
       <Route path="/freelance" element={<Freelance />} />
       <Route path="/vendeur" element={<Vendeur />} />
       <Route path="/connexion" element={<Connexion />} />

@@ -25,6 +25,7 @@ import ReportIcon from '@mui/icons-material/Report';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 // ✅ ICÔNES POUR LA GÉOLOCALISATION
 import MapIcon from '@mui/icons-material/Map';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -86,6 +87,11 @@ export const MainListItems = () => {
       title: "Prestataires", 
       path: "/prestataire", 
       icon: <CoPresentIcon /> 
+    },
+    { 
+      title: "Import Prestataires", 
+      path: "/import-prestataires", 
+      icon: <CloudUploadIcon /> 
     },
     { 
       title: "Freelances", 

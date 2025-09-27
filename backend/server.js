@@ -32,6 +32,7 @@ import avisRouter from './routes/avisRoutes.js';
 import historyRouter from './routes/historyRoutes.js';
 import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
+import importRouter from './routes/importRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -71,7 +72,7 @@ app.use(helmet({
 // 🛡️ RATE LIMITING - Protection contre les abus
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limite chaque IP à 100 requêtes par windowMs
+  max: 2000, // ✅ Augmenté pour permettre l'import CSV (112 lots + marge)
   message: {
     error: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard.',
     retryAfter: '15 minutes'
@@ -128,7 +129,7 @@ app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
 app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
 app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), prestataireRouter); // Cache 5 minutes
+app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
 app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
 
@@ -147,6 +148,7 @@ app.use('/api', historyRouter);
 app.use('/api', userPreferencesRouter);
 // Cache simple pour les routes de sécurité (sans Redis)
 app.use('/api', simpleCache(300), securityRouter);
+app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 
 // ✅ ROUTE SWAGGER UI
