@@ -550,7 +550,7 @@ io.on('connection', (socket) => {
 // ✅ DÉMARRAGE DU SERVEUR
 connect().then(()=> {
     try{
-    httpServer.listen(port,()=>{
+    httpServer.listen(port, '0.0.0.0', ()=>{
         console.log(`🚀 Server connected to http://localhost:${port}`);
         console.log(`🔌 WebSocket server ready for connections`);
     })
