@@ -28,6 +28,11 @@ import mailRouter from './routes/mailRouter.js';
 import smsRouter from './routes/smsRoutes.js';
 import reportRouter from './routes/reportRoutes.js';
 import googleMapsRouter from './routes/googleMapsRoutes.js';
+import avisRouter from './routes/avisRoutes.js';
+import historyRouter from './routes/historyRoutes.js';
+import userPreferencesRouter from './routes/userPreferencesRoutes.js';
+import securityRouter from './routes/securityRoutes.js';
+import importRouter from './routes/importRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -35,6 +40,7 @@ import connect from './database/connex.js';
 // 🚀 IMPORTS DES MIDDLEWARES D'OPTIMISATION
 import logger, { httpLogger, authLogger, transactionLogger, userActionLogger } from './middleware/logger.js';
 import { cacheMiddleware, sessionCache } from './middleware/cache.js';
+import { simpleCache } from './middleware/simpleCache.js';
 
 const app = express()
 const httpServer = createServer(app);
@@ -66,7 +72,7 @@ app.use(helmet({
 // 🛡️ RATE LIMITING - Protection contre les abus
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limite chaque IP à 100 requêtes par windowMs
+  max: 2000, // ✅ Augmenté pour permettre l'import CSV (112 lots + marge)
   message: {
     error: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard.',
     retryAfter: '15 minutes'
@@ -117,15 +123,15 @@ const port = process.env.PORT ;
 
 
 /** routes */
-// 🚀 ROUTES AVEC CACHE POUR LES DONNÉES FRÉQUENTES
-app.use('/api', cacheMiddleware(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', cacheMiddleware(600), groupeRouter); // Cache 10 minutes
-app.use('/api', cacheMiddleware(600), categorieRouter); // Cache 10 minutes
-app.use('/api', cacheMiddleware(300), articleRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), serviceRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), prestataireRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', cacheMiddleware(300), vendeurRouter); // Cache 5 minutes
+// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
+app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
+app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
+app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
+app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
+app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
+app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -137,6 +143,12 @@ app.use('/api', favoriteRouter);
 app.use('/api', mailRouter);
 app.use('/api', smsRouter);
 app.use('/api', reportRouter);
+app.use('/api', avisRouter);
+app.use('/api', historyRouter);
+app.use('/api', userPreferencesRouter);
+// Cache simple pour les routes de sécurité (sans Redis)
+app.use('/api', simpleCache(300), securityRouter);
+app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 
 // ✅ ROUTE SWAGGER UI
@@ -538,7 +550,7 @@ io.on('connection', (socket) => {
 // ✅ DÉMARRAGE DU SERVEUR
 connect().then(()=> {
     try{
-    httpServer.listen(port,()=>{
+    httpServer.listen(port, '0.0.0.0', ()=>{
         console.log(`🚀 Server connected to http://localhost:${port}`);
         console.log(`🔌 WebSocket server ready for connections`);
     })

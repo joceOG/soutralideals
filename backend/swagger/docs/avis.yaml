@@ -1,0 +1,855 @@
+paths:
+  /api/avis:
+    post:
+      tags:
+        - Avis
+      summary: "📝 Créer un nouvel avis"
+      description: "Crée un nouvel avis avec médias (images/vidéos) pour un objet spécifique."
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - objetType
+                - objetId
+                - note
+                - titre
+                - commentaire
+              properties:
+                objetType:
+                  type: string
+                  enum: [Article, Service, Prestataire, Freelance, Vendeur, Prestation]
+                  example: "Article"
+                  description: "Type d'objet évalué"
+                objetId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789abcdef1"
+                  description: "ID de l'objet évalué"
+                note:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 4
+                  description: "Note de 1 à 5 étoiles"
+                titre:
+                  type: string
+                  example: "Excellent produit, je recommande !"
+                  description: "Titre de l'avis"
+                commentaire:
+                  type: string
+                  example: "Produit de très bonne qualité, livraison rapide. Je recommande vivement !"
+                  description: "Commentaire détaillé"
+                categories:
+                  type: array
+                  items:
+                    type: string
+                  example: ["qualite", "livraison", "prix"]
+                  description: "Catégories d'évaluation"
+                medias:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: "Fichiers médias (images/vidéos) - max 5 fichiers, 10MB chacun"
+                recommande:
+                  type: boolean
+                  example: true
+                  description: "Recommandation (oui/non)"
+                localisation:
+                  type: object
+                  properties:
+                    ville:
+                      type: string
+                      example: "Douala"
+                    pays:
+                      type: string
+                      example: "Cameroun"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["rapide", "qualite", "recommandé"]
+                  description: "Tags associés à l'avis"
+                anonyme:
+                  type: boolean
+                  example: false
+                  description: "Avis anonyme ou non"
+            encoding:
+              medias:
+                contentType: image/*,video/*
+      responses:
+        201:
+          description: "Avis créé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Avis'
+        400:
+          description: "Données invalides ou avis déjà existant"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - Avis
+      summary: "📋 Récupérer tous les avis"
+      description: "Récupère la liste de tous les avis avec filtres et pagination."
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: "Numéro de page"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: "Nombre d'avis par page"
+        - name: objetType
+          in: query
+          schema:
+            type: string
+            enum: [Article, Service, Prestataire, Freelance, Vendeur, Prestation]
+          description: "Filtrer par type d'objet"
+        - name: objetId
+          in: query
+          schema:
+            type: string
+          description: "Filtrer par ID d'objet"
+        - name: note
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: "Filtrer par note"
+        - name: recommande
+          in: query
+          schema:
+            type: boolean
+          description: "Filtrer par recommandation"
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [date, note, utile]
+            default: "date"
+          description: "Critère de tri"
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "desc"
+          description: "Ordre de tri"
+      responses:
+        200:
+          description: "Liste des avis récupérée avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Avis'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/avis/{id}:
+    get:
+      tags:
+        - Avis
+      summary: "🔍 Récupérer un avis par ID"
+      description: "Récupère les détails d'un avis spécifique."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'avis"
+          example: "64a1b2c3d4e5f6789abcdef1"
+      responses:
+        200:
+          description: "Avis récupéré avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Avis'
+        404:
+          description: "Avis non trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Avis
+      summary: "✏️ Modifier un avis"
+      description: "Met à jour un avis existant (seul l'auteur peut modifier)."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'avis"
+          example: "64a1b2c3d4e5f6789abcdef1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                titre:
+                  type: string
+                  example: "Avis modifié - Excellent produit !"
+                commentaire:
+                  type: string
+                  example: "Commentaire mis à jour après utilisation prolongée"
+                recommande:
+                  type: boolean
+                  example: true
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["modifié", "excellent"]
+      responses:
+        200:
+          description: "Avis modifié avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Avis'
+        400:
+          description: "Données invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: "Pas autorisé à modifier cet avis"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: "Avis non trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Avis
+      summary: "🗑️ Supprimer un avis"
+      description: "Supprime un avis (seul l'auteur ou un admin peut supprimer)."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'avis"
+          example: "64a1b2c3d4e5f6789abcdef1"
+      responses:
+        200:
+          description: "Avis supprimé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Avis supprimé avec succès"
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: "Pas autorisé à supprimer cet avis"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: "Avis non trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/avis/stats/{objetType}/{objetId}:
+    get:
+      tags:
+        - Avis
+      summary: "📊 Statistiques d'un objet"
+      description: "Récupère les statistiques d'évaluation d'un objet spécifique."
+      parameters:
+        - name: objetType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [Article, Service, Prestataire, Freelance, Vendeur, Prestation]
+          description: "Type d'objet"
+          example: "Article"
+        - name: objetId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'objet"
+          example: "64a1b2c3d4e5f6789abcdef1"
+      responses:
+        200:
+          description: "Statistiques récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      totalAvis:
+                        type: integer
+                        example: 25
+                      noteMoyenne:
+                        type: number
+                        format: float
+                        example: 4.2
+                      distributionNotes:
+                        type: object
+                        properties:
+                          "1":
+                            type: integer
+                            example: 1
+                          "2":
+                            type: integer
+                            example: 2
+                          "3":
+                            type: integer
+                            example: 5
+                          "4":
+                            type: integer
+                            example: 8
+                          "5":
+                            type: integer
+                            example: 9
+                      pourcentageRecommandation:
+                        type: number
+                        format: float
+                        example: 85.5
+                      avisRecents:
+                        type: integer
+                        example: 3
+                      categoriesPopulaires:
+                        type: array
+                        items:
+                          type: string
+                        example: ["qualite", "livraison", "prix"]
+
+  /api/avis/{id}/utile:
+    post:
+      tags:
+        - Avis
+      summary: "👍 Marquer un avis comme utile"
+      description: "Marque un avis comme utile (ou retire le marquage)."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'avis"
+          example: "64a1b2c3d4e5f6789abcdef1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - utile
+              properties:
+                utile:
+                  type: boolean
+                  example: true
+                  description: "true pour marquer comme utile, false pour retirer"
+      responses:
+        200:
+          description: "Avis marqué comme utile avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Avis marqué comme utile"
+                  data:
+                    type: object
+                    properties:
+                      utileCount:
+                        type: integer
+                        example: 15
+
+  /api/avis/{id}/reponse:
+    post:
+      tags:
+        - Avis
+      summary: "💬 Répondre à un avis"
+      description: "Ajoute une réponse à un avis (réponse du propriétaire de l'objet ou d'un admin)."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'avis"
+          example: "64a1b2c3d4e5f6789abcdef1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reponse
+              properties:
+                reponse:
+                  type: string
+                  example: "Merci pour votre retour ! Nous sommes ravis que le produit vous plaise."
+                  description: "Texte de la réponse"
+      responses:
+        201:
+          description: "Réponse ajoutée avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ReponseAvis'
+        400:
+          description: "Données invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/avis/{id}/signaler:
+    post:
+      tags:
+        - Avis
+      summary: "🚨 Signaler un avis"
+      description: "Signale un avis inapproprié ou suspect."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "ID de l'avis"
+          example: "64a1b2c3d4e5f6789abcdef1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - raison
+              properties:
+                raison:
+                  type: string
+                  enum: [spam, contenu_inapproprié, faux_avis, harcèlement, autre]
+                  example: "faux_avis"
+                  description: "Raison du signalement"
+                description:
+                  type: string
+                  example: "Cet avis semble être un faux avis promotionnel"
+                  description: "Description détaillée du signalement"
+      responses:
+        200:
+          description: "Avis signalé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Avis signalé, nous allons l'examiner"
+        400:
+          description: "Données invalides"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/avis/recents:
+    get:
+      tags:
+        - Avis
+      summary: "🕒 Avis récents"
+      description: "Récupère les avis les plus récents."
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+          description: "Nombre d'avis récents à récupérer"
+        - name: objetType
+          in: query
+          schema:
+            type: string
+            enum: [Article, Service, Prestataire, Freelance, Vendeur, Prestation]
+          description: "Filtrer par type d'objet"
+      responses:
+        200:
+          description: "Avis récents récupérés avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Avis'
+
+  /api/avis/search:
+    get:
+      tags:
+        - Avis
+      summary: "🔍 Rechercher des avis"
+      description: "Recherche des avis par mots-clés, tags, ou contenu."
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: "Terme de recherche"
+          example: "excellent produit"
+        - name: objetType
+          in: query
+          schema:
+            type: string
+            enum: [Article, Service, Prestataire, Freelance, Vendeur, Prestation]
+          description: "Filtrer par type d'objet"
+        - name: note
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: "Filtrer par note minimale"
+        - name: tags
+          in: query
+          schema:
+            type: string
+          description: "Filtrer par tags (séparés par des virgules)"
+          example: "qualite,livraison"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: "Numéro de page"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: "Nombre de résultats par page"
+      responses:
+        200:
+          description: "Résultats de recherche récupérés avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Avis'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  totalResults:
+                    type: integer
+                    example: 25
+
+components:
+  schemas:
+    Avis:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64a1b2c3d4e5f6789abcdef1"
+          description: "ID unique de l'avis"
+        auteur:
+          type: string
+          example: "64a1b2c3d4e5f6789abcdef2"
+          description: "ID de l'auteur de l'avis"
+        objetType:
+          type: string
+          enum: [Article, Service, Prestataire, Freelance, Vendeur, Prestation]
+          example: "Article"
+          description: "Type d'objet évalué"
+        objetId:
+          type: string
+          example: "64a1b2c3d4e5f6789abcdef3"
+          description: "ID de l'objet évalué"
+        note:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+          description: "Note de 1 à 5 étoiles"
+        titre:
+          type: string
+          example: "Excellent produit, je recommande !"
+          description: "Titre de l'avis"
+        commentaire:
+          type: string
+          example: "Produit de très bonne qualité, livraison rapide. Je recommande vivement !"
+          description: "Commentaire détaillé"
+        categories:
+          type: array
+          items:
+            type: string
+          example: ["qualite", "livraison", "prix"]
+          description: "Catégories d'évaluation"
+        medias:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                example: "https://cloudinary.com/image1.jpg"
+              type:
+                type: string
+                enum: [image, video]
+                example: "image"
+              publicId:
+                type: string
+                example: "avis/medias/image1"
+          description: "Médias associés à l'avis"
+        recommande:
+          type: boolean
+          example: true
+          description: "Recommandation (oui/non)"
+        localisation:
+          type: object
+          properties:
+            ville:
+              type: string
+              example: "Douala"
+            pays:
+              type: string
+              example: "Cameroun"
+          description: "Localisation de l'utilisateur"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["rapide", "qualite", "recommandé"]
+          description: "Tags associés à l'avis"
+        anonyme:
+          type: boolean
+          example: false
+          description: "Avis anonyme ou non"
+        utileCount:
+          type: integer
+          example: 15
+          description: "Nombre de personnes ayant trouvé cet avis utile"
+        reponses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReponseAvis'
+          description: "Réponses à cet avis"
+        signalements:
+          type: integer
+          example: 0
+          description: "Nombre de signalements"
+        statut:
+          type: string
+          enum: [actif, modéré, supprimé]
+          example: "actif"
+          description: "Statut de l'avis"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:00:00.000Z"
+          description: "Date de création"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00.000Z"
+          description: "Date de dernière modification"
+
+    ReponseAvis:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64a1b2c3d4e5f6789abcdef4"
+          description: "ID unique de la réponse"
+        auteur:
+          type: string
+          example: "64a1b2c3d4e5f6789abcdef5"
+          description: "ID de l'auteur de la réponse"
+        reponse:
+          type: string
+          example: "Merci pour votre retour ! Nous sommes ravis que le produit vous plaise."
+          description: "Texte de la réponse"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T11:00:00.000Z"
+          description: "Date de création de la réponse"
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+          description: "Page actuelle"
+        limit:
+          type: integer
+          example: 10
+          description: "Nombre d'éléments par page"
+        total:
+          type: integer
+          example: 100
+          description: "Nombre total d'éléments"
+        pages:
+          type: integer
+          example: 10
+          description: "Nombre total de pages"
+        hasNext:
+          type: boolean
+          example: true
+          description: "Y a-t-il une page suivante"
+        hasPrev:
+          type: boolean
+          example: false
+          description: "Y a-t-il une page précédente"
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Message d'erreur"
+        details:
+          type: string
+          example: "Détails supplémentaires de l'erreur"

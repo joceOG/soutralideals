@@ -254,7 +254,15 @@ const options = {
       },
       {
         name: 'Cache',
-        description: 'Gestion du cache Redis et statistiques'
+        description: 'Gestion du cache et statistiques'
+      },
+      {
+        name: 'Préférences',
+        description: 'Gestion des préférences utilisateurs'
+      },
+      {
+        name: 'Sécurité',
+        description: 'Sécurité du compte, 2FA, sessions et alertes'
       },
       {
         name: 'Logs',

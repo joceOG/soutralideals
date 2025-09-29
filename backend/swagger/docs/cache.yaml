@@ -1,0 +1,536 @@
+# 💾 DOCUMENTATION SWAGGER - CACHE & OPTIMISATIONS
+
+paths:
+  /cache/stats:
+    get:
+      tags:
+        - Cache
+      summary: "📊 Statistiques du cache"
+      description: "Récupérer les statistiques détaillées du système de cache"
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: "Statistiques du cache récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      cacheType:
+                        type: string
+                        description: "Type de cache utilisé"
+                        example: "simple"
+                      totalKeys:
+                        type: integer
+                        description: "Nombre total de clés en cache"
+                        example: 1250
+                      memoryUsage:
+                        type: object
+                        properties:
+                          used:
+                            type: string
+                            description: "Mémoire utilisée"
+                            example: "45.2 MB"
+                          total:
+                            type: string
+                            description: "Mémoire totale"
+                            example: "128.0 MB"
+                          percentage:
+                            type: number
+                            description: "Pourcentage d'utilisation"
+                            example: 35.3
+                      hitRate:
+                        type: number
+                        description: "Taux de réussite du cache (0-100)"
+                        example: 87.5
+                      missRate:
+                        type: number
+                        description: "Taux d'échec du cache (0-100)"
+                        example: 12.5
+                      topKeys:
+                        type: array
+                        description: "Clés les plus utilisées"
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                              example: "user:12345"
+                            hits:
+                              type: integer
+                              example: 150
+                            lastAccessed:
+                              type: string
+                              format: date-time
+                              example: "2024-01-15T10:30:00.000Z"
+                      performance:
+                        type: object
+                        properties:
+                          averageResponseTime:
+                            type: string
+                            description: "Temps de réponse moyen"
+                            example: "2.5ms"
+                          totalRequests:
+                            type: integer
+                            description: "Nombre total de requêtes"
+                            example: 50000
+                          cacheHits:
+                            type: integer
+                            description: "Nombre de hits"
+                            example: 43750
+                          cacheMisses:
+                            type: integer
+                            description: "Nombre de misses"
+                            example: 6250
+                      uptime:
+                        type: string
+                        description: "Temps de fonctionnement"
+                        example: "2d 14h 30m"
+        401:
+          description: "Non authentifié"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cache/clear:
+    post:
+      tags:
+        - Cache
+      summary: "🗑️ Vider le cache"
+      description: "Vider complètement le cache (réservé aux administrateurs)"
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: "Cache vidé avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Cache vidé avec succès"
+                  data:
+                    type: object
+                    properties:
+                      keysDeleted:
+                        type: integer
+                        description: "Nombre de clés supprimées"
+                        example: 1250
+                      memoryFreed:
+                        type: string
+                        description: "Mémoire libérée"
+                        example: "45.2 MB"
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2024-01-15T10:30:00.000Z"
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cache/keys:
+    get:
+      tags:
+        - Cache
+      summary: "🔑 Liste des clés en cache"
+      description: "Récupérer la liste de toutes les clés en cache (réservé aux administrateurs)"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pattern
+          in: query
+          schema:
+            type: string
+          description: "Filtrer les clés par pattern"
+          example: "user:*"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: "Nombre maximum de clés à retourner"
+          example: 100
+      responses:
+        200:
+          description: "Liste des clés récupérée avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      keys:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                              example: "user:12345"
+                            ttl:
+                              type: integer
+                              description: "Time to live en secondes"
+                              example: 300
+                            size:
+                              type: string
+                              description: "Taille de la valeur"
+                              example: "1.2 KB"
+                            lastAccessed:
+                              type: string
+                              format: date-time
+                              example: "2024-01-15T10:30:00.000Z"
+                      total:
+                        type: integer
+                        description: "Nombre total de clés"
+                        example: 1250
+                      filtered:
+                        type: integer
+                        description: "Nombre de clés après filtrage"
+                        example: 150
+        401:
+          description: "Non autorisé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cache/keys/{key}:
+    get:
+      tags:
+        - Cache
+      summary: "🔍 Informations sur une clé"
+      description: "Récupérer les informations détaillées sur une clé spécifique"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Clé à examiner"
+          example: "user:12345"
+      responses:
+        200:
+          description: "Informations sur la clé récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                        example: "user:12345"
+                      exists:
+                        type: boolean
+                        example: true
+                      ttl:
+                        type: integer
+                        description: "Time to live en secondes"
+                        example: 300
+                      size:
+                        type: string
+                        description: "Taille de la valeur"
+                        example: "1.2 KB"
+                      type:
+                        type: string
+                        description: "Type de la valeur"
+                        example: "object"
+                      lastAccessed:
+                        type: string
+                        format: date-time
+                        example: "2024-01-15T10:30:00.000Z"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2024-01-15T10:25:00.000Z"
+                      hitCount:
+                        type: integer
+                        description: "Nombre de fois où cette clé a été accédée"
+                        example: 25
+        404:
+          description: "Clé non trouvée"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Cache
+      summary: "🗑️ Supprimer une clé"
+      description: "Supprimer une clé spécifique du cache"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Clé à supprimer"
+          example: "user:12345"
+      responses:
+        200:
+          description: "Clé supprimée avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Clé supprimée avec succès"
+                  data:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                        example: "user:12345"
+                      deleted:
+                        type: boolean
+                        example: true
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2024-01-15T10:30:00.000Z"
+        404:
+          description: "Clé non trouvée"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cache/performance:
+    get:
+      tags:
+        - Cache
+      summary: "⚡ Performance du cache"
+      description: "Récupérer les métriques de performance du cache"
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: "Métriques de performance récupérées avec succès"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      responseTime:
+                        type: object
+                        properties:
+                          average:
+                            type: string
+                            example: "2.5ms"
+                          min:
+                            type: string
+                            example: "0.8ms"
+                          max:
+                            type: string
+                            example: "15.2ms"
+                          p95:
+                            type: string
+                            example: "4.1ms"
+                          p99:
+                            type: string
+                            example: "8.7ms"
+                      throughput:
+                        type: object
+                        properties:
+                          requestsPerSecond:
+                            type: number
+                            example: 1250.5
+                          peakRequestsPerSecond:
+                            type: number
+                            example: 2500.0
+                          averageRequestsPerMinute:
+                            type: number
+                            example: 75000.0
+                      efficiency:
+                        type: object
+                        properties:
+                          hitRate:
+                            type: number
+                            example: 87.5
+                          missRate:
+                            type: number
+                            example: 12.5
+                          evictionRate:
+                            type: number
+                            example: 2.1
+                      memory:
+                        type: object
+                        properties:
+                          used:
+                            type: string
+                            example: "45.2 MB"
+                          available:
+                            type: string
+                            example: "82.8 MB"
+                          utilization:
+                            type: number
+                            example: 35.3
+                      trends:
+                        type: object
+                        properties:
+                          hitRateTrend:
+                            type: string
+                            enum: [increasing, stable, decreasing]
+                            example: "stable"
+                          memoryTrend:
+                            type: string
+                            enum: [increasing, stable, decreasing]
+                            example: "increasing"
+                          performanceTrend:
+                            type: string
+                            enum: [improving, stable, degrading]
+                            example: "stable"
+
+components:
+  schemas:
+    CacheStats:
+      type: object
+      properties:
+        cacheType:
+          type: string
+          description: "Type de cache utilisé"
+          example: "simple"
+        totalKeys:
+          type: integer
+          description: "Nombre total de clés en cache"
+          example: 1250
+        memoryUsage:
+          type: object
+          properties:
+            used:
+              type: string
+              description: "Mémoire utilisée"
+              example: "45.2 MB"
+            total:
+              type: string
+              description: "Mémoire totale"
+              example: "128.0 MB"
+            percentage:
+              type: number
+              description: "Pourcentage d'utilisation"
+              example: 35.3
+        hitRate:
+          type: number
+          description: "Taux de réussite du cache (0-100)"
+          example: 87.5
+        missRate:
+          type: number
+          description: "Taux d'échec du cache (0-100)"
+          example: 12.5
+        uptime:
+          type: string
+          description: "Temps de fonctionnement"
+          example: "2d 14h 30m"
+
+    CacheKey:
+      type: object
+      properties:
+        key:
+          type: string
+          description: "Clé du cache"
+          example: "user:12345"
+        ttl:
+          type: integer
+          description: "Time to live en secondes"
+          example: 300
+        size:
+          type: string
+          description: "Taille de la valeur"
+          example: "1.2 KB"
+        lastAccessed:
+          type: string
+          format: date-time
+          description: "Dernière fois que la clé a été accédée"
+          example: "2024-01-15T10:30:00.000Z"
+        hitCount:
+          type: integer
+          description: "Nombre de fois où cette clé a été accédée"
+          example: 25
+
+    CachePerformance:
+      type: object
+      properties:
+        responseTime:
+          type: object
+          properties:
+            average:
+              type: string
+              example: "2.5ms"
+            min:
+              type: string
+              example: "0.8ms"
+            max:
+              type: string
+              example: "15.2ms"
+            p95:
+              type: string
+              example: "4.1ms"
+            p99:
+              type: string
+              example: "8.7ms"
+        throughput:
+          type: object
+          properties:
+            requestsPerSecond:
+              type: number
+              example: 1250.5
+            peakRequestsPerSecond:
+              type: number
+              example: 2500.0
+            averageRequestsPerMinute:
+              type: number
+              example: 75000.0
+        efficiency:
+          type: object
+          properties:
+            hitRate:
+              type: number
+              example: 87.5
+            missRate:
+              type: number
+              example: 12.5
+            evictionRate:
+              type: number
+              example: 2.1
