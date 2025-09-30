@@ -19,10 +19,13 @@ import HandymanIcon from '@mui/icons-material/Handyman';
 import PaymentIcon from '@mui/icons-material/Payment';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import StarIcon from '@mui/icons-material/Star';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import HistoryIcon from '@mui/icons-material/History';
 import ReportIcon from '@mui/icons-material/Report';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 // ✅ ICÔNES POUR LA GÉOLOCALISATION
 import MapIcon from '@mui/icons-material/Map';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -86,6 +89,11 @@ export const MainListItems = () => {
       icon: <CoPresentIcon /> 
     },
     { 
+      title: "Import Prestataires", 
+      path: "/import-prestataires", 
+      icon: <CloudUploadIcon /> 
+    },
+    { 
       title: "Freelances", 
       path: "/freelance", 
       icon: <WorkIcon /> 
@@ -130,6 +138,16 @@ export const MainListItems = () => {
       title: "Avis & Notes", 
       path: "/avis", 
       icon: <StarIcon /> 
+    },
+    { 
+      title: "Favoris", 
+      path: "/favoris", 
+      icon: <FavoriteIcon /> 
+    },
+    { 
+      title: "Historique", 
+      path: "/historique", 
+      icon: <HistoryIcon /> 
     },
     { 
       title: "Signalements", 
