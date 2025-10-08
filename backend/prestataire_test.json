@@ -1,0 +1,19 @@
+{
+    "utilisateur": "68b037dedd250f845cdadfa2",
+    "service": "66e9d6866f6a9b71a441486d",
+    "prixprestataire": 7500,
+    "localisation": "Abidjan, Plateau",
+    "localisationmaps": {
+        "latitude": 5.3600,
+        "longitude": -4.0083
+    },
+    "description": "Expert en développement web et applications mobiles",
+    "specialite": ["Développement web", "Applications mobiles"],
+    "anneeExperience": "7",
+    "verifier": false,
+    "numeroCNI": "CI987654321",
+    "rayonIntervention": 30,
+    "zoneIntervention": ["Abidjan", "Cocody", "Plateau"],
+    "tarifHoraireMin": 3000,
+    "tarifHoraireMax": 8000
+}

@@ -16,30 +16,36 @@ const upload = multer({ dest: "uploads/" });
 // Créer un nouveau service
 export const createService = async (req, res) => {
     try {
-        const { nomservice, categorie, prixmoyen } = req.body;
+        const { nomservice, categorie, prixmoyen, imageservice } = req.body;
 
-        if (!req.file) {
-            return res.status(400).json({ error: "No image file provided" });
+        let finalImageUrl;
+
+        if (req.file) {
+            // Upload d'un fichier
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: "services",
+            });
+            finalImageUrl = result.secure_url;
+            fs.unlinkSync(req.file.path);
+        } else if (imageservice) {
+            // Utiliser l'URL fournie
+            finalImageUrl = imageservice;
+        } else {
+            return res.status(400).json({ error: "No image file or URL provided" });
         }
-
-        const result = await cloudinary.v2.uploader.upload(req.file.path, {
-            folder: "services",
-        });
-
-        const imageservice = result.secure_url;
 
         const newService = new Service({
             nomservice,
-            imageservice,
+            imageservice: finalImageUrl,
             categorie,
             prixmoyen
         });
 
-        await newService.save();
+        console.log('💾 Tentative de sauvegarde du service:', newService);
+        const savedService = await newService.save();
+        console.log('✅ Service sauvegardé avec succès:', savedService._id);
 
-        fs.unlinkSync(req.file.path);
-
-        res.status(201).json(newService);
+        res.status(201).json(savedService);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
