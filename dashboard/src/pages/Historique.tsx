@@ -188,7 +188,16 @@ const HistoriqueComponent: React.FC = () => {
       params.append('limit', pagination.limit.toString());
 
       const response = await axios.get(`${apiUrl}/history?${params.toString()}`);
-      setHistorique(response.data.history || response.data);
+      
+      // Vérifier si la réponse est un tableau
+      const data = response.data.history || response.data;
+      if (Array.isArray(data)) {
+        setHistorique(data);
+      } else {
+        console.error("Données historique non valides:", data);
+        setHistorique([]);
+        toast.error("Format de données incorrect reçu du serveur");
+      }
       
       if (response.data.pagination) {
         setPagination(response.data.pagination);
@@ -386,7 +395,7 @@ const HistoriqueComponent: React.FC = () => {
                 <Card variant="outlined">
                   <CardContent sx={{ textAlign: 'center' }}>
                     <Typography variant="h4" color="warning.main">
-                      {historique.length}
+                      {Array.isArray(historique) ? historique.length : 0}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Affichées
@@ -502,7 +511,7 @@ const HistoriqueComponent: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {historique.map((item) => (
+                  {(Array.isArray(historique) ? historique : []).map((item) => (
                     <TableRow key={item._id} hover>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
