@@ -191,8 +191,18 @@ const FreelanceComponent: React.FC = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${apiUrl}/freelance`);
-      setFreelances(response.data);
-    } catch {
+      
+      // Vérifier si la réponse est un tableau
+      if (Array.isArray(response.data)) {
+        setFreelances(response.data);
+      } else {
+        console.error("Données reçues non valides:", response.data);
+        setFreelances([]);
+        toast.error("Format de données incorrect reçu du serveur");
+      }
+    } catch (error) {
+      console.error("Erreur API freelance:", error);
+      setFreelances([]);
       toast.error("Erreur lors du chargement des freelances");
     } finally {
       setLoading(false);

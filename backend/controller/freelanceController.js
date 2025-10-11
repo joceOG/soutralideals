@@ -134,14 +134,7 @@ export const createFreelance = async (req, res) => {
 export const getAllFreelances = async (req, res) => {
   try {
     const freelances = await freelanceModel.find()
-      .populate("utilisateur")
-      .populate({
-        path: "service",
-        populate: {
-          path: "categorie",
-          populate: { path: "groupe" }
-        }
-      });
+      .populate("utilisateur");
 
     res.status(200).json(freelances);
   } catch (err) {

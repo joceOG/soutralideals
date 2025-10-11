@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import GoogleMapComponent from './GoogleMapComponent';
 import { geocodeAddress, calculateDistance, searchNearbyPlaces } from '../../services/googleMapsService';
+import axios from 'axios';
 
 // Types
 interface Prestataire {
@@ -66,6 +67,9 @@ const PrestatairesMap: React.FC = () => {
   const [mapCenter, setMapCenter] = useState({ lat: 5.3600, lng: -4.0083 }); // Abidjan par défaut
   const [showServiceArea, setShowServiceArea] = useState(false);
   const [serviceArea, setServiceArea] = useState<ServiceArea | null>(null);
+  
+  // Configuration API
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
   // ✅ CHARGEMENT DES PRESTATAIRES
   useEffect(() => {
@@ -75,10 +79,44 @@ const PrestatairesMap: React.FC = () => {
   const loadPrestataires = async () => {
     try {
       setLoading(true);
-      // Simulation de données - remplacer par un appel API réel
+      setError(null);
+      
+      // ✅ APPEL API RÉEL
+      let apiPrestataires: Prestataire[] = [];
+      try {
+        console.log('🔄 Chargement des prestataires depuis l\'API...');
+        const response = await axios.get(`${apiUrl}/prestataire`);
+        
+        if (Array.isArray(response.data)) {
+          // Transformer les données de l'API vers le format attendu
+          apiPrestataires = response.data.map((p: any) => ({
+            id: p._id || p.id,
+            nom: p.utilisateur?.nom || p.nom || 'N/A',
+            prenom: p.utilisateur?.prenom || p.prenom || 'N/A',
+            email: p.utilisateur?.email || p.email || '',
+            telephone: p.utilisateur?.telephone || p.telephone || '',
+            adresse: p.localisation || p.adresse || '',
+            ville: p.localisation || p.ville || 'Abidjan',
+            services: p.specialite || p.services || [],
+            rating: p.rating || 0,
+            isActive: p.verifier !== false,
+            coordinates: p.localisationmaps ? {
+              lat: p.localisationmaps.latitude || 5.3600,
+              lng: p.localisationmaps.longitude || -4.0083
+            } : undefined
+          }));
+          console.log(`✅ ${apiPrestataires.length} prestataires chargés depuis l'API`);
+        } else {
+          console.warn('⚠️ Réponse API non valide, utilisation des données mockées');
+        }
+      } catch (apiError) {
+        console.warn('⚠️ Erreur API, utilisation des données mockées:', apiError);
+      }
+      
+      // ✅ DONNÉES MOCKÉES COMME FALLBACK
       const mockPrestataires: Prestataire[] = [
         {
-          id: '1',
+          id: 'mock-1',
           nom: 'Kouassi',
           prenom: 'Jean',
           email: 'jean.kouassi@example.com',
@@ -91,7 +129,7 @@ const PrestatairesMap: React.FC = () => {
           coordinates: { lat: 5.3600, lng: -4.0083 }
         },
         {
-          id: '2',
+          id: 'mock-2',
           nom: 'Traoré',
           prenom: 'Marie',
           email: 'marie.traore@example.com',
@@ -104,10 +142,14 @@ const PrestatairesMap: React.FC = () => {
           coordinates: { lat: 5.3700, lng: -4.0183 }
         }
       ];
+      
+      // ✅ COMBINER DONNÉES API + MOCK
+      const allPrestataires = [...apiPrestataires, ...mockPrestataires];
+      console.log(`📊 Total prestataires: ${allPrestataires.length} (${apiPrestataires.length} API + ${mockPrestataires.length} mock)`);
 
       // Géocoder les adresses des prestataires
       const prestatairesWithCoords = await Promise.all(
-        mockPrestataires.map(async (prestataire) => {
+        allPrestataires.map(async (prestataire) => {
           if (prestataire.coordinates) return prestataire;
           
           const geocodeResult = await geocodeAddress(`${prestataire.adresse}, ${prestataire.ville}`);
@@ -272,9 +314,23 @@ const PrestatairesMap: React.FC = () => {
       {/* ✅ CARTE */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Carte des Prestataires ({filteredPrestataires.length})
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6">
+              Carte des Prestataires ({filteredPrestataires.length})
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Chip 
+                label={`${prestataires.filter(p => !p.id.startsWith('mock-')).length} API`} 
+                color="primary" 
+                size="small" 
+              />
+              <Chip 
+                label={`${prestataires.filter(p => p.id.startsWith('mock-')).length} Mock`} 
+                color="secondary" 
+                size="small" 
+              />
+            </Box>
+          </Box>
           <GoogleMapComponent
             center={mapCenter}
             zoom={12}

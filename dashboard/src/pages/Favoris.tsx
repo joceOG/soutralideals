@@ -116,7 +116,16 @@ const FavorisComponent: React.FC = () => {
       if (selectedList) params.append('listePersonnalisee', selectedList);
 
       const response = await axios.get(`${apiUrl}/favorites?${params.toString()}`);
-      setFavorites(response.data.favorites || response.data);
+      
+      // Vérifier si la réponse est un tableau
+      const data = response.data.favorites || response.data;
+      if (Array.isArray(data)) {
+        setFavorites(data);
+      } else {
+        console.error("Données favoris non valides:", data);
+        setFavorites([]);
+        toast.error("Format de données incorrect reçu du serveur");
+      }
     } catch (error) {
       toast.error("Erreur lors du chargement des favoris");
       console.error(error);
@@ -139,9 +148,17 @@ const FavorisComponent: React.FC = () => {
   const fetchCustomLists = useCallback(async () => {
     try {
       const response = await axios.get(`${apiUrl}/favorites/lists`);
-      setCustomLists(response.data);
+      
+      // Vérifier si la réponse est un tableau
+      if (Array.isArray(response.data)) {
+        setCustomLists(response.data);
+      } else {
+        console.error("Données listes personnalisées non valides:", response.data);
+        setCustomLists([]);
+      }
     } catch (error) {
       console.error("Erreur lors du chargement des listes:", error);
+      setCustomLists([]);
     }
   }, []);
 
@@ -192,7 +209,7 @@ const FavorisComponent: React.FC = () => {
   };
 
   // 🔹 FILTRAGE ET RECHERCHE
-  const filteredFavorites = favorites.filter(item => {
+  const filteredFavorites = (Array.isArray(favorites) ? favorites : []).filter(item => {
     const matchesSearch = searchTerm === '' ||
       item.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -291,7 +308,7 @@ const FavorisComponent: React.FC = () => {
                 <CardContent>
                   <Typography variant="h6" color="textSecondary">Actifs</Typography>
                   <Typography variant="h3" sx={{ color: 'success.main' }}>
-                    {favorites.filter(f => f.statut === 'ACTIF').length}
+                    {(Array.isArray(favorites) ? favorites : []).filter(f => f.statut === 'ACTIF').length}
                   </Typography>
                 </CardContent>
               </Card>
@@ -301,7 +318,7 @@ const FavorisComponent: React.FC = () => {
                 <CardContent>
                   <Typography variant="h6" color="textSecondary">Archivés</Typography>
                   <Typography variant="h3" sx={{ color: 'warning.main' }}>
-                    {favorites.filter(f => f.statut === 'ARCHIVE').length}
+                    {(Array.isArray(favorites) ? favorites : []).filter(f => f.statut === 'ARCHIVE').length}
                   </Typography>
                 </CardContent>
               </Card>
@@ -357,7 +374,7 @@ const FavorisComponent: React.FC = () => {
                 label="Liste"
               >
                 <MenuItem value="">Toutes les listes</MenuItem>
-                {customLists.map(list => (
+                {(Array.isArray(customLists) ? customLists : []).map(list => (
                   <MenuItem key={list} value={list}>{list}</MenuItem>
                 ))}
               </Select>
