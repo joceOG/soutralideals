@@ -40,6 +40,26 @@ const prestataireSchema = new mongoose.Schema({
   nbMission: { type: Number, default: 0 },
   revenus: { type: Number, default: 0 },
   clients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur" }],
+
+  // 🆕 OPTION C - Traçabilité et validation
+  source: { 
+    type: String, 
+    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard'],
+    default: 'web' 
+  },
+  status: { 
+    type: String, 
+    enum: ['pending', 'active', 'rejected', 'suspended'],
+    default: 'active'
+  },
+  recenseur: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Utilisateur' 
+  },
+  dateRecensement: { type: Date },
+  validePar: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur' },
+  dateValidation: { type: Date },
+  motifRejet: { type: String },
 }, { timestamps: true });
 
 const prestataireModel = mongoose.model("Prestataire", prestataireSchema);

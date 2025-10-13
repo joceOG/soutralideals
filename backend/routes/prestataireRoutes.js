@@ -6,6 +6,9 @@ import {
   getPrestataireById,
   updatePrestataire,
   deletePrestataire,
+  validatePrestataire,
+  rejectPrestataire,
+  getPendingPrestataires,
 } from "../controller/prestataireController.js";
 
 const upload = multer({ dest: "uploads/" }); // stockage temporaire pour Cloudinary
@@ -39,5 +42,10 @@ prestataireRouter.put(
 prestataireRouter.get("/prestataire", getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", getPrestataireById);
 prestataireRouter.delete("/prestataire/:id", deletePrestataire);
+
+// 🆕 Routes validation (Option C)
+prestataireRouter.get("/prestataire/pending/list", getPendingPrestataires);
+prestataireRouter.put("/prestataire/:id/validate", validatePrestataire);
+prestataireRouter.put("/prestataire/:id/reject", rejectPrestataire);
 
 export default prestataireRouter;

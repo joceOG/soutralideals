@@ -325,7 +325,27 @@ const VendeurSchema = new mongoose.Schema({
   notes: {
     type: String,
     maxlength: 1000
-  }
+  },
+
+  // 🆕 OPTION C - Traçabilité et validation
+  source: { 
+    type: String, 
+    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard'],
+    default: 'web' 
+  },
+  status: { 
+    type: String, 
+    enum: ['pending', 'active', 'rejected', 'suspended'],
+    default: 'active'
+  },
+  recenseur: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Utilisateur' 
+  },
+  dateRecensement: { type: Date },
+  validePar: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur' },
+  dateValidation: { type: Date },
+  motifRejet: { type: String }
 
 }, { 
   timestamps: true,
