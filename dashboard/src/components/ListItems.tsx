@@ -23,6 +23,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import HistoryIcon from '@mui/icons-material/History';
 import ReportIcon from '@mui/icons-material/Report';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import PendingActionsIcon from '@mui/icons-material/PendingActions'; // ✅ Pour recensements pending
 import SettingsIcon from '@mui/icons-material/Settings';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -158,6 +159,13 @@ export const MainListItems = () => {
       title: "Vérifications", 
       path: "/verifications", 
       icon: <VerifiedUserIcon /> 
+    },
+    // ✅ OPTION C - VALIDATION RECENSEMENTS
+    { 
+      title: "Recensements en attente", 
+      path: "/recensements-pending", 
+      icon: <PendingActionsIcon />,
+      badge: 0 // Sera dynamique avec API
     },
     // ✅ ANALYTICS & CONFIGURATION
     { 
