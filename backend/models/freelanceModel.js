@@ -63,7 +63,27 @@ const FreelanceSchema = mongoose.Schema({
     
     // ✅ Statut du compte
     accountStatus: { type: String, enum: ['Active', 'Suspended', 'Pending'], default: 'Pending' },
-    subscriptionType: { type: String, enum: ['Free', 'Premium', 'Pro'], default: 'Free' }
+    subscriptionType: { type: String, enum: ['Free', 'Premium', 'Pro'], default: 'Free' },
+
+    // 🆕 OPTION C - Traçabilité et validation
+    source: { 
+        type: String, 
+        enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard'],
+        default: 'web' 
+    },
+    status: { 
+        type: String, 
+        enum: ['pending', 'active', 'rejected', 'suspended'],
+        default: 'active'
+    },
+    recenseur: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Utilisateur' 
+    },
+    dateRecensement: { type: Date },
+    validePar: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur' },
+    dateValidation: { type: Date },
+    motifRejet: { type: String }
 }, { timestamps: true });
 
 const freelanceModel = mongoose.model('Freelance', FreelanceSchema);

@@ -112,6 +112,20 @@ export const createPrestataire = async (req, res) => {
       ...uploads,
     });
 
+    // 🆕 OPTION C - Traçabilité (ajout conditionnel pour éviter erreurs)
+    if (req.body.source) {
+      newPrestataire.source = req.body.source;
+    }
+    if (req.body.status) {
+      newPrestataire.status = req.body.status;
+    }
+    if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
+      newPrestataire.recenseur = mongoose.Types.ObjectId(req.body.recenseur);
+    }
+    if (req.body.dateRecensement) {
+      newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
+    }
+
     await newPrestataire.save();
 
     const populatedPrestataire = await prestataireModel
@@ -276,6 +290,105 @@ export const deletePrestataire = async (req, res) => {
     res.status(200).json({ message: "Prestataire supprimé avec succès" });
   } catch (err) {
     console.error("Erreur suppression prestataire:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Récupérer les prestataires en attente
+export const getPendingPrestataires = async (req, res) => {
+  try {
+    const prestataires = await prestataireModel.find({ 
+      status: 'pending',
+      source: 'sdealsidentification'
+    })
+      .populate("utilisateur")
+      .populate("recenseur", "nom prenom telephone")
+      .populate({
+        path: "service",
+        populate: {
+          path: "categorie",
+          populate: { path: "groupe" }
+        }
+      })
+      .sort({ dateRecensement: -1 });
+
+    res.status(200).json(prestataires);
+  } catch (err) {
+    console.error("Erreur récupération prestataires pending:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Valider un prestataire
+export const validatePrestataire = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.body.adminId || req.user?._id;
+
+    const prestataire = await prestataireModel.findById(id);
+    
+    if (!prestataire) {
+      return res.status(404).json({ error: "Prestataire non trouvé" });
+    }
+
+    if (prestataire.status !== 'pending') {
+      return res.status(400).json({ error: "Prestataire déjà traité" });
+    }
+
+    prestataire.status = 'active';
+    prestataire.verifier = true;
+    prestataire.validePar = adminId;
+    prestataire.dateValidation = new Date();
+
+    await prestataire.save();
+
+    const populatedPrestataire = await prestataireModel.findById(id)
+      .populate("utilisateur")
+      .populate("recenseur", "nom prenom")
+      .populate("service");
+
+    res.status(200).json({
+      success: true,
+      message: "Prestataire validé avec succès",
+      prestataire: populatedPrestataire
+    });
+  } catch (err) {
+    console.error("Erreur validation prestataire:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Rejeter un prestataire
+export const rejectPrestataire = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motif } = req.body;
+    const adminId = req.body.adminId || req.user?._id;
+
+    const prestataire = await prestataireModel.findById(id);
+    
+    if (!prestataire) {
+      return res.status(404).json({ error: "Prestataire non trouvé" });
+    }
+
+    if (prestataire.status !== 'pending') {
+      return res.status(400).json({ error: "Prestataire déjà traité" });
+    }
+
+    prestataire.status = 'rejected';
+    prestataire.motifRejet = motif || 'Non spécifié';
+    prestataire.validePar = adminId;
+    prestataire.dateValidation = new Date();
+
+    await prestataire.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Prestataire rejeté",
+      prestataire
+    });
+  } catch (err) {
+    console.error("Erreur rejet prestataire:", err.message);
     res.status(500).json({ error: err.message });
   }
 };

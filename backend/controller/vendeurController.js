@@ -542,3 +542,97 @@ export const changeVendeurStatus = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// 🆕 OPTION C - Récupérer les vendeurs en attente
+export const getPendingVendeurs = async (req, res) => {
+    try {
+        const vendeurs = await vendeurModel.find({ 
+            status: 'pending',
+            source: 'sdealsidentification'
+        })
+            .populate("utilisateur")
+            .populate("recenseur", "nom prenom telephone")
+            .sort({ dateRecensement: -1 });
+
+        res.status(200).json(vendeurs);
+    } catch (err) {
+        console.error("Erreur récupération vendeurs pending:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// 🆕 OPTION C - Valider un vendeur
+export const validateVendeur = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const adminId = req.body.adminId || req.user?._id;
+
+        const vendeur = await vendeurModel.findById(id);
+        
+        if (!vendeur) {
+            return res.status(404).json({ error: "Vendeur non trouvé" });
+        }
+
+        if (vendeur.status !== 'pending') {
+            return res.status(400).json({ error: "Vendeur déjà traité" });
+        }
+
+        vendeur.status = 'active';
+        vendeur.accountStatus = 'Active';
+        vendeur.verificationDocuments.isVerified = true;
+        vendeur.identityVerified = true;
+        vendeur.validePar = adminId;
+        vendeur.dateValidation = new Date();
+
+        await vendeur.save();
+
+        const populatedVendeur = await vendeurModel.findById(id)
+            .populate("utilisateur")
+            .populate("recenseur", "nom prenom");
+
+        res.status(200).json({
+            success: true,
+            message: "Vendeur validé avec succès",
+            vendeur: populatedVendeur
+        });
+    } catch (err) {
+        console.error("Erreur validation vendeur:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// 🆕 OPTION C - Rejeter un vendeur
+export const rejectVendeur = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { motif } = req.body;
+        const adminId = req.body.adminId || req.user?._id;
+
+        const vendeur = await vendeurModel.findById(id);
+        
+        if (!vendeur) {
+            return res.status(404).json({ error: "Vendeur non trouvé" });
+        }
+
+        if (vendeur.status !== 'pending') {
+            return res.status(400).json({ error: "Vendeur déjà traité" });
+        }
+
+        vendeur.status = 'rejected';
+        vendeur.accountStatus = 'Suspended';
+        vendeur.motifRejet = motif || 'Non spécifié';
+        vendeur.validePar = adminId;
+        vendeur.dateValidation = new Date();
+
+        await vendeur.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Vendeur rejeté",
+            vendeur
+        });
+    } catch (err) {
+        console.error("Erreur rejet vendeur:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+};

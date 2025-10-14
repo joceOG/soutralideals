@@ -377,3 +377,96 @@ export const deleteFreelance = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// 🆕 OPTION C - Récupérer les freelances en attente
+export const getPendingFreelances = async (req, res) => {
+  try {
+    const freelances = await freelanceModel.find({ 
+      status: 'pending',
+      source: 'sdealsidentification'
+    })
+      .populate("utilisateur")
+      .populate("recenseur", "nom prenom telephone")
+      .sort({ dateRecensement: -1 });
+
+    res.status(200).json(freelances);
+  } catch (err) {
+    console.error("Erreur récupération freelances pending:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Valider un freelance
+export const validateFreelance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.body.adminId || req.user?._id;
+
+    const freelance = await freelanceModel.findById(id);
+    
+    if (!freelance) {
+      return res.status(404).json({ error: "Freelance non trouvé" });
+    }
+
+    if (freelance.status !== 'pending') {
+      return res.status(400).json({ error: "Freelance déjà traité" });
+    }
+
+    freelance.status = 'active';
+    freelance.accountStatus = 'Active';
+    freelance.verificationDocuments.isVerified = true;
+    freelance.validePar = adminId;
+    freelance.dateValidation = new Date();
+
+    await freelance.save();
+
+    const populatedFreelance = await freelanceModel.findById(id)
+      .populate("utilisateur")
+      .populate("recenseur", "nom prenom");
+
+    res.status(200).json({
+      success: true,
+      message: "Freelance validé avec succès",
+      freelance: populatedFreelance
+    });
+  } catch (err) {
+    console.error("Erreur validation freelance:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Rejeter un freelance
+export const rejectFreelance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motif } = req.body;
+    const adminId = req.body.adminId || req.user?._id;
+
+    const freelance = await freelanceModel.findById(id);
+    
+    if (!freelance) {
+      return res.status(404).json({ error: "Freelance non trouvé" });
+    }
+
+    if (freelance.status !== 'pending') {
+      return res.status(400).json({ error: "Freelance déjà traité" });
+    }
+
+    freelance.status = 'rejected';
+    freelance.accountStatus = 'Suspended';
+    freelance.motifRejet = motif || 'Non spécifié';
+    freelance.validePar = adminId;
+    freelance.dateValidation = new Date();
+
+    await freelance.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Freelance rejeté",
+      freelance
+    });
+  } catch (err) {
+    console.error("Erreur rejet freelance:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};

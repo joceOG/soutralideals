@@ -29,6 +29,8 @@ import FreelancesMap from '../components/GoogleMaps/FreelancesMap';
 import GeographicAnalytics from '../components/GoogleMaps/GeographicAnalytics';
 import Parametres from '../pages/Parametres/Parametres';
 import ImportPrestataires from '../pages/ImportPrestataires';
+// ✅ OPTION C - Page validation recensements SDEALSIDENTIFICATION
+import RecensementsPending from '../pages/RecensementsPending';
 
 // Ce composant ne contient que les routes, sans le BrowserRouter
 // Le BrowserRouter est maintenant dans Dashboard.tsx
@@ -73,6 +75,9 @@ const AppRouter: React.FC = () => {
       
       {/* ✅ PAGES CONFIGURÉES */}
       <Route path="/parametres" element={<Parametres />} />
+      
+      {/* ✅ OPTION C - Validation recensements SDEALSIDENTIFICATION */}
+      <Route path="/recensements-pending" element={<RecensementsPending />} />
       
       {/* 🚧 ROUTES À VENIR (pages temporaires ou placeholders) */}
       <Route path="/signalements" element={<div>Module Signalements - En cours de développement</div>} />
