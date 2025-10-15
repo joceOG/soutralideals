@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import {
     createService,
+    createServiceDirect,
     updateService,
     getAllServices,
     getServicesByCategorie,
@@ -12,6 +13,7 @@ const serviceRouter = Router();
 const upload = multer({ dest: "uploads/" });
 
 serviceRouter.post("/service", upload.single("imageservice"), createService);
+serviceRouter.post("/service/direct", createServiceDirect); // Endpoint direct sans multer
 serviceRouter.put("/service/:id", upload.single("imageservice"), updateService);
 serviceRouter.get("/service", getAllServices);
 serviceRouter.get("/service/:categorie", getServicesByCategorie);

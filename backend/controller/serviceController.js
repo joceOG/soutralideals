@@ -30,9 +30,10 @@ export const createService = async (req, res) => {
         } else if (imageservice) {
             // Utiliser l'URL fournie
             finalImageUrl = imageservice;
-        } else {
-            return res.status(400).json({ error: "No image file or URL provided" });
-        }
+                } else {
+                    // Image par défaut si aucune fournie
+                    finalImageUrl = "https://res.cloudinary.com/demo/image/upload/w_300,h_200,c_fill,g_auto/sample.jpg";
+                }
 
         const newService = new Service({
             nomservice,
@@ -111,6 +112,29 @@ export const getServicesByCategorie = async (req, res) => {
         const { categorie } = req.params;
         const servicesByCategorie = await Service.find({ nomcategorie: categorie });
         res.json(servicesByCategorie);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Créer un service directement (sans multer)
+export const createServiceDirect = async (req, res) => {
+    try {
+        const { nomservice, categorie, prixmoyen, imageservice } = req.body;
+
+        const newService = new Service({
+            nomservice,
+            imageservice: imageservice || "https://res.cloudinary.com/demo/image/upload/w_300,h_200,c_fill,g_auto/sample.jpg",
+            categorie,
+            prixmoyen
+        });
+
+        console.log('💾 Tentative de sauvegarde du service:', newService);
+        const savedService = await newService.save();
+        console.log('✅ Service sauvegardé avec succès:', savedService._id);
+
+        res.status(201).json(savedService);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
