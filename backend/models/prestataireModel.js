@@ -12,7 +12,7 @@ const prestataireSchema = new mongoose.Schema({
   prixprestataire: { type: Number, required: true },
   localisation: { type: String, required: true },
   localisationmaps:{ type: localisationSchema , required : false  } ,// ✅ ajouté
-  note: { type: Number, default: 0, min: 0, max: 5 },
+  note: { type: String },
   verifier: { type: Boolean, default: false },
 
   // Identité
@@ -38,7 +38,6 @@ const prestataireSchema = new mongoose.Schema({
 
   // Stats
   nbMission: { type: Number, default: 0 },
-  nbAvis: { type: Number, default: 0 },
   revenus: { type: Number, default: 0 },
   clients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur" }],
 
