@@ -1,18 +1,6 @@
 import mongoose from 'mongoose'
 
 const ServiceSchema = new mongoose.Schema({
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-    nomservice: { type: String, required: true },
-    imageservice: { type: String, required: false },
-    prixmoyen : { type: String, required: true },
-    categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie', required: true },
-=======
->>>>>>> 01c5d47 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> e390857 (Dashboard Complet and Merge)
   nomservice: { type: String, required: true },
   imageservice: { type: String, required: false },
   // Prix optionnel au niveau catalogue.
@@ -20,13 +8,6 @@ const ServiceSchema = new mongoose.Schema({
   prixmoyen: { type: String, required: false, default: null },
   categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie', required: true },
   tags: [String],
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 01c5d47 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> e390857 (Dashboard Complet and Merge)
   // Adjust as necessary
 });
 

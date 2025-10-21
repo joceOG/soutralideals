@@ -39,42 +39,9 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
-=======
-<<<<<<< HEAD
-=======
-import searchRouter from './routes/searchRoutes.js';
-import walletRouter from './routes/walletRoutes.js';
-<<<<<<< HEAD
->>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-import { authenticateSocketUser } from './utils/socketAuth.js';
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
->>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
-import searchRouter from './routes/searchRoutes.js';
-import walletRouter from './routes/walletRoutes.js';
-import { authenticateSocketUser } from './utils/socketAuth.js';
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 048b559 (Dashboard Complet and Merge)
-=======
-=======
-<<<<<<< HEAD
-import searchRouter from './routes/searchRoutes.js'; // ✅ Import déplacé ici
-=======
->>>>>>> 417f3e9 (feat: Backend complet pour système prestataire et panier)
->>>>>>> 73f0ccc (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
->>>>>>> f31c196 (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -209,16 +176,8 @@ app.use(cors({
 }));
 app.options('*', cors());
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 app.use('/uploads', express.static('uploads'));
 
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-app.use('/uploads', express.static('uploads'));
-
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -228,35 +187,6 @@ app.use((req, res, next) => {
 // ✅ CONFIGURATION SWAGGER
 const swaggerSpec = swaggerConfig;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-/** port défini plus bas avec fallback */
-
-
-/** routes */
-<<<<<<< HEAD
-// Cache + invalidation une seule fois pour toutes les routes /api (évite 7× MISS par requête)
-app.use('/api', autoInvalidateCache);
-app.use('/api', smartCache(300));
-
-app.use('/api', utilisateurRouter);
-app.use('/api', groupeRouter);
-app.use('/api', categorieRouter);
-app.use('/api', articleRouter);
-app.use('/api', serviceRouter);
-app.use('/api', prestataireRouter);
-app.use('/api', prestataireFinalizationRouter);
-app.use('/api', freelanceRouter);
-app.use('/api', freelanceServiceRouter);
-app.use('/api', vendeurRouter);
-app.use('/api', searchRouter);
-=======
-<<<<<<< HEAD
-/** appliation port */
-const port = process.env.PORT ;
-=======
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 /** port défini plus bas avec fallback */
 
 
@@ -276,44 +206,6 @@ app.use('/api', freelanceRouter);
 app.use('/api', freelanceServiceRouter);
 app.use('/api', vendeurRouter);
 app.use('/api', searchRouter);
-<<<<<<< HEAD
->>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
-app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
-app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
-app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
-app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
-app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-<<<<<<< HEAD
-app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
-<<<<<<< HEAD
->>>>>>> 048b559 (Dashboard Complet and Merge)
-=======
-=======
-<<<<<<< HEAD
-app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
-
-
-
-// ...
-
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
-app.use('/api', searchRouter); // 👈 Enregistrement Route Recherche Globale (Pas de cache pour l'instant pour tester, ou cache court)
-// app.use('/api', smartCache(60), searchRouter); // Optionnel: Cache 1 minute
-=======
-app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
->>>>>>> 417f3e9 (feat: Backend complet pour système prestataire et panier)
->>>>>>> 73f0ccc (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
->>>>>>> f31c196 (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -335,6 +227,7 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
+app.use('/api', walletRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -422,26 +315,6 @@ if (process.env.NODE_ENV !== 'production' && process.env.SENTRY_DSN) {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-app.get('/metrics', (req, res) => {
-    res.status(200).json({
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: {
-            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
-            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
-        },
-        cpu: process.cpuUsage(),
-        platform: process.platform,
-        nodeVersion: process.version
-    });
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
   res.status(200).json({
     timestamp: new Date().toISOString(),
@@ -454,13 +327,6 @@ app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
     platform: process.platform,
     nodeVersion: process.version
   });
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 });
 
 // 💾 CACHE STATS - Statistiques du cache Redis
@@ -498,30 +364,6 @@ app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
  *               error: "Cache non disponible"
  *               message: "Redis connection failed"
  */
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-app.get('/cache/stats', async (req, res) => {
-    try {
-        const { getCacheStats } = await import('./middleware/cache.js');
-        const stats = getCacheStats();
-        res.status(200).json({
-            cache: stats,
-            timestamp: new Date().toISOString(),
-            status: 'OK'
-        });
-    } catch (error) {
-        res.status(500).json({
-            error: 'Cache non disponible',
-            message: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => {
   try {
     const { getCacheStats } = await import('./middleware/cache.js');
@@ -538,13 +380,6 @@ app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => 
       timestamp: new Date().toISOString()
     });
   }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 });
 
 /**
@@ -835,8 +670,6 @@ io.on('connection', (socket) => {
 // Sentry — après toutes les routes, avant les autres middlewares d'erreur
 if (process.env.SENTRY_DSN) {
   Sentry.setupExpressErrorHandler(app);
-<<<<<<< HEAD
-=======
 }
 
 // ✅ GESTIONNAIRE D'ERREURS GLOBAL Express
@@ -862,35 +695,6 @@ connect().then(() => {
     })
   } catch (error) {
     console.log("❌ Cannot connect to the server");
-<<<<<<< HEAD
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-}
-
-// ✅ GESTIONNAIRE D'ERREURS GLOBAL Express
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
-  console.error('❌ Erreur Express non gérée:', err.message);
-  const status = err.status || err.statusCode || 500;
-  res.status(status).json({
-    error: err.message || 'Erreur interne du serveur',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
-// ✅ PORT avec valeur par défaut
-const port = process.env.PORT || 3000;
-
-// ✅ DÉMARRAGE DU SERVEUR
-connect().then(() => {
-  try {
-    httpServer.listen(port, '0.0.0.0', () => {
-      console.log(`🚀 Server connected to http://localhost:${port}`);
-      console.log(`🔌 WebSocket server ready for connections`);
-    })
-  } catch (error) {
-    console.log("❌ Cannot connect to the server");
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   }
 })
   .catch(error => {
