@@ -12,7 +12,11 @@ const prestataireSchema = new mongoose.Schema({
   prixprestataire: { type: Number, required: true },
   localisation: { type: String, required: true },
   localisationmaps:{ type: localisationSchema , required : false  } ,// ✅ ajouté
+<<<<<<< HEAD
   note: { type: Number, default: 0, min: 0, max: 5 },
+=======
+  note: { type: String },
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
   verifier: { type: Boolean, default: false },
 
   // Identité
@@ -38,7 +42,10 @@ const prestataireSchema = new mongoose.Schema({
 
   // Stats
   nbMission: { type: Number, default: 0 },
+<<<<<<< HEAD
   nbAvis: { type: Number, default: 0 },
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
   revenus: { type: Number, default: 0 },
   clients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur" }],
 
@@ -80,6 +87,7 @@ const prestataireSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 🆕 SYNCHRONISER finalizationStatus depuis les champs réels du document
 prestataireSchema.methods.syncFinalizationFromDocuments = function() {
   const fs = this.finalizationStatus;
@@ -96,6 +104,8 @@ prestataireSchema.methods.syncFinalizationFromDocuments = function() {
 
 =======
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 // 🆕 MÉTHODE POUR CALCULER LE STATUT DE FINALISATION
 prestataireSchema.methods.calculateFinalizationStatus = function() {
   const status = this.finalizationStatus;

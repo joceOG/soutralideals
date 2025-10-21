@@ -4,9 +4,12 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { isAdmin, isSelf } from '../middleware/entityAccess.js';
 =======
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
 // 🎯 CONFIGURATION MULTER POUR UPLOAD
 const storage = multer.diskStorage({
@@ -24,6 +27,7 @@ const storage = multer.diskStorage({
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -32,10 +36,16 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|pdf/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     if (mimetype && extname) {
@@ -82,6 +92,8 @@ async function assertPrestataireAccess(req, prestataireId) {
 }
 
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     
     if (mimetype && extname) {
       return cb(null, true);
@@ -91,11 +103,15 @@ async function assertPrestataireAccess(req, prestataireId) {
   }
 });
 
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 // 🎯 UPLOAD D'UN DOCUMENT
 export const uploadDocument = async (req, res) => {
   try {
     const { prestataireId, documentType } = req.body;
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     if (!prestataireId || !documentType) {
@@ -123,6 +139,8 @@ export const uploadDocument = async (req, res) => {
     await prestataire.save();
 
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     
     if (!prestataireId || !documentType) {
       return res.status(400).json({ 
@@ -150,11 +168,15 @@ export const uploadDocument = async (req, res) => {
     console.log(`📤 Document uploadé: ${documentType} pour prestataire ${prestataireId}`);
     console.log(`📁 Fichier: ${req.file.filename}`);
     
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     res.status(200).json({
       success: true,
       message: 'Document uploadé avec succès',
       url: fileUrl,
+<<<<<<< HEAD
 <<<<<<< HEAD
       documentType,
       filename: req.file.filename,
@@ -165,6 +187,8 @@ export const uploadDocument = async (req, res) => {
     res.status(500).json({
       error: 'Erreur lors de l\'upload du document'
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
       documentType: documentType,
       filename: req.file.filename
     });
@@ -173,7 +197,10 @@ export const uploadDocument = async (req, res) => {
     console.error('❌ Erreur upload document:', error);
     res.status(500).json({ 
       error: 'Erreur lors de l\'upload du document' 
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     });
   }
 };
@@ -183,6 +210,7 @@ export const finalizePrestataireProfile = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     const access = await assertPrestataireAccess(req, id);
@@ -210,6 +238,8 @@ export const finalizePrestataireProfile = async (req, res) => {
     const finalizationResult = prestataire.calculateFinalizationStatus();
 
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     
     console.log(`🎯 Finalisation profil prestataire: ${id}`);
     console.log(`📊 Données:`, updateData);
@@ -260,11 +290,15 @@ export const finalizePrestataireProfile = async (req, res) => {
       requiredDocs: finalizationResult.requiredDocs
     });
     
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     res.status(200).json({
       success: true,
       message: 'Profil finalisé avec succès',
       prestataire: {
+<<<<<<< HEAD
 <<<<<<< HEAD
         id: prestataire._id,
         status: prestataire.status,
@@ -276,6 +310,8 @@ export const finalizePrestataireProfile = async (req, res) => {
     res.status(500).json({
       error: 'Erreur lors de la finalisation du profil'
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         id: updatedPrestataire._id,
         status: updatedPrestataire.status,
         finalizationStatus: finalizationResult
@@ -286,7 +322,10 @@ export const finalizePrestataireProfile = async (req, res) => {
     console.error('❌ Erreur finalisation profil:', error);
     res.status(500).json({ 
       error: 'Erreur lors de la finalisation du profil' 
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     });
   }
 };
@@ -295,6 +334,7 @@ export const finalizePrestataireProfile = async (req, res) => {
 export const getFinalizationStatus = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     const access = await assertPrestataireAccess(req, id);
@@ -306,6 +346,8 @@ export const getFinalizationStatus = async (req, res) => {
     const finalizationResult = prestataire.calculateFinalizationStatus();
 
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     
     const prestataire = await prestataireModel.findById(id);
     if (!prestataire) {
@@ -316,28 +358,38 @@ export const getFinalizationStatus = async (req, res) => {
     
     const finalizationResult = prestataire.calculateFinalizationStatus();
     
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     res.status(200).json({
       success: true,
       status: prestataire.status,
       finalizationStatus: finalizationResult
     });
 <<<<<<< HEAD
+<<<<<<< HEAD
   } catch (error) {
     console.error('❌ Erreur récupération statut:', error);
     res.status(500).json({
       error: 'Erreur lors de la récupération du statut'
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     
   } catch (error) {
     console.error('❌ Erreur récupération statut:', error);
     res.status(500).json({ 
       error: 'Erreur lors de la récupération du statut' 
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     });
   }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // 🎯 RÉCUPÉRER LES DOCUMENTS D'UN PRESTATAIRE
 export const getPrestataireDocuments = async (req, res) => {
@@ -381,4 +433,7 @@ export const getPrestataireDocuments = async (req, res) => {
 =======
 // 🎯 EXPORT DU MIDDLEWARE MULTER
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+// 🎯 EXPORT DU MIDDLEWARE MULTER
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 export { upload };

@@ -1,5 +1,6 @@
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
+<<<<<<< HEAD
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -9,6 +10,16 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+=======
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+
+// Config Cloudinary
+cloudinary.config({
+  cloud_name: "dm0c8st6k",
+  api_key: "541481188898557",
+  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 });
 
 // 🔹 Fonction utilitaire upload Cloudinary
@@ -50,6 +61,7 @@ export const createPrestataire = async (req, res) => {
       clients,
     } = req.body;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     const parseNumber = (value, fallback = 0) => {
       if (value === null || typeof value === "undefined" || value === "") {
@@ -93,6 +105,11 @@ export const createPrestataire = async (req, res) => {
     let finalService = service;
     if (!service && category) {
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+    if (!service && category) {
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -119,10 +136,13 @@ export const createPrestataire = async (req, res) => {
         });
       }
 <<<<<<< HEAD
+<<<<<<< HEAD
     } else if (serviceMissing) {
       return res.status(400).json({ error: "service ou category requis" });
 =======
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     }
 
     // Parsing localisationmaps
@@ -163,6 +183,7 @@ export const createPrestataire = async (req, res) => {
       uploads.attestationAssurance = (await uploadToCloudinary(req.files.attestationAssurance[0].path, "prestataires/assurance")).secure_url;
     }
 
+<<<<<<< HEAD
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
     const newPrestataire = new prestataireModel({
@@ -194,10 +215,35 @@ export const createPrestataire = async (req, res) => {
       nbAvis: parseNumber(req.body.nbAvis, 0),
       revenus: parseNumber(revenus, 0),
       clients: clientsIds,
+=======
+    // Création prestataire
+    const newPrestataire = new prestataireModel({
+      utilisateur: mongoose.Types.ObjectId(utilisateur),
+      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
+      prixprestataire,
+      localisation,
+      note,
+      verifier: verifier === "true" || verifier === true,
+      specialite: specialite ? (Array.isArray(specialite) ? specialite : [specialite]) : [],
+      anneeExperience,
+      description,
+      rayonIntervention,
+      zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
+      localisationmaps: parsedLocalisation,
+      tarifHoraireMin,
+      tarifHoraireMax,
+      numeroCNI,
+      numeroRCCM,
+      numeroAssurance,
+      nbMission,
+      revenus,
+      clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
       diplomeCertificat,
       ...uploads,
     });
 
+<<<<<<< HEAD
     // Traçabilité (source autorisée ; status ignoré du client)
     if (req.body.source) {
       newPrestataire.source = Array.isArray(req.body.source)
@@ -206,12 +252,26 @@ export const createPrestataire = async (req, res) => {
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
       newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
+=======
+    // 🆕 OPTION C - Traçabilité (ajout conditionnel pour éviter erreurs)
+    if (req.body.source) {
+      newPrestataire.source = req.body.source;
+    }
+    if (req.body.status) {
+      newPrestataire.status = req.body.status;
+    }
+    if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
+      newPrestataire.recenseur = mongoose.Types.ObjectId(req.body.recenseur);
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     }
     if (req.body.dateRecensement) {
       newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
     }
 
+<<<<<<< HEAD
     newPrestataire.syncFinalizationFromDocuments();
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     await newPrestataire.save();
 
     const populatedPrestataire = await prestataireModel
@@ -253,6 +313,7 @@ export const updatePrestataire = async (req, res) => {
       clients
     } = req.body;
 
+<<<<<<< HEAD
     const parseNumber = (value) => {
       if (value === null || typeof value === "undefined" || value === "") {
         return undefined;
@@ -261,6 +322,8 @@ export const updatePrestataire = async (req, res) => {
       return Number.isFinite(parsed) ? parsed : undefined;
     };
 
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
@@ -276,6 +339,7 @@ export const updatePrestataire = async (req, res) => {
     }
 
     const updates = {
+<<<<<<< HEAD
       ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: new mongoose.Types.ObjectId(service) }),
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
@@ -306,6 +370,30 @@ export const updatePrestataire = async (req, res) => {
       updates.status = req.body.status;
     }
 
+=======
+      ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
+      ...(service && { service: mongoose.Types.ObjectId(service) }),
+      ...(prixprestataire && { prixprestataire }),
+      ...(localisation && { localisation }),
+      ...(note && { note }),
+      ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
+      ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
+      ...(anneeExperience && { anneeExperience }),
+      ...(description && { description }),
+      ...(rayonIntervention && { rayonIntervention }),
+      ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
+      ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
+      ...(tarifHoraireMin && { tarifHoraireMin }),
+      ...(tarifHoraireMax && { tarifHoraireMax }),
+      ...(numeroCNI && { numeroCNI }),
+      ...(numeroRCCM && { numeroRCCM }),
+      ...(numeroAssurance && { numeroAssurance }),
+      ...(nbMission && { nbMission }),
+      ...(revenus && { revenus }),
+      ...(clients && { clients: clients.map(id => mongoose.Types.ObjectId(id)) }),
+    };
+
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     // Upload fichiers simples
     for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
       if (req.files?.[field]?.[0]) {
@@ -334,12 +422,15 @@ export const updatePrestataire = async (req, res) => {
       .populate("clients");
 
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
+<<<<<<< HEAD
 
     if (!isAdminUser) {
       prestataire.syncFinalizationFromDocuments();
       await prestataire.save();
     }
 
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     res.status(200).json(prestataire);
 
   } catch (err) {
@@ -348,6 +439,7 @@ export const updatePrestataire = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
@@ -411,6 +503,24 @@ export const getAllPrestataires = async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     console.error('Erreur récupération prestataires:', err.message);
+=======
+// ✅ Lire tous les prestataires
+export const getAllPrestataires = async (req, res) => {
+  try {
+    const prestataires = await prestataireModel.find()
+      .populate("utilisateur")
+      .populate({
+        path: "service",
+        populate: {
+          path: "categorie",
+          populate: { path: "groupe" }
+        }
+      });
+
+    res.status(200).json(prestataires);
+  } catch (err) {
+    console.error("Erreur récupération prestataires:", err.message);
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     res.status(500).json({ error: err.message });
   }
 };
@@ -430,6 +540,7 @@ export const getPrestataireById = async (req, res) => {
 
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
 
+<<<<<<< HEAD
     const adminUser = isAdmin(req);
     const isOwner =
       req.utilisateur &&
@@ -444,6 +555,8 @@ export const getPrestataireById = async (req, res) => {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
 
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     res.status(200).json(prestataire);
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
@@ -463,17 +576,26 @@ export const deletePrestataire = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
 export const getPendingPrestataires = async (req, res) => {
   try {
 <<<<<<< HEAD
     const prestataires = await prestataireModel.find({ status: "pending" })
 =======
+=======
+// 🆕 OPTION C - Récupérer les prestataires en attente
+export const getPendingPrestataires = async (req, res) => {
+  try {
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     const prestataires = await prestataireModel.find({ 
       status: { $in: ['pending', 'incomplete'] },
       source: { $in: ['sdealsidentification', 'sdealsmobile'] }
     })
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({
@@ -496,7 +618,11 @@ export const getPendingPrestataires = async (req, res) => {
 export const validatePrestataire = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
     const adminId = req.user._id;
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
     const prestataire = await prestataireModel.findById(id);
     
@@ -536,7 +662,11 @@ export const rejectPrestataire = async (req, res) => {
   try {
     const { id } = req.params;
     const { motif } = req.body;
+<<<<<<< HEAD
     const adminId = req.user._id;
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
     const prestataire = await prestataireModel.findById(id);
     

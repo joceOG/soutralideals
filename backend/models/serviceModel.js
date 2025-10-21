@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 
 const ServiceSchema = new mongoose.Schema({
 <<<<<<< HEAD
+<<<<<<< HEAD
   nomservice: { type: String, required: true },
   imageservice: { type: String, required: false },
   // Prix optionnel au niveau catalogue.
@@ -28,6 +29,8 @@ ServiceSchema.virtual('freelance', {
   localField: '_id',
   foreignField: 'service'
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     nomservice: { type: String, required: true },
     imageservice: { type: String, required: false },
     prixmoyen : { type: String, required: true },
@@ -47,7 +50,10 @@ ServiceSchema.virtual('freelance', {
     ref: 'Freelance',             // Référence à la collection 'Task'
     localField: '_id',       
     foreignField: 'service'    
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 });
 
 

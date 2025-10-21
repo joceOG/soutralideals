@@ -2,12 +2,21 @@ import mongoose from "mongoose";
 import fs from "fs";
 import cloudinary from "cloudinary";
 import freelanceModel from "../models/freelanceModel.js";
+<<<<<<< HEAD
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+=======
+
+// Config Cloudinary
+cloudinary.v2.config({
+  cloud_name: "dm0c8st6k",
+  api_key: "541481188898557",
+  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 });
 
 // ✅ Créer un freelance (Modèle sdealsapp)
@@ -114,6 +123,7 @@ export const createFreelance = async (req, res) => {
       
       // Statut du compte
       accountStatus: 'Pending',
+<<<<<<< HEAD
       subscriptionType: 'Free',
       status: 'pending',
     });
@@ -122,6 +132,11 @@ export const createFreelance = async (req, res) => {
       newFreelance.source = req.body.source;
     }
 
+=======
+      subscriptionType: 'Free'
+    });
+
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     await newFreelance.save();
     
     // ✅ Populer les références pour la réponse
@@ -150,15 +165,21 @@ export const getAllFreelances = async (req, res) => {
     sortOptions[sortBy] = sortOrder;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // ✅ Filtre statut (catalogue public si non authentifié)
     const filter = applyProPublicFilter(req, {});
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     // ✅ Filtre statut
     const filter = {};
     if (req.query.status) {
       filter.accountStatus = req.query.status;
     }
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
     }
@@ -204,10 +225,13 @@ export const getFreelanceById = async (req, res) => {
 
     if (!freelance) return res.status(404).json({ error: "Freelance non trouvé" });
 
+<<<<<<< HEAD
     if (!canAccessProProfile(req, freelance)) {
       return res.status(404).json({ error: "Freelance non trouvé" });
     }
 
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     res.status(200).json(freelance);
   } catch (err) {
     console.error("Erreur lecture freelance:", err.message);
@@ -369,9 +393,16 @@ export const getFreelancesByCategory = async (req, res) => {
       default: sortOptions = { rating: -1 };
     }
 
+<<<<<<< HEAD
     const freelances = await freelanceModel.find(
       applyProPublicFilter(req, { category }),
     )
+=======
+    const freelances = await freelanceModel.find({ 
+      category: category,
+      accountStatus: 'Active'
+    })
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     .populate("utilisateur")
     .sort(sortOptions)
     .limit(parseInt(limit));
@@ -394,10 +425,14 @@ export const searchFreelances = async (req, res) => {
     const skip = (page - 1) * limit;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     let searchCriteria = applyProPublicFilter(req, {});
 =======
     let searchCriteria = { accountStatus: 'Active' };
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+    let searchCriteria = { accountStatus: 'Active' };
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
     if (query) {
       searchCriteria.$or = [
@@ -470,7 +505,14 @@ export const deleteFreelance = async (req, res) => {
 // 🆕 OPTION C - Récupérer les freelances en attente
 export const getPendingFreelances = async (req, res) => {
   try {
+<<<<<<< HEAD
     const freelances = await freelanceModel.find({ status: "pending" })
+=======
+    const freelances = await freelanceModel.find({ 
+      status: 'pending',
+      source: 'sdealsidentification'
+    })
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .sort({ dateRecensement: -1 });
@@ -486,7 +528,11 @@ export const getPendingFreelances = async (req, res) => {
 export const validateFreelance = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
     const adminId = req.user._id;
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
     const freelance = await freelanceModel.findById(id);
     
@@ -526,7 +572,11 @@ export const rejectFreelance = async (req, res) => {
   try {
     const { id } = req.params;
     const { motif } = req.body;
+<<<<<<< HEAD
     const adminId = req.user._id;
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
     const freelance = await freelanceModel.findById(id);
     

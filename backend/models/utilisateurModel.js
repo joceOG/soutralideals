@@ -17,6 +17,7 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+<<<<<<< HEAD
 email: {  
   type: String,
   trim: true,
@@ -27,6 +28,17 @@ email: {
   validate(value) {
     if (value && !validator.isEmail(value)) { 
       throw new Error("Email invalide");
+=======
+  email: {  
+    type: String,
+    trim: true,
+    lowercase: true,
+    unique: true,
+    validate(value) {
+      if (!validator.isEmail(value)) {
+        throw new Error('Email invalide');
+      }
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     }
   },
   password: { 
@@ -44,16 +56,27 @@ email: {
     type: String,
     unique: true
   },
+<<<<<<< HEAD
   telephoneVerified: { type: Boolean, default: false },
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
   genre: { type: String },
   note: { type: String },
   photoProfil: { type: String },
 
+<<<<<<< HEAD
   // Admin : accès dashboard (liste utilisateurs, etc.) — à n’attribuer qu’en base ou via script sécurisé
   role: {
     type: String,
     enum: ["Admin", "Prestataire", "Vendeur", "Freelance", "Client"],
     required: true,
+=======
+  // ✅ Ajout du rôle Client
+  role: { 
+    type: String, 
+    enum: ["Prestataire", "Vendeur", "Freelance", "Client"], 
+    required: true 
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
   },
 
   tokens: [{
@@ -75,6 +98,7 @@ UtilisateurSchema.pre("save", async function(next) {
 // Génération token JWT incluant le rôle
 UtilisateurSchema.methods.generateAuthToken = async function() {
   const user = this;
+<<<<<<< HEAD
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET manquant dans les variables d\'environnement');
   const token = jwt.sign(
@@ -82,6 +106,9 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
     secret,
     { expiresIn: '7d' }
   );
+=======
+  const token = jwt.sign({ _id: user._id.toString(), role: user.role }, 'thisisoutrali');
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
   user.tokens = user.tokens.concat({ token });
   await user.save();
   return token;
@@ -101,8 +128,11 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   if (!user) throw new Error('Identifiants incorrects');
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
   console.log("👤 Utilisateur trouvé:", user ? "OUI" : "NON");
   if (user) {
     console.log("👤 Détails utilisateur:", { 
@@ -115,6 +145,7 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
   }
 
   if (!user) throw new Error('Utilisateur non trouvé');
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 
   console.log("🔐 Vérification du mot de passe...");
@@ -126,16 +157,27 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
   
   if (!isMatch) throw new Error('Mot de passe incorrect');
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+
+  console.log("🔐 Vérification du mot de passe...");
+  const isMatch = await bcrypt.compare(password, user.password);
+  console.log("🔐 Mot de passe correct:", isMatch);
+  
+  if (!isMatch) throw new Error('Mot de passe incorrect');
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
   console.log("✅ Authentification réussie pour:", user.nom);
   return user;
 };
 
+<<<<<<< HEAD
 // Méthode d'instance pour comparer un mot de passe en clair avec le hash
 UtilisateurSchema.methods.comparePassword = async function(password) {
   return bcrypt.compare(password, this.password);
 };
 
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 // Virtuals pour relations
 UtilisateurSchema.virtual('articles', {
   ref: 'Article',
@@ -159,4 +201,8 @@ UtilisateurSchema.virtual('vendeur', {
 });
 
 const utilisateurModel = mongoose.model("Utilisateur", UtilisateurSchema);
+<<<<<<< HEAD
 export default utilisateurModel;
+=======
+export default utilisateurModel;
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)

@@ -13,6 +13,7 @@ import {
     cleanupExpiredCarts
 } from '../controller/cartController.js';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import auth from '../middleware/authMiddleware.js';
 
 const cartRouter = Router();
@@ -34,6 +35,8 @@ cartRouter.post('/carts/cleanup', auth, cleanupExpiredCarts);
 
 export default cartRouter;
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
 const cartRouter = Router();
 
@@ -78,4 +81,7 @@ export default cartRouter;
 
 
 
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)

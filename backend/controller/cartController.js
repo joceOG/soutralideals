@@ -4,6 +4,7 @@ import articleModel from '../models/articleModel.js';
 import mongoose from 'mongoose';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const ARTICLE_POPULATE_FIELDS = 'nomarticle prixarticle imagearticle quantiteArticle';
 
 function getArticleStock(article) {
@@ -14,6 +15,8 @@ function getArticleStock(article) {
 
 =======
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 // ✅ OBTENIR LE PANIER D'UN UTILISATEUR
 export const getCartByUserId = async (req, res) => {
     try {
@@ -30,10 +33,14 @@ export const getCartByUserId = async (req, res) => {
         })
         .populate('utilisateur', 'nom prenom email telephone')
 <<<<<<< HEAD
+<<<<<<< HEAD
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+        .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         .populate('articles.vendeur', 'utilisateur entreprise');
 
         // Si pas de panier, créer un nouveau
@@ -49,10 +56,14 @@ export const getCartByUserId = async (req, res) => {
         // Nettoyer les articles en rupture de stock
         const articlesValides = cart.articles.filter(item => {
 <<<<<<< HEAD
+<<<<<<< HEAD
             return item.article && getArticleStock(item.article) > 0;
 =======
             return item.article && item.article.stock > 0;
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+            return item.article && item.article.stock > 0;
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         });
 
         if (articlesValides.length !== cart.articles.length) {
@@ -100,17 +111,23 @@ export const addToCart = async (req, res) => {
 
         // Vérifier le stock
 <<<<<<< HEAD
+<<<<<<< HEAD
         const stockDisponible = getArticleStock(article);
         if (stockDisponible < quantite) {
             return res.status(400).json({ 
                 error: 'Stock insuffisant',
                 stockDisponible 
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         if (article.stock < quantite) {
             return res.status(400).json({ 
                 error: 'Stock insuffisant',
                 stockDisponible: article.stock 
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
             });
         }
 
@@ -143,10 +160,14 @@ export const addToCart = async (req, res) => {
 
         // Repopuler pour la réponse
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -192,17 +213,23 @@ export const updateCartItemQuantity = async (req, res) => {
 
         const article = await articleModel.findById(item.article);
 <<<<<<< HEAD
+<<<<<<< HEAD
         const stockDisponible = getArticleStock(article);
         if (article && stockDisponible < quantite) {
             return res.status(400).json({ 
                 error: 'Stock insuffisant',
                 stockDisponible 
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         if (article && article.stock < quantite) {
             return res.status(400).json({ 
                 error: 'Stock insuffisant',
                 stockDisponible: article.stock 
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
             });
         }
 
@@ -212,10 +239,14 @@ export const updateCartItemQuantity = async (req, res) => {
 
         // Repopuler
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -254,10 +285,14 @@ export const removeFromCart = async (req, res) => {
 
         // Repopuler
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -333,10 +368,14 @@ export const applyPromoCode = async (req, res) => {
 
         // Repopuler
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -407,10 +446,14 @@ export const checkout = async (req, res) => {
         })
         .populate('utilisateur', 'nom prenom email telephone')
 <<<<<<< HEAD
+<<<<<<< HEAD
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+        .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         .populate('articles.vendeur');
 
         if (!cart) {
@@ -439,22 +482,29 @@ export const checkout = async (req, res) => {
             }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             const stockDisponible = getArticleStock(item.article);
             if (stockDisponible < item.quantite) {
                 return res.status(400).json({ 
                     error: `Stock insuffisant pour ${item.nomArticle}`,
                     stockDisponible,
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
             if (item.article.stock < item.quantite) {
                 return res.status(400).json({ 
                     error: `Stock insuffisant pour ${item.nomArticle}`,
                     stockDisponible: item.article.stock,
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
                     quantiteDemandee: item.quantite
                 });
             }
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         // 🔒 TRANSACTION ATOMIQUE — évite la race condition stock
         const session = await mongoose.startSession();
@@ -515,6 +565,8 @@ export const checkout = async (req, res) => {
         }
 
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         // Créer la commande
         const commande = new commandeModel({
             utilisateur: userId,
@@ -561,7 +613,10 @@ export const checkout = async (req, res) => {
         await cart.convertirEnCommande(commande._id);
 
         // Populate la commande pour la réponse
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         await commande.populate('utilisateur', 'nom prenom email telephone');
 
         res.status(201).json({
@@ -572,11 +627,15 @@ export const checkout = async (req, res) => {
     } catch (err) {
         console.error('Erreur checkout:', err.message);
 <<<<<<< HEAD
+<<<<<<< HEAD
         const status = err.status || 500;
         res.status(status).json({ error: err.message });
 =======
         res.status(500).json({ error: err.message });
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+        res.status(500).json({ error: err.message });
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     }
 };
 

@@ -1,5 +1,6 @@
 import express from 'express';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import auth from '../middleware/authMiddleware.js';
 import {
   requirePrestataireOwnerOrAdmin,
@@ -48,6 +49,8 @@ router.get(
   getPrestataireDocuments,
 );
 =======
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 import { 
   uploadDocument, 
   finalizePrestataireProfile, 
@@ -103,6 +106,9 @@ router.get('/prestataire/:id/documents', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la récupération des documents' });
   }
 });
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
+=======
+>>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 
 export default router;
