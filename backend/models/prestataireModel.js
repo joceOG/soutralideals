@@ -79,20 +79,6 @@ const prestataireSchema = new mongoose.Schema({
   motifRejet: { type: String },
 }, { timestamps: true });
 
-// 🆕 SYNCHRONISER finalizationStatus depuis les champs réels du document
-prestataireSchema.methods.syncFinalizationFromDocuments = function() {
-  const fs = this.finalizationStatus;
-  fs.cniUploaded = !!(this.cni1 && this.cni2);
-  fs.selfieUploaded = !!this.selfie;
-  fs.locationSet = !!(
-    this.localisationmaps?.latitude != null &&
-    this.localisationmaps?.longitude != null
-  );
-  fs.certificatesUploaded = !!(this.diplomeCertificat?.length);
-  fs.insuranceUploaded = !!this.attestationAssurance;
-  return this.calculateFinalizationStatus();
-};
-
 // 🆕 MÉTHODE POUR CALCULER LE STATUT DE FINALISATION
 prestataireSchema.methods.calculateFinalizationStatus = function() {
   const status = this.finalizationStatus;
