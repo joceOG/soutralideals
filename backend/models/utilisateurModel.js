@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import crypto from "crypto";
 import mongoose from "mongoose";
 import validator from "validator";
 import jwt from "jsonwebtoken";
@@ -44,25 +43,19 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
-  telephoneVerified: { type: Boolean, default: false },
   genre: { type: String },
   note: { type: String },
   photoProfil: { type: String },
 
-  // Admin : accès dashboard (liste utilisateurs, etc.) — à n’attribuer qu’en base ou via script sécurisé
-  role: {
-    type: String,
-    enum: ["Admin", "Prestataire", "Vendeur", "Freelance", "Client"],
-    required: true,
+  // ✅ Ajout du rôle Client
+  role: { 
+    type: String, 
+    enum: ["Prestataire", "Vendeur", "Freelance", "Client"], 
+    required: true 
   },
 
   tokens: [{
     token: { type: String, required: true }
-  }],
-  refreshTokens: [{
-    token: { type: String, required: true },
-    expiresAt: { type: Date, required: true },
-    createdAt: { type: Date, default: Date.now }
   }]
 }, {
   timestamps: true
@@ -77,36 +70,11 @@ UtilisateurSchema.pre("save", async function(next) {
   next();
 });
 
-// Génération token JWT incluant le rôle (expire en 15 minutes)
+// Génération token JWT incluant le rôle
 UtilisateurSchema.methods.generateAuthToken = async function() {
   const user = this;
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET manquant dans les variables d\'environnement');
-  const token = jwt.sign(
-    { _id: user._id.toString(), id: user._id.toString(), role: user.role },
-    secret,
-    { expiresIn: '15m' }
-  );
+  const token = jwt.sign({ _id: user._id.toString(), role: user.role }, 'thisisoutrali');
   user.tokens = user.tokens.concat({ token });
-  // Limiter la taille du tableau pour éviter une croissance illimitée (JWT 15min)
-  user.tokens = user.tokens.slice(-10);
-  await user.save();
-  return token;
-};
-
-// Génération d'un refresh token opaque (valide 30 jours)
-UtilisateurSchema.methods.generateRefreshToken = async function() {
-  const user = this;
-  const token = crypto.randomBytes(64).toString('hex');
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 jours
-  
-  user.refreshTokens = user.refreshTokens.concat({ token, expiresAt });
-  
-  // Nettoyage des refresh tokens expirés ou anciens (garde max 5)
-  user.refreshTokens = user.refreshTokens
-    .filter(rt => rt.expiresAt > new Date())
-    .slice(-5);
-    
   await user.save();
   return token;
 };
@@ -147,11 +115,6 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
   return user;
 };
 
-// Méthode d'instance pour comparer un mot de passe en clair avec le hash
-UtilisateurSchema.methods.comparePassword = async function(password) {
-  return bcrypt.compare(password, this.password);
-};
-
 // Virtuals pour relations
 UtilisateurSchema.virtual('articles', {
   ref: 'Article',
@@ -172,23 +135,6 @@ UtilisateurSchema.virtual('vendeur', {
   ref: 'Vendeur',
   localField: '_id',
   foreignField: 'utilisateur'
-});
-
-UtilisateurSchema.set('toJSON', {
-  transform(_doc, ret) {
-    delete ret.password;
-    delete ret.tokens;
-    delete ret.refreshTokens;
-    return ret;
-  },
-});
-UtilisateurSchema.set('toObject', {
-  transform(_doc, ret) {
-    delete ret.password;
-    delete ret.tokens;
-    delete ret.refreshTokens;
-    return ret;
-  },
 });
 
 const utilisateurModel = mongoose.model("Utilisateur", UtilisateurSchema);

@@ -1,19 +1,17 @@
 import multer from 'multer';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-import { assertOwnerOrAdmin } from '../utils/accessControl.js';
+import Utilisateur from '../models/utilisateurModel.js';
 import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
-import { assertPhoneVerificationToken, normalizePhone } from '../services/otpService.js';
-import { sendWelcomeEmail } from '../services/emailService.js';
 
-// Config Cloudinary depuis les variables d'environnement
+// Config Cloudinary
 cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: 'dm0c8st6k',
+  api_key: '541481188898557',
+  api_secret: '6ViefK1wxoJP50p8j2pQ7IykIYY',
 });
 
 // Config Multer
@@ -26,7 +24,7 @@ export const upload = multer({ storage });
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    let { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
+    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
 
     const otpEnforced = process.env.OTP_REQUIRED === 'true';
     let normalizedPhone = telephone ? normalizePhone(telephone) : null;
@@ -57,7 +55,7 @@ export const signUp = async (req, res) => {
     // Vérification unicité email/téléphone
     const conditions = [];
     if (email) conditions.push({ email });
-    if (telephone) conditions.push({ telephone: normalizedPhone || telephone });
+    if (telephone) conditions.push({ telephone });
     const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
 
     if (existingUser) {
@@ -76,32 +74,12 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({ 
-      nom, 
-      prenom, 
-      datedenaissance, 
-      email, 
-      password, 
-      telephone, 
-      genre, 
-      note, 
-      photoProfil, 
-      role 
-    });
+    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role: normalizedRole });
     await newUser.save();
 
-    if (email) {
-      sendWelcomeEmail(email, prenom).catch(() => {});
-    }
-
     const token = await newUser.generateAuthToken();
-    const refreshToken = await newUser.generateRefreshToken();
 
-    res.status(201).json({
-      utilisateur: newUser.toJSON(),
-      token,
-      refreshToken,
-    });
+    res.status(201).json({ utilisateur: newUser, token });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -116,6 +94,8 @@ export const signIn = async (req, res) => {
     // 🔹 Sécurité : forcer en string + trim
     identifiant = identifiant ? String(identifiant).trim() : '';
     password = password ? String(password).trim() : '';
+
+    console.log("📥 Requête reçue signIn:", { identifiant, password });
 
     // 🔹 Vérification des champs
     if (!identifiant) {
@@ -135,13 +115,11 @@ export const signIn = async (req, res) => {
 
     // 🔹 Génération du token
     const token = await user.generateAuthToken();
-    const refreshToken = await user.generateRefreshToken();
 
     res.status(200).json({
       message: 'Connexion réussie',
-      utilisateur: user.toJSON(),
-      token,
-      refreshToken
+      utilisateur: user,
+      token
     });
   } catch (e) {
     console.error("❌ Erreur signIn:", e);
@@ -150,54 +128,16 @@ export const signIn = async (req, res) => {
 };
 
 
-// ✅ DECONNEXION : invalide access + refresh tokens en base (route publique)
-export const logout = async (req, res) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    const { refreshToken } = req.body || {};
-
-    if (token) {
-      await Utilisateur.updateOne(
-        { 'tokens.token': token },
-        { $pull: { tokens: { token } } }
-      );
-    }
-
-    if (refreshToken) {
-      await Utilisateur.updateOne(
-        { 'refreshTokens.token': refreshToken },
-        { $pull: { refreshTokens: { token: refreshToken } } }
-      );
-    }
-
-    res.status(200).json({ message: 'Déconnexion réussie' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// ✅ DECONNEXION (statique)
+export const logout = (req, res) => {
+  res.status(200).json({ message: 'Déconnexion réussie' });
 };
 
-// ✅ LISTER TOUS LES UTILISATEURS (ADMIN seulement, avec pagination)
+// ✅ LISTER TOUS LES UTILISATEURS
 export const getAllUsers = async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
-    const skip = (page - 1) * limit;
-
-    const [utilisateurs, total] = await Promise.all([
-      Utilisateur.find({})
-        .select('-password -tokens')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Utilisateur.countDocuments({})
-    ]);
-
-    res.status(200).json({
-      utilisateurs,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
-    });
+    const utilisateurs = await Utilisateur.find({});
+    res.status(200).json(utilisateurs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -206,9 +146,7 @@ export const getAllUsers = async (req, res) => {
 // ✅ RÉCUPÉRER UN UTILISATEUR PAR ID
 export const getUserById = async (req, res) => {
   try {
-    if (!assertOwnerOrAdmin(req, res, req.params.id)) return;
-
-    const utilisateur = await Utilisateur.findById(req.params.id).select('-password -tokens');
+    const utilisateur = await Utilisateur.findById(req.params.id);
     if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json(utilisateur);
   } catch (err) {
@@ -219,13 +157,6 @@ export const getUserById = async (req, res) => {
 // ✅ MODIFIER UN UTILISATEUR
 export const updateUserById = async (req, res) => {
   try {
-    // 🛡️ IDOR : l'utilisateur ne peut modifier que son propre profil (sauf admin)
-    const requesterId = req.utilisateur?._id?.toString();
-    const targetId = req.params.id;
-    if (requesterId !== targetId && req.utilisateur?.role !== 'Admin') {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que votre propre profil' });
-    }
-
     // 1️⃣ Champs autorisés à être mis à jour par le front
     const allowedFields = [
       'nom',
@@ -245,12 +176,8 @@ export const updateUserById = async (req, res) => {
     }
 
     // 3️⃣ Vérification du rôle si présent
-    const validRoles = ['Admin', 'Prestataire', 'Vendeur', 'Freelance', 'Client'];
-    if (safeUpdates.role && !validRoles.includes(safeUpdates.role)) {
-      return res.status(400).json({ error: 'Rôle invalide' });
-    }
-    if (safeUpdates.role === 'Admin' && req.utilisateur?.role !== 'Admin') {
-      return res.status(403).json({ error: 'Seul un administrateur peut attribuer le rôle Admin' });
+    if (safeUpdates.role && !['Prestataire', 'Vendeur', 'Freelance', 'Client'].includes(safeUpdates.role)) {
+      return res.status(400).json({ error: "Rôle invalide" });
     }
 
     // 4️⃣ Upload photoProfil si présent
@@ -270,49 +197,9 @@ export const updateUserById = async (req, res) => {
     // 7️⃣ Sauvegarder l'utilisateur (pré-save pour hasher le mot de passe si modifié)
     await user.save();
 
-    const safeUser = user.toObject();
-    delete safeUser.password;
-    delete safeUser.tokens;
-    res.status(200).json(safeUser);
+    res.status(200).json(user);
   } catch (err) {
     console.error("❌ Erreur updateUserById:", err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// ✅ CHANGER LE MOT DE PASSE
-export const changePassword = async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({
-        error: 'Mot de passe actuel et nouveau mot de passe requis',
-      });
-    }
-
-    if (String(newPassword).length < 6) {
-      return res.status(400).json({
-        error: 'Le nouveau mot de passe doit contenir au moins 6 caractères',
-      });
-    }
-
-    const user = await Utilisateur.findById(req.utilisateur._id);
-    if (!user) {
-      return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    }
-
-    const isValid = await user.comparePassword(currentPassword);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
-    }
-
-    user.password = newPassword;
-    await user.save();
-
-    res.status(200).json({ message: 'Mot de passe modifié avec succès' });
-  } catch (err) {
-    console.error('❌ Erreur changePassword:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -320,13 +207,6 @@ export const changePassword = async (req, res) => {
 // ✅ SUPPRIMER UN UTILISATEUR
 export const deleteUserById = async (req, res) => {
   try {
-    // 🛡️ IDOR : seul l'utilisateur lui-même ou un admin peut supprimer
-    const requesterId = req.utilisateur?._id?.toString();
-    const targetId = req.params.id;
-    if (requesterId !== targetId && req.utilisateur?.role !== 'Admin') {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez supprimer que votre propre compte' });
-    }
-
     const utilisateur = await Utilisateur.findByIdAndDelete(req.params.id);
     if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
