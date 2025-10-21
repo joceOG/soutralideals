@@ -7,6 +7,7 @@ const ServiceSchema = new mongoose.Schema({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> da08acd (Dashboard Complet and Merge)
@@ -24,6 +25,8 @@ const ServiceSchema = new mongoose.Schema({
 =======
 >>>>>>> e390857 (Dashboard Complet and Merge)
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+>>>>>>> 5fa31b0 (feat: Backend complet pour système prestataire et panier)
   nomservice: { type: String, required: true },
   imageservice: { type: String, required: false },
   // Prix optionnel au niveau catalogue.
@@ -31,13 +34,6 @@ const ServiceSchema = new mongoose.Schema({
   prixmoyen: { type: String, required: false, default: null },
   categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie', required: true },
   tags: [String],
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 01c5d47 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> e390857 (Dashboard Complet and Merge)
   // Adjust as necessary
 });
 
