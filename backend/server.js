@@ -14,6 +14,7 @@ import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
 import prestataireRouter from './routes/prestataireRoutes.js';
+import prestataireFinalizationRouter from './routes/prestataireFinalizationRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
 import freelanceRouter from './routes/freelanceRoutes.js';
 import vendeurRouter from './routes/vendeurRoutes.js';
@@ -33,6 +34,7 @@ import historyRouter from './routes/historyRoutes.js';
 import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
+import cartRouter from './routes/cartRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -130,6 +132,7 @@ app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
 app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
 app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
+app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
 app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
 
@@ -150,6 +153,7 @@ app.use('/api', userPreferencesRouter);
 app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
+app.use('/api', cartRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

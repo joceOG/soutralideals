@@ -26,9 +26,21 @@ export const signUp = async (req, res) => {
   try {
     const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
 
-    if (!role || !["Prestataire","Vendeur","Freelance","Client"].includes(role)) {
+    // ✅ Accepter les rôles en minuscules et les convertir
+    const validRoles = ["prestataire", "vendeur", "freelance", "client"];
+    const roleMap = {
+      "prestataire": "Prestataire",
+      "vendeur": "Vendeur", 
+      "freelance": "Freelance",
+      "client": "Client"
+    };
+    
+    if (!role || !validRoles.includes(role.toLowerCase())) {
       return res.status(400).json({ error: "Rôle invalide ou manquant" });
     }
+    
+    // Convertir le rôle en format backend
+    const normalizedRole = roleMap[role.toLowerCase()];
 
     // Vérification unicité email/téléphone
     const conditions = [];
@@ -52,7 +64,7 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role });
+    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role: normalizedRole });
     await newUser.save();
 
     const token = await newUser.generateAuthToken();
