@@ -49,72 +49,6 @@ export const createPrestataire = async (req, res) => {
       clients,
     } = req.body;
 
-    const parseNumber = (value, fallback = 0) => {
-      if (value === null || typeof value === "undefined" || value === "") {
-        return fallback;
-      }
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    };
-
-    /** multipart/form-data : specialite, zoneIntervention, clients souvent en JSON string (dashboard + mobile). */
-    const parseStringArrayField = (v) => {
-      if (v == null || v === "") return [];
-      if (Array.isArray(v)) return v.map((x) => String(x));
-      if (typeof v === "string") {
-        try {
-          const p = JSON.parse(v);
-          return Array.isArray(p) ? p.map((x) => String(x)) : [String(p)];
-        } catch {
-          return [v];
-        }
-      }
-      return [String(v)];
-    };
-
-    const specialiteArr = parseStringArrayField(specialite);
-    const zoneInterventionArr = parseStringArrayField(zoneIntervention);
-    const clientsRaw = parseStringArrayField(clients);
-    const clientsIds = clientsRaw
-      .filter((id) => mongoose.Types.ObjectId.isValid(id))
-      .map((id) => new mongoose.Types.ObjectId(id));
-
-    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
-    let finalService = service;
-    const serviceMissing =
-      !service ||
-      service === "" ||
-      (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
-    if (serviceMissing && category) {
-      // Si pas de service fourni mais une catégorie, trouver le service correspondant
-      const Service = (await import("../models/serviceModel.js")).default;
-      const Categorie = (await import("../models/categorieModel.js")).default;
-      
-      // Trouver la catégorie par nom
-      const categorieDoc = await Categorie.findOne({ 
-        nomcategorie: { $regex: new RegExp(category, 'i') } 
-      });
-      
-      if (categorieDoc) {
-        // Trouver le premier service de cette catégorie
-        const serviceDoc = await Service.findOne({ categorie: categorieDoc._id });
-        if (serviceDoc) {
-          finalService = serviceDoc._id;
-          console.log(`✅ Service trouvé pour catégorie ${category}: ${serviceDoc._id}`);
-        }
-      }
-      
-      if (!finalService) {
-        console.warn(`⚠️ Aucun service trouvé pour la catégorie: ${category}`);
-        // Utiliser un service par défaut ou créer une erreur
-        return res.status(400).json({ 
-          error: `Aucun service trouvé pour la catégorie: ${category}` 
-        });
-      }
-    } else if (serviceMissing) {
-      return res.status(400).json({ error: "service ou category requis" });
-    }
-
     // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
@@ -156,9 +90,9 @@ export const createPrestataire = async (req, res) => {
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
     const newPrestataire = new prestataireModel({
-      utilisateur: new mongoose.Types.ObjectId(utilisateur),
-      service: new mongoose.Types.ObjectId(finalService),
-      prixprestataire: parseNumber(prixprestataire, 0),
+      utilisateur: mongoose.Types.ObjectId(utilisateur),
+      service: mongoose.Types.ObjectId(service),
+      prixprestataire,
       localisation,
       note: parseNumber(note, 0),
       verifier: verifier === "true" || verifier === true,

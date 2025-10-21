@@ -138,49 +138,10 @@ export const createFreelance = async (req, res) => {
 // ✅ Lire tous les freelances
 export const getAllFreelances = async (req, res) => {
   try {
-    // ✅ Pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const freelances = await freelanceModel.find()
+      .populate("utilisateur");
 
-    // ✅ Tri
-    const sortBy = req.query.sortBy || 'createdAt';
-    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
-    const sortOptions = {};
-    sortOptions[sortBy] = sortOrder;
-
-    // ✅ Filtre statut
-    const filter = {};
-    if (req.query.status) {
-      filter.accountStatus = req.query.status;
-    }
-    if (req.query.availabilityStatus) {
-      filter.availabilityStatus = req.query.availabilityStatus;
-    }
-    if (req.query.utilisateur) {
-      filter.utilisateur = req.query.utilisateur;
-    }
-
-    const freelances = await freelanceModel.find(filter)
-      .populate("utilisateur")
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(limit);
-
-    // ✅ Compter le total pour la pagination
-    const total = await freelanceModel.countDocuments(filter);
-
-    res.status(200).json({
-      freelances,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: limit,
-        hasNextPage: page < Math.ceil(total / limit),
-        hasPrevPage: page > 1,
-      }
-    });
+    res.status(200).json(freelances);
   } catch (err) {
     console.error("Erreur récupération freelances:", err.message);
     res.status(500).json({ error: err.message });
