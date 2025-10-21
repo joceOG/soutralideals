@@ -43,16 +43,15 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
-  telephoneVerified: { type: Boolean, default: false },
   genre: { type: String },
   note: { type: String },
   photoProfil: { type: String },
 
-  // Admin : accès dashboard (liste utilisateurs, etc.) — à n’attribuer qu’en base ou via script sécurisé
-  role: {
-    type: String,
-    enum: ["Admin", "Prestataire", "Vendeur", "Freelance", "Client"],
-    required: true,
+  // ✅ Ajout du rôle Client
+  role: { 
+    type: String, 
+    enum: ["Prestataire", "Vendeur", "Freelance", "Client"], 
+    required: true 
   },
 
   tokens: [{
@@ -74,13 +73,7 @@ UtilisateurSchema.pre("save", async function(next) {
 // Génération token JWT incluant le rôle
 UtilisateurSchema.methods.generateAuthToken = async function() {
   const user = this;
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET manquant dans les variables d\'environnement');
-  const token = jwt.sign(
-    { _id: user._id.toString(), id: user._id.toString(), role: user.role },
-    secret,
-    { expiresIn: '7d' }
-  );
+  const token = jwt.sign({ _id: user._id.toString(), role: user.role }, 'thisisoutrali');
   user.tokens = user.tokens.concat({ token });
   await user.save();
   return token;
@@ -101,11 +94,6 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
   if (!isMatch) throw new Error('Identifiants incorrects');
 
   return user;
-};
-
-// Méthode d'instance pour comparer un mot de passe en clair avec le hash
-UtilisateurSchema.methods.comparePassword = async function(password) {
-  return bcrypt.compare(password, this.password);
 };
 
 // Virtuals pour relations
