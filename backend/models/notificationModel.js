@@ -1,169 +1,103 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const NotificationSchema = new mongoose.Schema({
-  // 👤 Destinataire de la notification
+const notificationSchema = new mongoose.Schema({
+  // Utilisateur destinataire
   destinataire: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Utilisateur',
+    ref: "Utilisateur",
     required: true
   },
-
-  // 👤 Expéditeur (optionnel, peut être le système)
+  
+  // Utilisateur expéditeur (optionnel)
   expediteur: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Utilisateur',
-    required: false
+    ref: "Utilisateur"
   },
-
-  // 📝 Contenu de la notification
-  titre: {
-    type: String,
-    required: true,
-    maxlength: 100
-  },
-
-  message: {
-    type: String,
-    required: true,
-    maxlength: 500
-  },
-
-  // 🔖 Type de notification
+  
+  // Type de notification
   type: {
     type: String,
     enum: [
-      'COMMANDE',        // Nouvelle commande, statut commande
-      'PRESTATION',      // Nouvelle prestation, validation
-      'PAIEMENT',        // Paiement reçu, échec paiement
-      'VERIFICATION',    // Document vérifié, rejeté
-      'MESSAGE',         // Nouveau message
-      'SYSTEME',         // Maintenance, mise à jour
-      'PROMOTION',       // Offres spéciales
-      'RAPPEL'          // Rappels divers
+      'NOUVELLE_MISSION',      // Nouvelle mission disponible
+      'MISSION_ACCEPTEE',      // Mission acceptée par prestataire
+      'MISSION_REFUSEE',       // Mission refusée par prestataire
+      'MISSION_DEMARREE',      // Mission démarrée
+      'MISSION_TERMINEE',      // Mission terminée
+      'MESSAGE_RECU',          // Nouveau message
+      'EVALUATION_RECUE',      // Nouvelle évaluation
+      'SYSTEME'                // Notification système
     ],
     required: true
   },
-
-  // 🎯 Sous-type pour plus de précision
-  sousType: {
+  
+  // Titre de la notification
+  titre: {
     type: String,
-    required: false
+    required: true
   },
-
-  // 🔗 Référence à l'objet concerné
-  referenceId: {
+  
+  // Contenu de la notification
+  contenu: {
+    type: String,
+    required: true
+  },
+  
+  // Données supplémentaires (JSON)
+  donnees: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  
+  // Référence à la prestation (si applicable)
+  prestation: {
     type: mongoose.Schema.Types.ObjectId,
-    required: false
+    ref: "Prestation"
   },
-
-  referenceType: {
-    type: String,
-    enum: ['Commande', 'Prestation', 'Paiement', 'Message', 'Verification'],
-    required: false
-  },
-
-  // 📱 Statut de la notification
+  
+  // Statut de la notification
   statut: {
     type: String,
     enum: ['NON_LUE', 'LUE', 'ARCHIVEE'],
     default: 'NON_LUE'
   },
-
-  // 🚨 Priorité
+  
+  // Priorité
   priorite: {
     type: String,
-    enum: ['BASSE', 'NORMALE', 'HAUTE', 'CRITIQUE'],
+    enum: ['FAIBLE', 'NORMALE', 'HAUTE', 'URGENTE'],
     default: 'NORMALE'
   },
-
-  // 📅 Dates importantes
-  dateLue: {
-    type: Date,
-    required: false
+  
+  // Date de lecture
+  dateLecture: {
+    type: Date
   },
-
-  dateArchivage: {
-    type: Date,
-    required: false
-  },
-
-  // 🔔 Paramètres d'envoi
-  envoiEmail: {
-    type: Boolean,
-    default: false
-  },
-
-  envoiPush: {
-    type: Boolean,
-    default: true
-  },
-
-  envoiSMS: {
-    type: Boolean,
-    default: false
-  },
-
-  // 📊 Données supplémentaires (JSON flexible)
-  donnees: {
-    type: mongoose.Schema.Types.Mixed,
-    default: {}
-  },
-
-  // 🌐 URL d'action (optionnelle)
-  urlAction: {
-    type: String,
-    required: false
-  },
-
-  // ⏰ Date d'expiration (optionnelle)
+  
+  // Date d'expiration (optionnel)
   dateExpiration: {
-    type: Date,
-    required: false
+    type: Date
   }
-
 }, {
   timestamps: true
 });
 
-// 🔍 Index pour optimiser les requêtes
-NotificationSchema.index({ destinataire: 1, statut: 1 });
-NotificationSchema.index({ type: 1, createdAt: -1 });
-NotificationSchema.index({ priorite: 1, statut: 1 });
+// Index pour optimiser les requêtes
+notificationSchema.index({ destinataire: 1, statut: 1 });
+notificationSchema.index({ type: 1 });
+notificationSchema.index({ createdAt: -1 });
 
-// 🎯 Virtual pour obtenir le statut d'expiration
-NotificationSchema.virtual('estExpiree').get(function() {
-  if (!this.dateExpiration) return false;
-  return new Date() > this.dateExpiration;
-});
-
-// 📊 Méthode statique pour obtenir les statistiques
-NotificationSchema.statics.getStats = async function(userId) {
-  return await this.aggregate([
-    { $match: { destinataire: mongoose.Types.ObjectId(userId) } },
-    {
-      $group: {
-        _id: '$statut',
-        count: { $sum: 1 }
-      }
-    }
-  ]);
-};
-
-// 🔔 Méthode pour marquer comme lue
-NotificationSchema.methods.marquerCommeLue = async function() {
+// Méthode pour marquer comme lue
+notificationSchema.methods.marquerCommeLue = function() {
   this.statut = 'LUE';
-  this.dateLue = new Date();
-  return await this.save();
+  this.dateLecture = new Date();
+  return this.save();
 };
 
-// 📁 Méthode pour archiver
-NotificationSchema.methods.archiver = async function() {
+// Méthode pour archiver
+notificationSchema.methods.archiver = function() {
   this.statut = 'ARCHIVEE';
-  this.dateArchivage = new Date();
-  return await this.save();
+  return this.save();
 };
 
-const notificationModel = mongoose.model('Notification', NotificationSchema);
-
+const notificationModel = mongoose.model("Notification", notificationSchema);
 export default notificationModel;
-

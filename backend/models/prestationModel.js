@@ -77,7 +77,8 @@ const PrestationSchema = new mongoose.Schema({
 
   montantTotal: {
     type: Number,
-    required: true
+    required: true,
+    default: 0  // 💰 Par défaut gratuit
   },
 
   fraisDeplacements: {
@@ -107,16 +108,17 @@ const PrestationSchema = new mongoose.Schema({
       'ATTENTE',        // En attente de paiement
       'PAYE',           // Payé
       'REMBOURSE',      // Remboursé
-      'ECHEC'           // Échec de paiement
+      'ECHEC',          // Échec de paiement
+      'GRATUIT'         // 💰 Service gratuit
     ],
-    default: 'ATTENTE',
+    default: 'GRATUIT',  // 💰 Par défaut gratuit
     required: true
   },
 
   // 💳 Paiement
   moyenPaiement: {
     type: String,
-    enum: ['CARTE', 'MOBILE_MONEY', 'ESPECES', 'VIREMENT'],
+    enum: ['CARTE', 'MOBILE_MONEY', 'ESPECES', 'VIREMENT', 'GRATUIT'],
     required: true
   },
 
