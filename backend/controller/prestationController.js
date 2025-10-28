@@ -36,10 +36,10 @@ export const createPrestation = async (req, res) => {
             frequenceRecurrence
         } = req.body;
 
-        // Validation des données requises
-        if (!utilisateur || !prestataire || !service || !datePrestation || !heureDebut || !adresse || !ville || !tarifHoraire || !montantTotal) {
+        // Validation des données requises (adaptée pour système gratuit)
+        if (!utilisateur || !adresse || !ville) {
             return res.status(400).json({ 
-                error: 'Utilisateur, prestataire, service, date, heure, adresse, ville, tarif et montant requis' 
+                error: 'Utilisateur, adresse et ville requis' 
             });
         }
 
@@ -57,28 +57,28 @@ export const createPrestation = async (req, res) => {
 
         const newPrestation = new prestationModel({
             utilisateur: mongoose.Types.ObjectId(utilisateur),
-            prestataire: mongoose.Types.ObjectId(prestataire),
-            service: mongoose.Types.ObjectId(service),
-            datePrestation: new Date(datePrestation),
-            heureDebut,
+            prestataire: prestataire ? mongoose.Types.ObjectId(prestataire) : null,
+            service: service ? mongoose.Types.ObjectId(service) : null,
+            datePrestation: datePrestation ? new Date(datePrestation) : new Date(),
+            heureDebut: heureDebut || '09:00',
             heureFin,
             dureeEstimee,
             adresse,
             ville,
             codePostal,
             localisation,
-            tarifHoraire,
-            montantTotal,
+            tarifHoraire: tarifHoraire || 0,
+            montantTotal: 0, // 💰 Toujours gratuit
             fraisDeplacements: fraisDeplacements || 0,
-            moyenPaiement,
-            description,
+            moyenPaiement: moyenPaiement || 'GRATUIT',
+            description: description || 'Service demandé',
             notesClient,
             telephoneUrgence,
             estRecurrente: estRecurrente || false,
             frequenceRecurrence,
             photosAvant,
             statut: 'EN_ATTENTE',
-            statutPaiement: 'ATTENTE'
+            statutPaiement: 'GRATUIT' // 💰 Statut gratuit
         });
 
         await newPrestation.save();
@@ -89,6 +89,35 @@ export const createPrestation = async (req, res) => {
             .populate('utilisateur', 'nom prenom email telephone photoProfil')
             .populate('prestataire', 'utilisateur localisation')
             .populate('service', 'nomservice categorie');
+
+        // 🔔 CRÉER UNE NOTIFICATION POUR LE PRESTATAIRE
+        try {
+            const notificationModel = (await import('../models/notificationModel.js')).default;
+            
+            if (prestataire) {
+                const notification = new notificationModel({
+                    destinataire: prestataire,
+                    expediteur: utilisateur,
+                    type: 'NOUVELLE_MISSION',
+                    titre: 'Nouvelle mission disponible !',
+                    contenu: `Une nouvelle mission vous a été assignée. Consultez vos missions pour plus de détails.`,
+                    prestation: newPrestation._id,
+                    priorite: 'HAUTE',
+                    donnees: {
+                        prestationId: newPrestation._id,
+                        service: populatedPrestation.service?.nomservice,
+                        adresse: adresse,
+                        ville: ville
+                    }
+                });
+                
+                await notification.save();
+                console.log(`🔔 Notification nouvelle mission créée pour prestataire: ${prestataire}`);
+            }
+        } catch (notificationError) {
+            console.error('Erreur création notification nouvelle mission:', notificationError.message);
+            // Ne pas faire échouer la requête principale
+        }
 
         res.status(201).json(populatedPrestation);
     } catch (err) {
@@ -251,14 +280,17 @@ export const updatePrestation = async (req, res) => {
 export const changerStatutPrestation = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nouveauStatut, commentaire } = req.body;
+        const { statut, nouveauStatut, commentaire } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'ID de prestation invalide' });
         }
 
+        // Support des deux formats de paramètres
+        const newStatus = statut || nouveauStatut;
+        
         const statutsValides = ['EN_ATTENTE', 'ACCEPTEE', 'REFUSEE', 'EN_COURS', 'TERMINEE', 'ANNULEE', 'LITIGE'];
-        if (!statutsValides.includes(nouveauStatut)) {
+        if (!statutsValides.includes(newStatus)) {
             return res.status(400).json({ error: 'Statut invalide' });
         }
 
@@ -267,7 +299,96 @@ export const changerStatutPrestation = async (req, res) => {
             return res.status(404).json({ error: 'Prestation non trouvée' });
         }
 
-        await prestation.changerStatut(nouveauStatut, commentaire);
+        await prestation.changerStatut(newStatus, commentaire || '');
+
+        // 🔔 CRÉER UNE NOTIFICATION AUTOMATIQUE
+        try {
+            const notificationModel = (await import('../models/notificationModel.js')).default;
+            
+            let notificationData = {
+                destinataire: prestation.utilisateur,
+                prestation: prestation._id,
+                donnees: {
+                    prestationId: prestation._id,
+                    ancienStatut: prestation.statut,
+                    nouveauStatut: newStatus
+                }
+            };
+
+            switch (newStatus) {
+                case 'ACCEPTEE':
+                    notificationData.type = 'MISSION_ACCEPTEE';
+                    notificationData.titre = 'Mission acceptée !';
+                    notificationData.contenu = `Votre mission a été acceptée par le prestataire. Il va bientôt commencer.`;
+                    notificationData.priorite = 'HAUTE';
+                    break;
+                case 'REFUSEE':
+                    notificationData.type = 'MISSION_REFUSEE';
+                    notificationData.titre = 'Mission refusée';
+                    notificationData.contenu = `Votre mission a été refusée par le prestataire.`;
+                    notificationData.priorite = 'NORMALE';
+                    break;
+                case 'EN_COURS':
+                    notificationData.type = 'MISSION_DEMARREE';
+                    notificationData.titre = 'Mission démarrée !';
+                    notificationData.contenu = `Le prestataire a commencé votre mission.`;
+                    notificationData.priorite = 'HAUTE';
+                    break;
+                case 'TERMINEE':
+                    notificationData.type = 'MISSION_TERMINEE';
+                    notificationData.titre = 'Mission terminée !';
+                    notificationData.contenu = `Votre mission a été terminée par le prestataire.`;
+                    notificationData.priorite = 'HAUTE';
+                    break;
+            }
+
+            if (notificationData.type) {
+                const notification = new notificationModel(notificationData);
+                await notification.save();
+                console.log(`🔔 Notification créée: ${notificationData.type}`);
+            }
+        } catch (notificationError) {
+            console.error('Erreur création notification:', notificationError.message);
+            // Ne pas faire échouer la requête principale
+        }
+
+        // 💬 CRÉER UNE CONVERSATION AUTOMATIQUE POUR LES PRESTATIONS ACCEPTÉES
+        if (newStatus === 'ACCEPTEE') {
+            try {
+                const messageModel = (await import('../models/messageModel.js')).default;
+                
+                // Générer l'ID de conversation
+                const conversationId = messageModel.genererConversationId(
+                    prestation.utilisateur.toString(),
+                    prestation.prestataire.toString()
+                );
+
+                // Vérifier si une conversation existe déjà
+                const existingMessage = await messageModel.findOne({ conversationId });
+                
+                if (!existingMessage) {
+                    // Créer un message de bienvenue automatique
+                    const welcomeMessage = new messageModel({
+                        expediteur: prestation.prestataire,
+                        destinataire: prestation.utilisateur,
+                        contenu: `Bonjour ! J'ai accepté votre mission. Je vais commencer bientôt. N'hésitez pas à me contacter si vous avez des questions.`,
+                        typeMessage: 'PRESTATION',
+                        referenceId: prestation._id,
+                        referenceType: 'Prestation',
+                        conversationId: conversationId,
+                        statut: 'ENVOYE'
+                    });
+
+                    await welcomeMessage.save();
+                    console.log(`💬 Conversation créée automatiquement pour prestation: ${prestation._id}`);
+                } else {
+                    console.log(`💬 Conversation existante trouvée pour prestation: ${prestation._id}`);
+                }
+            } catch (conversationError) {
+                console.error('Erreur création conversation:', conversationError.message);
+                // Ne pas faire échouer la requête principale
+            }
+        }
 
         res.status(200).json({
             message: 'Statut mis à jour avec succès',
