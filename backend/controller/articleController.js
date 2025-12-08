@@ -54,14 +54,14 @@ export const updateArticleById = async (req, res) => {
             updatedFields,
             { new: true }
         )
-        .populate('categorie')
-        .populate({
-            path: 'vendeur',
-            populate: {
-                path: 'utilisateur',
-                model: 'Utilisateur'
-            }
-        });
+            .populate('categorie')
+            .populate({
+                path: 'vendeur',
+                populate: {
+                    path: 'utilisateur',
+                    model: 'Utilisateur'
+                }
+            });
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
