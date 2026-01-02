@@ -43,6 +43,7 @@ import connect from './database/connex.js';
 import logger, { httpLogger, authLogger, transactionLogger, userActionLogger } from './middleware/logger.js';
 import { cacheMiddleware, sessionCache } from './middleware/cache.js';
 import { simpleCache } from './middleware/simpleCache.js';
+import { smartCache, autoInvalidateCache } from './middleware/cacheInvalidation.js';
 
 const app = express()
 const httpServer = createServer(app);
@@ -112,8 +113,8 @@ app.use(cors());
 app.use(express.json());
 // ✅ Forcer l'encodage UTF-8 pour toutes les réponses JSON
 app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    next();
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
 });
 config();
 
@@ -121,20 +122,20 @@ config();
 const swaggerSpec = swaggerConfig;
 
 /** appliation port */
-const port = process.env.PORT ;
+const port = process.env.PORT;
 
 
 /** routes */
-// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
-app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
-app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
-app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
+// 🚀 ROUTES AVEC CACHE INTELLIGENT (auto-invalidation)
+app.use('/api', smartCache(300), autoInvalidateCache, utilisateurRouter) /** apis utilisateur */
+app.use('/api', smartCache(600), autoInvalidateCache, groupeRouter); // Cache 10 minutes
+app.use('/api', smartCache(600), autoInvalidateCache, categorieRouter); // Cache 10 minutes avec invalidation auto
+app.use('/api', smartCache(300), autoInvalidateCache, articleRouter); // Cache 5 minutes
+app.use('/api', smartCache(300), autoInvalidateCache, serviceRouter); // Cache 5 minutes avec invalidation auto
 app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
 app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
+app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
+app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -192,13 +193,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *               $ref: '#/components/schemas/Error'
  */
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        version: '1.0.0'
-    });
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: '1.0.0'
+  });
 });
 
 // 📊 METRICS - Endpoint de métriques basiques
@@ -235,17 +236,17 @@ app.get('/health', (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 app.get('/metrics', (req, res) => {
-    res.status(200).json({
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: {
-            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
-            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
-        },
-        cpu: process.cpuUsage(),
-        platform: process.platform,
-        nodeVersion: process.version
-    });
+  res.status(200).json({
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+    },
+    cpu: process.cpuUsage(),
+    platform: process.platform,
+    nodeVersion: process.version
+  });
 });
 
 // 💾 CACHE STATS - Statistiques du cache Redis
@@ -284,21 +285,21 @@ app.get('/metrics', (req, res) => {
  *               message: "Redis connection failed"
  */
 app.get('/cache/stats', async (req, res) => {
-    try {
-        const { getCacheStats } = await import('./middleware/cache.js');
-        const stats = getCacheStats();
-        res.status(200).json({
-            cache: stats,
-            timestamp: new Date().toISOString(),
-            status: 'OK'
-        });
-    } catch (error) {
-        res.status(500).json({
-            error: 'Cache non disponible',
-            message: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
+  try {
+    const { getCacheStats } = await import('./middleware/cache.js');
+    const stats = getCacheStats();
+    res.status(200).json({
+      cache: stats,
+      timestamp: new Date().toISOString(),
+      status: 'OK'
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Cache non disponible',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 /**
@@ -351,24 +352,24 @@ app.get('/cache/stats', async (req, res) => {
  *                       example: "/api/notification"
  */
 app.get('/', (req, res) => {
-    try {
-        res.json({
-            message: "SoutraLi Deals API",
-            version: "1.0.0",
-            documentation: "http://localhost:3000/api-docs",
-            health: "http://localhost:3000/health",
-            metrics: "http://localhost:3000/metrics",
-            endpoints: {
-                users: "/api/utilisateur",
-                services: "/api/service",
-                orders: "/api/commande",
-                messages: "/api/message",
-                notifications: "/api/notification"
-            }
-        });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
+  try {
+    res.json({
+      message: "SoutraLi Deals API",
+      version: "1.0.0",
+      documentation: "http://localhost:3000/api-docs",
+      health: "http://localhost:3000/health",
+      metrics: "http://localhost:3000/metrics",
+      endpoints: {
+        users: "/api/utilisateur",
+        services: "/api/service",
+        orders: "/api/commande",
+        messages: "/api/message",
+        notifications: "/api/notification"
+      }
+    });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
 });
 
 
@@ -449,7 +450,7 @@ io.on('connection', (socket) => {
   socket.on('send-message', async (messageData) => {
     try {
       console.log('📨 Nouveau message reçu:', messageData);
-      
+
       // Sauvegarder le message en base de données
       const messageModel = (await import('./models/messageModel.js')).default;
       const newMessage = new messageModel({
@@ -460,15 +461,15 @@ io.on('connection', (socket) => {
         typeMessage: messageData.typeMessage || 'NORMAL',
         statut: 'ENVOYE'
       });
-      
+
       await newMessage.save();
-      
+
       // Diffuser le message à tous les participants de la conversation
       io.to(`conversation_${messageData.conversationId}`).emit('new-message', {
         ...newMessage.toObject(),
         timestamp: new Date()
       });
-      
+
       // Notifier le destinataire s'il est en ligne
       io.to(`user_${messageData.destinataire}`).emit('message-notification', {
         type: 'new_message',
@@ -476,7 +477,7 @@ io.on('connection', (socket) => {
         sender: messageData.expediteur,
         content: messageData.contenu
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de l\'envoi du message:', error);
       socket.emit('message-error', { error: 'Erreur lors de l\'envoi du message' });
@@ -487,27 +488,27 @@ io.on('connection', (socket) => {
   socket.on('update-order-status', async (orderData) => {
     try {
       console.log('📦 Mise à jour statut commande:', orderData);
-      
+
       // Mettre à jour en base de données
       const commandeModel = (await import('./models/commandeModel.js')).default;
-      await commandeModel.findByIdAndUpdate(orderData.orderId, { 
-        statusCommande: orderData.status 
+      await commandeModel.findByIdAndUpdate(orderData.orderId, {
+        statusCommande: orderData.status
       });
-      
+
       // Notifier le client
       io.to(`user_${orderData.clientId}`).emit('order-status-updated', {
         orderId: orderData.orderId,
         status: orderData.status,
         timestamp: new Date()
       });
-      
+
       // Diffuser à tous les participants de la commande
       io.to(`order_${orderData.orderId}`).emit('order-update', {
         orderId: orderData.orderId,
         status: orderData.status,
         timestamp: new Date()
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de la mise à jour de la commande:', error);
       socket.emit('order-error', { error: 'Erreur lors de la mise à jour' });
@@ -517,7 +518,7 @@ io.on('connection', (socket) => {
   // 🔔 NOTIFICATION PUSH
   socket.on('send-notification', (notificationData) => {
     console.log('🔔 Notification envoyée:', notificationData);
-    
+
     // Diffuser la notification au destinataire
     io.to(`user_${notificationData.userId}`).emit('notification', {
       type: notificationData.type,
@@ -552,16 +553,16 @@ io.on('connection', (socket) => {
 });
 
 // ✅ DÉMARRAGE DU SERVEUR
-connect().then(()=> {
-    try{
-    httpServer.listen(port, '0.0.0.0', ()=>{
-        console.log(`🚀 Server connected to http://localhost:${port}`);
-        console.log(`🔌 WebSocket server ready for connections`);
+connect().then(() => {
+  try {
+    httpServer.listen(port, '0.0.0.0', () => {
+      console.log(`🚀 Server connected to http://localhost:${port}`);
+      console.log(`🔌 WebSocket server ready for connections`);
     })
-}catch (error) {
+  } catch (error) {
     console.log("❌ Cannot connect to the server");
-}
+  }
 })
-.catch(error => {
-console.log("❌ Invalid Database Connection");
-})
+  .catch(error => {
+    console.log("❌ Invalid Database Connection");
+  })
