@@ -34,9 +34,10 @@ interface Item {
 }
 
 interface Option {
-  _id: string;
+  _id?: string;
   label: string;
   value: string;
+  groupeId?: string; // Ajout de l'ID du groupe pour le filtrage
 }
 
 const Service: React.FC = () => {
@@ -73,9 +74,12 @@ const Service: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${apiUrl}/categorie`);
+        // On garde toutes les catégories mais on stocke leur groupeId
         const options = response.data.map((cat: any) => ({
           label: cat.nomcategorie,
           value: cat._id,
+          // Gérer le cas où groupe est peuplé (objet) ou non (string ID)
+          groupeId: typeof cat.groupe === 'object' ? cat.groupe?._id : cat.groupe
         }));
         setCategorie(options);
       } catch (error) {
@@ -89,7 +93,13 @@ const Service: React.FC = () => {
     const fetchGroups = async () => {
       try {
         const response = await axios.get(`${apiUrl}/groupe`);
-        const options = response.data.map((grp: any) => ({
+        // Filtrer pour exclure le groupe 'E-marché'
+        const filteredGroups = response.data.filter((grp: any) =>
+          !grp.nomgroupe.toLowerCase().includes('marché') &&
+          !grp.nomgroupe.toLowerCase().includes('e-marché')
+        );
+
+        const options = filteredGroups.map((grp: any) => ({
           label: grp.nomgroupe,
           value: grp._id,
         }));
@@ -281,11 +291,15 @@ const Service: React.FC = () => {
               fullWidth
               variant="outlined"
               sx={{ mb: 2 }}
+              disabled={!selectedGroupe} // Désactiver si aucun groupe choisi
             >
               <MenuItem value="" disabled>Sélectionner Catégorie</MenuItem>
-              {categorie.map((option) => (
-                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-              ))}
+              {categorie
+                // Filtrer les catégories qui appartiennent au groupe sélectionné
+                .filter(option => !selectedGroupe || option.groupeId === selectedGroupe)
+                .map((option) => (
+                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                ))}
             </TextField>
 
             <input
