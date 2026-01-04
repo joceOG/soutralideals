@@ -1,25 +1,32 @@
 import mongoose from 'mongoose'
 
 const ArticleSchema = new mongoose.Schema({
-    nomArticle: 
-    { type: String, required: true },
-    prixArticle: 
-    { type: String, required: true },
+    nomArticle:
+        { type: String, required: true },
+    prixArticle:
+        { type: String, required: true },
     quantiteArticle:
-     { type: Number, required: true },
-    photoArticle: { type: String ,
-        required:true,
+        { type: Number, required: true },
+    photoArticle: {
+        type: String,
+        required: true,
     },
-    vendeur:{
+    vendeur: {
         type: mongoose.Schema.Types.ObjectId,
-        required:true,
-        ref:'Vendeur'
+        required: true,
+        ref: 'Vendeur'
     },
     categorie:
-     { type: mongoose.Schema.Types.ObjectId,
-        required:true,
-         ref: 'Categorie' }, 
+    {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Categorie'
+    },
+    tags: [String]
 });
+
+// Index textuel pour la recherche
+ArticleSchema.index({ nomArticle: 'text', tags: 'text' });
 
 const articleModel = mongoose.model('Article', ArticleSchema);
 

@@ -35,6 +35,7 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
+import searchRouter from './routes/searchRoutes.js'; // ✅ Import déplacé ici
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -136,6 +137,14 @@ app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
 app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
 app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
 app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+
+
+
+// ...
+
+app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+app.use('/api', searchRouter); // 👈 Enregistrement Route Recherche Globale (Pas de cache pour l'instant pour tester, ou cache court)
+// app.use('/api', smartCache(60), searchRouter); // Optionnel: Cache 1 minute
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
