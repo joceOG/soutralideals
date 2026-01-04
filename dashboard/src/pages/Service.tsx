@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert, Box, IconButton, MenuItem, Snackbar, TextField,
-  Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, InputAdornment
+  Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, InputAdornment, Chip
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
@@ -17,12 +17,14 @@ import { Column } from 'primereact/column';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
+import TagsInput from '../components/TagsInput';
 
 interface Item {
   _id: string;
   nomservice: string;
   imageservice: string;
   prixmoyen?: number;
+  tags: string[]; // ✅ Added tags
   categorie: {
     _id: string;
     nomcategorie: string;
@@ -45,6 +47,10 @@ const Service: React.FC = () => {
   const [nomservice, setNomService] = useState('');
   const [prixMoyen, setPrixMoyen] = useState<number | ''>('');
   const [imageservice, setImageService] = useState<File | null>(null);
+
+  // ✅ Managed tags state
+  const [currentTags, setCurrentTags] = useState<string[]>([]);
+
   const [file, setFile] = useState<File | null>(null);
   const [open, setOpen] = useState(false);
   const [categorie, setCategorie] = useState<Option[]>([]);
@@ -62,7 +68,12 @@ const Service: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(`${apiUrl}/service`);
-        setService(response.data);
+        // Ensure tags is always an array
+        const sanitizedData = response.data.map((item: any) => ({
+          ...item,
+          tags: item.tags || []
+        }));
+        setService(sanitizedData);
       } catch (error) {
         console.error(error);
       }
@@ -130,6 +141,7 @@ const Service: React.FC = () => {
     setSelectedCategorie(null);
     setSelectedGroupe(null);
     setCurrentService(null);
+    setCurrentTags([]); // Reset tags
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,6 +156,10 @@ const Service: React.FC = () => {
     formData.append('nomservice', nomservice);
     if (selectedCategorie) formData.append('categorie', selectedCategorie);
     if (prixMoyen !== '') formData.append('prixmoyen', prixMoyen.toString());
+
+    // ✅ Send tags as stringified JSON
+    formData.append('tags', JSON.stringify(currentTags));
+
     if (imageservice) formData.append('imageservice', imageservice);
 
     try {
@@ -162,7 +178,12 @@ const Service: React.FC = () => {
       setOpenSnackbarSuccess(true);
       handleClose();
       const response = await axios.get(`${apiUrl}/service`);
-      setService(response.data);
+      // Ensure tags is always an array
+      const sanitizedData = response.data.map((item: any) => ({
+        ...item,
+        tags: item.tags || []
+      }));
+      setService(sanitizedData);
     } catch (error) {
       console.error(error);
       setOpenSnackbarError(true);
@@ -177,6 +198,7 @@ const Service: React.FC = () => {
     setPrixMoyen(rowData.prixmoyen || '');
     setSelectedCategorie(rowData.categorie?._id || null);
     setSelectedGroupe(rowData.categorie?.groupe?._id || null);
+    setCurrentTags(rowData.tags || []); // ✅ Load existing tags
   };
 
   const onDelete = async (rowData: Item) => {
@@ -195,8 +217,23 @@ const Service: React.FC = () => {
   const filteredServices = service.filter((item) =>
     item.nomservice.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.categorie?.nomcategorie?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.categorie?.groupe?.nomgroupe?.toLowerCase().includes(searchTerm.toLowerCase())
+    item.categorie?.groupe?.nomgroupe?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) // ✅ Search by tags
   );
+
+  // ✅ Tags column template
+  const tagsBodyTemplate = (rowData: Item) => {
+    return (
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+        {rowData.tags?.slice(0, 3).map((tag, idx) => (
+          <Chip key={idx} label={tag} size="small" variant="outlined" style={{ fontSize: '10px' }} />
+        ))}
+        {rowData.tags?.length > 3 && (
+          <Chip label={`+${rowData.tags.length - 3}`} size="small" style={{ fontSize: '10px' }} />
+        )}
+      </Box>
+    );
+  };
 
   return (
     <div>
@@ -302,6 +339,14 @@ const Service: React.FC = () => {
                 ))}
             </TextField>
 
+            {/* ✅ Added TagsInput */}
+            <TagsInput
+              tags={currentTags}
+              onChange={setCurrentTags}
+              label="Mots-clés / Tags"
+              placeholder="Tag (ex: fuite, urgence...)"
+            />
+
             <input
               accept="image/*"
               style={{ display: 'none' }}
@@ -378,6 +423,7 @@ const Service: React.FC = () => {
           <Column field="prixmoyen" header="Prix Moyen (€)" sortable />
           <Column header="Catégorie" sortable body={(rowData: Item) => rowData.categorie?.nomcategorie || 'Non défini'} />
           <Column header="Groupe" sortable body={(rowData: Item) => rowData.categorie?.groupe?.nomgroupe || 'Non défini'} />
+          <Column body={tagsBodyTemplate} header="Tags" style={{ width: '15%' }}></Column> {/* ✅ Added Tags Column */}
           <Column
             header="Actions"
             body={(rowData) => (
