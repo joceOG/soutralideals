@@ -50,43 +50,9 @@ export const createPrestataire = async (req, res) => {
       clients,
     } = req.body;
 
-    const parseNumber = (value, fallback = 0) => {
-      if (value === null || typeof value === "undefined" || value === "") {
-        return fallback;
-      }
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    };
-
-    /** multipart/form-data : specialite, zoneIntervention, clients souvent en JSON string (dashboard + mobile). */
-    const parseStringArrayField = (v) => {
-      if (v == null || v === "") return [];
-      if (Array.isArray(v)) return v.map((x) => String(x));
-      if (typeof v === "string") {
-        try {
-          const p = JSON.parse(v);
-          return Array.isArray(p) ? p.map((x) => String(x)) : [String(p)];
-        } catch {
-          return [v];
-        }
-      }
-      return [String(v)];
-    };
-
-    const specialiteArr = parseStringArrayField(specialite);
-    const zoneInterventionArr = parseStringArrayField(zoneIntervention);
-    const clientsRaw = parseStringArrayField(clients);
-    const clientsIds = clientsRaw
-      .filter((id) => mongoose.Types.ObjectId.isValid(id))
-      .map((id) => new mongoose.Types.ObjectId(id));
-
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
-    const serviceMissing =
-      !service ||
-      service === "" ||
-      (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
-    if (serviceMissing && category) {
+    if (!service && category) {
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -112,8 +78,6 @@ export const createPrestataire = async (req, res) => {
           error: `Aucun service trouvé pour la catégorie: ${category}` 
         });
       }
-    } else if (serviceMissing) {
-      return res.status(400).json({ error: "service ou category requis" });
     }
 
     // Parsing localisationmaps
@@ -157,9 +121,9 @@ export const createPrestataire = async (req, res) => {
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
     const newPrestataire = new prestataireModel({
-      utilisateur: new mongoose.Types.ObjectId(utilisateur),
-      service: new mongoose.Types.ObjectId(finalService),
-      prixprestataire: parseNumber(prixprestataire, 0),
+      utilisateur: mongoose.Types.ObjectId(utilisateur),
+      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
+      prixprestataire,
       localisation,
       note: parseNumber(note, 0),
       verifier: isAdminUser && (verifier === "true" || verifier === true),
@@ -451,7 +415,10 @@ export const deletePrestataire = async (req, res) => {
 // 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
 export const getPendingPrestataires = async (req, res) => {
   try {
-    const prestataires = await prestataireModel.find({ status: "pending" })
+    const prestataires = await prestataireModel.find({ 
+      status: { $in: ['pending', 'incomplete'] },
+      source: { $in: ['sdealsidentification', 'sdealsmobile'] }
+    })
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({

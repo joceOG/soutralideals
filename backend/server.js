@@ -41,6 +41,7 @@ import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
@@ -63,6 +64,8 @@ import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 048b559 (Dashboard Complet and Merge)
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -222,6 +225,7 @@ const swaggerSpec = swaggerConfig;
 
 
 /** routes */
+<<<<<<< HEAD
 // Cache + invalidation une seule fois pour toutes les routes /api (évite 7× MISS par requête)
 app.use('/api', autoInvalidateCache);
 app.use('/api', smartCache(300));
@@ -268,6 +272,18 @@ app.use('/api', searchRouter);
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
+app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
+app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
+app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
+app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
+app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
+app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
+app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
+>>>>>>> 048b559 (Dashboard Complet and Merge)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -289,7 +305,6 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
-app.use('/api', walletRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
