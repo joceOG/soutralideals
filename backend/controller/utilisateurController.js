@@ -86,13 +86,68 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
   return token;
 };
 
-// Méthode statique pour login par email ou téléphone
-UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
-  let user = null;
-  if (validator.isEmail(identifiant)) {
-    user = await this.findOne({ email: identifiant });
-  } else {
-    user = await this.findOne({ telephone: identifiant });
+    // ✅ Accepter les rôles en minuscules et les convertir
+    const validRoles = ["prestataire", "vendeur", "freelance", "client"];
+    const roleMap = {
+      "prestataire": "Prestataire",
+      "vendeur": "Vendeur", 
+      "freelance": "Freelance",
+      "client": "Client"
+    };
+    
+    if (!role || !validRoles.includes(role.toLowerCase())) {
+      return res.status(400).json({ error: "Rôle invalide ou manquant" });
+    }
+
+    // Normaliser email vide → null
+    if (email === "") {
+      email = null;
+    }
+
+    // Vérification unicité email/téléphone
+    const conditions = [];
+    if (email) conditions.push({ email });
+    if (telephone) conditions.push({ telephone });
+
+    const existingUser = conditions.length > 0 
+      ? await Utilisateur.findOne({ $or: conditions }) 
+      : null;
+
+    if (existingUser) {
+      let error = '';
+      if (email && existingUser.email === email) error = 'Email déjà utilisé';
+      else if (telephone && existingUser.telephone === telephone) error = 'Numéro de téléphone déjà utilisé';
+      return res.status(400).json({ error });
+    }
+
+    // Upload photo si présent
+    let photoProfil = '';
+    if (req.file) {
+      const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
+      photoProfil = result.secure_url;
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Création de l'utilisateur
+    const newUser = new Utilisateur({ 
+      nom, 
+      prenom, 
+      datedenaissance, 
+      email, 
+      password, 
+      telephone, 
+      genre, 
+      note, 
+      photoProfil, 
+      role 
+    });
+    await newUser.save();
+
+    const token = await newUser.generateAuthToken();
+
+    res.status(201).json({ utilisateur: newUser, token });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
   }
 
   if (!user) throw new Error('Identifiants incorrects');
