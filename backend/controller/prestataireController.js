@@ -97,6 +97,7 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -171,6 +172,11 @@ export const createPrestataire = async (req, res) => {
 >>>>>>> 1ca350b (Dashboard Complet and Merge)
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+    if (!service && category) {
+>>>>>>> da08acd (Dashboard Complet and Merge)
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -201,6 +207,7 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     } else if (serviceMissing) {
       return res.status(400).json({ error: "service ou category requis" });
 =======
@@ -217,6 +224,8 @@ export const createPrestataire = async (req, res) => {
     } else if (serviceMissing) {
       return res.status(400).json({ error: "service ou category requis" });
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> da08acd (Dashboard Complet and Merge)
     }
 
     // Parsing localisationmaps
@@ -323,9 +332,9 @@ export const createPrestataire = async (req, res) => {
     const isAdminUser = isAdmin(req);
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const newPrestataire = new prestataireModel({
-      utilisateur: new mongoose.Types.ObjectId(utilisateur),
-      service: new mongoose.Types.ObjectId(finalService),
-      prixprestataire: parseNumber(prixprestataire, 0),
+      utilisateur: mongoose.Types.ObjectId(utilisateur),
+      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
+      prixprestataire,
       localisation,
       note: parseNumber(note, 0),
       verifier: isAdminUser && (verifier === "true" || verifier === true),
@@ -998,8 +1007,15 @@ export const getPendingPrestataires = async (req, res) => {
 // 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
 export const getPendingPrestataires = async (req, res) => {
   try {
+<<<<<<< HEAD
     const prestataires = await prestataireModel.find({ status: "pending" })
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    const prestataires = await prestataireModel.find({ 
+      status: { $in: ['pending', 'incomplete'] },
+      source: { $in: ['sdealsidentification', 'sdealsmobile'] }
+    })
+>>>>>>> da08acd (Dashboard Complet and Merge)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({
