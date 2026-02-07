@@ -2,22 +2,11 @@ import cartModel from '../models/cartModel.js';
 import commandeModel from '../models/commandeModel.js';
 import articleModel from '../models/articleModel.js';
 import mongoose from 'mongoose';
-import { assertOwnerOrAdmin, assertAdmin } from '../utils/accessControl.js';
-
-const ARTICLE_POPULATE_FIELDS = 'nomArticle prixArticle photoArticle quantiteArticle';
-
-function getArticleStock(article) {
-    if (!article) return 0;
-    const quantity = article.quantiteArticle ?? article.stock;
-    return typeof quantity === 'number' && !Number.isNaN(quantity) ? quantity : 0;
-}
 
 // ✅ OBTENIR LE PANIER D'UN UTILISATEUR
 export const getCartByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
@@ -29,7 +18,7 @@ export const getCartByUserId = async (req, res) => {
             statut: 'ACTIF' 
         })
         .populate('utilisateur', 'nom prenom email telephone')
-        .populate('articles.article', ARTICLE_POPULATE_FIELDS)
+        .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
         .populate('articles.vendeur', 'utilisateur entreprise');
 
         // Si pas de panier, créer un nouveau
@@ -44,7 +33,7 @@ export const getCartByUserId = async (req, res) => {
 
         // Nettoyer les articles en rupture de stock
         const articlesValides = cart.articles.filter(item => {
-            return item.article && getArticleStock(item.article) > 0;
+            return item.article && item.article.stock > 0;
         });
 
         if (articlesValides.length !== cart.articles.length) {
@@ -78,9 +67,7 @@ export const addToCart = async (req, res) => {
             });
         }
 
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
-
-        if (!mongoose.Types.ObjectId.isValid(userId) ||
+        if (!mongoose.Types.ObjectId.isValid(userId) || 
             !mongoose.Types.ObjectId.isValid(articleId) || 
             !mongoose.Types.ObjectId.isValid(vendeurId)) {
             return res.status(400).json({ error: 'IDs invalides' });
@@ -93,11 +80,10 @@ export const addToCart = async (req, res) => {
         }
 
         // Vérifier le stock
-        const stockDisponible = getArticleStock(article);
-        if (stockDisponible < quantite) {
+        if (article.stock < quantite) {
             return res.status(400).json({ 
                 error: 'Stock insuffisant',
-                stockDisponible 
+                stockDisponible: article.stock 
             });
         }
 
@@ -119,9 +105,9 @@ export const addToCart = async (req, res) => {
         cart.ajouterArticle({
             article: articleId,
             vendeur: vendeurId,
-            nomArticle: article.nomArticle,
-            imageArticle: article.photoArticle,
-            prixUnitaire: article.prixArticle,
+            nomArticle: article.nomarticle,
+            imageArticle: article.imagearticle,
+            prixUnitaire: article.prixarticle,
             quantite,
             variantes
         });
@@ -129,7 +115,7 @@ export const addToCart = async (req, res) => {
         await cart.save();
 
         // Repopuler pour la réponse
-        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -148,9 +134,7 @@ export const updateCartItemQuantity = async (req, res) => {
         const { userId, itemId } = req.params;
         const { quantite } = req.body;
 
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
-
-        if (!mongoose.Types.ObjectId.isValid(userId) ||
+        if (!mongoose.Types.ObjectId.isValid(userId) || 
             !mongoose.Types.ObjectId.isValid(itemId)) {
             return res.status(400).json({ error: 'IDs invalides' });
         }
@@ -176,11 +160,10 @@ export const updateCartItemQuantity = async (req, res) => {
         }
 
         const article = await articleModel.findById(item.article);
-        const stockDisponible = getArticleStock(article);
-        if (article && stockDisponible < quantite) {
+        if (article && article.stock < quantite) {
             return res.status(400).json({ 
                 error: 'Stock insuffisant',
-                stockDisponible 
+                stockDisponible: article.stock 
             });
         }
 
@@ -189,7 +172,7 @@ export const updateCartItemQuantity = async (req, res) => {
         await cart.save();
 
         // Repopuler
-        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -207,9 +190,7 @@ export const removeFromCart = async (req, res) => {
     try {
         const { userId, itemId } = req.params;
 
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
-
-        if (!mongoose.Types.ObjectId.isValid(userId) ||
+        if (!mongoose.Types.ObjectId.isValid(userId) || 
             !mongoose.Types.ObjectId.isValid(itemId)) {
             return res.status(400).json({ error: 'IDs invalides' });
         }
@@ -229,7 +210,7 @@ export const removeFromCart = async (req, res) => {
         await cart.save();
 
         // Repopuler
-        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -246,8 +227,6 @@ export const removeFromCart = async (req, res) => {
 export const clearCart = async (req, res) => {
     try {
         const { userId } = req.params;
-
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
@@ -283,8 +262,6 @@ export const applyPromoCode = async (req, res) => {
         const { userId } = req.params;
         const { code, reduction, typeReduction } = req.body;
 
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
-
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
@@ -308,7 +285,7 @@ export const applyPromoCode = async (req, res) => {
         await cart.save();
 
         // Repopuler
-        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -326,8 +303,6 @@ export const updateDeliveryAddress = async (req, res) => {
     try {
         const { userId } = req.params;
         const { adresse, ville, codePostal, pays, telephone } = req.body;
-
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
@@ -370,8 +345,6 @@ export const checkout = async (req, res) => {
         const { userId } = req.params;
         const { moyenPaiement, notesClient } = req.body;
 
-        if (!assertOwnerOrAdmin(req, res, userId)) return;
-
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
@@ -382,7 +355,7 @@ export const checkout = async (req, res) => {
             statut: 'ACTIF' 
         })
         .populate('utilisateur', 'nom prenom email telephone')
-        .populate('articles.article', ARTICLE_POPULATE_FIELDS)
+        .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
         .populate('articles.vendeur');
 
         if (!cart) {
@@ -410,74 +383,61 @@ export const checkout = async (req, res) => {
                 });
             }
 
-            const stockDisponible = getArticleStock(item.article);
-            if (stockDisponible < item.quantite) {
+            if (item.article.stock < item.quantite) {
                 return res.status(400).json({ 
                     error: `Stock insuffisant pour ${item.nomArticle}`,
-                    stockDisponible,
+                    stockDisponible: item.article.stock,
                     quantiteDemandee: item.quantite
                 });
             }
         }
 
-        // 🔒 TRANSACTION ATOMIQUE — évite la race condition stock
-        const session = await mongoose.startSession();
-        let commande;
-        try {
-            await session.withTransaction(async () => {
-                // Décrémentation atomique du stock avec contrainte ≥ 0
-                for (const item of cart.articles) {
-                    const updated = await articleModel.findOneAndUpdate(
-                        { _id: item.article._id, quantiteArticle: { $gte: item.quantite } },
-                        { $inc: { quantiteArticle: -item.quantite } },
-                        { session, new: true }
-                    );
-                    if (!updated) {
-                        throw Object.assign(
-                            new Error(`Stock épuisé pour ${item.nomArticle}`),
-                            { status: 409 }
-                        );
-                    }
-                }
+        // Créer la commande
+        const commande = new commandeModel({
+            utilisateur: userId,
+            infoCommande: {
+                addresse: cart.adresseLivraison.adresse,
+                ville: cart.adresseLivraison.ville,
+                codePostal: cart.adresseLivraison.codePostal,
+                pays: cart.adresseLivraison.pays,
+                telephone: cart.adresseLivraison.telephone
+            },
+            articles: cart.articles.map(item => ({
+                nom: item.nomArticle,
+                quantité: item.quantite,
+                image: item.imageArticle,
+                prix: item.prixUnitaire,
+                prixTotal: item.prixTotal,
+                articleId: item.article._id,
+                vendeurId: item.vendeur._id
+            })),
+            prixArticles: cart.montantArticles,
+            prixLivraison: cart.fraisLivraison,
+            prixTotal: cart.montantTotal,
+            statusCommande: 'En cours',
+            moyenPaiement: moyenPaiement || 'A définir',
+            notesClient: notesClient || cart.notes,
+            codePromo: cart.codePromo.code ? {
+                code: cart.codePromo.code,
+                reduction: cart.codePromo.reduction,
+                type: cart.codePromo.typeReduction
+            } : undefined
+        });
 
-                commande = new commandeModel({
-                    utilisateur: userId,
-                    infoCommande: {
-                        addresse: cart.adresseLivraison.adresse,
-                        ville: cart.adresseLivraison.ville,
-                        codePostal: cart.adresseLivraison.codePostal,
-                        pays: cart.adresseLivraison.pays,
-                        telephone: cart.adresseLivraison.telephone
-                    },
-                    articles: cart.articles.map(item => ({
-                        nom: item.nomArticle,
-                        quantite: item.quantite,
-                        image: item.imageArticle,
-                        prix: item.prixUnitaire,
-                        prixTotal: item.prixTotal,
-                        articleId: item.article._id,
-                        vendeurId: item.vendeur._id
-                    })),
-                    prixArticles: cart.montantArticles,
-                    prixLivraison: cart.fraisLivraison,
-                    prixTotal: cart.montantTotal,
-                    statusCommande: 'En cours',
-                    moyenPaiement: moyenPaiement || 'A définir',
-                    notesClient: notesClient || cart.notes,
-                    codePromo: cart.codePromo.code ? {
-                        code: cart.codePromo.code,
-                        reduction: cart.codePromo.reduction,
-                        type: cart.codePromo.typeReduction
-                    } : undefined
-                });
+        await commande.save();
 
-                await commande.save({ session });
-                await cart.convertirEnCommande(commande._id);
-            });
-        } finally {
-            session.endSession();
+        // Mettre à jour le stock des articles
+        for (const item of cart.articles) {
+            await articleModel.findByIdAndUpdate(
+                item.article._id,
+                { $inc: { stock: -item.quantite } }
+            );
         }
 
+        // Marquer le panier comme converti
+        await cart.convertirEnCommande(commande._id);
+
+        // Populate la commande pour la réponse
         await commande.populate('utilisateur', 'nom prenom email telephone');
 
         res.status(201).json({
@@ -487,17 +447,14 @@ export const checkout = async (req, res) => {
         });
     } catch (err) {
         console.error('Erreur checkout:', err.message);
-        const status = err.status || 500;
-        res.status(status).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 };
 
 // ✅ OBTENIR TOUS LES PANIERS (ADMIN)
 export const getAllCarts = async (req, res) => {
     try {
-        if (!assertAdmin(req, res)) return;
-
-        const {
+        const { 
             page = 1, 
             limit = 20, 
             statut,
@@ -517,7 +474,7 @@ export const getAllCarts = async (req, res) => {
 
         const carts = await cartModel.find(filters)
             .populate('utilisateur', 'nom prenom email telephone')
-            .populate('articles.article', ARTICLE_POPULATE_FIELDS)
+            .populate('articles.article', 'nomarticle prixarticle imagearticle')
             .populate('articles.vendeur', 'utilisateur entreprise')
             .sort({ updatedAt: -1 })
             .limit(limit * 1)
@@ -541,8 +498,6 @@ export const getAllCarts = async (req, res) => {
 // ✅ STATISTIQUES DES PANIERS (ADMIN)
 export const getCartStats = async (req, res) => {
     try {
-        if (!assertAdmin(req, res)) return;
-
         const stats = await cartModel.getStatistiques();
 
         // Nombre total d'articles dans tous les paniers actifs
@@ -581,8 +536,6 @@ export const getCartStats = async (req, res) => {
 // ✅ NETTOYER LES PANIERS EXPIRÉS (CRON JOB)
 export const cleanupExpiredCarts = async (req, res) => {
     try {
-        if (!assertAdmin(req, res)) return;
-
         const count = await cartModel.nettoyerPaniersExpires();
 
         res.status(200).json({

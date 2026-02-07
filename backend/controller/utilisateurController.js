@@ -26,7 +26,7 @@ export const upload = multer({ storage });
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role, phoneVerificationToken } = req.body;
+    let { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
 
     const otpEnforced = process.env.OTP_REQUIRED === 'true';
     let normalizedPhone = telephone ? normalizePhone(telephone) : null;
@@ -76,18 +76,17 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({
-      nom,
-      prenom,
-      datedenaissance,
-      email,
-      password,
-      telephone: normalizedPhone || telephone,
-      telephoneVerified: telephoneVerified,
-      genre,
-      note,
-      photoProfil,
-      role: normalizedRole,
+    const newUser = new Utilisateur({ 
+      nom, 
+      prenom, 
+      datedenaissance, 
+      email, 
+      password, 
+      telephone, 
+      genre, 
+      note, 
+      photoProfil, 
+      role 
     });
     await newUser.save();
 

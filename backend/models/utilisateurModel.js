@@ -113,18 +113,37 @@ UtilisateurSchema.methods.generateRefreshToken = async function() {
 
 // Méthode statique pour login par email ou téléphone
 UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
+  console.log("🔍 findByCredentials - Recherche utilisateur:", { identifiant, password: "***" });
+  
   let user = null;
   if (validator.isEmail(identifiant)) {
+    console.log("📧 Recherche par email:", identifiant);
     user = await this.findOne({ email: identifiant });
   } else {
+    console.log("📱 Recherche par téléphone:", identifiant);
     user = await this.findOne({ telephone: identifiant });
   }
 
-  if (!user) throw new Error('Identifiants incorrects');
+  console.log("👤 Utilisateur trouvé:", user ? "OUI" : "NON");
+  if (user) {
+    console.log("👤 Détails utilisateur:", { 
+      id: user._id, 
+      nom: user.nom, 
+      email: user.email, 
+      telephone: user.telephone,
+      role: user.role 
+    });
+  }
 
+  if (!user) throw new Error('Utilisateur non trouvé');
+
+  console.log("🔐 Vérification du mot de passe...");
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error('Identifiants incorrects');
+  console.log("🔐 Mot de passe correct:", isMatch);
+  
+  if (!isMatch) throw new Error('Mot de passe incorrect');
 
+  console.log("✅ Authentification réussie pour:", user.nom);
   return user;
 };
 
