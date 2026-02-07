@@ -14,9 +14,65 @@ cloudinary.v2.config({
 const upload = multer({ dest: "uploads/" });
 
 // Créer un nouveau service
+export const searchServices = async (req, res) => {
+    try {
+        const { query, categorie, minPrice, maxPrice } = req.query;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        let searchCriteria = {};
+
+        // Recherche textuelle et tags (Regex uniquement pour stabilité)
+        if (query) {
+            searchCriteria.$or = [
+                { nomservice: { $regex: query, $options: 'i' } },
+                { tags: { $in: [new RegExp(query, 'i')] } }
+            ];
+        }
+
+        // Filtre par catégorie
+        if (categorie) {
+            searchCriteria.categorie = categorie;
+        }
+
+        const services = await Service.find(searchCriteria)
+            .populate({
+                path: 'categorie',
+                populate: { path: 'groupe' }
+            })
+            .limit(limit)
+            .skip(skip);
+
+        const total = await Service.countDocuments(searchCriteria);
+
+        res.json({
+            services,
+            pagination: {
+                total,
+                page,
+                pages: Math.ceil(total / limit),
+                limit
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Helper pour parser les tags
+const parseTags = (tags) => {
+    if (!tags) return [];
+    try {
+        return typeof tags === 'string' ? JSON.parse(tags) : tags;
+    } catch (e) {
+        return [tags];
+    }
+};
+
 export const createService = async (req, res) => {
     try {
-        const { nomservice, categorie, prixmoyen, imageservice } = req.body;
+        const { nomservice, categorie, prixmoyen, imageservice, tags } = req.body;
 
         let finalImageUrl;
 
@@ -31,14 +87,16 @@ export const createService = async (req, res) => {
             // Utiliser l'URL fournie
             finalImageUrl = imageservice;
         } else {
-            return res.status(400).json({ error: "No image file or URL provided" });
+            // Image par défaut si aucune fournie
+            finalImageUrl = "https://res.cloudinary.com/demo/image/upload/w_300,h_200,c_fill,g_auto/sample.jpg";
         }
 
         const newService = new Service({
             nomservice,
             imageservice: finalImageUrl,
             categorie,
-            prixmoyen
+            prixmoyen,
+            tags: parseTags(tags) // ✅ Ajout des tags
         });
 
         console.log('💾 Tentative de sauvegarde du service:', newService);
@@ -56,8 +114,12 @@ export const createService = async (req, res) => {
 export const updateService = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nomservice, categorie, prixmoyen } = req.body;
+        const { nomservice, categorie, prixmoyen, tags } = req.body;
         const updates = { nomservice, categorie, prixmoyen };
+
+        if (tags) {
+            updates.tags = parseTags(tags);
+        }
 
         // Check if a new image is uploaded
         if (req.file) {
@@ -111,6 +173,29 @@ export const getServicesByCategorie = async (req, res) => {
         const { categorie } = req.params;
         const servicesByCategorie = await Service.find({ nomcategorie: categorie });
         res.json(servicesByCategorie);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Créer un service directement (sans multer)
+export const createServiceDirect = async (req, res) => {
+    try {
+        const { nomservice, categorie, prixmoyen, imageservice } = req.body;
+
+        const newService = new Service({
+            nomservice,
+            imageservice: imageservice || "https://res.cloudinary.com/demo/image/upload/w_300,h_200,c_fill,g_auto/sample.jpg",
+            categorie,
+            prixmoyen
+        });
+
+        console.log('💾 Tentative de sauvegarde du service:', newService);
+        const savedService = await newService.save();
+        console.log('✅ Service sauvegardé avec succès:', savedService._id);
+
+        res.status(201).json(savedService);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

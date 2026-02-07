@@ -133,10 +133,46 @@ export const createFreelance = async (req, res) => {
 // ✅ Lire tous les freelances
 export const getAllFreelances = async (req, res) => {
   try {
-    const freelances = await freelanceModel.find()
-      .populate("utilisateur");
+    // ✅ Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    res.status(200).json(freelances);
+    // ✅ Tri
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder;
+
+    // ✅ Filtre statut
+    const filter = {};
+    if (req.query.status) {
+      filter.accountStatus = req.query.status;
+    }
+    if (req.query.availabilityStatus) {
+      filter.availabilityStatus = req.query.availabilityStatus;
+    }
+
+    const freelances = await freelanceModel.find(filter)
+      .populate("utilisateur")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
+
+    // ✅ Compter le total pour la pagination
+    const total = await freelanceModel.countDocuments(filter);
+
+    res.status(200).json({
+      freelances,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit,
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
+      }
+    });
   } catch (err) {
     console.error("Erreur récupération freelances:", err.message);
     res.status(500).json({ error: err.message });
@@ -339,6 +375,11 @@ export const searchFreelances = async (req, res) => {
   try {
     const { query, category, minRating, maxHourlyRate } = req.query;
 
+    // ✅ Pagination avec limite par défaut
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Max 100 résultats
+    const skip = (page - 1) * limit;
+
     let searchCriteria = { accountStatus: 'Active' };
 
     if (query) {
@@ -354,11 +395,42 @@ export const searchFreelances = async (req, res) => {
     if (minRating) searchCriteria.rating = { $gte: parseFloat(minRating) };
     if (maxHourlyRate) searchCriteria.hourlyRate = { $lte: parseFloat(maxHourlyRate) };
 
+    // ✅ Tri personnalisable
+    const sortBy = req.query.sortBy || 'rating';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+    const sortOptions = {};
+    
+    if (sortBy === 'rating') {
+      sortOptions.rating = sortOrder;
+      sortOptions.completedJobs = -1; // Tri secondaire
+    } else if (sortBy === 'price') {
+      sortOptions.hourlyRate = sortOrder;
+    } else if (sortBy === 'recent') {
+      sortOptions.createdAt = sortOrder;
+    } else {
+      sortOptions[sortBy] = sortOrder;
+    }
+
     const freelances = await freelanceModel.find(searchCriteria)
       .populate("utilisateur")
-      .sort({ rating: -1, completedJobs: -1 });
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json(freelances);
+    // ✅ Compter le total
+    const total = await freelanceModel.countDocuments(searchCriteria);
+
+    res.status(200).json({
+      freelances,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit,
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
+      }
+    });
   } catch (err) {
     console.error("Erreur recherche freelances:", err.message);
     res.status(500).json({ error: err.message });
@@ -374,6 +446,99 @@ export const deleteFreelance = async (req, res) => {
     res.status(200).json({ message: "Freelance supprimé avec succès" });
   } catch (err) {
     console.error("Erreur suppression freelance:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Récupérer les freelances en attente
+export const getPendingFreelances = async (req, res) => {
+  try {
+    const freelances = await freelanceModel.find({ 
+      status: 'pending',
+      source: 'sdealsidentification'
+    })
+      .populate("utilisateur")
+      .populate("recenseur", "nom prenom telephone")
+      .sort({ dateRecensement: -1 });
+
+    res.status(200).json(freelances);
+  } catch (err) {
+    console.error("Erreur récupération freelances pending:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Valider un freelance
+export const validateFreelance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.body.adminId || req.user?._id;
+
+    const freelance = await freelanceModel.findById(id);
+    
+    if (!freelance) {
+      return res.status(404).json({ error: "Freelance non trouvé" });
+    }
+
+    if (freelance.status !== 'pending') {
+      return res.status(400).json({ error: "Freelance déjà traité" });
+    }
+
+    freelance.status = 'active';
+    freelance.accountStatus = 'Active';
+    freelance.verificationDocuments.isVerified = true;
+    freelance.validePar = adminId;
+    freelance.dateValidation = new Date();
+
+    await freelance.save();
+
+    const populatedFreelance = await freelanceModel.findById(id)
+      .populate("utilisateur")
+      .populate("recenseur", "nom prenom");
+
+    res.status(200).json({
+      success: true,
+      message: "Freelance validé avec succès",
+      freelance: populatedFreelance
+    });
+  } catch (err) {
+    console.error("Erreur validation freelance:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🆕 OPTION C - Rejeter un freelance
+export const rejectFreelance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motif } = req.body;
+    const adminId = req.body.adminId || req.user?._id;
+
+    const freelance = await freelanceModel.findById(id);
+    
+    if (!freelance) {
+      return res.status(404).json({ error: "Freelance non trouvé" });
+    }
+
+    if (freelance.status !== 'pending') {
+      return res.status(400).json({ error: "Freelance déjà traité" });
+    }
+
+    freelance.status = 'rejected';
+    freelance.accountStatus = 'Suspended';
+    freelance.motifRejet = motif || 'Non spécifié';
+    freelance.validePar = adminId;
+    freelance.dateValidation = new Date();
+
+    await freelance.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Freelance rejeté",
+      freelance
+    });
+  } catch (err) {
+    console.error("Erreur rejet freelance:", err.message);
     res.status(500).json({ error: err.message });
   }
 };

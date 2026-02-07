@@ -13,7 +13,10 @@ import {
   searchVendeurs,
   getTopVendeurs,
   getVendeurStats,
-  changeVendeurStatus
+  changeVendeurStatus,
+  validateVendeur,
+  rejectVendeur,
+  getPendingVendeurs
 } from "../controller/vendeurController.js";
 
 // ✅ CONFIGURATION MULTER POUR UPLOAD TEMPORAIRE
@@ -54,5 +57,10 @@ vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);         // Statistique
 
 // ⚙️ GESTION ADMINISTRATIVE
 vendeurRouter.patch("/vendeur/:id/status", changeVendeurStatus);   // Changer statut
+
+// 🆕 Routes validation (Option C)
+vendeurRouter.get("/vendeur/pending/list", getPendingVendeurs);
+vendeurRouter.put("/vendeur/:id/validate", validateVendeur);
+vendeurRouter.put("/vendeur/:id/reject", rejectVendeur);
 
 export default vendeurRouter;

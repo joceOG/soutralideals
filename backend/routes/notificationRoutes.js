@@ -1,32 +1,22 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
-    createNotification,
-    getAllNotifications,
-    getUserNotifications,
-    markAsRead,
-    markAllAsRead,
-    archiveNotification,
-    deleteNotification,
-    getNotificationStats,
-    sendBulkNotification
-} from '../controller/notificationController.js';
+  createNotification,
+  getNotificationsByUser,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  getUnreadCount
+} from "../controller/notificationController.js";
 
 const notificationRouter = Router();
 
-// ✅ ROUTES CRUD NOTIFICATIONS
-notificationRouter.post('/notification', createNotification);
-notificationRouter.get('/notifications', getAllNotifications);
-notificationRouter.delete('/notification/:id', deleteNotification);
-
-// ✅ ROUTES SPÉCIFIQUES UTILISATEUR
-notificationRouter.get('/notifications/user/:userId', getUserNotifications);
-notificationRouter.patch('/notification/:id/read', markAsRead);
-notificationRouter.patch('/notifications/user/:userId/read-all', markAllAsRead);
-notificationRouter.patch('/notification/:id/archive', archiveNotification);
-
-// ✅ ROUTES STATISTIQUES ET MASSE
-notificationRouter.get('/notifications/stats', getNotificationStats);
-notificationRouter.post('/notifications/bulk', sendBulkNotification);
+// Routes pour les notifications
+notificationRouter.post("/notification", createNotification);
+notificationRouter.get("/notification/user/:userId", getNotificationsByUser);
+notificationRouter.put("/notification/:notificationId/read", markAsRead);
+notificationRouter.put("/notification/user/:userId/read-all", markAllAsRead);
+notificationRouter.delete("/notification/:notificationId", deleteNotification);
+notificationRouter.get("/notification/user/:userId/unread-count", getUnreadCount);
 
 export default notificationRouter;
 

@@ -12,7 +12,8 @@ import {
   MenuItem,
   Snackbar,
   Alert,
-  InputAdornment
+  InputAdornment,
+  Chip
 } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -27,6 +28,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { styled } from '@mui/material/styles';
+import TagsInput from '../components/TagsInput';
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -56,6 +58,7 @@ interface Item {
   prixArticle: string;
   quantiteArticle: number;
   photoArticle?: string;
+  tags: string[]; // ✅ Added tags
   categorie?: {
     _id: string;
     nomcategorie: string;
@@ -75,7 +78,11 @@ const Article: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [categorie, setCategorie] = useState<Option[]>([]);
   const [selectedCategorie, setSelectedCategorie] = useState<string>('');
-  const [newArticle, setNewArticle] = useState<Omit<Item, 'photoArticle'>>({
+
+  // ✅ Managed tags state separately for cleaner UI handling
+  const [currentTags, setCurrentTags] = useState<string[]>([]);
+
+  const [newArticle, setNewArticle] = useState<Omit<Item, 'photoArticle' | 'tags'>>({
     _id: '',
     nomArticle: '',
     prixArticle: '',
@@ -83,7 +90,7 @@ const Article: React.FC = () => {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [currentArticle, setCurrentArticle] = useState<Omit<Item, 'photoArticle'>>({
+  const [currentArticle, setCurrentArticle] = useState<Omit<Item, 'photoArticle' | 'tags'>>({
     _id: '',
     nomArticle: '',
     prixArticle: '',
@@ -95,7 +102,12 @@ const Article: React.FC = () => {
     const fetchData = async () => {
       try {
         const articleResponse = await axios.get(`${apiUrl}/articles`);
-        setArticles(articleResponse.data);
+        // Ensure tags is always an array
+        const sanitizedData = articleResponse.data.map((item: any) => ({
+          ...item,
+          tags: item.tags || []
+        }));
+        setArticles(sanitizedData);
 
         const categorieResponse = await axios.get(`${apiUrl}/categorie/groupe/E-marché`);
         const options = categorieResponse.data.map((cat: any) => ({
@@ -110,7 +122,10 @@ const Article: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleClickOpen = () => setOpen(true);
+  const handleClickOpen = () => {
+    setOpen(true);
+    setCurrentTags([]); // Reset tags
+  };
 
   const handleClose = () => {
     setOpen(false);
@@ -118,15 +133,19 @@ const Article: React.FC = () => {
     setNewArticle({ _id: '', nomArticle: '', prixArticle: '', quantiteArticle: 0 });
     setSelectedFile(null);
     setSelectedCategorie('');
+    setCurrentTags([]); // Reset tags
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const articleData = isEditMode ? currentArticle : newArticle;
-    const updatedData = { ...articleData, [name]: value };
-
-    if (isEditMode) setCurrentArticle(updatedData);
-    else setNewArticle(updatedData);
+    // Handle both edit and new mode with respective state setters
+    // Note: We don't store tags in newArticle/currentArticle state directly to simplify updates, 
+    // we use currentTags state instead.
+    if (isEditMode) {
+      setCurrentArticle(prev => ({ ...prev, [name]: value }));
+    } else {
+      setNewArticle(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -137,6 +156,9 @@ const Article: React.FC = () => {
     formData.append('prixArticle', articleData.prixArticle);
     formData.append('quantiteArticle', articleData.quantiteArticle.toString());
     formData.append('categorie', selectedCategorie);
+
+    // ✅ Send tags as JSON string
+    formData.append('tags', JSON.stringify(currentTags));
 
     if (selectedFile) formData.append('photoArticle', selectedFile);
 
@@ -155,6 +177,9 @@ const Article: React.FC = () => {
       });
 
       const updatedArticle = response.data;
+      // Ensure tags array exists
+      updatedArticle.tags = updatedArticle.tags || [];
+
       const updatedArticles = isEditMode
         ? articles.map((item) => (item._id === updatedArticle._id ? updatedArticle : item))
         : [...articles, updatedArticle];
@@ -193,6 +218,7 @@ const Article: React.FC = () => {
       quantiteArticle: article.quantiteArticle,
     });
     setSelectedCategorie(article?.categorie?._id || '');
+    setCurrentTags(article.tags || []); // ✅ Load existing tags
     setSelectedFile(null);
     setIsEditMode(true);
     setOpen(true);
@@ -202,7 +228,8 @@ const Article: React.FC = () => {
     item.nomArticle.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.prixArticle.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.quantiteArticle.toString().includes(searchTerm) ||
-    item.categorie?.nomcategorie?.toLowerCase().includes(searchTerm.toLowerCase())
+    item.categorie?.nomcategorie?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) // ✅ Search by tags
   );
 
   return (
@@ -216,7 +243,7 @@ const Article: React.FC = () => {
           Ajouter Un Nouveau Article
         </Button>
         <TextField
-          label="Rechercher"
+          label="Rechercher (Nom, Tag...)"
           variant="outlined"
           size="small"
           value={searchTerm}
@@ -248,6 +275,7 @@ const Article: React.FC = () => {
               <StyledTableCell>Quantité Article</StyledTableCell>
               <StyledTableCell>Photo Article</StyledTableCell>
               <StyledTableCell>Catégorie</StyledTableCell>
+              <StyledTableCell>Tags </StyledTableCell> {/* ✅ Added Tags Column */}
               <StyledTableCell>Action</StyledTableCell>
             </TableRow>
           </TableHead>
@@ -266,6 +294,15 @@ const Article: React.FC = () => {
                   )}
                 </StyledTableCell>
                 <StyledTableCell>{item.categorie?.nomcategorie || 'N/A'}</StyledTableCell>
+                <StyledTableCell>
+                  {/* ✅ Show Tags as Chips (limit to 3) */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {item.tags?.slice(0, 3).map((tag, idx) => (
+                      <Chip key={idx} label={tag} size="small" variant="outlined" />
+                    ))}
+                    {item.tags?.length > 3 && <Chip label={`+${item.tags.length - 3}`} size="small" />}
+                  </Box>
+                </StyledTableCell>
                 <StyledTableCell>
                   <IconButton color="primary" onClick={() => handleEdit(item)}>
                     <EditIcon />
@@ -326,6 +363,15 @@ const Article: React.FC = () => {
               </MenuItem>
             ))}
           </TextField>
+
+          {/* ✅ Added TagsInput */}
+          <TagsInput
+            tags={currentTags}
+            onChange={setCurrentTags}
+            label="Mots-clés / Tags"
+            placeholder="Ajouter un tag (ex: promo, smartphone...)"
+          />
+
           <Button
             variant="outlined"
             component="label"

@@ -10,6 +10,9 @@ import {
   promoteFreelance,
   getFreelancesByCategory,
   searchFreelances,
+  validateFreelance,
+  rejectFreelance,
+  getPendingFreelances,
 } from "../controller/freelanceController.js";
 
 const upload = multer({ dest: "uploads/" }); // Stockage temporaire avant Cloudinary
@@ -40,5 +43,10 @@ freelanceRouter.put("/freelance/:id/rating", updateFreelanceRating);        // M
 freelanceRouter.put("/freelance/:id/promote", promoteFreelance);             // Promouvoir freelance
 freelanceRouter.get("/freelances/category/:category", getFreelancesByCategory); // Par catégorie
 freelanceRouter.get("/freelances/search", searchFreelances);                 // Recherche avancée
+
+// 🆕 Routes validation (Option C)
+freelanceRouter.get("/freelance/pending/list", getPendingFreelances);
+freelanceRouter.put("/freelance/:id/validate", validateFreelance);
+freelanceRouter.put("/freelance/:id/reject", rejectFreelance);
 
 export default freelanceRouter;

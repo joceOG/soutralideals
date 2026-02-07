@@ -10,10 +10,45 @@ cloudinary.v2.config({
     api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 });
 
+// ✅ Recherche d'articles
+export const searchArticles = async (req, res) => {
+    try {
+        const { query } = req.query;
+        const limit = 20;
+
+        let searchCriteria = {};
+
+        if (query) {
+            searchCriteria.$or = [
+                { nomArticle: { $regex: query, $options: 'i' } },
+                { tags: { $in: [new RegExp(query, 'i')] } }
+            ];
+        }
+
+        const articles = await articleModel.find(searchCriteria)
+            .populate('categorie')
+            .limit(limit);
+
+        res.json(articles);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Helper pour parser les tags
+const parseTags = (tags) => {
+    if (!tags) return [];
+    try {
+        return typeof tags === 'string' ? JSON.parse(tags) : tags;
+    } catch (e) {
+        return [tags];
+    }
+};
+
 // ✅ Met à jour un article (avec upload d'image)
 export const updateArticleById = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie } = req.body;
+        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie, tags } = req.body;
         const { path: filePath } = req.file || {};
 
         let updatedFields = {
@@ -21,6 +56,10 @@ export const updateArticleById = async (req, res) => {
             prixArticle,
             quantiteArticle,
         };
+
+        if (tags) {
+            updatedFields.tags = parseTags(tags);
+        }
 
         if (vendeur) {
             updatedFields.vendeur = mongoose.Types.ObjectId(vendeur);
@@ -54,14 +93,14 @@ export const updateArticleById = async (req, res) => {
             updatedFields,
             { new: true }
         )
-        .populate('categorie')
-        .populate({
-            path: 'vendeur',
-            populate: {
-                path: 'utilisateur',
-                model: 'Utilisateur'
-            }
-        });
+            .populate('categorie')
+            .populate({
+                path: 'vendeur',
+                populate: {
+                    path: 'utilisateur',
+                    model: 'Utilisateur'
+                }
+            });
 
         if (!updatedArticle) {
             return res.status(404).json({ error: 'Article non trouvé' });
@@ -77,7 +116,7 @@ export const updateArticleById = async (req, res) => {
 // ✅ Crée un nouvel article avec upload d'image
 export const createArticle = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie } = req.body;
+        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie, tags } = req.body;
         const categorieId = mongoose.Types.ObjectId(categorie);
         const vendeurId = mongoose.Types.ObjectId(vendeur);
 
@@ -98,6 +137,7 @@ export const createArticle = async (req, res) => {
             photoArticle: result.secure_url,
             vendeur: vendeurId,
             categorie: categorieId,
+            tags: parseTags(tags) // ✅ Ajout des tags
         });
 
         const savedArticle = await newArticle.save();
