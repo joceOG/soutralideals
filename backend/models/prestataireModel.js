@@ -116,6 +116,7 @@ const prestataireSchema = new mongoose.Schema({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -153,6 +154,8 @@ prestataireSchema.methods.syncFinalizationFromDocuments = function() {
 >>>>>>> da08acd (Dashboard Complet and Merge)
 =======
 >>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 5b8fb41 (Dashboard Complet and Merge)
 // 🆕 MÉTHODE POUR CALCULER LE STATUT DE FINALISATION
 prestataireSchema.methods.calculateFinalizationStatus = function() {
   const status = this.finalizationStatus;
