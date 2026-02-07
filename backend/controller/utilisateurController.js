@@ -28,6 +28,7 @@ export const signUp = async (req, res) => {
   try {
     let { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
 
+<<<<<<< HEAD
     const otpEnforced = process.env.OTP_REQUIRED === 'true';
     let normalizedPhone = telephone ? normalizePhone(telephone) : null;
     let telephoneVerified = false;
@@ -47,6 +48,8 @@ export const signUp = async (req, res) => {
       normalizedPhone = normalizePhone(telephone);
     }
 
+=======
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     // ✅ Accepter les rôles en minuscules et les convertir
     const validRoles = ["prestataire", "vendeur", "freelance", "client"];
     const roleMap = {
@@ -93,18 +96,7 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({ 
-      nom, 
-      prenom, 
-      datedenaissance, 
-      email, 
-      password, 
-      telephone, 
-      genre, 
-      note, 
-      photoProfil, 
-      role 
-    });
+    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role });
     await newUser.save();
 
     if (email) {

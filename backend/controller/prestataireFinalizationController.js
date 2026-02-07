@@ -3,7 +3,10 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+<<<<<<< HEAD
 import { isAdmin, isSelf } from '../middleware/entityAccess.js';
+=======
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
 
 // 🎯 CONFIGURATION MULTER POUR UPLOAD
 const storage = multer.diskStorage({
@@ -20,13 +23,20 @@ const storage = multer.diskStorage({
   }
 });
 
+<<<<<<< HEAD
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
+=======
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|pdf/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
+<<<<<<< HEAD
 
     if (mimetype && extname) {
       return cb(null, true);
@@ -71,10 +81,22 @@ async function assertPrestataireAccess(req, prestataireId) {
   return { prestataire };
 }
 
+=======
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Type de fichier non autorisé. Seuls JPEG, PNG et PDF sont acceptés.'));
+    }
+  }
+});
+
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
 // 🎯 UPLOAD D'UN DOCUMENT
 export const uploadDocument = async (req, res) => {
   try {
     const { prestataireId, documentType } = req.body;
+<<<<<<< HEAD
 
     if (!prestataireId || !documentType) {
       return res.status(400).json({
@@ -100,10 +122,40 @@ export const uploadDocument = async (req, res) => {
     prestataire.syncFinalizationFromDocuments();
     await prestataire.save();
 
+=======
+    
+    if (!prestataireId || !documentType) {
+      return res.status(400).json({ 
+        error: 'prestataireId et documentType requis' 
+      });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'Aucun fichier fourni' 
+      });
+    }
+    
+    // Vérifier que le prestataire existe
+    const prestataire = await prestataireModel.findById(prestataireId);
+    if (!prestataire) {
+      return res.status(404).json({ 
+        error: 'Prestataire non trouvé' 
+      });
+    }
+    
+    // Construire l'URL du fichier
+    const fileUrl = `/uploads/prestataires/documents/${req.file.filename}`;
+    
+    console.log(`📤 Document uploadé: ${documentType} pour prestataire ${prestataireId}`);
+    console.log(`📁 Fichier: ${req.file.filename}`);
+    
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     res.status(200).json({
       success: true,
       message: 'Document uploadé avec succès',
       url: fileUrl,
+<<<<<<< HEAD
       documentType,
       filename: req.file.filename,
       status: prestataire.status,
@@ -112,6 +164,16 @@ export const uploadDocument = async (req, res) => {
     console.error('❌ Erreur upload document:', error);
     res.status(500).json({
       error: 'Erreur lors de l\'upload du document'
+=======
+      documentType: documentType,
+      filename: req.file.filename
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur upload document:', error);
+    res.status(500).json({ 
+      error: 'Erreur lors de l\'upload du document' 
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     });
   }
 };
@@ -121,6 +183,7 @@ export const finalizePrestataireProfile = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+<<<<<<< HEAD
 
     const access = await assertPrestataireAccess(req, id);
     if (access.error) {
@@ -146,10 +209,63 @@ export const finalizePrestataireProfile = async (req, res) => {
 
     const finalizationResult = prestataire.calculateFinalizationStatus();
 
+=======
+    
+    console.log(`🎯 Finalisation profil prestataire: ${id}`);
+    console.log(`📊 Données:`, updateData);
+    
+    // Vérifier que le prestataire existe
+    const prestataire = await prestataireModel.findById(id);
+    if (!prestataire) {
+      return res.status(404).json({ 
+        error: 'Prestataire non trouvé' 
+      });
+    }
+    
+    // Mettre à jour le statut de finalisation
+    const finalizationStatus = updateData.finalizationStatus || {};
+    
+    // Calculer si le profil est complet
+    const requiredDocs = finalizationStatus.cniUploaded && 
+                        finalizationStatus.selfieUploaded && 
+                        finalizationStatus.locationSet;
+    
+    // Mettre à jour le statut
+    const newStatus = requiredDocs ? 'pending' : 'incomplete';
+    
+    // Préparer les données de mise à jour
+    const updateFields = {
+      ...updateData,
+      status: newStatus,
+      finalizationStatus: {
+        ...prestataire.finalizationStatus,
+        ...finalizationStatus,
+        isComplete: requiredDocs
+      }
+    };
+    
+    // Mettre à jour le prestataire
+    const updatedPrestataire = await prestataireModel.findByIdAndUpdate(
+      id,
+      updateFields,
+      { new: true, runValidators: true }
+    );
+    
+    // Calculer le statut de finalisation
+    const finalizationResult = updatedPrestataire.calculateFinalizationStatus();
+    
+    console.log(`✅ Profil finalisé:`, {
+      status: updatedPrestataire.status,
+      isComplete: finalizationResult.isComplete,
+      requiredDocs: finalizationResult.requiredDocs
+    });
+    
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     res.status(200).json({
       success: true,
       message: 'Profil finalisé avec succès',
       prestataire: {
+<<<<<<< HEAD
         id: prestataire._id,
         status: prestataire.status,
         finalizationStatus: finalizationResult
@@ -159,6 +275,18 @@ export const finalizePrestataireProfile = async (req, res) => {
     console.error('❌ Erreur finalisation profil:', error);
     res.status(500).json({
       error: 'Erreur lors de la finalisation du profil'
+=======
+        id: updatedPrestataire._id,
+        status: updatedPrestataire.status,
+        finalizationStatus: finalizationResult
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur finalisation profil:', error);
+    res.status(500).json({ 
+      error: 'Erreur lors de la finalisation du profil' 
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     });
   }
 };
@@ -167,6 +295,7 @@ export const finalizePrestataireProfile = async (req, res) => {
 export const getFinalizationStatus = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
 
     const access = await assertPrestataireAccess(req, id);
     if (access.error) {
@@ -176,19 +305,40 @@ export const getFinalizationStatus = async (req, res) => {
     const prestataire = access.prestataire;
     const finalizationResult = prestataire.calculateFinalizationStatus();
 
+=======
+    
+    const prestataire = await prestataireModel.findById(id);
+    if (!prestataire) {
+      return res.status(404).json({ 
+        error: 'Prestataire non trouvé' 
+      });
+    }
+    
+    const finalizationResult = prestataire.calculateFinalizationStatus();
+    
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     res.status(200).json({
       success: true,
       status: prestataire.status,
       finalizationStatus: finalizationResult
     });
+<<<<<<< HEAD
   } catch (error) {
     console.error('❌ Erreur récupération statut:', error);
     res.status(500).json({
       error: 'Erreur lors de la récupération du statut'
+=======
+    
+  } catch (error) {
+    console.error('❌ Erreur récupération statut:', error);
+    res.status(500).json({ 
+      error: 'Erreur lors de la récupération du statut' 
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     });
   }
 };
 
+<<<<<<< HEAD
 // 🎯 RÉCUPÉRER LES DOCUMENTS D'UN PRESTATAIRE
 export const getPrestataireDocuments = async (req, res) => {
   try {
@@ -228,4 +378,7 @@ export const getPrestataireDocuments = async (req, res) => {
   }
 };
 
+=======
+// 🎯 EXPORT DU MIDDLEWARE MULTER
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
 export { upload };

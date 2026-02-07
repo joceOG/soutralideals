@@ -50,6 +50,7 @@ export const createPrestataire = async (req, res) => {
       clients,
     } = req.body;
 
+<<<<<<< HEAD
     const parseNumber = (value, fallback = 0) => {
       if (value === null || typeof value === "undefined" || value === "") {
         return fallback;
@@ -87,6 +88,11 @@ export const createPrestataire = async (req, res) => {
       service === "" ||
       (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
     if (serviceMissing && category) {
+=======
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+    if (!service && category) {
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -112,8 +118,11 @@ export const createPrestataire = async (req, res) => {
           error: `Aucun service trouvé pour la catégorie: ${category}` 
         });
       }
+<<<<<<< HEAD
     } else if (serviceMissing) {
       return res.status(400).json({ error: "service ou category requis" });
+=======
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
     }
 
     // Parsing localisationmaps
@@ -157,9 +166,15 @@ export const createPrestataire = async (req, res) => {
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
     const newPrestataire = new prestataireModel({
+<<<<<<< HEAD
       utilisateur: new mongoose.Types.ObjectId(utilisateur),
       service: new mongoose.Types.ObjectId(finalService),
       prixprestataire: parseNumber(prixprestataire, 0),
+=======
+      utilisateur: mongoose.Types.ObjectId(utilisateur),
+      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
+      prixprestataire,
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
       localisation,
       note: parseNumber(note, 0),
       verifier: isAdminUser && (verifier === "true" || verifier === true),
@@ -451,7 +466,14 @@ export const deletePrestataire = async (req, res) => {
 // 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
 export const getPendingPrestataires = async (req, res) => {
   try {
+<<<<<<< HEAD
     const prestataires = await prestataireModel.find({ status: "pending" })
+=======
+    const prestataires = await prestataireModel.find({ 
+      status: { $in: ['pending', 'incomplete'] },
+      source: { $in: ['sdealsidentification', 'sdealsmobile'] }
+    })
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({

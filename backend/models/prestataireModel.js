@@ -79,6 +79,7 @@ const prestataireSchema = new mongoose.Schema({
   motifRejet: { type: String },
 }, { timestamps: true });
 
+<<<<<<< HEAD
 // 🆕 SYNCHRONISER finalizationStatus depuis les champs réels du document
 prestataireSchema.methods.syncFinalizationFromDocuments = function() {
   const fs = this.finalizationStatus;
@@ -93,6 +94,8 @@ prestataireSchema.methods.syncFinalizationFromDocuments = function() {
   return this.calculateFinalizationStatus();
 };
 
+=======
+>>>>>>> 22ecb18 (Dashboard Complet and Merge)
 // 🆕 MÉTHODE POUR CALCULER LE STATUT DE FINALISATION
 prestataireSchema.methods.calculateFinalizationStatus = function() {
   const status = this.finalizationStatus;
