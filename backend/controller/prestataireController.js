@@ -28,6 +28,7 @@ export const createPrestataire = async (req, res) => {
     const {
       utilisateur,
       service,
+      category, // ✅ Nouveau: catégorie pour inscription simplifiée
       prixprestataire,
       localisation,
       note,
@@ -47,6 +48,36 @@ export const createPrestataire = async (req, res) => {
       revenus,
       clients,
     } = req.body;
+
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+    if (!service && category) {
+      // Si pas de service fourni mais une catégorie, trouver le service correspondant
+      const Service = (await import("../models/serviceModel.js")).default;
+      const Categorie = (await import("../models/categorieModel.js")).default;
+      
+      // Trouver la catégorie par nom
+      const categorieDoc = await Categorie.findOne({ 
+        nomcategorie: { $regex: new RegExp(category, 'i') } 
+      });
+      
+      if (categorieDoc) {
+        // Trouver le premier service de cette catégorie
+        const serviceDoc = await Service.findOne({ categorie: categorieDoc._id });
+        if (serviceDoc) {
+          finalService = serviceDoc._id;
+          console.log(`✅ Service trouvé pour catégorie ${category}: ${serviceDoc._id}`);
+        }
+      }
+      
+      if (!finalService) {
+        console.warn(`⚠️ Aucun service trouvé pour la catégorie: ${category}`);
+        // Utiliser un service par défaut ou créer une erreur
+        return res.status(400).json({ 
+          error: `Aucun service trouvé pour la catégorie: ${category}` 
+        });
+      }
+    }
 
     // Parsing localisationmaps
     let parsedLocalisation = null;
@@ -89,7 +120,7 @@ export const createPrestataire = async (req, res) => {
     // Création prestataire
     const newPrestataire = new prestataireModel({
       utilisateur: mongoose.Types.ObjectId(utilisateur),
-      service: mongoose.Types.ObjectId(service),
+      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
       prixprestataire,
       localisation,
       note,
@@ -298,8 +329,8 @@ export const deletePrestataire = async (req, res) => {
 export const getPendingPrestataires = async (req, res) => {
   try {
     const prestataires = await prestataireModel.find({ 
-      status: 'pending',
-      source: 'sdealsidentification'
+      status: { $in: ['pending', 'incomplete'] },
+      source: { $in: ['sdealsidentification', 'sdealsmobile'] }
     })
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
