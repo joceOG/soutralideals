@@ -74,7 +74,22 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
+<<<<<<< HEAD
     const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role });
+=======
+    const newUser = new Utilisateur({ 
+      nom, 
+      prenom, 
+      datedenaissance, 
+      email, 
+      password, 
+      telephone, 
+      genre, 
+      note, 
+      photoProfil, 
+      role 
+    });
+>>>>>>> 64fe95d (Dashboard MAJ Up 2026)
     await newUser.save();
 
     if (email) {
