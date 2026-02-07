@@ -39,9 +39,6 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
-import searchRouter from './routes/searchRoutes.js';
-import walletRouter from './routes/walletRoutes.js';
-import { authenticateSocketUser } from './utils/socketAuth.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -192,6 +189,9 @@ const swaggerSpec = swaggerConfig;
 
 /** routes */
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 567a2c0 (Dashboard Complet and Merge)
 // 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
 app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
 app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
@@ -200,6 +200,7 @@ app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
 app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
 app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
+<<<<<<< HEAD
 app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
 app.use('/api', freelanceServiceRouter); // Offres freelance (pas de cache GET home pour MVP)
 app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
@@ -220,6 +221,10 @@ app.use('/api', freelanceServiceRouter);
 app.use('/api', vendeurRouter);
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.use('/api', searchRouter);
+=======
+app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
+>>>>>>> 567a2c0 (Dashboard Complet and Merge)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -241,7 +246,6 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
-app.use('/api', walletRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
