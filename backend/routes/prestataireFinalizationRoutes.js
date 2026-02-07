@@ -2,6 +2,7 @@ import express from 'express';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import auth from '../middleware/authMiddleware.js';
@@ -13,38 +14,28 @@ import {
   uploadDocument,
   finalizePrestataireProfile,
 <<<<<<< HEAD
+=======
+import { 
+  uploadDocument, 
+  finalizePrestataireProfile, 
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
   getFinalizationStatus,
-  getPrestataireDocuments,
-  upload
+  upload 
 } from '../controller/prestataireFinalizationController.js';
+import prestataireModel from '../models/prestataireModel.js';
 
 const router = express.Router();
 
-// Upload document — propriétaire ou admin
-router.post(
-  '/upload/document',
-  auth,
-  requirePrestataireOwnerByBodyId(),
-  upload.single('document'),
-  uploadDocument,
-);
+// 🎯 UPLOAD D'UN DOCUMENT
+router.post('/upload/document', upload.single('document'), uploadDocument);
 
-// Finalisation profil — propriétaire ou admin
-router.put(
-  '/prestataire/:id/finalize',
-  auth,
-  requirePrestataireOwnerOrAdmin(),
-  finalizePrestataireProfile,
-);
+// 🎯 FINALISATION DU PROFIL
+router.put('/prestataire/:id/finalize', finalizePrestataireProfile);
 
-// Statut finalisation — propriétaire ou admin
-router.get(
-  '/prestataire/:id/finalization-status',
-  auth,
-  requirePrestataireOwnerOrAdmin(),
-  getFinalizationStatus,
-);
+// 🎯 RÉCUPÉRER LE STATUT DE FINALISATION
+router.get('/prestataire/:id/finalization-status', getFinalizationStatus);
 
+<<<<<<< HEAD
 // Documents identité — propriétaire ou admin (admin pour modération dashboard)
 router.get(
   '/prestataire/:id/documents',
@@ -93,6 +84,8 @@ router.get(
 );
 
 <<<<<<< HEAD
+=======
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
 // 🎯 RÉCUPÉRER LES DOCUMENTS D'UN PRESTATAIRE
 router.get('/prestataire/:id/documents', async (req, res) => {
   try {
@@ -130,6 +123,7 @@ router.get('/prestataire/:id/documents', async (req, res) => {
   }
 });
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
@@ -142,5 +136,7 @@ router.get(
   getPrestataireDocuments,
 );
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
 
 export default router;

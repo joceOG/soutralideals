@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 const ARTICLE_POPULATE_FIELDS = 'nomarticle prixarticle imagearticle quantiteArticle';
@@ -23,6 +24,8 @@ function getArticleStock(article) {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
 // ✅ OBTENIR LE PANIER D'UN UTILISATEUR
 export const getCartByUserId = async (req, res) => {
     try {
@@ -41,6 +44,7 @@ export const getCartByUserId = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
@@ -51,6 +55,9 @@ export const getCartByUserId = async (req, res) => {
 =======
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         .populate('articles.vendeur', 'utilisateur entreprise');
 
         // Si pas de panier, créer un nouveau
@@ -68,6 +75,7 @@ export const getCartByUserId = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             return item.article && getArticleStock(item.article) > 0;
 =======
             return item.article && item.article.stock > 0;
@@ -78,6 +86,9 @@ export const getCartByUserId = async (req, res) => {
 =======
             return item.article && getArticleStock(item.article) > 0;
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+            return item.article && item.article.stock > 0;
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         });
 
         if (articlesValides.length !== cart.articles.length) {
@@ -127,6 +138,7 @@ export const addToCart = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const stockDisponible = getArticleStock(article);
         if (stockDisponible < quantite) {
             return res.status(400).json({ 
@@ -150,6 +162,12 @@ export const addToCart = async (req, res) => {
                 error: 'Stock insuffisant',
                 stockDisponible 
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        if (article.stock < quantite) {
+            return res.status(400).json({ 
+                error: 'Stock insuffisant',
+                stockDisponible: article.stock 
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
             });
         }
 
@@ -184,6 +202,7 @@ export const addToCart = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
@@ -194,6 +213,9 @@ export const addToCart = async (req, res) => {
 =======
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -241,6 +263,7 @@ export const updateCartItemQuantity = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const stockDisponible = getArticleStock(article);
         if (article && stockDisponible < quantite) {
             return res.status(400).json({ 
@@ -264,6 +287,12 @@ export const updateCartItemQuantity = async (req, res) => {
                 error: 'Stock insuffisant',
                 stockDisponible 
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        if (article && article.stock < quantite) {
+            return res.status(400).json({ 
+                error: 'Stock insuffisant',
+                stockDisponible: article.stock 
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
             });
         }
 
@@ -272,6 +301,7 @@ export const updateCartItemQuantity = async (req, res) => {
         await cart.save();
 
         // Repopuler
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -285,6 +315,9 @@ export const updateCartItemQuantity = async (req, res) => {
 =======
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -325,6 +358,7 @@ export const removeFromCart = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
@@ -335,6 +369,9 @@ export const removeFromCart = async (req, res) => {
 =======
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -412,6 +449,7 @@ export const applyPromoCode = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
@@ -422,6 +460,9 @@ export const applyPromoCode = async (req, res) => {
 =======
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -494,6 +535,7 @@ export const checkout = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
@@ -504,6 +546,9 @@ export const checkout = async (req, res) => {
 =======
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         .populate('articles.vendeur');
 
         if (!cart) {
@@ -534,6 +579,7 @@ export const checkout = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             const stockDisponible = getArticleStock(item.article);
             if (stockDisponible < item.quantite) {
                 return res.status(400).json({ 
@@ -557,11 +603,18 @@ export const checkout = async (req, res) => {
                     error: `Stock insuffisant pour ${item.nomArticle}`,
                     stockDisponible,
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+            if (item.article.stock < item.quantite) {
+                return res.status(400).json({ 
+                    error: `Stock insuffisant pour ${item.nomArticle}`,
+                    stockDisponible: item.article.stock,
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
                     quantiteDemandee: item.quantite
                 });
             }
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -587,45 +640,51 @@ export const checkout = async (req, res) => {
                     }
                 }
 <<<<<<< HEAD
+=======
+        // Créer la commande
+        const commande = new commandeModel({
+            utilisateur: userId,
+            infoCommande: {
+                addresse: cart.adresseLivraison.adresse,
+                ville: cart.adresseLivraison.ville,
+                codePostal: cart.adresseLivraison.codePostal,
+                pays: cart.adresseLivraison.pays,
+                telephone: cart.adresseLivraison.telephone
+            },
+            articles: cart.articles.map(item => ({
+                nom: item.nomArticle,
+                quantité: item.quantite,
+                image: item.imageArticle,
+                prix: item.prixUnitaire,
+                prixTotal: item.prixTotal,
+                articleId: item.article._id,
+                vendeurId: item.vendeur._id
+            })),
+            prixArticles: cart.montantArticles,
+            prixLivraison: cart.fraisLivraison,
+            prixTotal: cart.montantTotal,
+            statusCommande: 'En cours',
+            moyenPaiement: moyenPaiement || 'A définir',
+            notesClient: notesClient || cart.notes,
+            codePromo: cart.codePromo.code ? {
+                code: cart.codePromo.code,
+                reduction: cart.codePromo.reduction,
+                type: cart.codePromo.typeReduction
+            } : undefined
+        });
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
 
-                commande = new commandeModel({
-                    utilisateur: userId,
-                    infoCommande: {
-                        addresse: cart.adresseLivraison.adresse,
-                        ville: cart.adresseLivraison.ville,
-                        codePostal: cart.adresseLivraison.codePostal,
-                        pays: cart.adresseLivraison.pays,
-                        telephone: cart.adresseLivraison.telephone
-                    },
-                    articles: cart.articles.map(item => ({
-                        nom: item.nomArticle,
-                        quantite: item.quantite,
-                        image: item.imageArticle,
-                        prix: item.prixUnitaire,
-                        prixTotal: item.prixTotal,
-                        articleId: item.article._id,
-                        vendeurId: item.vendeur._id
-                    })),
-                    prixArticles: cart.montantArticles,
-                    prixLivraison: cart.fraisLivraison,
-                    prixTotal: cart.montantTotal,
-                    statusCommande: 'En cours',
-                    moyenPaiement: moyenPaiement || 'A définir',
-                    notesClient: notesClient || cart.notes,
-                    codePromo: cart.codePromo.code ? {
-                        code: cart.codePromo.code,
-                        reduction: cart.codePromo.reduction,
-                        type: cart.codePromo.typeReduction
-                    } : undefined
-                });
+        await commande.save();
 
-                await commande.save({ session });
-                await cart.convertirEnCommande(commande._id);
-            });
-        } finally {
-            session.endSession();
+        // Mettre à jour le stock des articles
+        for (const item of cart.articles) {
+            await articleModel.findByIdAndUpdate(
+                item.article._id,
+                { $inc: { stock: -item.quantite } }
+            );
         }
 
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
@@ -702,16 +761,21 @@ export const checkout = async (req, res) => {
         }
 
 <<<<<<< HEAD
+=======
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         // Marquer le panier comme converti
         await cart.convertirEnCommande(commande._id);
 
         // Populate la commande pour la réponse
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
         await commande.populate('utilisateur', 'nom prenom email telephone');
 
         res.status(201).json({
@@ -724,6 +788,7 @@ export const checkout = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const status = err.status || 500;
         res.status(status).json({ error: err.message });
 =======
@@ -736,6 +801,9 @@ export const checkout = async (req, res) => {
         const status = err.status || 500;
         res.status(status).json({ error: err.message });
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+        res.status(500).json({ error: err.message });
+>>>>>>> 1ca350b (Dashboard Complet and Merge)
     }
 };
 
