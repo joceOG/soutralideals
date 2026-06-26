@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 <<<<<<< HEAD
 <<<<<<< HEAD
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
+<<<<<<< HEAD
 import { isAdmin } from "../middleware/entityAccess.js";
 <<<<<<< HEAD
 =======
@@ -14,6 +15,8 @@ import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFi
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -98,10 +101,13 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const parseNumber = (value, fallback = 0) => {
       if (value === null || typeof value === "undefined" || value === "") {
         return fallback;
@@ -134,6 +140,7 @@ export const createPrestataire = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
     const serviceMissing =
@@ -158,11 +165,16 @@ export const createPrestataire = async (req, res) => {
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const serviceMissing =
       !service ||
       service === "" ||
       (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
     if (serviceMissing && category) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -177,6 +189,8 @@ export const createPrestataire = async (req, res) => {
     let finalService = service;
     if (!service && category) {
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -208,6 +222,7 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     } else if (serviceMissing) {
       return res.status(400).json({ error: "service ou category requis" });
 =======
@@ -226,6 +241,10 @@ export const createPrestataire = async (req, res) => {
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+    } else if (serviceMissing) {
+      return res.status(400).json({ error: "service ou category requis" });
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     }
 
     // Parsing localisationmaps
@@ -332,13 +351,12 @@ export const createPrestataire = async (req, res) => {
     const isAdminUser = isAdmin(req);
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const newPrestataire = new prestataireModel({
-      utilisateur: mongoose.Types.ObjectId(utilisateur),
-      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
-      prixprestataire,
+      utilisateur: new mongoose.Types.ObjectId(utilisateur),
+      service: new mongoose.Types.ObjectId(finalService),
+      prixprestataire: parseNumber(prixprestataire, 0),
       localisation,
       note: parseNumber(note, 0),
-      verifier: isAdminUser && (verifier === "true" || verifier === true),
-      status: "incomplete",
+      verifier: verifier === "true" || verifier === true,
       specialite: specialiteArr,
       anneeExperience,
       description,
@@ -528,6 +546,7 @@ export const updatePrestataire = async (req, res) => {
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: mongoose.Types.ObjectId(service) }),
@@ -543,6 +562,9 @@ export const updatePrestataire = async (req, res) => {
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+      ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
@@ -687,6 +709,7 @@ export const updatePrestataire = async (req, res) => {
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
+<<<<<<< HEAD
     const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
 <<<<<<< HEAD
 
@@ -753,6 +776,9 @@ export const getAllPrestataires = async (req, res) => {
 =======
     const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
     const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
     const filter = {};
@@ -767,28 +793,8 @@ export const getAllPrestataires = async (req, res) => {
     } else if (excludedSvc.length) {
       filter.service = { $nin: excludedSvc };
     }
-
-    const adminUser = isAdmin(req);
-    const isOwnProfile =
-      utilisateur &&
-      req.utilisateur &&
-      String(utilisateur) === String(req.utilisateur._id);
-
-    if (adminUser) {
-      if (status) filter.status = status;
-      if (verifier !== undefined) filter.verifier = verifier === "true" || verifier === true;
-    } else if (isOwnProfile) {
-      if (status) filter.status = status;
-      filter.utilisateur = utilisateur;
-    } else {
-      // Catalogue public : uniquement profils validés
-      filter.status = "active";
-      filter.verifier = true;
-    }
-
-    if (utilisateur && (adminUser || isOwnProfile)) {
-      filter.utilisateur = utilisateur;
-    }
+    if (status) filter.status = status;
+    if (utilisateur) filter.utilisateur = utilisateur;
     if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
 
     const prestataires = await prestataireModel.find(filter)

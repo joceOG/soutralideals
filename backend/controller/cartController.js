@@ -9,10 +9,13 @@ import mongoose from 'mongoose';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 const ARTICLE_POPULATE_FIELDS = 'nomarticle prixarticle imagearticle quantiteArticle';
 
 function getArticleStock(article) {
@@ -21,6 +24,7 @@ function getArticleStock(article) {
     return typeof quantity === 'number' && !Number.isNaN(quantity) ? quantity : 0;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -35,6 +39,8 @@ function getArticleStock(article) {
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // ✅ OBTENIR LE PANIER D'UN UTILISATEUR
 export const getCartByUserId = async (req, res) => {
     try {
@@ -56,6 +62,7 @@ export const getCartByUserId = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
@@ -75,6 +82,9 @@ export const getCartByUserId = async (req, res) => {
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        .populate('articles.article', ARTICLE_POPULATE_FIELDS)
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         .populate('articles.vendeur', 'utilisateur entreprise');
 
         // Si pas de panier, créer un nouveau
@@ -95,6 +105,7 @@ export const getCartByUserId = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             return item.article && getArticleStock(item.article) > 0;
 =======
             return item.article && item.article.stock > 0;
@@ -114,6 +125,9 @@ export const getCartByUserId = async (req, res) => {
 =======
             return item.article && item.article.stock > 0;
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+            return item.article && getArticleStock(item.article) > 0;
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         });
 
         if (articlesValides.length !== cart.articles.length) {
@@ -166,6 +180,7 @@ export const addToCart = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const stockDisponible = getArticleStock(article);
         if (stockDisponible < quantite) {
             return res.status(400).json({ 
@@ -208,6 +223,13 @@ export const addToCart = async (req, res) => {
                 error: 'Stock insuffisant',
                 stockDisponible: article.stock 
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        const stockDisponible = getArticleStock(article);
+        if (stockDisponible < quantite) {
+            return res.status(400).json({ 
+                error: 'Stock insuffisant',
+                stockDisponible 
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             });
         }
 
@@ -245,6 +267,7 @@ export const addToCart = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
@@ -264,6 +287,9 @@ export const addToCart = async (req, res) => {
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -314,6 +340,7 @@ export const updateCartItemQuantity = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const stockDisponible = getArticleStock(article);
         if (article && stockDisponible < quantite) {
             return res.status(400).json({ 
@@ -356,6 +383,13 @@ export const updateCartItemQuantity = async (req, res) => {
                 error: 'Stock insuffisant',
                 stockDisponible: article.stock 
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        const stockDisponible = getArticleStock(article);
+        if (article && stockDisponible < quantite) {
+            return res.status(400).json({ 
+                error: 'Stock insuffisant',
+                stockDisponible 
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             });
         }
 
@@ -370,6 +404,7 @@ export const updateCartItemQuantity = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
@@ -389,6 +424,9 @@ export const updateCartItemQuantity = async (req, res) => {
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -432,6 +470,7 @@ export const removeFromCart = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
@@ -451,6 +490,9 @@ export const removeFromCart = async (req, res) => {
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -531,6 +573,7 @@ export const applyPromoCode = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
@@ -550,6 +593,9 @@ export const applyPromoCode = async (req, res) => {
 =======
         await cart.populate('articles.article', 'nomarticle prixarticle imagearticle stock');
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        await cart.populate('articles.article', ARTICLE_POPULATE_FIELDS);
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         await cart.populate('articles.vendeur', 'utilisateur entreprise');
 
         res.status(200).json({
@@ -625,6 +671,7 @@ export const checkout = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .populate('articles.article', ARTICLE_POPULATE_FIELDS)
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
@@ -644,6 +691,9 @@ export const checkout = async (req, res) => {
 =======
         .populate('articles.article', 'nomarticle prixarticle imagearticle stock')
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        .populate('articles.article', ARTICLE_POPULATE_FIELDS)
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         .populate('articles.vendeur');
 
         if (!cart) {
@@ -677,6 +727,7 @@ export const checkout = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             const stockDisponible = getArticleStock(item.article);
             if (stockDisponible < item.quantite) {
                 return res.status(400).json({ 
@@ -719,6 +770,13 @@ export const checkout = async (req, res) => {
                     error: `Stock insuffisant pour ${item.nomArticle}`,
                     stockDisponible: item.article.stock,
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+            const stockDisponible = getArticleStock(item.article);
+            if (stockDisponible < item.quantite) {
+                return res.status(400).json({ 
+                    error: `Stock insuffisant pour ${item.nomArticle}`,
+                    stockDisponible,
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
                     quantiteDemandee: item.quantite
                 });
             }
@@ -730,10 +788,13 @@ export const checkout = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         // 🔒 TRANSACTION ATOMIQUE — évite la race condition stock
         const session = await mongoose.startSession();
         let commande;
@@ -753,6 +814,7 @@ export const checkout = async (req, res) => {
                         );
                     }
                 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -795,17 +857,48 @@ export const checkout = async (req, res) => {
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
-        await commande.save();
+                commande = new commandeModel({
+                    utilisateur: userId,
+                    infoCommande: {
+                        addresse: cart.adresseLivraison.adresse,
+                        ville: cart.adresseLivraison.ville,
+                        codePostal: cart.adresseLivraison.codePostal,
+                        pays: cart.adresseLivraison.pays,
+                        telephone: cart.adresseLivraison.telephone
+                    },
+                    articles: cart.articles.map(item => ({
+                        nom: item.nomArticle,
+                        quantite: item.quantite,
+                        image: item.imageArticle,
+                        prix: item.prixUnitaire,
+                        prixTotal: item.prixTotal,
+                        articleId: item.article._id,
+                        vendeurId: item.vendeur._id
+                    })),
+                    prixArticles: cart.montantArticles,
+                    prixLivraison: cart.fraisLivraison,
+                    prixTotal: cart.montantTotal,
+                    statusCommande: 'En cours',
+                    moyenPaiement: moyenPaiement || 'A définir',
+                    notesClient: notesClient || cart.notes,
+                    codePromo: cart.codePromo.code ? {
+                        code: cart.codePromo.code,
+                        reduction: cart.codePromo.reduction,
+                        type: cart.codePromo.typeReduction
+                    } : undefined
+                });
 
-        // Mettre à jour le stock des articles
-        for (const item of cart.articles) {
-            await articleModel.findByIdAndUpdate(
-                item.article._id,
-                { $inc: { stock: -item.quantite } }
-            );
+                await commande.save({ session });
+                await cart.convertirEnCommande(commande._id);
+            });
+        } finally {
+            session.endSession();
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -907,6 +1000,8 @@ export const checkout = async (req, res) => {
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         await commande.populate('utilisateur', 'nom prenom email telephone');
 
         res.status(201).json({
@@ -916,6 +1011,7 @@ export const checkout = async (req, res) => {
         });
     } catch (err) {
         console.error('Erreur checkout:', err.message);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -944,6 +1040,10 @@ export const checkout = async (req, res) => {
 =======
         res.status(500).json({ error: err.message });
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+        const status = err.status || 500;
+        res.status(status).json({ error: err.message });
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     }
 };
 

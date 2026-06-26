@@ -6,6 +6,7 @@ import fs from 'fs';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
@@ -25,6 +26,9 @@ import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFil
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -201,6 +205,7 @@ export const createVendeur = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -228,6 +233,11 @@ export const createVendeur = async (req, res) => {
             source: req.body.source || 'web',
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+            }],
+            status: 'pending',
+            source: req.body.source || 'web',
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         });
 
         await newVendeur.save();
@@ -264,6 +274,7 @@ export const getAllVendeurs = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -286,6 +297,9 @@ export const getAllVendeurs = async (req, res) => {
         const filters = applyProPublicFilter(req, {});
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+        const filters = applyProPublicFilter(req, {});
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         if (businessType) filters.businessType = businessType;
         if (category) filters.businessCategories = { $in: [category] };
         if (city) filters['businessAddress.city'] = { $regex: city, $options: 'i' };
@@ -298,6 +312,7 @@ export const getAllVendeurs = async (req, res) => {
                 { tags: { $in: [new RegExp(search, 'i')] } }
             ];
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -322,6 +337,8 @@ export const getAllVendeurs = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         // Options de tri
         const sortOptions = {};
@@ -371,6 +388,7 @@ export const getVendeurById = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -379,10 +397,13 @@ export const getVendeurById = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         if (!canAccessProProfile(req, vendeur)) {
             return res.status(404).json({ error: "Vendeur non trouvé" });
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -400,6 +421,8 @@ export const getVendeurById = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         // Incrémenter les vues de profil
         vendeur.profileViews += 1;
         await vendeur.save();
@@ -584,6 +607,7 @@ export const searchVendeurs = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         let searchCriteria = applyProPublicFilter(req, {});
 =======
         let searchCriteria = { accountStatus: 'Active' };
@@ -605,6 +629,9 @@ export const searchVendeurs = async (req, res) => {
         let searchCriteria = applyProPublicFilter(req, {});
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+        let searchCriteria = applyProPublicFilter(req, {});
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         if (query) {
             searchCriteria.$or = [
@@ -707,6 +734,7 @@ export const getPendingVendeurs = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -731,6 +759,9 @@ export const getPendingVendeurs = async (req, res) => {
         const vendeurs = await vendeurModel.find({ status: "pending" })
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+        const vendeurs = await vendeurModel.find({ status: "pending" })
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             .populate("utilisateur")
             .populate("recenseur", "nom prenom telephone")
             .sort({ dateRecensement: -1 });
@@ -746,6 +777,7 @@ export const getPendingVendeurs = async (req, res) => {
 export const validateVendeur = async (req, res) => {
     try {
         const { id } = req.params;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -771,6 +803,9 @@ export const validateVendeur = async (req, res) => {
         const adminId = req.user._id;
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+        const adminId = req.user._id;
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         const vendeur = await vendeurModel.findById(id);
         
@@ -815,6 +850,7 @@ export const rejectVendeur = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const adminId = req.user._id;
 =======
         const adminId = req.body.adminId || req.user?._id;
@@ -836,6 +872,9 @@ export const rejectVendeur = async (req, res) => {
         const adminId = req.user._id;
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+        const adminId = req.user._id;
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         const vendeur = await vendeurModel.findById(id);
         

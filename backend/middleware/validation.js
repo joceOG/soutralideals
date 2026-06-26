@@ -4,6 +4,7 @@ import logger from './logger.js';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { isValidCiPhone } from '../services/otpService.js';
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
@@ -23,6 +24,9 @@ import { isValidCiPhone } from '../services/otpService.js';
 import { isValidCiPhone } from '../services/otpService.js';
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+import { isValidCiPhone } from '../services/otpService.js';
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 // 🛡️ Middleware pour gérer les erreurs de validation
 export const handleValidationErrors = (req, res, next) => {
@@ -78,6 +82,7 @@ export const validateUserRegistration = [
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -86,13 +91,14 @@ export const validateUserRegistration = [
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     .custom((value) => {
       if (!isValidCiPhone(value)) {
         throw new Error('Numéro de téléphone invalide');
       }
       return true;
     }),
-<<<<<<< HEAD
 
   body('password')
     .isLength({ min: 6 })
@@ -102,6 +108,7 @@ export const validateUserRegistration = [
     .optional()
     .isString()
     .withMessage('Token de vérification téléphone invalide'),
+<<<<<<< HEAD
 =======
     .isMobilePhone('any')
     .withMessage('Numéro de téléphone invalide'),
@@ -141,10 +148,13 @@ export const validateUserRegistration = [
     .withMessage('Token de vérification téléphone invalide'),
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
   body('role')
     .isIn(['Client', 'Prestataire', 'Vendeur', 'Freelance'])
     .withMessage('Rôle invalide'),
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -168,6 +178,8 @@ export const validateUserRegistration = [
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 ];
 
 // 🔐 Validation pour la connexion (email OU téléphone)

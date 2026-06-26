@@ -4,6 +4,7 @@ const memoryCache = new Map();
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -12,16 +13,18 @@ const memoryCache = new Map();
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 /** @type {Map<string, { waiters: Array<(payload: unknown) => void> }>} */
 const inflightGets = new Map();
 
 const CACHE_DEBUG = process.env.CACHE_DEBUG === 'true';
-<<<<<<< HEAD
 
 export const invalidateCache = (pattern) => {
   let invalidatedCount = 0;
 
   for (const [key] of memoryCache.entries()) {
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -56,6 +59,8 @@ export const invalidateCache = (pattern) => {
   for (const [key] of memoryCache.entries()) {
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     if (key.includes(pattern)) {
       memoryCache.delete(key);
       invalidatedCount++;
@@ -66,10 +71,13 @@ export const invalidateCache = (pattern) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   if (CACHE_DEBUG && invalidatedCount > 0) {
     console.log(`🗑️ Cache invalidé: ${invalidatedCount} entrée(s) pour pattern "${pattern}"`);
   }
@@ -77,6 +85,7 @@ export const invalidateCache = (pattern) => {
 };
 
 export const autoInvalidateCache = (req, res, next) => {
+<<<<<<< HEAD
 =======
   console.log(`🗑️ Cache invalidé: ${invalidatedCount} entrée(s) pour pattern "${pattern}"`);
 <<<<<<< HEAD
@@ -115,6 +124,8 @@ export const autoInvalidateCache = (req, res, next) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   if (req.method === 'GET') {
     return next();
   }
@@ -123,10 +134,13 @@ export const autoInvalidateCache = (req, res, next) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   const originalJson = res.json.bind(res);
 
   res.json = function (data) {
@@ -139,6 +153,7 @@ export const autoInvalidateCache = (req, res, next) => {
         if (CACHE_DEBUG) {
           console.log(`🔄 Auto-invalidation: ${req.method} ${req.originalUrl} -> ${basePath}`);
         }
+<<<<<<< HEAD
 =======
   // Intercepter la réponse
   const originalSend = res.json;
@@ -189,10 +204,13 @@ export const autoInvalidateCache = (req, res, next) => {
         }
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         invalidateCache(basePath);
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -218,11 +236,15 @@ export const autoInvalidateCache = (req, res, next) => {
     return originalJson(data);
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    return originalJson(data);
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   };
 
   next();
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -235,6 +257,8 @@ export const autoInvalidateCache = (req, res, next) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 /** GET sans cache (auth, données utilisateur, temps réel). */
 const SKIP_CACHE_PATH_PREFIXES = [
   '/api/prestataire',
@@ -254,7 +278,6 @@ const SKIP_CACHE_PATH_PREFIXES = [
   '/api/wallet',
   '/api/maps',
 ];
-<<<<<<< HEAD
 
 function shouldSkipCacheForGet(req) {
   if (req.headers.authorization) {
@@ -289,6 +312,7 @@ function settleInflight(key, payload) {
  */
 export const smartCache = (duration = 300) => {
   return (req, res, next) => {
+<<<<<<< HEAD
 =======
 /** GET sous ce préfixe : pas de cache (liste souvent modifiée ; plusieurs stacks /api empilaient la même clé). */
 const SKIP_CACHE_PATH_PREFIXES = ['/api/prestataire', '/api/utilisateur', '/api/notifications'];
@@ -383,6 +407,8 @@ export const smartCache = (duration = 300) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     if (req.method !== 'GET') {
       return next();
     }
@@ -398,10 +424,13 @@ export const smartCache = (duration = 300) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     if (cached && Date.now() - cached.timestamp < duration * 1000) {
       if (CACHE_DEBUG) console.log(`✅ Cache HIT: ${key}`);
       return res.json(cached.data);
@@ -442,6 +471,7 @@ export const smartCache = (duration = 300) => {
       }
     });
 
+<<<<<<< HEAD
 =======
     // Si cache valide, retourner
 <<<<<<< HEAD
@@ -545,6 +575,8 @@ export const smartCache = (duration = 300) => {
 
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     next();
   };
 };

@@ -3,6 +3,7 @@ import messageModel from '../models/messageModel.js';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import prestataireModel from '../models/prestataireModel.js';
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
@@ -22,6 +23,9 @@ import prestataireModel from '../models/prestataireModel.js';
 import prestataireModel from '../models/prestataireModel.js';
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+import prestataireModel from '../models/prestataireModel.js';
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
@@ -36,6 +40,7 @@ cloudinary.v2.config({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -44,6 +49,8 @@ cloudinary.v2.config({
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 async function formatConversationsForUser(conversations, userId) {
     const userIdStr = userId.toString();
     const utilisateurModel = (await import('../models/utilisateurModel.js')).default;
@@ -149,6 +156,7 @@ async function enrichAndRepairMessages(messages) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -163,6 +171,8 @@ async function enrichAndRepairMessages(messages) {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // ✅ ENVOYER UN MESSAGE
 export const sendMessage = async (req, res) => {
     try {
@@ -187,6 +197,7 @@ export const sendMessage = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -195,6 +206,8 @@ export const sendMessage = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         if (req.utilisateur?._id?.toString() !== String(expediteur)) {
             return res.status(403).json({ error: 'Expéditeur non autorisé' });
         }
@@ -204,13 +217,13 @@ export const sendMessage = async (req, res) => {
             return res.status(400).json({ error: 'Destinataire invalide' });
         }
 
-<<<<<<< HEAD
         // Génération de l'ID de conversation
         const conversationId = messageModel.genererConversationId(expediteur, resolvedDestinataire);
 
         // Upload de pièce jointe si présente
         let pieceJointe;
         let typePieceJointe;
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -249,6 +262,8 @@ export const sendMessage = async (req, res) => {
         let typePieceJointe;
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
@@ -276,6 +291,7 @@ export const sendMessage = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             destinataire: resolvedDestinataire,
 =======
             destinataire: new mongoose.Types.ObjectId(destinataire),
@@ -297,11 +313,15 @@ export const sendMessage = async (req, res) => {
             destinataire: resolvedDestinataire,
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+            destinataire: resolvedDestinataire,
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             contenu,
             conversationId,
             typeMessage: typeMessage || 'NORMAL',
             referenceId: referenceId ? new mongoose.Types.ObjectId(referenceId) : undefined,
             referenceType,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -328,6 +348,9 @@ export const sendMessage = async (req, res) => {
             ...(pieceJointe && typePieceJointe ? { pieceJointe, typePieceJointe } : {}),
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+            ...(pieceJointe && typePieceJointe ? { pieceJointe, typePieceJointe } : {}),
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             localisation,
             statut: 'ENVOYE'
         });
@@ -361,6 +384,7 @@ export const getUserConversations = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -369,6 +393,8 @@ export const getUserConversations = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         // Réparer les anciens messages créés avec l'id du document Prestataire
         const linkedPrestataires = await prestataireModel
             .find({ utilisateur: userId })
@@ -398,6 +424,7 @@ export const getUserConversations = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -412,12 +439,15 @@ export const getUserConversations = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         const conversations = await messageModel.getConversations(userId);
 
         // Pagination
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
         const paginatedConversations = conversations.slice(startIndex, endIndex);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -430,14 +460,16 @@ export const getUserConversations = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         const formattedConversations = await formatConversationsForUser(
             paginatedConversations,
             userId,
         );
-<<<<<<< HEAD
 
         res.status(200).json({
             conversations: formattedConversations,
+<<<<<<< HEAD
 =======
 
         res.status(200).json({
@@ -460,6 +492,8 @@ export const getUserConversations = async (req, res) => {
             conversations: formattedConversations,
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             totalPages: Math.ceil(conversations.length / limit),
             currentPage: parseInt(page),
             total: conversations.length
@@ -485,6 +519,7 @@ export const getConversationMessages = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         let matchCondition = {
 =======
         const matchCondition = {
@@ -506,6 +541,9 @@ export const getConversationMessages = async (req, res) => {
         let matchCondition = {
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+        let matchCondition = {
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             conversationId,
             estSupprime: false
         };
@@ -519,6 +557,7 @@ export const getConversationMessages = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         let messages = await messageModel.find(matchCondition)
 =======
         const messages = await messageModel.find(matchCondition)
@@ -540,6 +579,9 @@ export const getConversationMessages = async (req, res) => {
         let messages = await messageModel.find(matchCondition)
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+        let messages = await messageModel.find(matchCondition)
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             .populate('expediteur', 'nom prenom photoProfil')
             .populate('destinataire', 'nom prenom photoProfil')
             .sort({ createdAt: -1 })
@@ -547,6 +589,7 @@ export const getConversationMessages = async (req, res) => {
             .skip((page - 1) * limit)
             .exec();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -559,6 +602,8 @@ export const getConversationMessages = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         // Auto-réparation : anciennes conversations créées avec l'id du document Prestataire
         if (messages.length === 0 && conversationId.startsWith('conv_')) {
             const altConversationIds = await resolveConversationIds(conversationId);
@@ -623,6 +668,7 @@ export const getConversationMessages = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         const total = await messageModel.countDocuments(matchCondition);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
@@ -640,6 +686,8 @@ export const getConversationMessages = async (req, res) => {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         res.status(200).json({
             messages: messages.reverse(), // Inverser pour avoir les plus anciens en premier

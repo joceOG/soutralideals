@@ -6,6 +6,7 @@ import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
@@ -29,10 +30,14 @@ import auth, { authAdmin } from "../middleware/authMiddleware.js";
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import {
   requirePrestataireOwnerOrAdmin,
   requireSelfOrAdmin,
 } from "../middleware/entityAccess.js";
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -50,6 +55,8 @@ import {
 =======
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import {
   createPrestataire,
   getAllPrestataires,
@@ -65,10 +72,13 @@ import {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 const upload = multer({ dest: "uploads/" });
 
 const prestataireRouter = Router();
@@ -85,7 +95,6 @@ const uploadFields = upload.fields([
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
 prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
-<<<<<<< HEAD
 
 // Admin — modération
 prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);
@@ -109,6 +118,7 @@ prestataireRouter.put(
   updatePrestataire,
 );
 
+<<<<<<< HEAD
 =======
 const upload = multer({ dest: "uploads/" }); // stockage temporaire pour Cloudinary
 <<<<<<< HEAD
@@ -230,3 +240,6 @@ prestataireRouter.put("/prestataire/:id/reject", rejectPrestataire);
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
 export default prestataireRouter;
+=======
+export default prestataireRouter;
+>>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
