@@ -48,8 +48,15 @@ import { authenticateSocketUser } from './utils/socketAuth.js';
 =======
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
+<<<<<<< HEAD
 >>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+<<<<<<< HEAD
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+import { authenticateSocketUser } from './utils/socketAuth.js';
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 
 /** import connection file */
 import connect from './database/connex.js';

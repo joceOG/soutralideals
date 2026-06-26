@@ -8,9 +8,13 @@ import {
     searchNearbyPlaces,
     getDirections,
     validateAddress,
+<<<<<<< HEAD
     calculateServiceArea,
     placesAutocomplete,
     getPlaceDetails,
+=======
+    calculateServiceArea
+>>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 } from '../api/googleMaps.js';
 
 const googleMapsRouter = Router();
@@ -115,6 +119,7 @@ googleMapsRouter.post('/validate-address', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 googleMapsRouter.post('/autocomplete', async (req, res) => {
     try {
         const { input, country, location, radius } = req.body;
@@ -145,6 +150,8 @@ googleMapsRouter.post('/place-details', async (req, res) => {
     }
 });
 
+=======
+>>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 googleMapsRouter.post('/service-area', async (req, res) => {
     try {
         const { center, radiusKm } = req.body;
