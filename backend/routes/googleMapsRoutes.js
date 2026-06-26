@@ -8,25 +8,9 @@ import {
     searchNearbyPlaces,
     getDirections,
     validateAddress,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     calculateServiceArea,
     placesAutocomplete,
     getPlaceDetails,
-=======
-    calculateServiceArea
->>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
-    calculateServiceArea,
-    placesAutocomplete,
-    getPlaceDetails,
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-    calculateServiceArea,
-    placesAutocomplete,
-    getPlaceDetails,
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 } from '../api/googleMaps.js';
 
 const googleMapsRouter = Router();
@@ -131,14 +115,6 @@ googleMapsRouter.post('/validate-address', async (req, res) => {
     }
 });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 googleMapsRouter.post('/autocomplete', async (req, res) => {
     try {
         const { input, country, location, radius } = req.body;
@@ -169,14 +145,6 @@ googleMapsRouter.post('/place-details', async (req, res) => {
     }
 });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 googleMapsRouter.post('/service-area', async (req, res) => {
     try {
         const { center, radiusKm } = req.body;
@@ -187,18 +155,6 @@ googleMapsRouter.post('/service-area', async (req, res) => {
         const result = await calculateServiceArea(center, radiusKm);
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
-=======
-googleMapsRouter.post('/service-area', async (req, res) => {
-    try {
-        const { center, radiusKm } = req.body;
-        if (!center || !radiusKm) {
-            return res.status(400).json({ error: 'Centre et rayon requis' });
-        }
-
-        const result = await calculateServiceArea(center, radiusKm);
-        res.status(result.success ? 200 : 400).json(result);
-    } catch (error) {
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
         console.error('Erreur route service-area:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
