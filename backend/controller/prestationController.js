@@ -1,27 +1,13 @@
-import prestataireModel from "../models/prestataireModel.js";
-import mongoose from "mongoose";
-import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
-import { isAdmin } from "../middleware/entityAccess.js";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+import prestationModel from '../models/prestationModel.js';
+import mongoose from 'mongoose';
+import cloudinary from 'cloudinary';
+import fs from 'fs';
 
-cloudinary.config({
+cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-// 🔹 Fonction utilitaire upload Cloudinary
-const uploadToCloudinary = async (filePath, folder) => {
-  try {
-    const result = await cloudinary.uploader.upload(filePath, { folder });
-    fs.unlinkSync(filePath); // supprimer le fichier local
-    return result;
-  } catch (err) {
-    console.error("Erreur upload Cloudinary:", err.message);
-    throw err;
-  }
-};
 
 // ✅ Créer un prestataire
 export const createPrestataire = async (req, res) => {
@@ -50,287 +36,201 @@ export const createPrestataire = async (req, res) => {
       clients,
     } = req.body;
 
-    const parseNumber = (value, fallback = 0) => {
-      if (value === null || typeof value === "undefined" || value === "") {
-        return fallback;
-      }
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    };
-
-    /** multipart/form-data : specialite, zoneIntervention, clients souvent en JSON string (dashboard + mobile). */
-    const parseStringArrayField = (v) => {
-      if (v == null || v === "") return [];
-      if (Array.isArray(v)) return v.map((x) => String(x));
-      if (typeof v === "string") {
-        try {
-          const p = JSON.parse(v);
-          return Array.isArray(p) ? p.map((x) => String(x)) : [String(p)];
-        } catch {
-          return [v];
+        // Validation des données requises (adaptée pour système gratuit)
+        if (!utilisateur || !adresse || !ville) {
+            return res.status(400).json({ 
+                error: 'Utilisateur, adresse et ville requis' 
+            });
         }
-      }
-      return [String(v)];
-    };
 
-    const specialiteArr = parseStringArrayField(specialite);
-    const zoneInterventionArr = parseStringArrayField(zoneIntervention);
-    const clientsRaw = parseStringArrayField(clients);
-    const clientsIds = clientsRaw
-      .filter((id) => mongoose.Types.ObjectId.isValid(id))
-      .map((id) => new mongoose.Types.ObjectId(id));
-
-    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
-    let finalService = service;
-    const serviceMissing =
-      !service ||
-      service === "" ||
-      (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
-    if (serviceMissing && category) {
-      // Si pas de service fourni mais une catégorie, trouver le service correspondant
-      const Service = (await import("../models/serviceModel.js")).default;
-      const Categorie = (await import("../models/categorieModel.js")).default;
-      
-      // Trouver la catégorie par nom
-      const categorieDoc = await Categorie.findOne({ 
-        nomcategorie: { $regex: new RegExp(category, 'i') } 
-      });
-      
-      if (categorieDoc) {
-        // Trouver le premier service de cette catégorie
-        const serviceDoc = await Service.findOne({ categorie: categorieDoc._id });
-        if (serviceDoc) {
-          finalService = serviceDoc._id;
-          console.log(`✅ Service trouvé pour catégorie ${category}: ${serviceDoc._id}`);
+        // Upload de photos avant si présentes
+        const photosAvant = [];
+        if (req.files?.photosAvant) {
+            for (const file of req.files.photosAvant) {
+                const result = await cloudinary.v2.uploader.upload(file.path, {
+                    folder: 'prestations/avant',
+                });
+                photosAvant.push(result.secure_url);
+                fs.unlinkSync(file.path);
+            }
         }
-      }
-      
-      if (!finalService) {
-        console.warn(`⚠️ Aucun service trouvé pour la catégorie: ${category}`);
-        // Utiliser un service par défaut ou créer une erreur
-        return res.status(400).json({ 
-          error: `Aucun service trouvé pour la catégorie: ${category}` 
+
+        const newPrestation = new prestationModel({
+            utilisateur: mongoose.Types.ObjectId(utilisateur),
+            prestataire: prestataire ? mongoose.Types.ObjectId(prestataire) : null,
+            service: service ? mongoose.Types.ObjectId(service) : null,
+            datePrestation: datePrestation ? new Date(datePrestation) : new Date(),
+            heureDebut: heureDebut || '09:00',
+            heureFin,
+            dureeEstimee,
+            adresse,
+            ville,
+            codePostal,
+            localisation,
+            tarifHoraire: tarifHoraire || 0,
+            montantTotal: 0, // 💰 Toujours gratuit
+            fraisDeplacements: fraisDeplacements || 0,
+            moyenPaiement: moyenPaiement || 'GRATUIT',
+            description: description || 'Service demandé',
+            notesClient,
+            telephoneUrgence,
+            estRecurrente: estRecurrente || false,
+            frequenceRecurrence,
+            photosAvant,
+            statut: 'EN_ATTENTE',
+            statutPaiement: 'GRATUIT' // 💰 Statut gratuit
         });
-      }
-    } else if (serviceMissing) {
-      return res.status(400).json({ error: "service ou category requis" });
-    }
 
-    // Parsing localisationmaps
-    let parsedLocalisation = null;
-    if (localisationmaps) {
-      if (typeof localisationmaps === "string") {
+        await newPrestation.save();
+
+        // Population pour la réponse
+        const populatedPrestation = await prestationModel
+            .findById(newPrestation._id)
+            .populate('utilisateur', 'nom prenom email telephone photoProfil')
+            .populate('prestataire', 'utilisateur localisation')
+            .populate('service', 'nomservice categorie');
+
+        // 🔔 CRÉER UNE NOTIFICATION POUR LE PRESTATAIRE
         try {
-          parsedLocalisation = JSON.parse(localisationmaps);
-        } catch (err) {
-          console.warn("Impossible de parser localisationmaps:", err);
+            const notificationModel = (await import('../models/notificationModel.js')).default;
+            
+            if (prestataire) {
+                const notification = new notificationModel({
+                    destinataire: prestataire,
+                    expediteur: utilisateur,
+                    type: 'NOUVELLE_MISSION',
+                    titre: 'Nouvelle mission disponible !',
+                    contenu: `Une nouvelle mission vous a été assignée. Consultez vos missions pour plus de détails.`,
+                    prestation: newPrestation._id,
+                    priorite: 'HAUTE',
+                    donnees: {
+                        prestationId: newPrestation._id,
+                        service: populatedPrestation.service?.nomservice,
+                        adresse: adresse,
+                        ville: ville
+                    }
+                });
+                
+                await notification.save();
+                console.log(`🔔 Notification nouvelle mission créée pour prestataire: ${prestataire}`);
+            }
+        } catch (notificationError) {
+            console.error('Erreur création notification nouvelle mission:', notificationError.message);
+            // Ne pas faire échouer la requête principale
         }
-      } else if (typeof localisationmaps === "object" && localisationmaps.latitude && localisationmaps.longitude) {
-        parsedLocalisation = localisationmaps;
-      }
-    }
 
-    // Upload diplômes
-    let diplomeCertificat = [];
-    if (req.files?.diplomeCertificat) {
-      for (const file of req.files.diplomeCertificat) {
-        const uploaded = await uploadToCloudinary(file.path, "prestataires/diplomes");
-        diplomeCertificat.push(uploaded.secure_url);
-      }
+        res.status(201).json(populatedPrestation);
+    } catch (err) {
+        console.error('Erreur création prestation:', err.message);
+        res.status(500).json({ error: err.message });
     }
-
-    // Upload fichiers simples
-    let uploads = {};
-    if (req.files?.cni1) {
-      uploads.cni1 = (await uploadToCloudinary(req.files.cni1[0].path, "prestataires/cni")).secure_url;
-    }
-    if (req.files?.cni2) {
-      uploads.cni2 = (await uploadToCloudinary(req.files.cni2[0].path, "prestataires/cni")).secure_url;
-    }
-    if (req.files?.selfie) {
-      uploads.selfie = (await uploadToCloudinary(req.files.selfie[0].path, "prestataires/selfies")).secure_url;
-    }
-    if (req.files?.attestationAssurance) {
-      uploads.attestationAssurance = (await uploadToCloudinary(req.files.attestationAssurance[0].path, "prestataires/assurance")).secure_url;
-    }
-
-    // Création prestataire — status/verifier contrôlés côté serveur
-    const isAdminUser = isAdmin(req);
-    const newPrestataire = new prestataireModel({
-      utilisateur: new mongoose.Types.ObjectId(utilisateur),
-      service: new mongoose.Types.ObjectId(finalService),
-      prixprestataire: parseNumber(prixprestataire, 0),
-      localisation,
-      note: parseNumber(note, 0),
-      verifier: isAdminUser && (verifier === "true" || verifier === true),
-      status: "incomplete",
-      specialite: specialiteArr,
-      anneeExperience,
-      description,
-      rayonIntervention: parseNumber(rayonIntervention, 10),
-      zoneIntervention: zoneInterventionArr,
-      localisationmaps: parsedLocalisation,
-      tarifHoraireMin: parseNumber(tarifHoraireMin, 0),
-      tarifHoraireMax: parseNumber(tarifHoraireMax, 0),
-      numeroCNI,
-      numeroRCCM,
-      numeroAssurance,
-      nbMission: parseNumber(nbMission, 0),
-      nbAvis: parseNumber(req.body.nbAvis, 0),
-      revenus: parseNumber(revenus, 0),
-      clients: clientsIds,
-      diplomeCertificat,
-      ...uploads,
-    });
-
-    // Traçabilité (source autorisée ; status ignoré du client)
-    if (req.body.source) {
-      newPrestataire.source = Array.isArray(req.body.source)
-        ? req.body.source[0]
-        : req.body.source;
-    }
-    if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
-      newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
-    }
-    if (req.body.dateRecensement) {
-      newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
-    }
-
-    newPrestataire.syncFinalizationFromDocuments();
-    await newPrestataire.save();
-
-    const populatedPrestataire = await prestataireModel
-      .findById(newPrestataire._id)
-      .populate("utilisateur")
-      .populate("service")
-      .populate("clients");
-
-    res.status(201).json(populatedPrestataire);
-  } catch (err) {
-    console.error("Erreur création prestataire:", err.message);
-    res.status(500).json({ error: err.message });
-  }
 };
 
-// ✅ Mettre à jour un prestataire
-export const updatePrestataire = async (req, res) => {
-  try {
-    const {
-      utilisateur,
-      service,
-      prixprestataire,
-      localisation,
-      note,
-      verifier,
-      specialite,
-      anneeExperience,
-      description,
-      rayonIntervention,
-      zoneIntervention,
-      localisationmaps,
-      tarifHoraireMin,
-      tarifHoraireMax,
-      numeroCNI,
-      numeroRCCM,
-      numeroAssurance,
-      nbMission,
-      revenus,
-      clients
-    } = req.body;
+// ✅ OBTENIR TOUTES LES PRESTATIONS (avec filtres)
+export const getAllPrestations = async (req, res) => {
+    try {
+        const { 
+            page = 1, 
+            limit = 20, 
+            statut, 
+            statutPaiement,
+            prestataire,
+            utilisateur,
+            service,
+            ville,
+            dateDebut,
+            dateFin
+        } = req.query;
 
-    const parseNumber = (value) => {
-      if (value === null || typeof value === "undefined" || value === "") {
-        return undefined;
-      }
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : undefined;
-    };
-
-    // Parsing localisationmaps
-    let parsedLocalisation = null;
-    if (localisationmaps) {
-      if (typeof localisationmaps === "string") {
-        try {
-          parsedLocalisation = JSON.parse(localisationmaps);
-        } catch (err) {
-          console.warn("Impossible de parser localisationmaps, on ignore", err);
+        // Construction des filtres
+        const filters = {};
+        if (statut) filters.statut = statut;
+        if (statutPaiement) filters.statutPaiement = statutPaiement;
+        if (prestataire) filters.prestataire = mongoose.Types.ObjectId(prestataire);
+        if (utilisateur) filters.utilisateur = mongoose.Types.ObjectId(utilisateur);
+        if (service) filters.service = mongoose.Types.ObjectId(service);
+        if (ville) filters.ville = { $regex: ville, $options: 'i' };
+        
+        if (dateDebut && dateFin) {
+            filters.datePrestation = {
+                $gte: new Date(dateDebut),
+                $lte: new Date(dateFin)
+            };
         }
-      } else if (typeof localisationmaps === "object" && localisationmaps.latitude && localisationmaps.longitude) {
-        parsedLocalisation = localisationmaps;
-      }
-    }
 
-    const updates = {
-      ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
-      ...(service && { service: new mongoose.Types.ObjectId(service) }),
-      ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
-      ...(localisation && { localisation }),
-      ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
-      ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
-      ...(anneeExperience && { anneeExperience }),
-      ...(description && { description }),
-      ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
-      ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
-      ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
-      ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
-      ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
-      ...(numeroCNI && { numeroCNI }),
-      ...(numeroRCCM && { numeroRCCM }),
-      ...(numeroAssurance && { numeroAssurance }),
-      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
-      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
-      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
-      ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
-    };
+        const prestations = await prestationModel.find(filters)
+            .populate('utilisateur', 'nom prenom email telephone photoProfil')
+            .populate({
+                path: 'prestataire',
+                populate: {
+                    path: 'utilisateur',
+                    select: 'nom prenom telephone'
+                }
+            })
+            .populate({
+                path: 'service',
+                populate: {
+                    path: 'categorie',
+                    select: 'nomcategorie'
+                }
+            })
+            .sort({ datePrestation: -1, createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .exec();
 
-    const isAdminUser = isAdmin(req);
-    if (isAdminUser && typeof verifier !== "undefined") {
-      updates.verifier = verifier === "true" || verifier === true;
-    }
-    if (isAdminUser && req.body.status) {
-      updates.status = req.body.status;
-    }
+        const total = await prestationModel.countDocuments(filters);
 
-    // Upload fichiers simples
-    for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
-      if (req.files?.[field]?.[0]) {
-        const result = await uploadToCloudinary(req.files[field][0].path, `prestataires/${field}`);
-        updates[field] = result.secure_url;
-      }
-    }
-
-    // Diplômes
-    if (req.files?.diplomeCertificat) {
-      updates.diplomeCertificat = [];
-      for (const file of req.files.diplomeCertificat) {
-        const result = await uploadToCloudinary(file.path, "prestataires/diplomes");
-        updates.diplomeCertificat.push({
-          filename: file.originalname,
-          url: result.secure_url,
-          type: file.mimetype.includes("pdf") ? "pdf" : "image",
-          uploadedAt: new Date()
+        res.status(200).json({
+            prestations,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page),
+            total
         });
-      }
+    } catch (err) {
+        console.error('Erreur récupération prestations:', err.message);
+        res.status(500).json({ error: err.message });
     }
+};
 
-    const prestataire = await prestataireModel.findByIdAndUpdate(req.params.id, updates, { new: true })
-      .populate("utilisateur")
-      .populate({ path: "service", populate: { path: "categorie", populate: { path: "groupe" } } })
-      .populate("clients");
+// ✅ OBTENIR UNE PRESTATION PAR ID
+export const getPrestationById = async (req, res) => {
+    try {
+        const { id } = req.params;
 
-    if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'ID de prestation invalide' });
+        }
 
-    if (!isAdminUser) {
-      prestataire.syncFinalizationFromDocuments();
-      await prestataire.save();
+        const prestation = await prestationModel.findById(id)
+            .populate('utilisateur', 'nom prenom email telephone photoProfil')
+            .populate({
+                path: 'prestataire',
+                populate: {
+                    path: 'utilisateur',
+                    select: 'nom prenom telephone'
+                }
+            })
+            .populate({
+                path: 'service',
+                populate: {
+                    path: 'categorie',
+                    populate: {
+                        path: 'groupe',
+                        select: 'nomgroupe'
+                    }
+                }
+            });
+
+        if (!prestation) {
+            return res.status(404).json({ error: 'Prestation non trouvée' });
+        }
+
+        res.status(200).json(prestation);
+    } catch (err) {
+        console.error('Erreur récupération prestation:', err.message);
+        res.status(500).json({ error: err.message });
     }
-
-    res.status(200).json(prestataire);
-
-  } catch (err) {
-    console.error("Erreur mise à jour prestataire:", err.message);
-    res.status(500).json({ error: err.message });
-  }
 };
 
 // ✅ Lire tous les prestataires (avec filtres optionnels)
@@ -448,55 +348,63 @@ export const deletePrestataire = async (req, res) => {
   }
 };
 
-// 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
-export const getPendingPrestataires = async (req, res) => {
-  try {
-    const prestataires = await prestataireModel.find({ status: "pending" })
-      .populate("utilisateur")
-      .populate("recenseur", "nom prenom telephone")
-      .populate({
-        path: "service",
-        populate: {
-          path: "categorie",
-          populate: { path: "groupe" }
-        }
-      })
-      .sort({ dateRecensement: -1 });
+// ✅ OBTENIR LES PRESTATIONS D'UN PRESTATAIRE
+export const getPrestationsPrestataire = async (req, res) => {
+    try {
+        const { prestataireId } = req.params;
+        const { page = 1, limit = 20, statut } = req.query;
 
-    res.status(200).json(prestataires);
-  } catch (err) {
-    console.error("Erreur récupération prestataires pending:", err.message);
-    res.status(500).json({ error: err.message });
-  }
+        if (!mongoose.Types.ObjectId.isValid(prestataireId)) {
+            return res.status(400).json({ error: 'ID prestataire invalide' });
+        }
+
+        const filters = { prestataire: mongoose.Types.ObjectId(prestataireId) };
+        if (statut) filters.statut = statut;
+
+        const prestations = await prestationModel.find(filters)
+            .populate('utilisateur', 'nom prenom email telephone')
+            .populate('service', 'nomservice')
+            .sort({ datePrestation: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .exec();
+
+        const total = await prestationModel.countDocuments(filters);
+
+        res.status(200).json({
+            prestations,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page),
+            total
+        });
+    } catch (err) {
+        console.error('Erreur récupération prestations prestataire:', err.message);
+        res.status(500).json({ error: err.message });
+    }
 };
 
-// 🆕 OPTION C - Valider un prestataire
-export const validatePrestataire = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const adminId = req.user._id;
+// ✅ OBTENIR LES PRESTATIONS D'UN UTILISATEUR
+export const getPrestationsUtilisateur = async (req, res) => {
+    try {
+        const { utilisateurId } = req.params;
+        const { page = 1, limit = 20, statut } = req.query;
 
-    const prestataire = await prestataireModel.findById(id);
-    
-    if (!prestataire) {
-      return res.status(404).json({ error: "Prestataire non trouvé" });
-    }
+        if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
+            return res.status(400).json({ error: 'ID utilisateur invalide' });
+        }
 
-    if (prestataire.status !== 'pending') {
-      return res.status(400).json({ error: "Prestataire déjà traité" });
-    }
+        const filters = { utilisateur: mongoose.Types.ObjectId(utilisateurId) };
+        if (statut) filters.statut = statut;
 
-    prestataire.status = 'active';
-    prestataire.verifier = true;
-    prestataire.validePar = adminId;
-    prestataire.dateValidation = new Date();
+        const prestations = await prestationModel.find(filters)
+            .populate('prestataire', 'utilisateur')
+            .populate('service', 'nomservice')
+            .sort({ datePrestation: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .exec();
 
-    await prestataire.save();
-
-    const populatedPrestataire = await prestataireModel.findById(id)
-      .populate("utilisateur")
-      .populate("recenseur", "nom prenom")
-      .populate("service");
+        const total = await prestationModel.countDocuments(filters);
 
     res.status(200).json({
       success: true,
@@ -509,29 +417,75 @@ export const validatePrestataire = async (req, res) => {
   }
 };
 
-// 🆕 OPTION C - Rejeter un prestataire
-export const rejectPrestataire = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { motif } = req.body;
-    const adminId = req.user._id;
+// ✅ OBTENIR LES STATISTIQUES DES PRESTATIONS
+export const getPrestationStats = async (req, res) => {
+    try {
+        const { prestataireId, utilisateurId, dateDebut, dateFin } = req.query;
 
-    const prestataire = await prestataireModel.findById(id);
-    
-    if (!prestataire) {
-      return res.status(404).json({ error: "Prestataire non trouvé" });
-    }
+        let matchCondition = {};
+        
+        // Filtres optionnels
+        if (prestataireId) {
+            matchCondition.prestataire = mongoose.Types.ObjectId(prestataireId);
+        }
+        if (utilisateurId) {
+            matchCondition.utilisateur = mongoose.Types.ObjectId(utilisateurId);
+        }
+        if (dateDebut && dateFin) {
+            matchCondition.datePrestation = {
+                $gte: new Date(dateDebut),
+                $lte: new Date(dateFin)
+            };
+        }
 
-    if (prestataire.status !== 'pending') {
-      return res.status(400).json({ error: "Prestataire déjà traité" });
-    }
+        // Stats par statut
+        const statsParStatut = await prestationModel.aggregate([
+            { $match: matchCondition },
+            {
+                $group: {
+                    _id: '$statut',
+                    count: { $sum: 1 },
+                    totalRevenu: { $sum: '$montantTotal' }
+                }
+            }
+        ]);
 
-    prestataire.status = 'rejected';
-    prestataire.motifRejet = motif || 'Non spécifié';
-    prestataire.validePar = adminId;
-    prestataire.dateValidation = new Date();
+        // Stats par ville
+        const statsParVille = await prestationModel.aggregate([
+            { $match: matchCondition },
+            {
+                $group: {
+                    _id: '$ville',
+                    count: { $sum: 1 },
+                    totalRevenu: { $sum: '$montantTotal' }
+                }
+            },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+        ]);
 
-    await prestataire.save();
+        // Évolution par mois
+        const prestationsParMois = await prestationModel.aggregate([
+            { $match: matchCondition },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: '$datePrestation' },
+                        month: { $month: '$datePrestation' }
+                    },
+                    count: { $sum: 1 },
+                    totalRevenu: { $sum: '$montantTotal' }
+                }
+            },
+            { $sort: { '_id.year': -1, '_id.month': -1 } },
+            { $limit: 12 }
+        ]);
+
+        const totalPrestations = await prestationModel.countDocuments(matchCondition);
+        const revenueTotal = await prestationModel.aggregate([
+            { $match: matchCondition },
+            { $group: { _id: null, total: { $sum: '$montantTotal' } } }
+        ]);
 
     res.status(200).json({
       success: true,
