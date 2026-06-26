@@ -4,6 +4,13 @@
 const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
 
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem('token');
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -73,9 +80,7 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult> =>
   try {
     const response = await fetch(`${API_BASE_URL}/api/maps/geocode`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(),
       body: JSON.stringify({ address }),
     });
 
@@ -95,9 +100,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeR
   try {
     const response = await fetch(`${API_BASE_URL}/api/maps/reverse-geocode`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(),
       body: JSON.stringify({ lat, lng }),
     });
 
@@ -121,9 +124,7 @@ export const calculateDistance = async (
   try {
     const response = await fetch(`${API_BASE_URL}/api/maps/distance`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(),
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -155,7 +156,9 @@ export const searchNearbyPlaces = async (
       keyword,
     });
 
-    const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`);
+    const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
+      headers: authHeaders(),
+    });
     const result = await response.json();
     return result;
   } catch (error) {
@@ -176,9 +179,7 @@ export const getDirections = async (
   try {
     const response = await fetch(`${API_BASE_URL}/api/maps/directions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(),
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -198,9 +199,7 @@ export const validateAddress = async (address: string): Promise<GeocodeResult> =
   try {
     const response = await fetch(`${API_BASE_URL}/api/maps/validate-address`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(),
       body: JSON.stringify({ address }),
     });
 
@@ -224,9 +223,7 @@ export const calculateServiceArea = async (
   try {
     const response = await fetch(`${API_BASE_URL}/api/maps/service-area`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(),
       body: JSON.stringify({ lat, lng, radius }),
     });
 

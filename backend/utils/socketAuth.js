@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import Utilisateur from '../models/utilisateurModel.js';
-import { verifySocketToken } from './socketToken.js';
 
 /**
  * Authentifie une connexion Socket.io via JWT.
@@ -24,12 +23,6 @@ export async function authenticateSocketUser(payload) {
   }
 
   if (token) {
-    const socketUserId = verifySocketToken(token);
-    if (socketUserId) {
-      const utilisateur = await Utilisateur.findById(socketUserId);
-      return utilisateur ? socketUserId.toString() : null;
-    }
-
     const decoded = jwt.verify(token, secret);
     const userId = decoded._id || decoded.id;
     if (!userId) return null;

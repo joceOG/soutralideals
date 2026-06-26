@@ -30,6 +30,7 @@ import promotionRouter from './routes/promotionRoutes.js';
 import favoriteRouter from './routes/favoriteRoutes.js';
 import mailRouter from './routes/mailRouter.js';
 import smsRouter from './routes/smsRoutes.js';
+import otpRouter from './routes/otpRoutes.js';
 import reportRouter from './routes/reportRoutes.js';
 import googleMapsRouter from './routes/googleMapsRoutes.js';
 import avisRouter from './routes/avisRoutes.js';
@@ -38,6 +39,9 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
+import searchRouter from './routes/searchRoutes.js';
+import walletRouter from './routes/walletRoutes.js';
+import { authenticateSocketUser } from './utils/socketAuth.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -46,6 +50,7 @@ import connect from './database/connex.js';
 import logger, { httpLogger, authLogger, transactionLogger, userActionLogger } from './middleware/logger.js';
 import { cacheMiddleware, sessionCache } from './middleware/cache.js';
 import { simpleCache } from './middleware/simpleCache.js';
+import { smartCache, autoInvalidateCache } from './middleware/cacheInvalidation.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -171,10 +176,12 @@ app.use(cors({
 }));
 app.options('*', cors());
 
+app.use('/uploads', express.static('uploads'));
+
 app.use(express.json());
 app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    next();
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
 });
 
 // ✅ CONFIGURATION SWAGGER
@@ -184,17 +191,20 @@ const swaggerSpec = swaggerConfig;
 
 
 /** routes */
-// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
-app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
-app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
-app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
-app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
-app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
-app.use('/api', freelanceServiceRouter); // Offres freelance (pas de cache GET home pour MVP)
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+// Cache + invalidation une seule fois pour toutes les routes /api (évite 7× MISS par requête)
+app.use('/api', autoInvalidateCache);
+app.use('/api', smartCache(300));
+
+app.use('/api', utilisateurRouter);
+app.use('/api', groupeRouter);
+app.use('/api', categorieRouter);
+app.use('/api', articleRouter);
+app.use('/api', serviceRouter);
+app.use('/api', prestataireRouter);
+app.use('/api', prestataireFinalizationRouter);
+app.use('/api', freelanceRouter);
+app.use('/api', freelanceServiceRouter);
+app.use('/api', vendeurRouter);
 app.use('/api', searchRouter);
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
@@ -205,6 +215,7 @@ app.use('/api', prestationRouter);
 app.use('/api', promotionRouter);
 app.use('/api', favoriteRouter);
 app.use('/api', mailRouter);
+app.use('/api', otpRouter);
 app.use('/api', smsRouter);
 app.use('/api', reportRouter);
 app.use('/api/avis', avisLimiter);
@@ -255,13 +266,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *               $ref: '#/components/schemas/Error'
  */
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        version: '1.0.0'
-    });
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: '1.0.0'
+  });
 });
 
 /** Test Sentry — désactivé en production */
@@ -421,24 +432,24 @@ app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => 
  *                       example: "/api/notification"
  */
 app.get('/', (req, res) => {
-    try {
-        res.json({
-            message: "SoutraLi Deals API",
-            version: "1.0.0",
-            documentation: "http://localhost:3000/api-docs",
-            health: "http://localhost:3000/health",
-            metrics: "http://localhost:3000/metrics",
-            endpoints: {
-                users: "/api/utilisateur",
-                services: "/api/service",
-                orders: "/api/commande",
-                messages: "/api/message",
-                notifications: "/api/notification"
-            }
-        });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
+  try {
+    res.json({
+      message: "SoutraLi Deals API",
+      version: "1.0.0",
+      documentation: "http://localhost:3000/api-docs",
+      health: "http://localhost:3000/health",
+      metrics: "http://localhost:3000/metrics",
+      endpoints: {
+        users: "/api/utilisateur",
+        services: "/api/service",
+        orders: "/api/commande",
+        messages: "/api/message",
+        notifications: "/api/notification"
+      }
+    });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
 });
 
 
@@ -496,11 +507,22 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('🔌 Utilisateur connecté:', socket.id);
 
-  // 📱 Authentification de l'utilisateur
-  socket.on('authenticate', (userId) => {
-    socket.userId = userId;
-    socket.join(`user_${userId}`);
-    console.log(`👤 Utilisateur ${userId} authentifié`);
+  // 📱 Authentification de l'utilisateur (JWT requis en production)
+  socket.on('authenticate', async (payload) => {
+    try {
+      const userId = await authenticateSocketUser(payload);
+      if (!userId) {
+        socket.emit('auth-error', { error: 'Authentification Socket refusée.' });
+        return;
+      }
+      socket.userId = userId;
+      socket.authenticated = true;
+      socket.join(`user_${userId}`);
+      console.log(`👤 Utilisateur ${userId} authentifié (socket)`);
+    } catch (err) {
+      console.error('[Socket] Erreur auth:', err.message);
+      socket.emit('auth-error', { error: 'Token invalide.' });
+    }
   });
 
   // 💬 REJOINDRE UNE CONVERSATION
@@ -518,27 +540,51 @@ io.on('connection', (socket) => {
   // 📨 ENVOYER UN MESSAGE
   socket.on('send-message', async (messageData) => {
     try {
+      if (!socket.authenticated || !socket.userId) {
+        socket.emit('message-error', { error: 'Non authentifié' });
+        return;
+      }
+      if (messageData.expediteur?.toString() !== socket.userId) {
+        socket.emit('message-error', { error: 'Expéditeur non autorisé' });
+        return;
+      }
+
       console.log('📨 Nouveau message reçu:', messageData);
-      
+
       // Sauvegarder le message en base de données
       const messageModel = (await import('./models/messageModel.js')).default;
+      const prestataireModel = (await import('./models/prestataireModel.js')).default;
+
+      let destinataireId = messageData.destinataire;
+      const destUser = await (await import('./models/utilisateurModel.js')).default
+        .findById(destinataireId)
+        .select('_id');
+      if (!destUser) {
+        const prestDoc = await prestataireModel.findById(destinataireId).select('utilisateur');
+        if (prestDoc?.utilisateur) destinataireId = prestDoc.utilisateur.toString();
+      }
+
+      const conversationId =
+        messageData.conversationId ||
+        messageModel.genererConversationId(socket.userId, destinataireId);
+
       const newMessage = new messageModel({
         expediteur: messageData.expediteur,
-        destinataire: messageData.destinataire,
+        destinataire: destinataireId,
         contenu: messageData.contenu,
-        conversationId: messageData.conversationId,
+        conversationId,
         typeMessage: messageData.typeMessage || 'NORMAL',
         statut: 'ENVOYE'
       });
-      
+
       await newMessage.save();
-      
+
       // Diffuser le message à tous les participants de la conversation
       io.to(`conversation_${messageData.conversationId}`).emit('new-message', {
         ...newMessage.toObject(),
         timestamp: new Date()
       });
-      
+
       // Notifier le destinataire s'il est en ligne
       io.to(`user_${messageData.destinataire}`).emit('message-notification', {
         type: 'new_message',
@@ -546,7 +592,7 @@ io.on('connection', (socket) => {
         sender: messageData.expediteur,
         content: messageData.contenu
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de l\'envoi du message:', error);
       socket.emit('message-error', { error: 'Erreur lors de l\'envoi du message' });
@@ -557,27 +603,27 @@ io.on('connection', (socket) => {
   socket.on('update-order-status', async (orderData) => {
     try {
       console.log('📦 Mise à jour statut commande:', orderData);
-      
+
       // Mettre à jour en base de données
       const commandeModel = (await import('./models/commandeModel.js')).default;
-      await commandeModel.findByIdAndUpdate(orderData.orderId, { 
-        statusCommande: orderData.status 
+      await commandeModel.findByIdAndUpdate(orderData.orderId, {
+        statusCommande: orderData.status
       });
-      
+
       // Notifier le client
       io.to(`user_${orderData.clientId}`).emit('order-status-updated', {
         orderId: orderData.orderId,
         status: orderData.status,
         timestamp: new Date()
       });
-      
+
       // Diffuser à tous les participants de la commande
       io.to(`order_${orderData.orderId}`).emit('order-update', {
         orderId: orderData.orderId,
         status: orderData.status,
         timestamp: new Date()
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de la mise à jour de la commande:', error);
       socket.emit('order-error', { error: 'Erreur lors de la mise à jour' });
@@ -587,7 +633,7 @@ io.on('connection', (socket) => {
   // 🔔 NOTIFICATION PUSH
   socket.on('send-notification', (notificationData) => {
     console.log('🔔 Notification envoyée:', notificationData);
-    
+
     // Diffuser la notification au destinataire
     io.to(`user_${notificationData.userId}`).emit('notification', {
       type: notificationData.type,
@@ -641,15 +687,15 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 3000;
 
 // ✅ DÉMARRAGE DU SERVEUR
-connect().then(()=> {
-    try{
-    httpServer.listen(port, '0.0.0.0', ()=>{
-        console.log(`🚀 Server connected to http://localhost:${port}`);
-        console.log(`🔌 WebSocket server ready for connections`);
+connect().then(() => {
+  try {
+    httpServer.listen(port, '0.0.0.0', () => {
+      console.log(`🚀 Server connected to http://localhost:${port}`);
+      console.log(`🔌 WebSocket server ready for connections`);
     })
-}catch (error) {
+  } catch (error) {
     console.log("❌ Cannot connect to the server");
-}
+  }
 })
 .catch(error => {
 console.log("❌ Invalid Database Connection");
