@@ -5,6 +5,9 @@ const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
 function authHeaders(): HeadersInit {
   const token = localStorage.getItem('token');
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
@@ -12,8 +15,11 @@ function authHeaders(): HeadersInit {
   return headers;
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -84,12 +90,16 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult> =>
     const response = await fetch(`${API_BASE_URL}/api/maps/geocode`, {
       method: 'POST',
 <<<<<<< HEAD
+<<<<<<< HEAD
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      headers: authHeaders(),
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ address }),
     });
 
@@ -110,12 +120,16 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeR
     const response = await fetch(`${API_BASE_URL}/api/maps/reverse-geocode`, {
       method: 'POST',
 <<<<<<< HEAD
+<<<<<<< HEAD
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      headers: authHeaders(),
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ lat, lng }),
     });
 
@@ -140,12 +154,16 @@ export const calculateDistance = async (
     const response = await fetch(`${API_BASE_URL}/api/maps/distance`, {
       method: 'POST',
 <<<<<<< HEAD
+<<<<<<< HEAD
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      headers: authHeaders(),
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -178,12 +196,18 @@ export const searchNearbyPlaces = async (
     });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
       headers: authHeaders(),
     });
 =======
     const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+    const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
+      headers: authHeaders(),
+    });
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
     const result = await response.json();
     return result;
   } catch (error) {
@@ -205,12 +229,16 @@ export const getDirections = async (
     const response = await fetch(`${API_BASE_URL}/api/maps/directions`, {
       method: 'POST',
 <<<<<<< HEAD
+<<<<<<< HEAD
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      headers: authHeaders(),
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -231,12 +259,16 @@ export const validateAddress = async (address: string): Promise<GeocodeResult> =
     const response = await fetch(`${API_BASE_URL}/api/maps/validate-address`, {
       method: 'POST',
 <<<<<<< HEAD
+<<<<<<< HEAD
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      headers: authHeaders(),
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ address }),
     });
 
@@ -261,12 +293,16 @@ export const calculateServiceArea = async (
     const response = await fetch(`${API_BASE_URL}/api/maps/service-area`, {
       method: 'POST',
 <<<<<<< HEAD
+<<<<<<< HEAD
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      headers: authHeaders(),
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ lat, lng, radius }),
     });
 

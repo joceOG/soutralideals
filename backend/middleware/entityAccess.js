@@ -45,6 +45,7 @@ export function requirePrestataireOwnerOrAdmin() {
   };
 }
 
+<<<<<<< HEAD
 /** Vérifie la propriété via prestataireId dans req.body (upload documents). */
 export function requirePrestataireOwnerByBodyId() {
   return async (req, res, next) => {
@@ -66,6 +67,8 @@ export function requirePrestataireOwnerByBodyId() {
   };
 }
 
+=======
+>>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
 export function requireFreelanceOwnerOrAdmin() {
   return async (req, res, next) => {
     try {
