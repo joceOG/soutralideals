@@ -39,6 +39,8 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
+import searchRouter from './routes/searchRoutes.js';
+import walletRouter from './routes/walletRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -173,8 +175,6 @@ app.use(cors({
 }));
 app.options('*', cors());
 
-app.use('/uploads', express.static('uploads'));
-
 app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -196,8 +196,10 @@ app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
 app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
 app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
+app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
+app.use('/api', freelanceServiceRouter); // Offres freelance (pas de cache GET home pour MVP)
+app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+app.use('/api', searchRouter);
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -219,6 +221,7 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
+app.use('/api', walletRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

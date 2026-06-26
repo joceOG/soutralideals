@@ -157,6 +157,9 @@ export const getAllFreelances = async (req, res) => {
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
     }
+    if (req.query.utilisateur) {
+      filter.utilisateur = req.query.utilisateur;
+    }
 
     const freelances = await freelanceModel.find(filter)
       .populate("utilisateur")

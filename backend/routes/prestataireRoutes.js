@@ -1,14 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-<<<<<<< HEAD
-<<<<<<< HEAD
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
-=======
-import auth, { authAdmin } from "../middleware/authMiddleware.js";
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
-import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requirePrestataireOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -38,18 +30,8 @@ const uploadFields = upload.fields([
 
 // Public — catalogue (routes spécifiques avant /:id)
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
-<<<<<<< HEAD
-<<<<<<< HEAD
 prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
-=======
-prestataireRouter.get("/prestataire", getAllPrestataires);
-prestataireRouter.get("/prestataire/:id", getPrestataireById);
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
-prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
-prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // Admin — modération
 prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);
@@ -73,8 +55,4 @@ prestataireRouter.put(
   updatePrestataire,
 );
 
-<<<<<<< HEAD
 export default prestataireRouter;
-=======
-export default prestataireRouter;
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)

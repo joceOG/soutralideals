@@ -223,6 +223,9 @@ export const getAllVendeurs = async (req, res) => {
                 { tags: { $in: [new RegExp(search, 'i')] } }
             ];
         }
+        if (req.query.utilisateur) {
+            filters.utilisateur = req.query.utilisateur;
+        }
 
         // Options de tri
         const sortOptions = {};

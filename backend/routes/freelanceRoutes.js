@@ -1,14 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-<<<<<<< HEAD
-<<<<<<< HEAD
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
-=======
-import auth, { authAdmin } from "../middleware/authMiddleware.js";
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
-import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requireFreelanceOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -41,50 +33,11 @@ const uploadFields = upload.fields([
 
 // Public — catalogue (routes spécifiques avant /:id)
 freelanceRouter.get("/freelance/pending/list", ...authAdmin, getPendingFreelances);
-<<<<<<< HEAD
-<<<<<<< HEAD
 freelanceRouter.get("/freelance", optionalAuth, getAllFreelances);
 freelanceRouter.get("/freelances/category/:category", optionalAuth, getFreelancesByCategory);
 freelanceRouter.get("/freelances/search", optionalAuth, searchFreelances);
 freelanceRouter.get("/freelance/:id/services", listFreelanceServicesByFreelanceId);
 freelanceRouter.get("/freelance/:id", optionalAuth, getFreelanceById);
-=======
-freelanceRouter.get("/freelance", getAllFreelances);
-freelanceRouter.get("/freelances/category/:category", getFreelancesByCategory);
-freelanceRouter.get("/freelances/search", searchFreelances);
-=======
-freelanceRouter.get("/freelance", optionalAuth, getAllFreelances);
-freelanceRouter.get("/freelances/category/:category", optionalAuth, getFreelancesByCategory);
-freelanceRouter.get("/freelances/search", optionalAuth, searchFreelances);
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-freelanceRouter.get("/freelance/:id/services", listFreelanceServicesByFreelanceId);
-freelanceRouter.get("/freelance/:id", optionalAuth, getFreelanceById);
-
-// Admin — modération
-freelanceRouter.put("/freelance/:id/validate", ...authAdmin, validateFreelance);
-freelanceRouter.put("/freelance/:id/reject", ...authAdmin, rejectFreelance);
-freelanceRouter.delete("/freelance/:id", ...authAdmin, deleteFreelance);
-freelanceRouter.put("/freelance/:id/promote", ...authAdmin, promoteFreelance);
-
-// Authentifié
-freelanceRouter.post(
-  "/freelance",
-  auth,
-  requireSelfOrAdmin("utilisateur"),
-  uploadFields,
-  createFreelance,
-);
-
-freelanceRouter.put(
-  "/freelance/:id",
-  auth,
-  requireFreelanceOwnerOrAdmin(),
-  uploadFields,
-  updateFreelance,
-);
-
-freelanceRouter.put("/freelance/:id/rating", auth, updateFreelanceRating);
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
 
 // Admin — modération
 freelanceRouter.put("/freelance/:id/validate", ...authAdmin, validateFreelance);

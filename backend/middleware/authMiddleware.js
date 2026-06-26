@@ -68,10 +68,6 @@ export const authRole = (roles = []) => {
 /** auth + rôle Admin (dashboard, modération) */
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 /**
  * Auth optionnelle : peuple req.user si token valide, sinon continue sans erreur.
  * Utile pour les routes publiques avec comportement différent si authentifié.
@@ -104,6 +100,3 @@ export const optionalAuth = async (req, res, next) => {
 };
 
 export default auth;
-=======
-export default auth;
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)

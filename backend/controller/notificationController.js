@@ -81,8 +81,6 @@ export const getNotificationsByUser = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    await repairLegacyPrestataireNotifications(userId);
-
     const query = { destinataire: userId };
     if (statut) {
       query.statut = statut;
@@ -204,8 +202,6 @@ export const getUnreadCount = async (req, res) => {
     if (req.utilisateur._id.toString() !== userId) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
-
-    await repairLegacyPrestataireNotifications(userId);
 
     const count = await notificationModel.countDocuments({
       destinataire: userId,

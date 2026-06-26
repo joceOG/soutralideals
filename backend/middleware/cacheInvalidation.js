@@ -29,15 +29,15 @@ export const autoInvalidateCache = (req, res, next) => {
   const originalJson = res.json.bind(res);
 
   res.json = function (data) {
+    // Si la requête a réussi (status 2xx), invalider le cache
     if (res.statusCode >= 200 && res.statusCode < 300 && !res.locals._cacheInvalidatedOnce) {
       res.locals._cacheInvalidatedOnce = true;
+      // Extraire le path de base (ex: /api/service/123 -> /api/service)
       const parts = req.originalUrl.split('?')[0].split('/');
       const basePath = parts.length > 3 ? parts.slice(0, 3).join('/') : req.originalUrl.split('?')[0];
 
       if (!shouldSkipInvalidateForBasePath(basePath)) {
-        if (CACHE_DEBUG) {
-          console.log(`🔄 Auto-invalidation: ${req.method} ${req.originalUrl} -> ${basePath}`);
-        }
+        console.log(`🔄 Auto-invalidation pour: ${req.method} ${req.originalUrl} -> Paterne: ${basePath}`);
         invalidateCache(basePath);
       }
     }
@@ -48,52 +48,23 @@ export const autoInvalidateCache = (req, res, next) => {
   next();
 };
 
-/** GET sans cache (auth, données utilisateur, temps réel). */
-const SKIP_CACHE_PATH_PREFIXES = [
-  '/api/prestataire',
-  '/api/utilisateur',
-  '/api/notifications',
-  '/api/notification',
-  '/api/message',
-  '/api/messages',
-  '/api/cart',
-  '/api/prestations',
-  '/api/prestation',
-  '/api/commandes',
-  '/api/commande',
-  '/api/paiements',
-  '/api/paiement',
-  '/api/favorites',
-  '/api/wallet',
-  '/api/maps',
-];
+/** GET sous ce préfixe : pas de cache (liste souvent modifiée ; plusieurs stacks /api empilaient la même clé). */
+const SKIP_CACHE_PATH_PREFIXES = ['/api/prestataire', '/api/utilisateur', '/api/notifications'];
 
 function shouldSkipCacheForGet(req) {
-  if (req.headers.authorization) {
-    return true;
-  }
   const path = req.originalUrl.split('?')[0];
   return SKIP_CACHE_PATH_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`)
   );
 }
 
+/** Pas d’invalidation sur ces collections : elles ne sont plus cachées (évite logs « 0 entrée » inutiles). */
 function shouldSkipInvalidateForBasePath(basePath) {
-  return SKIP_CACHE_PATH_PREFIXES.some(
-    (prefix) => basePath === prefix || basePath.startsWith(`${prefix}/`),
+  return (
+    basePath === '/api/prestataire' ||
+    basePath === '/api/utilisateur' ||
+    basePath === '/api/notifications'
   );
-}
-
-function settleInflight(key, payload) {
-  const entry = inflightGets.get(key);
-  inflightGets.delete(key);
-  entry?.waiters.forEach((notify) => {
-    try {
-      notify(payload);
-    } catch {
-      /* ignore */
-    }
-  });
 }
 
 /**
