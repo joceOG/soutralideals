@@ -39,7 +39,8 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
-import searchRouter from './routes/searchRoutes.js'; // ✅ Import déplacé ici
+import searchRouter from './routes/searchRoutes.js';
+import walletRouter from './routes/walletRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';

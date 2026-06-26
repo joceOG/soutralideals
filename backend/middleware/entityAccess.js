@@ -45,27 +45,6 @@ export function requirePrestataireOwnerOrAdmin() {
   };
 }
 
-/** Vérifie la propriété via prestataireId dans req.body (upload documents). */
-export function requirePrestataireOwnerByBodyId() {
-  return async (req, res, next) => {
-    try {
-      if (isAdmin(req)) return next();
-      const prestataireId = req.body?.prestataireId;
-      if (!prestataireId) {
-        return res.status(400).json({ error: 'prestataireId requis' });
-      }
-      const { doc, ownerId } = await loadOwnerId(prestataireModel, prestataireId);
-      if (!doc) return res.status(404).json({ error: 'Prestataire non trouvé' });
-      if (!isSelf(req, ownerId)) {
-        return res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que votre propre profil.' });
-      }
-      next();
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  };
-}
-
 export function requireFreelanceOwnerOrAdmin() {
   return async (req, res, next) => {
     try {
