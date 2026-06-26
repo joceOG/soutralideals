@@ -68,8 +68,11 @@ export const authRole = (roles = []) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
 /** auth + rôle Admin (dashboard, modération) */
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
@@ -118,5 +121,13 @@ export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 =======
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+<<<<<<< HEAD
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+/** auth + rôle Admin (dashboard, modération) */
+export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
+
+>>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
 export default auth;
