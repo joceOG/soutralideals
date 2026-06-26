@@ -1,15 +1,17 @@
+import './bootstrapEnv.js';
+import './instrument.js';
+
 import express from 'express';
+import * as Sentry from '@sentry/node';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import morgan from 'morgan';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { config } from 'dotenv';
-import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import swaggerConfig from './swagger/swagger.config.js';
 import utilisateurRouter from './routes/utilisateurRoutes.js';
+import auth, { authRole } from './middleware/authMiddleware.js';
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
@@ -17,6 +19,7 @@ import prestataireRouter from './routes/prestataireRoutes.js';
 import prestataireFinalizationRouter from './routes/prestataireFinalizationRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
 import freelanceRouter from './routes/freelanceRoutes.js';
+import freelanceServiceRouter from './routes/freelanceServiceRoutes.js';
 import vendeurRouter from './routes/vendeurRoutes.js';
 // ✅ NOUVEAUX IMPORTS POUR LES MODULES AJOUTÉS
 import commandeRouter from './routes/commandeRoutes.js';
@@ -27,6 +30,7 @@ import promotionRouter from './routes/promotionRoutes.js';
 import favoriteRouter from './routes/favoriteRoutes.js';
 import mailRouter from './routes/mailRouter.js';
 import smsRouter from './routes/smsRoutes.js';
+import otpRouter from './routes/otpRoutes.js';
 import reportRouter from './routes/reportRoutes.js';
 import googleMapsRouter from './routes/googleMapsRoutes.js';
 import avisRouter from './routes/avisRoutes.js';
@@ -35,6 +39,9 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
+import searchRouter from './routes/searchRoutes.js';
+import walletRouter from './routes/walletRoutes.js';
+import { authenticateSocketUser } from './utils/socketAuth.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -43,15 +50,52 @@ import connect from './database/connex.js';
 import logger, { httpLogger, authLogger, transactionLogger, userActionLogger } from './middleware/logger.js';
 import { cacheMiddleware, sessionCache } from './middleware/cache.js';
 import { simpleCache } from './middleware/simpleCache.js';
+import { smartCache, autoInvalidateCache } from './middleware/cacheInvalidation.js';
 
-const app = express()
+const app = express();
 const httpServer = createServer(app);
 
-// ✅ Configuration Socket.io
+// Origines autorisées : on garde les origines locales par défaut
+// et on fusionne avec ALLOWED_ORIGINS si fourni.
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:8080',
+  'http://localhost:5173'
+];
+const envAllowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+  : [];
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])];
+
+const isDev = process.env.NODE_ENV === 'development';
+
+// En développement, on autorise tous les localhost (ports dynamiques Flutter web)
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // mobile apps / Postman / curl
+  if (allowedOrigins.includes(origin)) return true;
+  if (isDev) {
+    // Flutter web utilise un port aléatoire — on autorise tous les localhost
+    if (
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
+      origin.startsWith('http://192.168.')    // LAN local (ex: ipconfig)
+    ) return true;
+  }
+  return false;
+};
+
+// ✅ Configuration Socket.io avec origines restreintes
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origine non autorisée par Socket.IO'));
+      }
+    },
+    methods: ['GET', 'POST'],
     credentials: true
   }
 });
@@ -94,9 +138,19 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
+// 🛡️ RATE LIMITING pour les avis (anti-spam)
+const avisLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: 10,
+  message: { error: 'Trop d\'avis postés, réessayez dans une heure.' },
+  keyGenerator: (req) => req.utilisateur?._id?.toString() ?? 'anonymous',
+  skip: (req) => !req.utilisateur?._id,
+});
+
 app.use(limiter);
-app.use('/api/utilisateur/login', authLimiter);
-app.use('/api/utilisateur/register', authLimiter);
+// Routes d'auth réelles : /api/login et /api/register
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
 
 // 📝 LOGGING AVANCÉ
 app.use(httpLogger);
@@ -107,41 +161,36 @@ app.use(userActionLogger);
 // 💾 CACHE ET SESSIONS
 app.use(sessionCache);
 
-app.use(morgan('tiny'));
-app.use(cors());
+// CORS avec origines restreintes
+app.use(cors({
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origine CORS non autorisée'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.options('*', cors());
+
+app.use('/uploads', express.static('uploads'));
+
 app.use(express.json());
-// ✅ Forcer l'encodage UTF-8 pour toutes les réponses JSON
 app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    next();
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
 });
-config();
 
 // ✅ CONFIGURATION SWAGGER
 const swaggerSpec = swaggerConfig;
 
-/** appliation port */
-const port = process.env.PORT ;
+/** port défini plus bas avec fallback */
 
 
 /** routes */
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 567a2c0 (Dashboard Complet and Merge)
-// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
-app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
-app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
-app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
-app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
-app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-<<<<<<< HEAD
-app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
-app.use('/api', freelanceServiceRouter); // Offres freelance (pas de cache GET home pour MVP)
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
-=======
 // Cache + invalidation une seule fois pour toutes les routes /api (évite 7× MISS par requête)
 app.use('/api', autoInvalidateCache);
 app.use('/api', smartCache(300));
@@ -156,12 +205,7 @@ app.use('/api', prestataireFinalizationRouter);
 app.use('/api', freelanceRouter);
 app.use('/api', freelanceServiceRouter);
 app.use('/api', vendeurRouter);
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.use('/api', searchRouter);
-=======
-app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
->>>>>>> 567a2c0 (Dashboard Complet and Merge)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -171,8 +215,10 @@ app.use('/api', prestationRouter);
 app.use('/api', promotionRouter);
 app.use('/api', favoriteRouter);
 app.use('/api', mailRouter);
+app.use('/api', otpRouter);
 app.use('/api', smsRouter);
 app.use('/api', reportRouter);
+app.use('/api/avis', avisLimiter);
 app.use('/api', avisRouter);
 app.use('/api', historyRouter);
 app.use('/api', userPreferencesRouter);
@@ -181,6 +227,7 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
+app.use('/api', walletRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -219,14 +266,21 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *               $ref: '#/components/schemas/Error'
  */
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        version: '1.0.0'
-    });
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: '1.0.0'
+  });
 });
+
+/** Test Sentry — désactivé en production */
+if (process.env.NODE_ENV !== 'production' && process.env.SENTRY_DSN) {
+  app.get('/debug-sentry', () => {
+    throw new Error('My first Sentry error!');
+  });
+}
 
 // 📊 METRICS - Endpoint de métriques basiques
 /**
@@ -261,18 +315,18 @@ app.get('/health', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.get('/metrics', (req, res) => {
-    res.status(200).json({
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: {
-            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
-            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
-        },
-        cpu: process.cpuUsage(),
-        platform: process.platform,
-        nodeVersion: process.version
-    });
+app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
+  res.status(200).json({
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+    },
+    cpu: process.cpuUsage(),
+    platform: process.platform,
+    nodeVersion: process.version
+  });
 });
 
 // 💾 CACHE STATS - Statistiques du cache Redis
@@ -310,22 +364,22 @@ app.get('/metrics', (req, res) => {
  *               error: "Cache non disponible"
  *               message: "Redis connection failed"
  */
-app.get('/cache/stats', async (req, res) => {
-    try {
-        const { getCacheStats } = await import('./middleware/cache.js');
-        const stats = getCacheStats();
-        res.status(200).json({
-            cache: stats,
-            timestamp: new Date().toISOString(),
-            status: 'OK'
-        });
-    } catch (error) {
-        res.status(500).json({
-            error: 'Cache non disponible',
-            message: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
+app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => {
+  try {
+    const { getCacheStats } = await import('./middleware/cache.js');
+    const stats = getCacheStats();
+    res.status(200).json({
+      cache: stats,
+      timestamp: new Date().toISOString(),
+      status: 'OK'
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Cache non disponible',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 /**
@@ -378,24 +432,24 @@ app.get('/cache/stats', async (req, res) => {
  *                       example: "/api/notification"
  */
 app.get('/', (req, res) => {
-    try {
-        res.json({
-            message: "SoutraLi Deals API",
-            version: "1.0.0",
-            documentation: "http://localhost:3000/api-docs",
-            health: "http://localhost:3000/health",
-            metrics: "http://localhost:3000/metrics",
-            endpoints: {
-                users: "/api/utilisateur",
-                services: "/api/service",
-                orders: "/api/commande",
-                messages: "/api/message",
-                notifications: "/api/notification"
-            }
-        });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
+  try {
+    res.json({
+      message: "SoutraLi Deals API",
+      version: "1.0.0",
+      documentation: "http://localhost:3000/api-docs",
+      health: "http://localhost:3000/health",
+      metrics: "http://localhost:3000/metrics",
+      endpoints: {
+        users: "/api/utilisateur",
+        services: "/api/service",
+        orders: "/api/commande",
+        messages: "/api/message",
+        notifications: "/api/notification"
+      }
+    });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
 });
 
 
@@ -453,11 +507,22 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('🔌 Utilisateur connecté:', socket.id);
 
-  // 📱 Authentification de l'utilisateur
-  socket.on('authenticate', (userId) => {
-    socket.userId = userId;
-    socket.join(`user_${userId}`);
-    console.log(`👤 Utilisateur ${userId} authentifié`);
+  // 📱 Authentification de l'utilisateur (JWT requis en production)
+  socket.on('authenticate', async (payload) => {
+    try {
+      const userId = await authenticateSocketUser(payload);
+      if (!userId) {
+        socket.emit('auth-error', { error: 'Authentification Socket refusée.' });
+        return;
+      }
+      socket.userId = userId;
+      socket.authenticated = true;
+      socket.join(`user_${userId}`);
+      console.log(`👤 Utilisateur ${userId} authentifié (socket)`);
+    } catch (err) {
+      console.error('[Socket] Erreur auth:', err.message);
+      socket.emit('auth-error', { error: 'Token invalide.' });
+    }
   });
 
   // 💬 REJOINDRE UNE CONVERSATION
@@ -475,27 +540,51 @@ io.on('connection', (socket) => {
   // 📨 ENVOYER UN MESSAGE
   socket.on('send-message', async (messageData) => {
     try {
+      if (!socket.authenticated || !socket.userId) {
+        socket.emit('message-error', { error: 'Non authentifié' });
+        return;
+      }
+      if (messageData.expediteur?.toString() !== socket.userId) {
+        socket.emit('message-error', { error: 'Expéditeur non autorisé' });
+        return;
+      }
+
       console.log('📨 Nouveau message reçu:', messageData);
-      
+
       // Sauvegarder le message en base de données
       const messageModel = (await import('./models/messageModel.js')).default;
+      const prestataireModel = (await import('./models/prestataireModel.js')).default;
+
+      let destinataireId = messageData.destinataire;
+      const destUser = await (await import('./models/utilisateurModel.js')).default
+        .findById(destinataireId)
+        .select('_id');
+      if (!destUser) {
+        const prestDoc = await prestataireModel.findById(destinataireId).select('utilisateur');
+        if (prestDoc?.utilisateur) destinataireId = prestDoc.utilisateur.toString();
+      }
+
+      const conversationId =
+        messageData.conversationId ||
+        messageModel.genererConversationId(socket.userId, destinataireId);
+
       const newMessage = new messageModel({
         expediteur: messageData.expediteur,
-        destinataire: messageData.destinataire,
+        destinataire: destinataireId,
         contenu: messageData.contenu,
-        conversationId: messageData.conversationId,
+        conversationId,
         typeMessage: messageData.typeMessage || 'NORMAL',
         statut: 'ENVOYE'
       });
-      
+
       await newMessage.save();
-      
+
       // Diffuser le message à tous les participants de la conversation
       io.to(`conversation_${messageData.conversationId}`).emit('new-message', {
         ...newMessage.toObject(),
         timestamp: new Date()
       });
-      
+
       // Notifier le destinataire s'il est en ligne
       io.to(`user_${messageData.destinataire}`).emit('message-notification', {
         type: 'new_message',
@@ -503,7 +592,7 @@ io.on('connection', (socket) => {
         sender: messageData.expediteur,
         content: messageData.contenu
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de l\'envoi du message:', error);
       socket.emit('message-error', { error: 'Erreur lors de l\'envoi du message' });
@@ -514,27 +603,27 @@ io.on('connection', (socket) => {
   socket.on('update-order-status', async (orderData) => {
     try {
       console.log('📦 Mise à jour statut commande:', orderData);
-      
+
       // Mettre à jour en base de données
       const commandeModel = (await import('./models/commandeModel.js')).default;
-      await commandeModel.findByIdAndUpdate(orderData.orderId, { 
-        statusCommande: orderData.status 
+      await commandeModel.findByIdAndUpdate(orderData.orderId, {
+        statusCommande: orderData.status
       });
-      
+
       // Notifier le client
       io.to(`user_${orderData.clientId}`).emit('order-status-updated', {
         orderId: orderData.orderId,
         status: orderData.status,
         timestamp: new Date()
       });
-      
+
       // Diffuser à tous les participants de la commande
       io.to(`order_${orderData.orderId}`).emit('order-update', {
         orderId: orderData.orderId,
         status: orderData.status,
         timestamp: new Date()
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de la mise à jour de la commande:', error);
       socket.emit('order-error', { error: 'Erreur lors de la mise à jour' });
@@ -544,7 +633,7 @@ io.on('connection', (socket) => {
   // 🔔 NOTIFICATION PUSH
   socket.on('send-notification', (notificationData) => {
     console.log('🔔 Notification envoyée:', notificationData);
-    
+
     // Diffuser la notification au destinataire
     io.to(`user_${notificationData.userId}`).emit('notification', {
       type: notificationData.type,
@@ -578,17 +667,36 @@ io.on('connection', (socket) => {
   });
 });
 
-// ✅ DÉMARRAGE DU SERVEUR
-connect().then(()=> {
-    try{
-    httpServer.listen(port, '0.0.0.0', ()=>{
-        console.log(`🚀 Server connected to http://localhost:${port}`);
-        console.log(`🔌 WebSocket server ready for connections`);
-    })
-}catch (error) {
-    console.log("❌ Cannot connect to the server");
+// Sentry — après toutes les routes, avant les autres middlewares d'erreur
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
 }
+
+// ✅ GESTIONNAIRE D'ERREURS GLOBAL Express
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('❌ Erreur Express non gérée:', err.message);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
+    error: err.message || 'Erreur interne du serveur',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// ✅ PORT avec valeur par défaut
+const port = process.env.PORT || 3000;
+
+// ✅ DÉMARRAGE DU SERVEUR
+connect().then(() => {
+  try {
+    httpServer.listen(port, '0.0.0.0', () => {
+      console.log(`🚀 Server connected to http://localhost:${port}`);
+      console.log(`🔌 WebSocket server ready for connections`);
+    })
+  } catch (error) {
+    console.log("❌ Cannot connect to the server");
+  }
 })
-.catch(error => {
-console.log("❌ Invalid Database Connection");
-})
+  .catch(error => {
+    console.log("❌ Invalid Database Connection");
+  })

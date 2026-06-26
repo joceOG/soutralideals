@@ -1,6 +1,5 @@
 import { body, param, query, validationResult } from 'express-validator';
 import logger from './logger.js';
-import { isValidCiPhone } from '../services/otpService.js';
 
 // 🛡️ Middleware pour gérer les erreurs de validation
 export const handleValidationErrors = (req, res, next) => {
@@ -52,25 +51,20 @@ export const validateUserRegistration = [
     .withMessage('Email invalide'),
 
   body('telephone')
-    .custom((value) => {
-      if (!isValidCiPhone(value)) {
-        throw new Error('Numéro de téléphone invalide');
-      }
-      return true;
-    }),
+    .isMobilePhone('any')
+    .withMessage('Numéro de téléphone invalide'),
 
   body('password')
-    .isLength({ min: 6 })
-    .withMessage('Le mot de passe doit contenir au moins 6 caractères'),
-
-  body('phoneVerificationToken')
-    .optional()
-    .isString()
-    .withMessage('Token de vérification téléphone invalide'),
+    .isLength({ min: 8 })
+    .withMessage('Le mot de passe doit contenir au moins 8 caractères')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
 
   body('role')
     .isIn(['Client', 'Prestataire', 'Vendeur', 'Freelance'])
     .withMessage('Rôle invalide'),
+    
+  handleValidationErrors,
 ];
 
 // 🔐 Validation pour la connexion (email OU téléphone)

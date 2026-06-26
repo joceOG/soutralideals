@@ -134,41 +134,13 @@ export const importPrestatairesCSV = async (req, res) => {
           // Création du prestataire avec le modèle existant
           const prestataire = new Prestataire({
             utilisateur: utilisateur._id,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             service: service._id,
             prixprestataire: 0,
-=======
-            service: service._id, // ✅ Service valide
-            prixprestataire: 0, // À définir par l'utilisateur
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-            service: service._id,
-            prixprestataire: 0,
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-            service: service._id,
-            prixprestataire: 0,
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-            service: service._id,
-            prixprestataire: 0,
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             localisation: `${row.ville}, ${row.quartier}`,
             localisationmaps: {
               latitude: parseFloat(row.latitude),
               longitude: parseFloat(row.longitude)
             },
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             note: 0,
             verifier: false,
             status: 'incomplete',
@@ -177,29 +149,6 @@ export const importPrestatairesCSV = async (req, res) => {
             anneeExperience: '0',
             description: `Prestataire ${row.metier} à ${row.ville}`,
             rayonIntervention: 10,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-            note: `Prestataire ${row.metier} importé via CSV`,
-=======
-            note: 0,
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-            verifier: false,
-            status: 'incomplete',
-            source: 'dashboard',
-            specialite: [row.metier],
-            anneeExperience: '0',
-            description: `Prestataire ${row.metier} à ${row.ville}`,
-<<<<<<< HEAD
-            rayonIntervention: 10, // 10km par défaut
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-            rayonIntervention: 10,
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             zoneIntervention: [row.ville, row.quartier],
             tarifHoraireMin: 0,
             tarifHoraireMax: 0,
@@ -208,22 +157,7 @@ export const importPrestatairesCSV = async (req, res) => {
             clients: []
           });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
           prestataire.syncFinalizationFromDocuments();
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-          prestataire.syncFinalizationFromDocuments();
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-          prestataire.syncFinalizationFromDocuments();
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-          prestataire.syncFinalizationFromDocuments();
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
           const savedPrestataire = await prestataire.save();
           if (savedPrestataire._id) {
             console.log(`✅ Prestataire sauvegardé: ${row.nom} (ID: ${savedPrestataire._id})`);
