@@ -47,6 +47,7 @@ export function requirePrestataireOwnerOrAdmin() {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 /** Vérifie la propriété via prestataireId dans req.body (upload documents). */
@@ -75,6 +76,8 @@ export function requirePrestataireOwnerByBodyId() {
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
 export function requireFreelanceOwnerOrAdmin() {
   return async (req, res, next) => {
     try {
