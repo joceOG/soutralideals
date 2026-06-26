@@ -65,11 +65,15 @@ email: {
   photoProfil: { type: String },
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   // Admin : accès dashboard (liste utilisateurs, etc.) — à n’attribuer qu’en base ou via script sécurisé
   role: {
     type: String,
     enum: ["Admin", "Prestataire", "Vendeur", "Freelance", "Client"],
     required: true,
+<<<<<<< HEAD
 =======
   // ✅ Ajout du rôle Client
   role: { 
@@ -77,6 +81,8 @@ email: {
     enum: ["Prestataire", "Vendeur", "Freelance", "Client"], 
     required: true 
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   },
 
   tokens: [{
@@ -99,6 +105,9 @@ UtilisateurSchema.pre("save", async function(next) {
 UtilisateurSchema.methods.generateAuthToken = async function() {
   const user = this;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET manquant dans les variables d\'environnement');
   const token = jwt.sign(
@@ -106,9 +115,12 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
     secret,
     { expiresIn: '7d' }
   );
+<<<<<<< HEAD
 =======
   const token = jwt.sign({ _id: user._id.toString(), role: user.role }, 'thisisoutrali');
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   user.tokens = user.tokens.concat({ token });
   await user.save();
   return token;
@@ -116,17 +128,14 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
 
 // Méthode statique pour login par email ou téléphone
 UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
-  console.log("🔍 findByCredentials - Recherche utilisateur:", { identifiant, password: "***" });
-  
   let user = null;
   if (validator.isEmail(identifiant)) {
-    console.log("📧 Recherche par email:", identifiant);
     user = await this.findOne({ email: identifiant });
   } else {
-    console.log("📱 Recherche par téléphone:", identifiant);
     user = await this.findOne({ telephone: identifiant });
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   if (!user) throw new Error('Identifiants incorrects');
@@ -165,19 +174,30 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
   
   if (!isMatch) throw new Error('Mot de passe incorrect');
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+  if (!user) throw new Error('Identifiants incorrects');
 
-  console.log("✅ Authentification réussie pour:", user.nom);
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) throw new Error('Identifiants incorrects');
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+
   return user;
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // Méthode d'instance pour comparer un mot de passe en clair avec le hash
 UtilisateurSchema.methods.comparePassword = async function(password) {
   return bcrypt.compare(password, this.password);
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // Virtuals pour relations
 UtilisateurSchema.virtual('articles', {
   ref: 'Article',

@@ -65,6 +65,7 @@ export const authRole = (roles = []) => {
   };
 };
 
+<<<<<<< HEAD
 /** auth + rôle Admin (dashboard, modération) */
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
@@ -99,4 +100,6 @@ export const optionalAuth = async (req, res, next) => {
   }
 };
 
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 export default auth;

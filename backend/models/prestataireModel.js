@@ -13,10 +13,14 @@ const prestataireSchema = new mongoose.Schema({
   localisation: { type: String, required: true },
   localisationmaps:{ type: localisationSchema , required : false  } ,// ✅ ajouté
 <<<<<<< HEAD
+<<<<<<< HEAD
   note: { type: Number, default: 0, min: 0, max: 5 },
 =======
   note: { type: String },
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+  note: { type: Number, default: 0, min: 0, max: 5 },
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   verifier: { type: Boolean, default: false },
 
   // Identité
@@ -43,9 +47,13 @@ const prestataireSchema = new mongoose.Schema({
   // Stats
   nbMission: { type: Number, default: 0 },
 <<<<<<< HEAD
+<<<<<<< HEAD
   nbAvis: { type: Number, default: 0 },
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+  nbAvis: { type: Number, default: 0 },
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   revenus: { type: Number, default: 0 },
   clients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur" }],
 

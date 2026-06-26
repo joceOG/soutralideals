@@ -1,6 +1,7 @@
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -11,15 +12,23 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 =======
+=======
+import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
-// Config Cloudinary
 cloudinary.config({
+<<<<<<< HEAD
   cloud_name: "dm0c8st6k",
   api_key: "541481188898557",
   api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 });
 
 // 🔹 Fonction utilitaire upload Cloudinary
@@ -63,6 +72,9 @@ export const createPrestataire = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const parseNumber = (value, fallback = 0) => {
       if (value === null || typeof value === "undefined" || value === "") {
         return fallback;
@@ -93,6 +105,7 @@ export const createPrestataire = async (req, res) => {
       .filter((id) => mongoose.Types.ObjectId.isValid(id))
       .map((id) => new mongoose.Types.ObjectId(id));
 
+<<<<<<< HEAD
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
     const serviceMissing =
@@ -110,6 +123,15 @@ export const createPrestataire = async (req, res) => {
     let finalService = service;
     if (!service && category) {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+    const serviceMissing =
+      !service ||
+      service === "" ||
+      (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
+    if (serviceMissing && category) {
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -137,12 +159,17 @@ export const createPrestataire = async (req, res) => {
       }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     } else if (serviceMissing) {
       return res.status(400).json({ error: "service ou category requis" });
 =======
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    } else if (serviceMissing) {
+      return res.status(400).json({ error: "service ou category requis" });
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     }
 
     // Parsing localisationmaps
@@ -218,27 +245,34 @@ export const createPrestataire = async (req, res) => {
 =======
     // Création prestataire
     const newPrestataire = new prestataireModel({
-      utilisateur: mongoose.Types.ObjectId(utilisateur),
-      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
-      prixprestataire,
+      utilisateur: new mongoose.Types.ObjectId(utilisateur),
+      service: new mongoose.Types.ObjectId(finalService),
+      prixprestataire: parseNumber(prixprestataire, 0),
       localisation,
-      note,
+      note: parseNumber(note, 0),
       verifier: verifier === "true" || verifier === true,
-      specialite: specialite ? (Array.isArray(specialite) ? specialite : [specialite]) : [],
+      specialite: specialiteArr,
       anneeExperience,
       description,
-      rayonIntervention,
-      zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
+      rayonIntervention: parseNumber(rayonIntervention, 10),
+      zoneIntervention: zoneInterventionArr,
       localisationmaps: parsedLocalisation,
-      tarifHoraireMin,
-      tarifHoraireMax,
+      tarifHoraireMin: parseNumber(tarifHoraireMin, 0),
+      tarifHoraireMax: parseNumber(tarifHoraireMax, 0),
       numeroCNI,
       numeroRCCM,
       numeroAssurance,
+<<<<<<< HEAD
       nbMission,
       revenus,
       clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+      nbMission: parseNumber(nbMission, 0),
+      nbAvis: parseNumber(req.body.nbAvis, 0),
+      revenus: parseNumber(revenus, 0),
+      clients: clientsIds,
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       diplomeCertificat,
       ...uploads,
     });
@@ -261,8 +295,12 @@ export const createPrestataire = async (req, res) => {
       newPrestataire.status = req.body.status;
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
+<<<<<<< HEAD
       newPrestataire.recenseur = mongoose.Types.ObjectId(req.body.recenseur);
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+      newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     }
     if (req.body.dateRecensement) {
       newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
@@ -314,6 +352,9 @@ export const updatePrestataire = async (req, res) => {
     } = req.body;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const parseNumber = (value) => {
       if (value === null || typeof value === "undefined" || value === "") {
         return undefined;
@@ -322,8 +363,11 @@ export const updatePrestataire = async (req, res) => {
       return Number.isFinite(parsed) ? parsed : undefined;
     };
 
+<<<<<<< HEAD
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
@@ -339,6 +383,7 @@ export const updatePrestataire = async (req, res) => {
     }
 
     const updates = {
+<<<<<<< HEAD
 <<<<<<< HEAD
       ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: new mongoose.Types.ObjectId(service) }),
@@ -374,23 +419,29 @@ export const updatePrestataire = async (req, res) => {
       ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: mongoose.Types.ObjectId(service) }),
       ...(prixprestataire && { prixprestataire }),
+=======
+      ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
+      ...(service && { service: new mongoose.Types.ObjectId(service) }),
+      ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       ...(localisation && { localisation }),
-      ...(note && { note }),
+      ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
       ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
-      ...(rayonIntervention && { rayonIntervention }),
+      ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
       ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
       ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
-      ...(tarifHoraireMin && { tarifHoraireMin }),
-      ...(tarifHoraireMax && { tarifHoraireMax }),
+      ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
+      ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
       ...(numeroCNI && { numeroCNI }),
       ...(numeroRCCM && { numeroRCCM }),
       ...(numeroAssurance && { numeroAssurance }),
-      ...(nbMission && { nbMission }),
-      ...(revenus && { revenus }),
-      ...(clients && { clients: clients.map(id => mongoose.Types.ObjectId(id)) }),
+      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
+      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
+      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
+      ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
     };
 
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
@@ -439,6 +490,7 @@ export const updatePrestataire = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
@@ -505,22 +557,56 @@ export const getAllPrestataires = async (req, res) => {
     console.error('Erreur récupération prestataires:', err.message);
 =======
 // ✅ Lire tous les prestataires
+=======
+// ✅ Lire tous les prestataires (avec filtres optionnels)
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 export const getAllPrestataires = async (req, res) => {
   try {
-    const prestataires = await prestataireModel.find()
-      .populate("utilisateur")
-      .populate({
-        path: "service",
-        populate: {
-          path: "categorie",
-          populate: { path: "groupe" }
-        }
-      });
+    const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
 
-    res.status(200).json(prestataires);
+    const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
+    const filter = {};
+    if (service) {
+      if (
+        excludedSvc.length &&
+        excludedSvc.some((id) => String(id) === String(service))
+      ) {
+        return res.json([]);
+      }
+      filter.service = service;
+    } else if (excludedSvc.length) {
+      filter.service = { $nin: excludedSvc };
+    }
+    if (status) filter.status = status;
+    if (utilisateur) filter.utilisateur = utilisateur;
+    if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
+
+    const prestataires = await prestataireModel.find(filter)
+      .populate('utilisateur', 'nom prenom photoProfil email telephone')
+      .populate({
+        path: 'service',
+        match: categorie ? { categorie } : undefined,
+        populate: {
+          path: 'categorie',
+          populate: { path: 'groupe' }
+        }
+      })
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit));
+
+    // Si filtre categorie via populate match, retirer les null
+    const result = categorie
+      ? prestataires.filter(p => p.service !== null)
+      : prestataires;
+
+    res.status(200).json(result);
   } catch (err) {
+<<<<<<< HEAD
     console.error("Erreur récupération prestataires:", err.message);
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    console.error('Erreur récupération prestataires:', err.message);
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     res.status(500).json({ error: err.message });
   }
 };

@@ -1,4 +1,5 @@
 import notificationModel from "../models/notificationModel.js";
+<<<<<<< HEAD
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 
@@ -16,6 +17,10 @@ async function repairLegacyPrestataireNotifications(userId) {
   );
 }
 
+=======
+import mongoose from "mongoose";
+
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // ✅ Créer une notification
 export const createNotification = async (req, res) => {
   try {
@@ -81,8 +86,11 @@ export const getNotificationsByUser = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
+<<<<<<< HEAD
     await repairLegacyPrestataireNotifications(userId);
 
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const query = { destinataire: userId };
     if (statut) {
       query.statut = statut;
@@ -205,8 +213,11 @@ export const getUnreadCount = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
+<<<<<<< HEAD
     await repairLegacyPrestataireNotifications(userId);
 
+=======
+>>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const count = await notificationModel.countDocuments({
       destinataire: userId,
       statut: 'NON_LUE'
