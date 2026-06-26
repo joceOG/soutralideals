@@ -8,6 +8,7 @@ const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
 =======
@@ -16,6 +17,12 @@ const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
 =======
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+>>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
 function authHeaders(): HeadersInit {
   const token = localStorage.getItem('token');
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
@@ -23,6 +30,7 @@ function authHeaders(): HeadersInit {
   return headers;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36,10 +44,17 @@ function authHeaders(): HeadersInit {
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 =======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -113,10 +128,13 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult> =>
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       headers: authHeaders(),
 =======
       headers: {
@@ -135,7 +153,13 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult> =>
 =======
       headers: authHeaders(),
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+      headers: authHeaders(),
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ address }),
     });
 
@@ -159,10 +183,13 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeR
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       headers: authHeaders(),
 =======
       headers: {
@@ -181,7 +208,13 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeR
 =======
       headers: authHeaders(),
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+      headers: authHeaders(),
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ lat, lng }),
     });
 
@@ -209,10 +242,13 @@ export const calculateDistance = async (
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       headers: authHeaders(),
 =======
       headers: {
@@ -231,7 +267,13 @@ export const calculateDistance = async (
 =======
       headers: authHeaders(),
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+      headers: authHeaders(),
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -267,10 +309,13 @@ export const searchNearbyPlaces = async (
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
     const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
       headers: authHeaders(),
     });
@@ -293,7 +338,15 @@ export const searchNearbyPlaces = async (
       headers: authHeaders(),
     });
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+    const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
+      headers: authHeaders(),
+    });
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
     const result = await response.json();
     return result;
   } catch (error) {
@@ -318,10 +371,13 @@ export const getDirections = async (
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       headers: authHeaders(),
 =======
       headers: {
@@ -340,7 +396,13 @@ export const getDirections = async (
 =======
       headers: authHeaders(),
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+      headers: authHeaders(),
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -364,10 +426,13 @@ export const validateAddress = async (address: string): Promise<GeocodeResult> =
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       headers: authHeaders(),
 =======
       headers: {
@@ -386,7 +451,13 @@ export const validateAddress = async (address: string): Promise<GeocodeResult> =
 =======
       headers: authHeaders(),
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+      headers: authHeaders(),
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ address }),
     });
 
@@ -414,10 +485,13 @@ export const calculateServiceArea = async (
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       headers: authHeaders(),
 =======
       headers: {
@@ -436,7 +510,13 @@ export const calculateServiceArea = async (
 =======
       headers: authHeaders(),
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+      headers: authHeaders(),
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
       body: JSON.stringify({ lat, lng, radius }),
     });
 

@@ -7,6 +7,7 @@ import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
@@ -33,6 +34,12 @@ import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 >>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+=======
+import auth, { authAdmin } from "../middleware/authMiddleware.js";
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
 import {
   requirePrestataireOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -93,8 +100,13 @@ const uploadFields = upload.fields([
 
 // Public — catalogue (routes spécifiques avant /:id)
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
+<<<<<<< HEAD
 prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
+=======
+prestataireRouter.get("/prestataire", getAllPrestataires);
+prestataireRouter.get("/prestataire/:id", getPrestataireById);
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
 
 // Admin — modération
 prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);
@@ -118,6 +130,7 @@ prestataireRouter.put(
   updatePrestataire,
 );
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 const upload = multer({ dest: "uploads/" }); // stockage temporaire pour Cloudinary
@@ -243,3 +256,9 @@ export default prestataireRouter;
 =======
 export default prestataireRouter;
 >>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+export default prestataireRouter;
+=======
+export default prestataireRouter;
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)

@@ -79,6 +79,7 @@ export const authRole = (roles = []) => {
 /** auth + rôle Admin (dashboard, modération) */
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
+<<<<<<< HEAD
 /**
  * Auth optionnelle : peuple req.user si token valide, sinon continue sans erreur.
  * Utile pour les routes publiques avec comportement différent si authentifié.
@@ -110,6 +111,7 @@ export const optionalAuth = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -146,3 +148,9 @@ export default auth;
 =======
 export default auth;
 >>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+export default auth;
+=======
+export default auth;
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)

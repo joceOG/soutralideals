@@ -147,11 +147,14 @@ googleMapsRouter.post('/validate-address', async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
 =======
+=======
+>>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
@@ -212,6 +215,18 @@ googleMapsRouter.post('/service-area', async (req, res) => {
         const result = await calculateServiceArea(center, radiusKm);
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
+=======
+googleMapsRouter.post('/service-area', async (req, res) => {
+    try {
+        const { center, radiusKm } = req.body;
+        if (!center || !radiusKm) {
+            return res.status(400).json({ error: 'Centre et rayon requis' });
+        }
+
+        const result = await calculateServiceArea(center, radiusKm);
+        res.status(result.success ? 200 : 400).json(result);
+    } catch (error) {
+>>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
         console.error('Erreur route service-area:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
