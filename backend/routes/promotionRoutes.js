@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import auth, { authAdmin } from '../middleware/authMiddleware.js';
 import {
     createPromotion,
     getAllPromotions,
@@ -14,20 +15,18 @@ import {
 
 const promotionRouter = Router();
 
-// ✅ ROUTES CRUD PROMOTIONS
-promotionRouter.post('/promotion', createPromotion);
+// Public — affichage marketplace
 promotionRouter.get('/promotions', getAllPromotions);
 promotionRouter.get('/promotions/actives', getPromotionsActives);
 promotionRouter.get('/promotion/:id', getPromotionById);
-promotionRouter.put('/promotion/:id', updatePromotion);
-promotionRouter.delete('/promotion/:id', deletePromotion);
-
-// ✅ ROUTES STATISTIQUES
-promotionRouter.get('/promotions/stats', getPromotionStats);
-
-// ✅ ROUTES ANALYTICS
 promotionRouter.patch('/promotion/:id/vue', incrementerVues);
 promotionRouter.patch('/promotion/:id/clic', incrementerClics);
 promotionRouter.patch('/promotion/:id/conversion', incrementerConversions);
+
+// Admin — gestion
+promotionRouter.get('/promotions/stats', ...authAdmin, getPromotionStats);
+promotionRouter.post('/promotion', ...authAdmin, createPromotion);
+promotionRouter.put('/promotion/:id', ...authAdmin, updatePromotion);
+promotionRouter.delete('/promotion/:id', ...authAdmin, deletePromotion);
 
 export default promotionRouter;

@@ -40,6 +40,7 @@ import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
+import { authenticateSocketUser } from './utils/socketAuth.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -499,11 +500,22 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('🔌 Utilisateur connecté:', socket.id);
 
-  // 📱 Authentification de l'utilisateur
-  socket.on('authenticate', (userId) => {
-    socket.userId = userId;
-    socket.join(`user_${userId}`);
-    console.log(`👤 Utilisateur ${userId} authentifié`);
+  // 📱 Authentification de l'utilisateur (JWT requis en production)
+  socket.on('authenticate', async (payload) => {
+    try {
+      const userId = await authenticateSocketUser(payload);
+      if (!userId) {
+        socket.emit('auth-error', { error: 'Authentification Socket refusée.' });
+        return;
+      }
+      socket.userId = userId;
+      socket.authenticated = true;
+      socket.join(`user_${userId}`);
+      console.log(`👤 Utilisateur ${userId} authentifié (socket)`);
+    } catch (err) {
+      console.error('[Socket] Erreur auth:', err.message);
+      socket.emit('auth-error', { error: 'Token invalide.' });
+    }
   });
 
   // 💬 REJOINDRE UNE CONVERSATION
@@ -521,6 +533,15 @@ io.on('connection', (socket) => {
   // 📨 ENVOYER UN MESSAGE
   socket.on('send-message', async (messageData) => {
     try {
+      if (!socket.authenticated || !socket.userId) {
+        socket.emit('message-error', { error: 'Non authentifié' });
+        return;
+      }
+      if (messageData.expediteur?.toString() !== socket.userId) {
+        socket.emit('message-error', { error: 'Expéditeur non autorisé' });
+        return;
+      }
+
       console.log('📨 Nouveau message reçu:', messageData);
 
       // Sauvegarder le message en base de données

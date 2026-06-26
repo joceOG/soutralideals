@@ -1,5 +1,10 @@
 import { Router } from "express";
 import multer from "multer";
+import auth, { authAdmin } from "../middleware/authMiddleware.js";
+import {
+  requirePrestataireOwnerOrAdmin,
+  requireSelfOrAdmin,
+} from "../middleware/entityAccess.js";
 import {
   createPrestataire,
   getAllPrestataires,
@@ -11,41 +16,43 @@ import {
   getPendingPrestataires,
 } from "../controller/prestataireController.js";
 
-const upload = multer({ dest: "uploads/" }); // stockage temporaire pour Cloudinary
+const upload = multer({ dest: "uploads/" });
 
 const prestataireRouter = Router();
 
+const uploadFields = upload.fields([
+  { name: "cni1", maxCount: 1 },
+  { name: "cni2", maxCount: 1 },
+  { name: "selfie", maxCount: 1 },
+  { name: "diplomeCertificat", maxCount: 10 },
+  { name: "attestationAssurance", maxCount: 1 },
+]);
+
+// Public — catalogue (routes spécifiques avant /:id)
+prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
+prestataireRouter.get("/prestataire", getAllPrestataires);
+prestataireRouter.get("/prestataire/:id", getPrestataireById);
+
+// Admin — modération
+prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);
+prestataireRouter.put("/prestataire/:id/reject", ...authAdmin, rejectPrestataire);
+prestataireRouter.delete("/prestataire/:id", ...authAdmin, deletePrestataire);
+
+// Authentifié — inscription / mise à jour propre profil
 prestataireRouter.post(
-  '/prestataire',
-  upload.fields([
-    { name: 'cni1', maxCount: 1 },
-    { name: 'cni2', maxCount: 1 },
-    { name: 'selfie', maxCount: 1 },
-    { name: 'diplomeCertificat', maxCount: 10 }, // plusieurs diplômes
-    { name: 'attestationAssurance', maxCount: 1 }, // si tu veux gérer l'assurance
-  ]),
-  createPrestataire
+  "/prestataire",
+  auth,
+  requireSelfOrAdmin("utilisateur"),
+  uploadFields,
+  createPrestataire,
 );
 
 prestataireRouter.put(
-  '/prestataire/:id',
-  upload.fields([
-    { name: 'cni1', maxCount: 1 },
-    { name: 'cni2', maxCount: 1 },
-    { name: 'selfie', maxCount: 1 },
-    { name: 'diplomeCertificat', maxCount: 10 },
-    { name: 'attestationAssurance', maxCount: 1 },
-  ]),
-  updatePrestataire
+  "/prestataire/:id",
+  auth,
+  requirePrestataireOwnerOrAdmin(),
+  uploadFields,
+  updatePrestataire,
 );
-
-// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
-prestataireRouter.get("/prestataire/pending/list", getPendingPrestataires);
-
-prestataireRouter.get("/prestataire", getAllPrestataires);
-prestataireRouter.get("/prestataire/:id", getPrestataireById);
-prestataireRouter.delete("/prestataire/:id", deletePrestataire);
-prestataireRouter.put("/prestataire/:id/validate", validatePrestataire);
-prestataireRouter.put("/prestataire/:id/reject", rejectPrestataire);
 
 export default prestataireRouter;

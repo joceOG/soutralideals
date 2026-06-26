@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
+import auth from '../middleware/authMiddleware.js';
 import {
     geocodeAddress,
     reverseGeocode,
@@ -11,7 +13,16 @@ import {
 
 const googleMapsRouter = Router();
 
-// ✅ GÉOCODAGE - Adresse vers coordonnées
+const mapsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: { error: 'Trop de requêtes cartographiques, réessayez plus tard.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+googleMapsRouter.use(auth, mapsLimiter);
+
 googleMapsRouter.post('/geocode', async (req, res) => {
     try {
         const { address } = req.body;
@@ -27,7 +38,6 @@ googleMapsRouter.post('/geocode', async (req, res) => {
     }
 });
 
-// ✅ GÉOCODAGE INVERSE - Coordonnées vers adresse
 googleMapsRouter.post('/reverse-geocode', async (req, res) => {
     try {
         const { lat, lng } = req.body;
@@ -43,7 +53,6 @@ googleMapsRouter.post('/reverse-geocode', async (req, res) => {
     }
 });
 
-// ✅ CALCUL DE DISTANCE
 googleMapsRouter.post('/distance', async (req, res) => {
     try {
         const { origin, destination, mode = 'driving' } = req.body;
@@ -59,23 +68,21 @@ googleMapsRouter.post('/distance', async (req, res) => {
     }
 });
 
-// ✅ RECHERCHE DE LIEUX PROCHES
 googleMapsRouter.get('/nearby', async (req, res) => {
     try {
-        const { lat, lng, radius = 5000, type = 'establishment', keyword = '' } = req.query;
+        const { lat, lng, radius, type } = req.query;
         if (!lat || !lng) {
             return res.status(400).json({ error: 'Latitude et longitude requises' });
         }
 
-        const result = await searchNearbyPlaces(lat, lng, radius, type, keyword);
+        const result = await searchNearbyPlaces(lat, lng, radius, type);
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
-        console.error('Erreur route lieux proches:', error);
+        console.error('Erreur route nearby:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
 
-// ✅ DIRECTIONS ET NAVIGATION
 googleMapsRouter.post('/directions', async (req, res) => {
     try {
         const { origin, destination, mode = 'driving' } = req.body;
@@ -91,7 +98,6 @@ googleMapsRouter.post('/directions', async (req, res) => {
     }
 });
 
-// ✅ VALIDATION D'ADRESSE
 googleMapsRouter.post('/validate-address', async (req, res) => {
     try {
         const { address } = req.body;
@@ -102,23 +108,22 @@ googleMapsRouter.post('/validate-address', async (req, res) => {
         const result = await validateAddress(address);
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
-        console.error('Erreur route validation:', error);
+        console.error('Erreur route validate-address:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
 
-// ✅ CALCUL DE ZONE DE COUVERTURE
 googleMapsRouter.post('/service-area', async (req, res) => {
     try {
-        const { lat, lng, radius } = req.body;
-        if (!lat || !lng || !radius) {
-            return res.status(400).json({ error: 'Latitude, longitude et rayon requis' });
+        const { center, radiusKm } = req.body;
+        if (!center || !radiusKm) {
+            return res.status(400).json({ error: 'Centre et rayon requis' });
         }
 
-        const result = await calculateServiceArea(lat, lng, radius);
+        const result = await calculateServiceArea(center, radiusKm);
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
-        console.error('Erreur route zone service:', error);
+        console.error('Erreur route service-area:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
