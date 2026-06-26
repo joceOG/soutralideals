@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+import auth, { authAdmin } from "../middleware/authMiddleware.js";
 import {
   requirePrestataireOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -30,8 +30,8 @@ const uploadFields = upload.fields([
 
 // Public — catalogue (routes spécifiques avant /:id)
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
-prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
-prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
+prestataireRouter.get("/prestataire", getAllPrestataires);
+prestataireRouter.get("/prestataire/:id", getPrestataireById);
 
 // Admin — modération
 prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);
@@ -54,14 +54,5 @@ prestataireRouter.put(
   uploadFields,
   updatePrestataire,
 );
-
-// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
-prestataireRouter.get("/prestataire/pending/list", getPendingPrestataires);
-
-prestataireRouter.get("/prestataire", getAllPrestataires);
-prestataireRouter.get("/prestataire/:id", getPrestataireById);
-prestataireRouter.delete("/prestataire/:id", deletePrestataire);
-prestataireRouter.put("/prestataire/:id/validate", validatePrestataire);
-prestataireRouter.put("/prestataire/:id/reject", rejectPrestataire);
 
 export default prestataireRouter;

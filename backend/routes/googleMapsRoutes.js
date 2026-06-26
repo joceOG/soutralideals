@@ -115,17 +115,17 @@ googleMapsRouter.post('/validate-address', async (req, res) => {
     }
 });
 
-googleMapsRouter.post('/autocomplete', async (req, res) => {
+googleMapsRouter.post('/service-area', async (req, res) => {
     try {
-        const { input, country, location, radius } = req.body;
-        if (!input) {
-            return res.status(400).json({ error: 'Texte de recherche requis' });
+        const { center, radiusKm } = req.body;
+        if (!center || !radiusKm) {
+            return res.status(400).json({ error: 'Centre et rayon requis' });
         }
 
-        const result = await placesAutocomplete(input, { country, location, radius });
+        const result = await calculateServiceArea(center, radiusKm);
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
-        console.error('Erreur route autocomplete:', error);
+        console.error('Erreur route service-area:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
