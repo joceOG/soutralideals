@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import vendeurModel from "../models/vendeurModel.js";
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -175,9 +174,7 @@ export const createVendeur = async (req, res) => {
                 status: 'Pending',
                 date: new Date(),
                 reason: 'Inscription initiale'
-            }],
-            status: 'pending',
-            source: req.body.source || 'web',
+            }]
         });
 
         await newVendeur.save();
@@ -210,7 +207,8 @@ export const getAllVendeurs = async (req, res) => {
         } = req.query;
 
         // Construction des filtres
-        const filters = applyProPublicFilter(req, {});
+        const filters = {};
+        if (accountStatus) filters.accountStatus = accountStatus;
         if (businessType) filters.businessType = businessType;
         if (category) filters.businessCategories = { $in: [category] };
         if (city) filters['businessAddress.city'] = { $regex: city, $options: 'i' };
@@ -222,6 +220,9 @@ export const getAllVendeurs = async (req, res) => {
                 { shopDescription: { $regex: search, $options: 'i' } },
                 { tags: { $in: [new RegExp(search, 'i')] } }
             ];
+        }
+        if (req.query.utilisateur) {
+            filters.utilisateur = req.query.utilisateur;
         }
 
         // Options de tri
@@ -265,10 +266,6 @@ export const getVendeurById = async (req, res) => {
             .populate('articles'); // Virtual populate
 
         if (!vendeur) {
-            return res.status(404).json({ error: "Vendeur non trouvé" });
-        }
-
-        if (!canAccessProProfile(req, vendeur)) {
             return res.status(404).json({ error: "Vendeur non trouvé" });
         }
 
@@ -452,7 +449,7 @@ export const searchVendeurs = async (req, res) => {
     try {
         const { query, category, city, minRating, businessType } = req.query;
 
-        let searchCriteria = applyProPublicFilter(req, {});
+        let searchCriteria = { accountStatus: 'Active' };
 
         if (query) {
             searchCriteria.$or = [
@@ -551,7 +548,10 @@ export const changeVendeurStatus = async (req, res) => {
 // 🆕 OPTION C - Récupérer les vendeurs en attente
 export const getPendingVendeurs = async (req, res) => {
     try {
-        const vendeurs = await vendeurModel.find({ status: "pending" })
+        const vendeurs = await vendeurModel.find({ 
+            status: 'pending',
+            source: 'sdealsidentification'
+        })
             .populate("utilisateur")
             .populate("recenseur", "nom prenom telephone")
             .sort({ dateRecensement: -1 });
@@ -567,7 +567,7 @@ export const getPendingVendeurs = async (req, res) => {
 export const validateVendeur = async (req, res) => {
     try {
         const { id } = req.params;
-        const adminId = req.user._id;
+        const adminId = req.body.adminId || req.user?._id;
 
         const vendeur = await vendeurModel.findById(id);
         
@@ -608,7 +608,7 @@ export const rejectVendeur = async (req, res) => {
     try {
         const { id } = req.params;
         const { motif } = req.body;
-        const adminId = req.user._id;
+        const adminId = req.body.adminId || req.user?._id;
 
         const vendeur = await vendeurModel.findById(id);
         

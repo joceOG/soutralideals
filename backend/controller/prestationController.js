@@ -1,10 +1,11 @@
-import prestationModel from '../models/prestationModel.js';
-import prestataireModel from '../models/prestataireModel.js';
-import mongoose from 'mongoose';
-import cloudinary from 'cloudinary';
-import fs from 'fs';
+import prestataireModel from "../models/prestataireModel.js";
+import mongoose from "mongoose";
+import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
+import { isAdmin } from "../middleware/entityAccess.js";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
-cloudinary.v2.config({
+cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -57,98 +58,16 @@ export const createPrestataire = async (req, res) => {
       return Number.isFinite(parsed) ? parsed : fallback;
     };
 
-        const newPrestation = new prestationModel({
-            utilisateur: new mongoose.Types.ObjectId(utilisateur),
-            prestataire: prestataire ? new mongoose.Types.ObjectId(prestataire) : null,
-            service: service ? new mongoose.Types.ObjectId(service) : null,
-            datePrestation: datePrestation ? new Date(datePrestation) : new Date(),
-            heureDebut: heureDebut || '09:00',
-            heureFin,
-            dureeEstimee,
-            adresse,
-            ville,
-            codePostal,
-            localisation,
-            tarifHoraire: tarifHoraire || 0,
-            montantTotal: 0, // 💰 Toujours gratuit
-            fraisDeplacements: fraisDeplacements || 0,
-            moyenPaiement: moyenPaiement || 'GRATUIT',
-            description: description || 'Service demandé',
-            notesClient,
-            telephoneUrgence,
-            estRecurrente: estRecurrente || false,
-            frequenceRecurrence,
-            photosAvant,
-            statut: 'EN_ATTENTE',
-            statutPaiement: 'GRATUIT' // 💰 Statut gratuit
-        });
-
-        await newPrestation.save();
-
-        // Population pour la réponse
-        const populatedPrestation = await prestationModel
-            .findById(newPrestation._id)
-            .populate('utilisateur', 'nom prenom email telephone photoProfil')
-            .populate('prestataire', 'utilisateur localisation')
-            .populate('service', 'nomservice categorie');
-
-        // 🔔 CRÉER UNE NOTIFICATION + MESSAGE POUR LE PRESTATAIRE (compte utilisateur)
+    /** multipart/form-data : specialite, zoneIntervention, clients souvent en JSON string (dashboard + mobile). */
+    const parseStringArrayField = (v) => {
+      if (v == null || v === "") return [];
+      if (Array.isArray(v)) return v.map((x) => String(x));
+      if (typeof v === "string") {
         try {
-            const notificationModel = (await import('../models/notificationModel.js')).default;
-            const messageModel = (await import('../models/messageModel.js')).default;
-
-            if (prestataire) {
-                const prestataireDoc = await prestataireModel
-                    .findById(prestataire)
-                    .select('utilisateur');
-
-                const prestataireUserId = prestataireDoc?.utilisateur;
-
-                if (prestataireUserId) {
-                    const notification = new notificationModel({
-                        destinataire: prestataireUserId,
-                        expediteur: utilisateur,
-                        type: 'NOUVELLE_MISSION',
-                        titre: 'Nouvelle mission disponible !',
-                        contenu: `Une nouvelle mission vous a été assignée. Consultez vos missions pour plus de détails.`,
-                        prestation: newPrestation._id,
-                        priorite: 'HAUTE',
-                        donnees: {
-                            prestationId: newPrestation._id,
-                            service: populatedPrestation.service?.nomservice,
-                            adresse: adresse,
-                            ville: ville
-                        }
-                    });
-
-                    await notification.save();
-                    console.log(`🔔 Notification nouvelle mission créée pour prestataire: ${prestataireUserId}`);
-
-                    const conversationId = messageModel.genererConversationId(
-                        utilisateur,
-                        prestataireUserId.toString()
-                    );
-
-                    const demandeMessage = new messageModel({
-                        expediteur: new mongoose.Types.ObjectId(utilisateur),
-                        destinataire: prestataireUserId,
-                        contenu: `Bonjour, j'ai une demande de prestation${notesClient ? ` : ${notesClient}` : '.'} Adresse : ${adresse}, ${ville}.`,
-                        typeMessage: 'PRESTATION',
-                        referenceId: newPrestation._id,
-                        referenceType: 'Prestation',
-                        conversationId,
-                        statut: 'ENVOYE'
-                    });
-
-                    await demandeMessage.save();
-                    console.log(`💬 Message de demande créé pour prestation: ${newPrestation._id}`);
-                } else {
-                    console.warn(`⚠️ Prestataire ${prestataire} sans utilisateur lié — notification ignorée`);
-                }
-            }
-        } catch (notificationError) {
-            console.error('Erreur création notification nouvelle mission:', notificationError.message);
-            // Ne pas faire échouer la requête principale
+          const p = JSON.parse(v);
+          return Array.isArray(p) ? p.map((x) => String(x)) : [String(p)];
+        } catch {
+          return [v];
         }
       }
       return [String(v)];
@@ -161,36 +80,28 @@ export const createPrestataire = async (req, res) => {
       .filter((id) => mongoose.Types.ObjectId.isValid(id))
       .map((id) => new mongoose.Types.ObjectId(id));
 
-// ✅ OBTENIR TOUTES LES PRESTATIONS (avec filtres)
-export const getAllPrestations = async (req, res) => {
-    try {
-        const { 
-            page = 1, 
-            limit = 20, 
-            statut, 
-            statutPaiement,
-            prestataire,
-            utilisateur,
-            service,
-            ville,
-            dateDebut,
-            dateFin
-        } = req.query;
-
-        // Construction des filtres
-        const filters = {};
-        if (statut) filters.statut = statut;
-        if (statutPaiement) filters.statutPaiement = statutPaiement;
-        if (prestataire) filters.prestataire = new mongoose.Types.ObjectId(prestataire);
-        if (utilisateur) filters.utilisateur = new mongoose.Types.ObjectId(utilisateur);
-        if (service) filters.service = new mongoose.Types.ObjectId(service);
-        if (ville) filters.ville = { $regex: ville, $options: 'i' };
-        
-        if (dateDebut && dateFin) {
-            filters.datePrestation = {
-                $gte: new Date(dateDebut),
-                $lte: new Date(dateFin)
-            };
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+    const serviceMissing =
+      !service ||
+      service === "" ||
+      (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
+    if (serviceMissing && category) {
+      // Si pas de service fourni mais une catégorie, trouver le service correspondant
+      const Service = (await import("../models/serviceModel.js")).default;
+      const Categorie = (await import("../models/categorieModel.js")).default;
+      
+      // Trouver la catégorie par nom
+      const categorieDoc = await Categorie.findOne({ 
+        nomcategorie: { $regex: new RegExp(category, 'i') } 
+      });
+      
+      if (categorieDoc) {
+        // Trouver le premier service de cette catégorie
+        const serviceDoc = await Service.findOne({ categorie: categorieDoc._id });
+        if (serviceDoc) {
+          finalService = serviceDoc._id;
+          console.log(`✅ Service trouvé pour catégorie ${category}: ${serviceDoc._id}`);
         }
       }
       
@@ -214,68 +125,9 @@ export const getAllPrestations = async (req, res) => {
         } catch (err) {
           console.warn("Impossible de parser localisationmaps:", err);
         }
-
-        // 💬 CRÉER / CORRIGER LA CONVERSATION AUTOMATIQUE POUR LES PRESTATIONS ACCEPTÉES
-        if (newStatus === 'ACCEPTEE') {
-            try {
-                const messageModel = (await import('../models/messageModel.js')).default;
-
-                const prestataireDoc = await prestataireModel
-                    .findById(prestation.prestataire)
-                    .select('utilisateur');
-
-                if (!prestataireDoc?.utilisateur) {
-                    console.warn(`⚠️ Prestataire ${prestation.prestataire} sans utilisateur — conversation ignorée`);
-                } else {
-                    const prestataireUserId = prestataireDoc.utilisateur.toString();
-                    const conversationId = messageModel.genererConversationId(
-                        prestation.utilisateur.toString(),
-                        prestataireUserId
-                    );
-
-                    const welcomeContent =
-                        `Bonjour ! J'ai accepté votre mission. Je vais commencer bientôt. N'hésitez pas à me contacter si vous avez des questions.`;
-
-                    const existingForPrestation = await messageModel.findOne({
-                        referenceId: prestation._id,
-                        contenu: { $regex: /accepté votre mission/i },
-                    });
-
-                    if (existingForPrestation) {
-                        existingForPrestation.expediteur = prestataireDoc.utilisateur;
-                        existingForPrestation.destinataire = prestation.utilisateur;
-                        existingForPrestation.conversationId = conversationId;
-                        await existingForPrestation.save();
-                        console.log(`💬 Message prestation corrigé pour: ${prestation._id}`);
-                    } else {
-                        const welcomeMessage = new messageModel({
-                            expediteur: prestataireDoc.utilisateur,
-                            destinataire: prestation.utilisateur,
-                            contenu: welcomeContent,
-                            typeMessage: 'PRESTATION',
-                            referenceId: prestation._id,
-                            referenceType: 'Prestation',
-                            conversationId,
-                            statut: 'ENVOYE'
-                        });
-
-                        await welcomeMessage.save();
-                        console.log(`💬 Conversation créée automatiquement pour prestation: ${prestation._id}`);
-                    }
-                }
-            } catch (conversationError) {
-                console.error('Erreur création conversation:', conversationError.message);
-                // Ne pas faire échouer la requête principale
-            }
-        }
-
-        res.status(200).json({
-            message: 'Statut mis à jour avec succès',
-            prestation
-        });
-    } catch (err) {
-        console.error('Erreur changement statut prestation:', err.message);
-        res.status(500).json({ error: err.message });
+      } else if (typeof localisationmaps === "object" && localisationmaps.latitude && localisationmaps.longitude) {
+        parsedLocalisation = localisationmaps;
+      }
     }
 
     // Upload diplômes
@@ -408,8 +260,28 @@ export const updatePrestataire = async (req, res) => {
       }
     }
 
-        const filters = { prestataire: new mongoose.Types.ObjectId(prestataireId) };
-        if (statut) filters.statut = statut;
+    const updates = {
+      ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
+      ...(service && { service: new mongoose.Types.ObjectId(service) }),
+      ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
+      ...(localisation && { localisation }),
+      ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
+      ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
+      ...(anneeExperience && { anneeExperience }),
+      ...(description && { description }),
+      ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
+      ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
+      ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
+      ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
+      ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
+      ...(numeroCNI && { numeroCNI }),
+      ...(numeroRCCM && { numeroRCCM }),
+      ...(numeroAssurance && { numeroAssurance }),
+      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
+      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
+      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
+      ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
+    };
 
     const isAdminUser = isAdmin(req);
     if (isAdminUser && typeof verifier !== "undefined") {
@@ -466,32 +338,18 @@ export const getAllPrestataires = async (req, res) => {
   try {
     const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
 
-        if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-            return res.status(400).json({ error: 'ID utilisateur invalide' });
-        }
-
-        const filters = { utilisateur: new mongoose.Types.ObjectId(utilisateurId) };
-        if (statut) filters.statut = statut;
-
-        const prestations = await prestationModel.find(filters)
-            .populate('prestataire', 'utilisateur')
-            .populate('service', 'nomservice')
-            .sort({ datePrestation: -1 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .exec();
-
-        const total = await prestationModel.countDocuments(filters);
-
-        res.status(200).json({
-            prestations,
-            totalPages: Math.ceil(total / limit),
-            currentPage: parseInt(page),
-            total
-        });
-    } catch (err) {
-        console.error('Erreur récupération prestations utilisateur:', err.message);
-        res.status(500).json({ error: err.message });
+    const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
+    const filter = {};
+    if (service) {
+      if (
+        excludedSvc.length &&
+        excludedSvc.some((id) => String(id) === String(service))
+      ) {
+        return res.json([]);
+      }
+      filter.service = service;
+    } else if (excludedSvc.length) {
+      filter.service = { $nin: excludedSvc };
     }
 
     const adminUser = isAdmin(req);
@@ -542,25 +400,16 @@ export const getAllPrestataires = async (req, res) => {
   }
 };
 
-// ✅ OBTENIR LES STATISTIQUES DES PRESTATIONS
-export const getPrestationStats = async (req, res) => {
-    try {
-        const { prestataireId, utilisateurId, dateDebut, dateFin } = req.query;
-
-        let matchCondition = {};
-        
-        // Filtres optionnels
-        if (prestataireId) {
-            matchCondition.prestataire = new mongoose.Types.ObjectId(prestataireId);
-        }
-        if (utilisateurId) {
-            matchCondition.utilisateur = new mongoose.Types.ObjectId(utilisateurId);
-        }
-        if (dateDebut && dateFin) {
-            matchCondition.datePrestation = {
-                $gte: new Date(dateDebut),
-                $lte: new Date(dateFin)
-            };
+// ✅ Lire prestataire par ID
+export const getPrestataireById = async (req, res) => {
+  try {
+    const prestataire = await prestataireModel.findById(req.params.id)
+      .populate("utilisateur")
+      .populate({
+        path: "service",
+        populate: {
+          path: "categorie",
+          populate: { path: "groupe" }
         }
       });
 

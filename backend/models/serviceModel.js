@@ -1,10 +1,20 @@
 import mongoose from 'mongoose'
 
 const ServiceSchema = new mongoose.Schema({
+<<<<<<< HEAD
     nomservice: { type: String, required: true },
     imageservice: { type: String, required: false },
     prixmoyen : { type: String, required: true },
     categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie', required: true },
+=======
+  nomservice: { type: String, required: true },
+  imageservice: { type: String, required: false },
+  // Prix optionnel au niveau catalogue.
+  // Le prix final obligatoire sera porté par l'offre publiée (FreelanceService).
+  prixmoyen: { type: String, required: false, default: null },
+  categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie', required: true },
+  tags: [String],
+>>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   // Adjust as necessary
 });
 
