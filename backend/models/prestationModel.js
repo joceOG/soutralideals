@@ -229,7 +229,7 @@ PrestationSchema.index({ ville: 1, statut: 1 });
 // 📊 Méthodes statiques pour statistiques
 PrestationSchema.statics.getStatsPrestataire = async function(prestataireId) {
   return await this.aggregate([
-    { $match: { prestataire: mongoose.Types.ObjectId(prestataireId) } },
+    { $match: { prestataire: new mongoose.Types.ObjectId(prestataireId) } },
     {
       $group: {
         _id: '$statut',
@@ -242,7 +242,7 @@ PrestationSchema.statics.getStatsPrestataire = async function(prestataireId) {
 
 PrestationSchema.statics.getStatsUtilisateur = async function(utilisateurId) {
   return await this.aggregate([
-    { $match: { utilisateur: mongoose.Types.ObjectId(utilisateurId) } },
+    { $match: { utilisateur: new mongoose.Types.ObjectId(utilisateurId) } },
     {
       $group: {
         _id: '$statut',

@@ -139,7 +139,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
-  const apiUrl = process.env.REACT_APP_API_URL || '';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [services, setServices] = useState<IService[]>([]);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
@@ -461,15 +461,33 @@ const [formData, setFormData] = useState<IPrestataireData>({
     {/* Identité / fichiers */}
     <Box sx={{ mt: 1, mb: 1 }}>
       <Typography>CNI 1</Typography>
-      <input type="file" onChange={(e) => handleFileChange(e, 'cni')} accept="image/*" />
+      <input
+        type="file"
+        aria-label="Téléverser CNI 1"
+        title="Téléverser CNI 1"
+        onChange={(e) => handleFileChange(e, 'cni')}
+        accept="image/*"
+      />
     </Box>
     <Box sx={{ mt: 1, mb: 1 }}>
       <Typography>CNI 2</Typography>
-      <input type="file" onChange={(e) => handleFileChange(e, 'cni2')} accept="image/*" />
+      <input
+        type="file"
+        aria-label="Téléverser CNI 2"
+        title="Téléverser CNI 2"
+        onChange={(e) => handleFileChange(e, 'cni2')}
+        accept="image/*"
+      />
     </Box>
     <Box sx={{ mt: 1, mb: 1 }}>
       <Typography>Selfie</Typography>
-      <input type="file" onChange={(e) => handleFileChange(e, 'selfie')} accept="image/*" />
+      <input
+        type="file"
+        aria-label="Téléverser selfie avec CNI"
+        title="Téléverser selfie avec CNI"
+        onChange={(e) => handleFileChange(e, 'selfie')}
+        accept="image/*"
+      />
     </Box>
     <TextField margin="normal" fullWidth label="Numéro CNI" name="numeroCNI" value={formData.numeroCNI} onChange={handleChange} />
 

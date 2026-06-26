@@ -134,8 +134,8 @@ MessageSchema.statics.getConversations = async function(userId) {
     {
       $match: {
         $or: [
-          { expediteur: mongoose.Types.ObjectId(userId) },
-          { destinataire: mongoose.Types.ObjectId(userId) }
+          { expediteur: new mongoose.Types.ObjectId(userId) },
+          { destinataire: new mongoose.Types.ObjectId(userId) }
         ],
         estSupprime: false
       }
@@ -152,7 +152,7 @@ MessageSchema.statics.getConversations = async function(userId) {
             $cond: [
               {
                 $and: [
-                  { $eq: ['$destinataire', mongoose.Types.ObjectId(userId)] },
+                  { $eq: ['$destinataire', new mongoose.Types.ObjectId(userId)] },
                   { $ne: ['$statut', 'LU'] }
                 ]
               },

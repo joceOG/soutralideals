@@ -1,5 +1,8 @@
 // Service pour les appels API Google Maps
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+// REACT_APP_API_URL est souvent défini avec /api.
+// Ici on normalise vers l'origine pour éviter /api/api/maps.
+const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
 
 export interface Coordinates {
   lat: number;

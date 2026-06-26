@@ -1,13 +1,14 @@
 import Service from "../models/serviceModel.js";
+import mongoose from "mongoose";
+import { getCategorieIdsUnderServicesGenerauxGroupe } from "../utils/catalogFilters.js";
 import multer from "multer";
 import cloudinary from "cloudinary";
 import fs from "fs";
 
-// Configure Cloudinary
 cloudinary.v2.config({
-    cloud_name: "dm0c8st6k",
-    api_key: "541481188898557",
-    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Configure Multer
@@ -21,6 +22,8 @@ export const searchServices = async (req, res) => {
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
+        const excludedCatIds = await getCategorieIdsUnderServicesGenerauxGroupe();
+
         let searchCriteria = {};
 
         // Recherche textuelle et tags (Regex uniquement pour stabilité)
@@ -33,7 +36,15 @@ export const searchServices = async (req, res) => {
 
         // Filtre par catégorie
         if (categorie) {
+            if (excludedCatIds.some((id) => String(id) === String(categorie))) {
+                return res.json({
+                    services: [],
+                    pagination: { total: 0, page, pages: 0, limit },
+                });
+            }
             searchCriteria.categorie = categorie;
+        } else if (excludedCatIds.length) {
+            searchCriteria.categorie = { $nin: excludedCatIds };
         }
 
         const services = await Service.find(searchCriteria)
@@ -74,7 +85,7 @@ export const createService = async (req, res) => {
     try {
         const { nomservice, categorie, prixmoyen, imageservice, tags } = req.body;
 
-        let finalImageUrl;
+        let finalImageUrl = null;
 
         if (req.file) {
             // Upload d'un fichier
@@ -86,18 +97,18 @@ export const createService = async (req, res) => {
         } else if (imageservice) {
             // Utiliser l'URL fournie
             finalImageUrl = imageservice;
-        } else {
-            // Image par défaut si aucune fournie
-            finalImageUrl = "https://res.cloudinary.com/demo/image/upload/w_300,h_200,c_fill,g_auto/sample.jpg";
+        }
+        const newServiceData = {
+            nomservice,
+            categorie,
+            tags: parseTags(tags) // ✅ Ajout des tags
+        };
+        if (finalImageUrl) newServiceData.imageservice = finalImageUrl;
+        if (typeof prixmoyen !== "undefined" && prixmoyen !== null && prixmoyen !== "") {
+            newServiceData.prixmoyen = prixmoyen;
         }
 
-        const newService = new Service({
-            nomservice,
-            imageservice: finalImageUrl,
-            categorie,
-            prixmoyen,
-            tags: parseTags(tags) // ✅ Ajout des tags
-        });
+        const newService = new Service(newServiceData);
 
         console.log('💾 Tentative de sauvegarde du service:', newService);
         const savedService = await newService.save();
@@ -115,7 +126,10 @@ export const updateService = async (req, res) => {
     try {
         const { id } = req.params;
         const { nomservice, categorie, prixmoyen, tags } = req.body;
-        const updates = { nomservice, categorie, prixmoyen };
+        const updates = {};
+        if (typeof nomservice !== "undefined") updates.nomservice = nomservice;
+        if (typeof categorie !== "undefined") updates.categorie = categorie;
+        if (typeof prixmoyen !== "undefined") updates.prixmoyen = prixmoyen;
 
         if (tags) {
             updates.tags = parseTags(tags);
@@ -154,7 +168,9 @@ export const updateService = async (req, res) => {
 // Obtenir tous les services
 export const getAllServices = async (req, res) => {
     try {
-        const services = await Service.find().populate({
+        const excludedCatIds = await getCategorieIdsUnderServicesGenerauxGroupe();
+        const q = excludedCatIds.length ? { categorie: { $nin: excludedCatIds } } : {};
+        const services = await Service.find(q).populate({
             path: "categorie",
             populate: {
                 path: "groupe",
@@ -167,11 +183,24 @@ export const getAllServices = async (req, res) => {
     }
 };
 
-// Obtenir les services par catégorie
+// Obtenir les services par catégorie (param = ObjectId de la catégorie)
 export const getServicesByCategorie = async (req, res) => {
     try {
         const { categorie } = req.params;
-        const servicesByCategorie = await Service.find({ nomcategorie: categorie });
+        if (!mongoose.Types.ObjectId.isValid(categorie)) {
+            return res.status(400).json({ error: 'Identifiant de catégorie invalide' });
+        }
+        const excludedCatIds = await getCategorieIdsUnderServicesGenerauxGroupe();
+        const catOid = new mongoose.Types.ObjectId(categorie);
+        if (excludedCatIds.some((id) => id.equals(catOid))) {
+            return res.json([]);
+        }
+        const servicesByCategorie = await Service.find({
+            categorie: catOid,
+        }).populate({
+            path: 'categorie',
+            populate: { path: 'groupe' },
+        });
         res.json(servicesByCategorie);
     } catch (err) {
         console.error(err);
@@ -184,12 +213,16 @@ export const createServiceDirect = async (req, res) => {
     try {
         const { nomservice, categorie, prixmoyen, imageservice } = req.body;
 
-        const newService = new Service({
+        const newServiceData = {
             nomservice,
-            imageservice: imageservice || "https://res.cloudinary.com/demo/image/upload/w_300,h_200,c_fill,g_auto/sample.jpg",
             categorie,
-            prixmoyen
-        });
+        };
+        if (imageservice) newServiceData.imageservice = imageservice;
+        if (typeof prixmoyen !== "undefined" && prixmoyen !== null && prixmoyen !== "") {
+            newServiceData.prixmoyen = prixmoyen;
+        }
+
+        const newService = new Service(newServiceData);
 
         console.log('💾 Tentative de sauvegarde du service:', newService);
         const savedService = await newService.save();

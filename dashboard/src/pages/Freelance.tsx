@@ -182,24 +182,48 @@ const FreelanceComponent: React.FC = () => {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
-  const apiUrl = process.env.REACT_APP_API_URL || '';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [services, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
+  /** API : tableau brut ou { freelances, pagination } */
+  function normalizeFreelancesPayload(data: unknown): IFreelanceData[] {
+    if (Array.isArray(data)) return data as IFreelanceData[];
+    if (
+      data &&
+      typeof data === 'object' &&
+      Array.isArray((data as { freelances?: unknown }).freelances)
+    ) {
+      return (data as { freelances: IFreelanceData[] }).freelances;
+    }
+    return [];
+  }
+
+  function authHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  function normalizeUtilisateursPayload(data: unknown): IUtilisateur[] {
+    if (Array.isArray(data)) return data as IUtilisateur[];
+    if (
+      data &&
+      typeof data === 'object' &&
+      Array.isArray((data as { utilisateurs?: unknown }).utilisateurs)
+    ) {
+      return (data as { utilisateurs: IUtilisateur[] }).utilisateurs;
+    }
+    return [];
+  }
+
   const fetchFreelances = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${apiUrl}/freelance`);
-      
-      // Vérifier si la réponse est un tableau
-      if (Array.isArray(response.data)) {
-        setFreelances(response.data);
-      } else {
-        console.error("Données reçues non valides:", response.data);
-        setFreelances([]);
-        toast.error("Format de données incorrect reçu du serveur");
-      }
+      const response = await axios.get(`${apiUrl}/freelance`, {
+        params: { page: 1, limit: 200 },
+      });
+      setFreelances(normalizeFreelancesPayload(response.data));
     } catch (error) {
       console.error("Erreur API freelance:", error);
       setFreelances([]);
@@ -215,7 +239,8 @@ const FreelanceComponent: React.FC = () => {
     const fetchServices = async () => {
       try {
         const res = await axios.get(`${apiUrl}/service`);
-        const filtered = res.data.filter((s: IService) => s.categorie?.groupe?.nomgroupe === 'Métiers');
+        const raw = Array.isArray(res.data) ? res.data : [];
+        const filtered = raw.filter((s: IService) => s.categorie?.groupe?.nomgroupe === 'Freelance');
         setServices(filtered);
       } catch {
         toast.error("Erreur lors du chargement des services");
@@ -228,8 +253,11 @@ const FreelanceComponent: React.FC = () => {
   const loadUtilisateurs = async () => {
     try {
       setLoadingUtilisateurs(true);
-      const res = await axios.get(`${apiUrl}/utilisateur`);
-      setUtilisateurs(res.data);
+      const res = await axios.get(`${apiUrl}/utilisateur`, {
+        params: { page: 1, limit: 100 },
+        headers: authHeaders(),
+      });
+      setUtilisateurs(normalizeUtilisateursPayload(res.data));
     } catch {
       toast.error("Erreur lors du chargement des utilisateurs");
     } finally {
@@ -643,11 +671,17 @@ const FreelanceComponent: React.FC = () => {
             <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               📸 Photo de Profil
             </Typography>
-            <input type="file" onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setProfileImageFile(e.target.files[0]);
-              }
-            }} accept="image/*" />
+            <input
+              type="file"
+              aria-label="Téléverser photo de profil freelance"
+              title="Téléverser photo de profil freelance"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setProfileImageFile(e.target.files[0]);
+                }
+              }}
+              accept="image/*"
+            />
             {formData.imagePath && (
               <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant="caption" color="textSecondary">Photo actuelle :</Typography>
@@ -665,7 +699,13 @@ const FreelanceComponent: React.FC = () => {
             
             <Box sx={{ mt: 1, mb: 1 }}>
               <Typography>CNI 1 (Recto)</Typography>
-              <input type="file" onChange={(e) => handleFileChange(e, 'cni')} accept="image/*" />
+              <input
+                type="file"
+                aria-label="Téléverser CNI 1 recto"
+                title="Téléverser CNI 1 recto"
+                onChange={(e) => handleFileChange(e, 'cni')}
+                accept="image/*"
+              />
               {formData.verificationDocuments?.cni1 && (
                 <img src={formData.verificationDocuments.cni1} alt="CNI 1" width={40} height={40} 
                      style={{marginLeft: 8, objectFit: 'cover', borderRadius: 4}} />
@@ -674,7 +714,13 @@ const FreelanceComponent: React.FC = () => {
             
             <Box sx={{ mt: 1, mb: 1 }}>
               <Typography>CNI 2 (Verso)</Typography>
-              <input type="file" onChange={(e) => handleFileChange(e, 'cni2')} accept="image/*" />
+              <input
+                type="file"
+                aria-label="Téléverser CNI 2 verso"
+                title="Téléverser CNI 2 verso"
+                onChange={(e) => handleFileChange(e, 'cni2')}
+                accept="image/*"
+              />
               {formData.verificationDocuments?.cni2 && (
                 <img src={formData.verificationDocuments.cni2} alt="CNI 2" width={40} height={40} 
                      style={{marginLeft: 8, objectFit: 'cover', borderRadius: 4}} />
@@ -683,7 +729,13 @@ const FreelanceComponent: React.FC = () => {
             
             <Box sx={{ mt: 1, mb: 1 }}>
               <Typography>Selfie avec CNI</Typography>
-              <input type="file" onChange={(e) => handleFileChange(e, 'selfie')} accept="image/*" />
+              <input
+                type="file"
+                aria-label="Téléverser selfie avec CNI"
+                title="Téléverser selfie avec CNI"
+                onChange={(e) => handleFileChange(e, 'selfie')}
+                accept="image/*"
+              />
               {formData.verificationDocuments?.selfie && (
                 <img src={formData.verificationDocuments.selfie} alt="Selfie" width={40} height={40} 
                      style={{marginLeft: 8, objectFit: 'cover', borderRadius: 4}} />

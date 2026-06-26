@@ -7,11 +7,13 @@ const categorieRouter = Router();
 // Configure Multer
 const upload = multer({ dest: 'uploads/' });
 
-// Routes pour les catégories
+// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
+categorieRouter.get("/categorie/groupe/:nomgroupe", controller.getCategoriesByGroupe);
+
+// Routes CRUD catégories
 categorieRouter.post("/categorie", upload.single('imagecategorie'), controller.createCategory);
 categorieRouter.get("/categorie", controller.getAllCategories);
 categorieRouter.get("/categorie/:id", controller.getCategoryById);
-categorieRouter.get("/categorie/groupe/:nomgroupe", controller.getCategoriesByGroupe);
 categorieRouter.put("/categorie/:id", upload.single('imagecategorie'), controller.updateCategoryById);
 categorieRouter.delete("/categorie/:id", controller.deleteCategoryById);
 

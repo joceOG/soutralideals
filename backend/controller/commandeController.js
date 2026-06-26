@@ -44,11 +44,12 @@ export const createCommande = async (req, res) => {
 // ✅ OBTENIR TOUTES LES COMMANDES
 export const getAllCommandes = async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, dateDebut, dateFin } = req.query;
+        const { page = 1, limit = 10, status, dateDebut, dateFin, utilisateur } = req.query;
         
         // Filtres dynamiques
         const filters = {};
         if (status) filters.statusCommande = status;
+        if (utilisateur) filters.utilisateur = utilisateur;
         if (dateDebut && dateFin) {
             filters.dateCreation = {
                 $gte: new Date(dateDebut),

@@ -61,6 +61,34 @@ interface ICommandeStats {
 
 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/** API : { commandes, total, ... } ou tableau brut */
+function normalizeCommandesPayload(data: unknown): ICommande[] {
+  if (!data || typeof data !== 'object') return [];
+  if (Array.isArray(data)) return data as ICommande[];
+  const o = data as Record<string, unknown>;
+  if (Array.isArray(o.commandes)) return o.commandes as ICommande[];
+  if (Array.isArray(o.data)) return o.data as ICommande[];
+  if (
+    o.data &&
+    typeof o.data === 'object' &&
+    Array.isArray((o.data as Record<string, unknown>).commandes)
+  ) {
+    return (o.data as { commandes: ICommande[] }).commandes;
+  }
+  return [];
+}
+
+function formatMoneyFcfa(value: unknown): string {
+  const n = Number(value);
+  if (Number.isFinite(n)) return n.toLocaleString('fr-FR');
+  return '0';
+}
+
 const CommandesComponent: React.FC = () => {
   const [commandes, setCommandes] = useState<ICommande[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -99,8 +127,11 @@ const CommandesComponent: React.FC = () => {
   const fetchCommandes = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/commandes`);
-      setCommandes(response.data.commandes || response.data);
+      const response = await axios.get(`${apiUrl}/commandes`, {
+        params: { page: 1, limit: 200 },
+        headers: authHeaders(),
+      });
+      setCommandes(normalizeCommandesPayload(response.data));
     } catch (error) {
       toast.error("Erreur lors du chargement des commandes");
       console.error(error);
@@ -112,7 +143,9 @@ const CommandesComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/commandes/stats`);
+      const response = await axios.get(`${apiUrl}/commandes/stats`, {
+        headers: authHeaders(),
+      });
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -164,7 +197,9 @@ const CommandesComponent: React.FC = () => {
     if (!commande._id) return;
     if (window.confirm(`Supprimer la commande ${commande._id} ?`)) {
       try {
-        await axios.delete(`${apiUrl}/commande/${commande._id}`);
+        await axios.delete(`${apiUrl}/commande/${commande._id}`, {
+          headers: authHeaders(),
+        });
         toast.success("Commande supprimée");
         fetchCommandes();
         fetchStats();
@@ -185,7 +220,10 @@ const CommandesComponent: React.FC = () => {
         method,
         url,
         data: formData,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders(),
+        },
       });
 
       toast.success(isUpdate ? "Commande mise à jour" : "Commande créée");
@@ -199,14 +237,16 @@ const CommandesComponent: React.FC = () => {
   };
 
   // 🔹 FILTRAGE
-  const filteredCommandes = commandes.filter(commande => {
-    const matchesSearch = 
-      commande._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      commande.infoCommande.ville.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      commande.statusCommande.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredCommandes = (Array.isArray(commandes) ? commandes : []).filter(commande => {
+    const q = searchTerm.toLowerCase();
+    const ville = (commande.infoCommande?.ville ?? '').toLowerCase();
+    const status = (commande.statusCommande ?? '').toLowerCase();
+    const idStr = commande._id ? String(commande._id).toLowerCase() : '';
+    const matchesSearch =
+      idStr.includes(q) || ville.includes(q) || status.includes(q);
+
     const matchesStatus = !statusFilter || commande.statusCommande === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -222,10 +262,11 @@ const CommandesComponent: React.FC = () => {
       }
     };
 
+    const st = rowData.statusCommande ?? '—';
     return (
       <Chip 
-        label={rowData.statusCommande} 
-        color={getStatusColor(rowData.statusCommande) as any}
+        label={st} 
+        color={getStatusColor(st) as 'success' | 'error' | 'warning' | 'info' | 'default'}
         size="small"
       />
     );
@@ -233,7 +274,7 @@ const CommandesComponent: React.FC = () => {
 
   const priceBodyTemplate = (rowData: ICommande) => (
     <Typography variant="body2" fontWeight="bold">
-      {rowData.prixTotal.toLocaleString()} F
+      {formatMoneyFcfa(rowData.prixTotal)} F
     </Typography>
   );
 
@@ -291,7 +332,7 @@ const CommandesComponent: React.FC = () => {
           <Box display="flex" gap={2} mb={2}>
             <Box p={2} bgcolor="primary.light" borderRadius={2} minWidth={150}>
               <Typography variant="h6" color="white">
-                {stats.totalCommandes}
+                {stats.totalCommandes ?? 0}
               </Typography>
               <Typography variant="body2" color="white">
                 Total Commandes
@@ -299,7 +340,7 @@ const CommandesComponent: React.FC = () => {
             </Box>
             <Box p={2} bgcolor="success.light" borderRadius={2} minWidth={150}>
               <Typography variant="h6" color="white">
-                {stats.revenueTotal.toLocaleString()} F
+                {formatMoneyFcfa(stats.revenueTotal)} F
               </Typography>
               <Typography variant="body2" color="white">
                 Chiffre d'Affaires
@@ -496,16 +537,21 @@ const CommandesComponent: React.FC = () => {
                 Informations générales
               </Typography>
               <Typography><strong>ID:</strong> {selectedCommande._id}</Typography>
-              <Typography><strong>Statut:</strong> {selectedCommande.statusCommande}</Typography>
-              <Typography><strong>Prix Total:</strong> {selectedCommande.prixTotal} F</Typography>
+              <Typography><strong>Statut:</strong> {selectedCommande.statusCommande ?? '—'}</Typography>
+              <Typography><strong>Prix Total:</strong> {formatMoneyFcfa(selectedCommande.prixTotal)} F</Typography>
               
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
                 Adresse de livraison
               </Typography>
-              <Typography>{selectedCommande.infoCommande.addresse}</Typography>
-              <Typography>{selectedCommande.infoCommande.ville}, {selectedCommande.infoCommande.codePostal}</Typography>
-              <Typography>{selectedCommande.infoCommande.pays}</Typography>
-              <Typography><strong>Tél:</strong> {selectedCommande.infoCommande.telephone}</Typography>
+              <Typography>{selectedCommande.infoCommande?.addresse ?? '—'}</Typography>
+              <Typography>
+                {selectedCommande.infoCommande?.ville ?? '—'}
+                {selectedCommande.infoCommande?.codePostal != null && selectedCommande.infoCommande?.codePostal !== ''
+                  ? `, ${selectedCommande.infoCommande.codePostal}`
+                  : ''}
+              </Typography>
+              <Typography>{selectedCommande.infoCommande?.pays ?? '—'}</Typography>
+              <Typography><strong>Tél:</strong> {selectedCommande.infoCommande?.telephone ?? '—'}</Typography>
             </Box>
           )}
         </DialogContent>

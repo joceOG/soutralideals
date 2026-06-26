@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import auth from '../middleware/authMiddleware.js';
 import {
     createPrestation,
     getAllPrestations,
@@ -12,29 +13,29 @@ import {
     getPrestationStats
 } from '../controller/prestationController.js';
 
-const upload = multer({ dest: 'uploads/' }); // Stockage temporaire pour Cloudinary
+const upload = multer({ dest: 'uploads/' });
 
 const prestationRouter = Router();
 
+// ✅ ROUTES SPÉCIFIQUES avant les routes paramétriques
+prestationRouter.get('/prestations/stats', auth, getPrestationStats);
+prestationRouter.get('/prestations/prestataire/:prestataireId', auth, getPrestationsPrestataire);
+prestationRouter.get('/prestations/utilisateur/:utilisateurId', auth, getPrestationsUtilisateur);
+
 // ✅ ROUTES CRUD PRESTATIONS
-prestationRouter.post('/prestation', upload.fields([
+prestationRouter.post('/prestation', auth, upload.fields([
     { name: 'photosAvant', maxCount: 5 }
 ]), createPrestation);
 
 prestationRouter.get('/prestations', getAllPrestations);
 prestationRouter.get('/prestation/:id', getPrestationById);
 
-prestationRouter.put('/prestation/:id', upload.fields([
+prestationRouter.put('/prestation/:id', auth, upload.fields([
     { name: 'photosApres', maxCount: 5 }
 ]), updatePrestation);
 
-prestationRouter.delete('/prestation/:id', deletePrestation);
-
-// ✅ ROUTES SPÉCIALISÉES
-prestationRouter.patch('/prestation/:id/statut', changerStatutPrestation);
-prestationRouter.get('/prestations/prestataire/:prestataireId', getPrestationsPrestataire);
-prestationRouter.get('/prestations/utilisateur/:utilisateurId', getPrestationsUtilisateur);
-prestationRouter.get('/prestations/stats', getPrestationStats);
+prestationRouter.patch('/prestation/:id/statut', auth, changerStatutPrestation);
+prestationRouter.delete('/prestation/:id', auth, deletePrestation);
 
 export default prestationRouter;
 

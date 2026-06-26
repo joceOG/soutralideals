@@ -3,11 +3,10 @@ import vendeurModel from "../models/vendeurModel.js";
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 
-// Config Cloudinary
 cloudinary.v2.config({
-  cloud_name: 'dm0c8st6k',
-  api_key: '541481188898557',
-  api_secret: '6ViefK1wxoJP50p8j2pQ7IykIYY',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ✅ CRÉER UN NOUVEAU VENDEUR (sdealsapp standard)
@@ -83,7 +82,7 @@ export const createVendeur = async (req, res) => {
         // ✅ CRÉER VENDEUR AVEC MODÈLE MODERNE
         const newVendeur = new vendeurModel({
             // Référence utilisateur
-            utilisateur: mongoose.Types.ObjectId(utilisateur),
+            utilisateur: new mongoose.Types.ObjectId(utilisateur),
             
             // 🏪 Informations boutique
             shopName,
@@ -221,6 +220,9 @@ export const getAllVendeurs = async (req, res) => {
                 { shopDescription: { $regex: search, $options: 'i' } },
                 { tags: { $in: [new RegExp(search, 'i')] } }
             ];
+        }
+        if (req.query.utilisateur) {
+            filters.utilisateur = req.query.utilisateur;
         }
 
         // Options de tri

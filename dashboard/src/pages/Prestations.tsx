@@ -90,6 +90,26 @@ interface IPrestationStats {
 
 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
+function formatMoneyFcfa(value: unknown): string {
+  const n = Number(value);
+  if (Number.isFinite(n)) return n.toLocaleString('fr-FR');
+  return '0';
+}
+
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function normalizePrestationsPayload(data: unknown): IPrestation[] {
+  if (!data || typeof data !== 'object') return [];
+  if (Array.isArray(data)) return data as IPrestation[];
+  const o = data as Record<string, unknown>;
+  if (Array.isArray(o.prestations)) return o.prestations as IPrestation[];
+  if (Array.isArray(o.data)) return o.data as IPrestation[];
+  return [];
+}
+
 const PrestationsComponent: React.FC = () => {
   const [prestations, setPrestations] = useState<IPrestation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -136,8 +156,11 @@ const PrestationsComponent: React.FC = () => {
   const fetchPrestations = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/prestations`);
-      setPrestations(response.data.prestations || response.data);
+      const response = await axios.get(`${apiUrl}/prestations`, {
+        params: { page: 1, limit: 500 },
+        headers: authHeaders(),
+      });
+      setPrestations(normalizePrestationsPayload(response.data));
     } catch (error) {
       toast.error("Erreur lors du chargement des prestations");
       console.error(error);
@@ -149,7 +172,9 @@ const PrestationsComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/prestations/stats`);
+      const response = await axios.get(`${apiUrl}/prestations/stats`, {
+        headers: authHeaders(),
+      });
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -208,7 +233,9 @@ const PrestationsComponent: React.FC = () => {
   const handleChangerStatut = async () => {
     if (!selectedPrestation?._id) return;
     try {
-      await axios.patch(`${apiUrl}/prestation/${selectedPrestation._id}/statut`, statutData);
+      await axios.patch(`${apiUrl}/prestation/${selectedPrestation._id}/statut`, statutData, {
+        headers: authHeaders(),
+      });
       toast.success("Statut mis à jour");
       fetchPrestations();
       fetchStats();
@@ -224,7 +251,9 @@ const PrestationsComponent: React.FC = () => {
     if (!prestation._id) return;
     if (window.confirm(`Supprimer la prestation ${prestation._id} ?`)) {
       try {
-        await axios.delete(`${apiUrl}/prestation/${prestation._id}`);
+        await axios.delete(`${apiUrl}/prestation/${prestation._id}`, {
+          headers: authHeaders(),
+        });
         toast.success("Prestation supprimée");
         fetchPrestations();
         fetchStats();
@@ -245,7 +274,10 @@ const PrestationsComponent: React.FC = () => {
         method,
         url,
         data: formData,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders(),
+        },
       });
 
       toast.success(isUpdate ? "Prestation mise à jour" : "Prestation créée");
@@ -259,31 +291,34 @@ const PrestationsComponent: React.FC = () => {
   };
 
   // 🔹 FILTRAGE
-  const filteredPrestations = prestations.filter(prestation => {
-    const matchesSearch = 
-      prestation.utilisateur.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prestation.service.nomservice.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prestation.ville.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prestation.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredPrestations = (Array.isArray(prestations) ? prestations : []).filter(prestation => {
+    const q = searchTerm.toLowerCase();
+    const nom = (prestation.utilisateur?.nom ?? '').toLowerCase();
+    const svc = (prestation.service?.nomservice ?? '').toLowerCase();
+    const ville = (prestation.ville ?? '').toLowerCase();
+    const desc = (prestation.description ?? '').toLowerCase();
+    const matchesSearch =
+      nom.includes(q) || svc.includes(q) || ville.includes(q) || desc.includes(q);
+
     const matchesStatut = !statutFilter || prestation.statut === statutFilter;
-    const matchesVille = !villeFilter || prestation.ville.toLowerCase().includes(villeFilter.toLowerCase());
-    
+    const matchesVille =
+      !villeFilter || ville.includes(villeFilter.toLowerCase());
+
     return matchesSearch && matchesStatut && matchesVille;
   });
 
   // 🔹 TEMPLATES COLONNES
   const clientBodyTemplate = (rowData: IPrestation) => (
     <Box display="flex" alignItems="center" gap={1}>
-      <Avatar src={rowData.utilisateur.photoProfil} sx={{ width: 32, height: 32 }}>
-        {rowData.utilisateur.nom.charAt(0)}
+      <Avatar src={rowData.utilisateur?.photoProfil} sx={{ width: 32, height: 32 }}>
+        {(rowData.utilisateur?.nom ?? '?').charAt(0)}
       </Avatar>
       <Box>
         <Typography variant="body2" fontWeight="bold">
-          {rowData.utilisateur.nom} {rowData.utilisateur.prenom}
+          {rowData.utilisateur?.nom} {rowData.utilisateur?.prenom}
         </Typography>
         <Typography variant="caption" color="textSecondary">
-          {rowData.utilisateur.telephone}
+          {rowData.utilisateur?.telephone ?? '—'}
         </Typography>
       </Box>
     </Box>
@@ -292,10 +327,10 @@ const PrestationsComponent: React.FC = () => {
   const prestataireBodyTemplate = (rowData: IPrestation) => (
     <Box>
       <Typography variant="body2" fontWeight="bold">
-        {rowData.prestataire.utilisateur.nom} {rowData.prestataire.utilisateur.prenom}
+        {rowData.prestataire?.utilisateur?.nom} {rowData.prestataire?.utilisateur?.prenom}
       </Typography>
       <Typography variant="caption" color="textSecondary">
-        {rowData.prestataire.localisation}
+        {rowData.prestataire?.localisation ?? '—'}
       </Typography>
     </Box>
   );
@@ -303,10 +338,10 @@ const PrestationsComponent: React.FC = () => {
   const serviceBodyTemplate = (rowData: IPrestation) => (
     <Box>
       <Typography variant="body2" fontWeight="bold">
-        {rowData.service.nomservice}
+        {rowData.service?.nomservice ?? '—'}
       </Typography>
       <Typography variant="caption" color="textSecondary">
-        {rowData.service.categorie.nomcategorie}
+        {rowData.service?.categorie?.nomcategorie ?? '—'}
       </Typography>
     </Box>
   );
@@ -323,10 +358,11 @@ const PrestationsComponent: React.FC = () => {
       }
     };
 
+    const st = rowData.statut ?? '—';
     return (
       <Chip 
-        label={rowData.statut} 
-        color={getStatutColor(rowData.statut) as any}
+        label={st} 
+        color={getStatutColor(st) as 'success' | 'error' | 'info' | 'primary' | 'warning' | 'default'}
         size="small"
       />
     );
@@ -334,14 +370,16 @@ const PrestationsComponent: React.FC = () => {
 
   const montantBodyTemplate = (rowData: IPrestation) => (
     <Typography variant="body2" fontWeight="bold">
-      {rowData.montantTotal.toLocaleString()} F
+      {formatMoneyFcfa(rowData.montantTotal)} F
     </Typography>
   );
 
   const dateBodyTemplate = (rowData: IPrestation) => (
     <Box>
       <Typography variant="body2">
-        {new Date(rowData.datePrestation).toLocaleDateString('fr-FR')}
+        {rowData.datePrestation
+          ? new Date(rowData.datePrestation).toLocaleDateString('fr-FR')
+          : '—'}
       </Typography>
       <Typography variant="caption" color="textSecondary">
         {rowData.heureDebut}
@@ -390,7 +428,7 @@ const PrestationsComponent: React.FC = () => {
               <Card>
                 <CardContent sx={{ p: 2 }}>
                   <Typography variant="h6" color="primary">
-                    {stats.totalPrestations}
+                    {stats.totalPrestations ?? 0}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Total Prestations
@@ -403,7 +441,7 @@ const PrestationsComponent: React.FC = () => {
               <Card>
                 <CardContent sx={{ p: 2 }}>
                   <Typography variant="h6" color="success.main">
-                    {stats.revenueTotal.toLocaleString()} F
+                    {formatMoneyFcfa(stats.revenueTotal)} F
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Chiffre d'Affaires
@@ -412,7 +450,7 @@ const PrestationsComponent: React.FC = () => {
               </Card>
             </Grid>
 
-            {stats.statsParStatut.slice(0, 2).map(stat => (
+            {(stats.statsParStatut ?? []).slice(0, 2).map(stat => (
               <Grid item xs={12} sm={6} md={3} key={stat._id}>
                 <Card>
                   <CardContent sx={{ p: 2 }}>
@@ -664,35 +702,53 @@ const PrestationsComponent: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <Typography variant="h6" gutterBottom>Client</Typography>
-                <Typography>{selectedPrestation.utilisateur.nom} {selectedPrestation.utilisateur.prenom}</Typography>
-                <Typography color="textSecondary">{selectedPrestation.utilisateur.email}</Typography>
-                <Typography color="textSecondary">{selectedPrestation.utilisateur.telephone}</Typography>
+                <Typography>
+                  {selectedPrestation.utilisateur?.nom} {selectedPrestation.utilisateur?.prenom}
+                </Typography>
+                <Typography color="textSecondary">{selectedPrestation.utilisateur?.email ?? '—'}</Typography>
+                <Typography color="textSecondary">{selectedPrestation.utilisateur?.telephone ?? '—'}</Typography>
               </Grid>
               
               <Grid item xs={12} sm={6}>
                 <Typography variant="h6" gutterBottom>Prestataire</Typography>
-                <Typography>{selectedPrestation.prestataire.utilisateur.nom} {selectedPrestation.prestataire.utilisateur.prenom}</Typography>
-                <Typography color="textSecondary">{selectedPrestation.prestataire.utilisateur.telephone}</Typography>
+                <Typography>
+                  {selectedPrestation.prestataire?.utilisateur?.nom}{' '}
+                  {selectedPrestation.prestataire?.utilisateur?.prenom}
+                </Typography>
+                <Typography color="textSecondary">
+                  {selectedPrestation.prestataire?.utilisateur?.telephone ?? '—'}
+                </Typography>
               </Grid>
 
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom>Service</Typography>
-                <Typography>{selectedPrestation.service.nomservice}</Typography>
-                <Typography color="textSecondary">{selectedPrestation.service.categorie.nomcategorie}</Typography>
+                <Typography>{selectedPrestation.service?.nomservice ?? '—'}</Typography>
+                <Typography color="textSecondary">
+                  {selectedPrestation.service?.categorie?.nomcategorie ?? '—'}
+                </Typography>
               </Grid>
 
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom>Détails</Typography>
-                <Typography><strong>Date:</strong> {new Date(selectedPrestation.datePrestation).toLocaleDateString('fr-FR')}</Typography>
-                <Typography><strong>Heure:</strong> {selectedPrestation.heureDebut}</Typography>
-                <Typography><strong>Adresse:</strong> {selectedPrestation.adresse}, {selectedPrestation.ville}</Typography>
-                <Typography><strong>Montant:</strong> {selectedPrestation.montantTotal} F</Typography>
-                <Typography><strong>Statut:</strong> {selectedPrestation.statut}</Typography>
+                <Typography>
+                  <strong>Date:</strong>{' '}
+                  {selectedPrestation.datePrestation
+                    ? new Date(selectedPrestation.datePrestation).toLocaleDateString('fr-FR')
+                    : '—'}
+                </Typography>
+                <Typography><strong>Heure:</strong> {selectedPrestation.heureDebut ?? '—'}</Typography>
+                <Typography>
+                  <strong>Adresse:</strong> {selectedPrestation.adresse ?? '—'}, {selectedPrestation.ville ?? '—'}
+                </Typography>
+                <Typography>
+                  <strong>Montant:</strong> {formatMoneyFcfa(selectedPrestation.montantTotal)} F
+                </Typography>
+                <Typography><strong>Statut:</strong> {selectedPrestation.statut ?? '—'}</Typography>
               </Grid>
 
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom>Description</Typography>
-                <Typography>{selectedPrestation.description}</Typography>
+                <Typography>{selectedPrestation.description ?? '—'}</Typography>
               </Grid>
             </Grid>
           )}

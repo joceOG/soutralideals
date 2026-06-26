@@ -3,11 +3,10 @@ import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 
-// Config Cloudinary
 cloudinary.v2.config({
-  cloud_name: 'dm0c8st6k',
-  api_key: '541481188898557',
-  api_secret: '6ViefK1wxoJP50p8j2pQ7IykIYY',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ✅ ENVOYER UN MESSAGE
@@ -58,12 +57,12 @@ export const sendMessage = async (req, res) => {
         }
 
         const newMessage = new messageModel({
-            expediteur: mongoose.Types.ObjectId(expediteur),
-            destinataire: mongoose.Types.ObjectId(destinataire),
+            expediteur: new mongoose.Types.ObjectId(expediteur),
+            destinataire: new mongoose.Types.ObjectId(destinataire),
             contenu,
             conversationId,
             typeMessage: typeMessage || 'NORMAL',
-            referenceId: referenceId ? mongoose.Types.ObjectId(referenceId) : undefined,
+            referenceId: referenceId ? new mongoose.Types.ObjectId(referenceId) : undefined,
             referenceType,
             pieceJointe,
             typePieceJointe,
@@ -133,7 +132,7 @@ export const getConversationMessages = async (req, res) => {
 
         // Si un userId est fourni, filtrer les messages non supprimés par cet utilisateur
         if (userId) {
-            matchCondition['supprimePar.utilisateur'] = { $ne: mongoose.Types.ObjectId(userId) };
+            matchCondition['supprimePar.utilisateur'] = { $ne: new mongoose.Types.ObjectId(userId) };
         }
 
         const messages = await messageModel.find(matchCondition)
@@ -170,7 +169,7 @@ export const markMessagesAsRead = async (req, res) => {
         const result = await messageModel.updateMany(
             {
                 conversationId,
-                destinataire: mongoose.Types.ObjectId(userId),
+                destinataire: new mongoose.Types.ObjectId(userId),
                 statut: { $ne: 'LU' }
             },
             {
@@ -225,8 +224,8 @@ export const searchMessages = async (req, res) => {
 
         const searchCondition = {
             $or: [
-                { expediteur: mongoose.Types.ObjectId(userId) },
-                { destinataire: mongoose.Types.ObjectId(userId) }
+                { expediteur: new mongoose.Types.ObjectId(userId) },
+                { destinataire: new mongoose.Types.ObjectId(userId) }
             ],
             contenu: { $regex: query, $options: 'i' },
             estSupprime: false
@@ -265,8 +264,8 @@ export const getMessageStats = async (req, res) => {
             matchCondition = {
                 ...matchCondition,
                 $or: [
-                    { expediteur: mongoose.Types.ObjectId(userId) },
-                    { destinataire: mongoose.Types.ObjectId(userId) }
+                    { expediteur: new mongoose.Types.ObjectId(userId) },
+                    { destinataire: new mongoose.Types.ObjectId(userId) }
                 ]
             };
         }
@@ -322,7 +321,7 @@ export const getUnreadMessages = async (req, res) => {
         }
 
         const messages = await messageModel.find({
-            destinataire: mongoose.Types.ObjectId(userId),
+            destinataire: new mongoose.Types.ObjectId(userId),
             statut: { $ne: 'LU' },
             estSupprime: false
         })
@@ -333,7 +332,7 @@ export const getUnreadMessages = async (req, res) => {
         .exec();
 
         const total = await messageModel.countDocuments({
-            destinataire: mongoose.Types.ObjectId(userId),
+            destinataire: new mongoose.Types.ObjectId(userId),
             statut: { $ne: 'LU' },
             estSupprime: false
         });

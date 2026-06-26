@@ -47,7 +47,7 @@ export const createPromotion = async (req, res) => {
             dateFin: new Date(dateFin),
             image,
             couleur: couleur || '#FF6B6B',
-            createur: mongoose.Types.ObjectId(createur)
+            createur: new mongoose.Types.ObjectId(createur)
         });
 
         await nouvellePromotion.save();
@@ -76,7 +76,7 @@ export const getAllPromotions = async (req, res) => {
         const filters = {};
         if (statut) filters.statut = statut;
         if (typeCiblage) filters.typeCiblage = typeCiblage;
-        if (createur) filters.createur = mongoose.Types.ObjectId(createur);
+        if (createur) filters.createur = new mongoose.Types.ObjectId(createur);
         
         if (dateDebut && dateFin) {
             filters.dateDebut = {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import auth, { authRole } from '../middleware/authMiddleware.js';
 import {
   getUserSecurity,
   enable2FA,
@@ -18,35 +19,35 @@ import {
 
 const securityRouter = Router();
 
-// ✅ ROUTES DE BASE
-securityRouter.get('/security/user/:utilisateurId', getUserSecurity);
-securityRouter.get('/security/user/:utilisateurId/stats', getSecurityStats);
+// ✅ ROUTES DE BASE — protégées
+securityRouter.get('/security/user/:utilisateurId', auth, getUserSecurity);
+securityRouter.get('/security/user/:utilisateurId/stats', auth, getSecurityStats);
 
 // ✅ ROUTES 2FA
-securityRouter.post('/security/user/:utilisateurId/2fa/enable', enable2FA);
-securityRouter.post('/security/user/:utilisateurId/2fa/verify', verify2FA);
-securityRouter.post('/security/user/:utilisateurId/2fa/disable', disable2FA);
+securityRouter.post('/security/user/:utilisateurId/2fa/enable', auth, enable2FA);
+securityRouter.post('/security/user/:utilisateurId/2fa/verify', auth, verify2FA);
+securityRouter.post('/security/user/:utilisateurId/2fa/disable', auth, disable2FA);
 
 // ✅ ROUTES SESSIONS
-securityRouter.get('/security/user/:utilisateurId/sessions', getActiveSessions);
-securityRouter.delete('/security/user/:utilisateurId/sessions/:sessionId', terminateSession);
+securityRouter.get('/security/user/:utilisateurId/sessions', auth, getActiveSessions);
+securityRouter.delete('/security/user/:utilisateurId/sessions/:sessionId', auth, terminateSession);
 
 // ✅ ROUTES HISTORIQUE
-securityRouter.get('/security/user/:utilisateurId/history', getLoginHistory);
+securityRouter.get('/security/user/:utilisateurId/history', auth, getLoginHistory);
 
 // ✅ ROUTES ALERTES
-securityRouter.get('/security/user/:utilisateurId/alerts', getSecurityAlerts);
-securityRouter.patch('/security/user/:utilisateurId/alerts/:alertId/read', markAlertAsRead);
+securityRouter.get('/security/user/:utilisateurId/alerts', auth, getSecurityAlerts);
+securityRouter.patch('/security/user/:utilisateurId/alerts/:alertId/read', auth, markAlertAsRead);
 
 // ✅ ROUTES APPAREILS
-securityRouter.get('/security/user/:utilisateurId/devices', getTrustedDevices);
-securityRouter.delete('/security/user/:utilisateurId/devices/:deviceId', removeTrustedDevice);
+securityRouter.get('/security/user/:utilisateurId/devices', auth, getTrustedDevices);
+securityRouter.delete('/security/user/:utilisateurId/devices/:deviceId', auth, removeTrustedDevice);
 
 // ✅ ROUTES PARAMÈTRES
-securityRouter.put('/security/user/:utilisateurId/settings', updateSecuritySettings);
+securityRouter.put('/security/user/:utilisateurId/settings', auth, updateSecuritySettings);
 
 // ✅ ROUTES ADMIN
-securityRouter.get('/security/stats', getAllSecurityStats);
+securityRouter.get('/security/stats', auth, authRole(['ADMIN']), getAllSecurityStats);
 
 export default securityRouter;
 

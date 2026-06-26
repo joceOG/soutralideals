@@ -45,20 +45,21 @@ export const validateUserRegistration = [
     .withMessage('Le prénom ne peut contenir que des lettres'),
     
   body('email')
+    .optional({ nullable: true, checkFalsy: true })
     .isEmail()
     .normalizeEmail()
     .withMessage('Email invalide'),
-    
+
   body('telephone')
-    .isMobilePhone('fr-FR')
+    .isMobilePhone('any')
     .withMessage('Numéro de téléphone invalide'),
-    
+
   body('password')
     .isLength({ min: 8 })
     .withMessage('Le mot de passe doit contenir au moins 8 caractères')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
-    
+
   body('role')
     .isIn(['Client', 'Prestataire', 'Vendeur', 'Freelance'])
     .withMessage('Rôle invalide'),
@@ -66,17 +67,16 @@ export const validateUserRegistration = [
   handleValidationErrors,
 ];
 
-// 🔐 Validation pour la connexion
+// 🔐 Validation pour la connexion (email OU téléphone)
 export const validateUserLogin = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Email invalide'),
-    
+  body('identifiant')
+    .notEmpty()
+    .withMessage('Email ou numéro de téléphone requis'),
+
   body('password')
     .notEmpty()
     .withMessage('Le mot de passe est requis'),
-    
+
   handleValidationErrors,
 ];
 
@@ -93,11 +93,11 @@ export const validateCommande = [
     .withMessage('La ville doit contenir entre 2 et 50 caractères'),
     
   body('infoCommande.telephone')
-    .isMobilePhone('fr-FR')
+    .isMobilePhone('any')
     .withMessage('Numéro de téléphone invalide'),
     
   body('infoCommande.codePostal')
-    .isPostalCode('FR')
+    .isPostalCode('any')
     .withMessage('Code postal invalide'),
     
   body('articles')
@@ -109,7 +109,7 @@ export const validateCommande = [
     .notEmpty()
     .withMessage('Le nom de l\'article est requis'),
     
-  body('articles.*.quantité')
+  body('articles.*.quantite')
     .isInt({ min: 1 })
     .withMessage('La quantité doit être un nombre positif'),
     
@@ -229,7 +229,7 @@ export const validateFreelance = [
     
   body('phoneNumber')
     .optional()
-    .isMobilePhone('fr-FR')
+    .isMobilePhone('any')
     .withMessage('Numéro de téléphone invalide'),
     
   body('skills')
@@ -298,7 +298,7 @@ export const validateEmail = [
 // 📱 Validation pour les SMS
 export const validateSMS = [
   body('to')
-    .isMobilePhone('fr-FR')
+    .isMobilePhone('any')
     .withMessage('Numéro de téléphone invalide'),
     
   body('body')

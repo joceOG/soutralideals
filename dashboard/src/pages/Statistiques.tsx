@@ -59,6 +59,7 @@ interface IStatsGeographiques {
 }
 
 const Statistiques: React.FC = () => {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [periode, setPeriode] = useState('30j');
@@ -97,7 +98,7 @@ const Statistiques: React.FC = () => {
 
   const loadStatsGenerales = async () => {
     try {
-      const response = await axios.get('/api/statistiques/generales', {
+      const response = await axios.get(`${apiUrl}/statistiques/generales`, {
         params: { periode, dateDebut, dateFin }
       });
       setStatsGenerales(response.data);
@@ -108,7 +109,7 @@ const Statistiques: React.FC = () => {
 
   const loadStatsTemporaires = async () => {
     try {
-      const response = await axios.get('/api/statistiques/temporelles', {
+      const response = await axios.get(`${apiUrl}/statistiques/temporelles`, {
         params: { periode, dateDebut, dateFin }
       });
       setStatsTemporaires(response.data);
@@ -119,7 +120,7 @@ const Statistiques: React.FC = () => {
 
   const loadStatsCategories = async () => {
     try {
-      const response = await axios.get('/api/statistiques/categories');
+      const response = await axios.get(`${apiUrl}/statistiques/categories`);
       setStatsCategories(response.data);
     } catch (error) {
       console.error('Erreur stats catégories:', error);
@@ -128,7 +129,7 @@ const Statistiques: React.FC = () => {
 
   const loadStatsPaiements = async () => {
     try {
-      const response = await axios.get('/api/statistiques/paiements');
+      const response = await axios.get(`${apiUrl}/statistiques/paiements`);
       setStatsPaiements(response.data);
     } catch (error) {
       console.error('Erreur stats paiements:', error);
@@ -137,7 +138,7 @@ const Statistiques: React.FC = () => {
 
   const loadStatsGeographiques = async () => {
     try {
-      const response = await axios.get('/api/statistiques/geographiques');
+      const response = await axios.get(`${apiUrl}/statistiques/geographiques`);
       setStatsGeographiques(response.data);
     } catch (error) {
       console.error('Erreur stats géographiques:', error);

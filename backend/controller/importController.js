@@ -96,35 +96,37 @@ export const importPrestatairesCSV = async (req, res) => {
 
           await utilisateur.save();
 
-          // Créer ou récupérer un groupe par défaut
-          let groupe = await Groupe.findOne({ nomgroupe: 'Services Généraux' });
+          // Rattacher les imports au groupe Métiers (plus de « Services Généraux »)
+          const groupe = await Groupe.findOne({ nomgroupe: 'Métiers' });
           if (!groupe) {
-            groupe = new Groupe({
-              nomgroupe: 'Services Généraux'
-            });
-            await groupe.save();
+            results.errors.push(`Ligne ${lineNumber}: groupe « Métiers » introuvable — créez-le avant l'import.`);
+            continue;
           }
 
-          // Créer ou récupérer une catégorie par défaut
-          let categorie = await Categorie.findOne({ nomcategorie: 'Général' });
+          const IMPORT_CAT_NAME = 'Import CSV';
+          let categorie = await Categorie.findOne({
+            nomcategorie: IMPORT_CAT_NAME,
+            groupe: groupe._id,
+          });
           if (!categorie) {
             categorie = new Categorie({
-              nomcategorie: 'Général',
-              imagecategorie: 'https://via.placeholder.com/300x200?text=Général',
-              groupe: groupe._id // Référence au groupe
+              nomcategorie: IMPORT_CAT_NAME,
+              imagecategorie: 'https://via.placeholder.com/300x200?text=Import+CSV',
+              groupe: groupe._id,
             });
             await categorie.save();
           }
 
-          // Créer ou récupérer un service basé sur le métier
-          let service = await Service.findOne({ nomservice: row.metier });
+          let service = await Service.findOne({
+            nomservice: row.metier,
+            categorie: categorie._id,
+          });
           if (!service) {
-            // Créer un nouveau service si il n'existe pas
             service = new Service({
               nomservice: row.metier,
-              imageservice: 'https://via.placeholder.com/300x200?text=Service', // Image par défaut
+              imageservice: 'https://via.placeholder.com/300x200?text=Service',
               prixmoyen: '0',
-              categorie: categorie._id // Catégorie par défaut
+              categorie: categorie._id,
             });
             await service.save();
           }

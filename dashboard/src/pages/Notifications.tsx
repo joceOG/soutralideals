@@ -34,7 +34,9 @@ interface INotification {
   destinataire: IUtilisateur;
   expediteur?: IUtilisateur;
   titre: string;
-  message: string;
+  /** API backend */
+  contenu?: string;
+  message?: string;
   type: string;
   sousType?: string;
   referenceId?: string;
@@ -66,6 +68,23 @@ interface INotificationStats {
 }
 
 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function notificationText(n: INotification): string {
+  return (n.contenu ?? n.message ?? '').trim();
+}
+
+function normalizeNotificationsPayload(data: unknown): INotification[] {
+  if (!data || typeof data !== 'object') return [];
+  if (Array.isArray(data)) return data as INotification[];
+  const o = data as Record<string, unknown>;
+  if (Array.isArray(o.notifications)) return o.notifications as INotification[];
+  return [];
+}
 
 const NotificationsComponent: React.FC = () => {
   const [notifications, setNotifications] = useState<INotification[]>([]);
@@ -114,8 +133,11 @@ const NotificationsComponent: React.FC = () => {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/notifications`);
-      setNotifications(response.data.notifications || response.data);
+      const response = await axios.get(`${apiUrl}/notifications`, {
+        params: { page: 1, limit: 200 },
+        headers: authHeaders(),
+      });
+      setNotifications(normalizeNotificationsPayload(response.data));
     } catch (error) {
       toast.error("Erreur lors du chargement des notifications");
       console.error(error);
@@ -127,7 +149,9 @@ const NotificationsComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/notifications/stats`);
+      const response = await axios.get(`${apiUrl}/notifications/stats`, {
+        headers: authHeaders(),
+      });
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -174,7 +198,9 @@ const NotificationsComponent: React.FC = () => {
   const handleMarkAsRead = async (notification: INotification) => {
     if (!notification._id) return;
     try {
-      await axios.patch(`${apiUrl}/notification/${notification._id}/read`);
+      await axios.put(`${apiUrl}/notification/${notification._id}/read`, {}, {
+        headers: authHeaders(),
+      });
       toast.success("Notification marquée comme lue");
       fetchNotifications();
       fetchStats();
@@ -186,7 +212,9 @@ const NotificationsComponent: React.FC = () => {
   const handleArchive = async (notification: INotification) => {
     if (!notification._id) return;
     try {
-      await axios.patch(`${apiUrl}/notification/${notification._id}/archive`);
+      await axios.put(`${apiUrl}/notification/${notification._id}/archive`, {}, {
+        headers: authHeaders(),
+      });
       toast.success("Notification archivée");
       fetchNotifications();
       fetchStats();
@@ -199,7 +227,9 @@ const NotificationsComponent: React.FC = () => {
     if (!notification._id) return;
     if (window.confirm(`Supprimer la notification "${notification.titre}" ?`)) {
       try {
-        await axios.delete(`${apiUrl}/notification/${notification._id}`);
+        await axios.delete(`${apiUrl}/notification/${notification._id}`, {
+          headers: authHeaders(),
+        });
         toast.success("Notification supprimée");
         fetchNotifications();
         fetchStats();
@@ -212,7 +242,14 @@ const NotificationsComponent: React.FC = () => {
   // 🔹 ENVOI EN MASSE
   const handleBulkSend = async () => {
     try {
-      await axios.post(`${apiUrl}/notifications/bulk`, bulkData);
+      await axios.post(
+        `${apiUrl}/notifications/bulk`,
+        {
+          ...bulkData,
+          contenu: bulkData.message,
+        },
+        { headers: authHeaders() }
+      );
       toast.success("Notifications envoyées en masse");
       fetchNotifications();
       fetchStats();
@@ -224,26 +261,33 @@ const NotificationsComponent: React.FC = () => {
   };
 
   // 🔹 FILTRAGE
-  const filteredNotifications = notifications.filter(notif => {
-    const matchesSearch = 
-      notif.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      notif.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      notif.destinataire.nom.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredNotifications = (Array.isArray(notifications) ? notifications : []).filter(notif => {
+    const q = searchTerm.toLowerCase();
+    const titre = (notif.titre ?? '').toLowerCase();
+    const body = notificationText(notif).toLowerCase();
+    const nomDest = (notif.destinataire?.nom ?? '').toLowerCase();
+    const matchesSearch = titre.includes(q) || body.includes(q) || nomDest.includes(q);
+
     const matchesType = !typeFilter || notif.type === typeFilter;
     const matchesStatut = !statutFilter || notif.statut === statutFilter;
-    
+
     return matchesSearch && matchesType && matchesStatut;
   });
 
   // 🔹 TEMPLATES COLONNES
+  const messageBodyTemplate = (rowData: INotification) => (
+    <Typography variant="body2" sx={{ maxWidth: 280 }} noWrap title={notificationText(rowData)}>
+      {notificationText(rowData) || '—'}
+    </Typography>
+  );
+
   const avatarBodyTemplate = (rowData: INotification) => (
     <Box display="flex" alignItems="center" gap={1}>
-      <Avatar src={rowData.destinataire.photoProfil} sx={{ width: 32, height: 32 }}>
-        {rowData.destinataire.nom.charAt(0)}
+      <Avatar src={rowData.destinataire?.photoProfil} sx={{ width: 32, height: 32 }}>
+        {(rowData.destinataire?.nom ?? '?').charAt(0)}
       </Avatar>
       <Typography variant="body2">
-        {rowData.destinataire.nom} {rowData.destinataire.prenom}
+        {rowData.destinataire?.nom} {rowData.destinataire?.prenom}
       </Typography>
     </Box>
   );
@@ -351,7 +395,7 @@ const NotificationsComponent: React.FC = () => {
             <Card sx={{ minWidth: 150 }}>
               <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" color="primary">
-                  {stats.total}
+                  {stats.total ?? 0}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
                   Total Notifications
@@ -359,7 +403,7 @@ const NotificationsComponent: React.FC = () => {
               </CardContent>
             </Card>
             
-            {stats.statsParStatut.map(stat => (
+            {(stats.statsParStatut ?? []).map(stat => (
               <Card key={stat._id} sx={{ minWidth: 120 }}>
                 <CardContent sx={{ p: 2 }}>
                   <Typography variant="h6" color="secondary">
@@ -446,7 +490,7 @@ const NotificationsComponent: React.FC = () => {
           style={{ width: '200px' }}
         />
         <Column field="titre" header="Titre" sortable style={{ width: '200px' }} />
-        <Column field="message" header="Message" style={{ width: '300px' }} />
+        <Column header="Message" body={messageBodyTemplate} style={{ width: '300px' }} />
         <Column 
           header="Type" 
           body={typeBodyTemplate} 
@@ -594,12 +638,15 @@ const NotificationsComponent: React.FC = () => {
                 {selectedNotification.titre}
               </Typography>
               <Typography paragraph>
-                {selectedNotification.message}
+                {notificationText(selectedNotification) || '—'}
               </Typography>
               <Typography><strong>Type:</strong> {selectedNotification.type}</Typography>
               <Typography><strong>Statut:</strong> {selectedNotification.statut}</Typography>
               <Typography><strong>Priorité:</strong> {selectedNotification.priorite}</Typography>
-              <Typography><strong>Destinataire:</strong> {selectedNotification.destinataire.nom} {selectedNotification.destinataire.prenom}</Typography>
+              <Typography>
+                <strong>Destinataire:</strong> {selectedNotification.destinataire?.nom}{' '}
+                {selectedNotification.destinataire?.prenom}
+              </Typography>
             </Box>
           )}
         </DialogContent>

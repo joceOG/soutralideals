@@ -17,7 +17,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const MotionTypography = motion(Typography);
+const MotionTypography = motion.create(Typography);
 const MotionDiv = motion.div;
 
 export interface Item {
@@ -104,7 +104,7 @@ const Categorie: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,7 +124,7 @@ const Categorie: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [apiUrl]);
 
   useEffect(() => {
     if (globalFilter === null || globalFilter === '') {
@@ -276,14 +276,10 @@ const Categorie: React.FC = () => {
 
     try {
       if (selectedCategory) {
-        await axios.put(`${apiUrl}/categorie/${selectedCategory._id}`, formDataObj, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.put(`${apiUrl}/categorie/${selectedCategory._id}`, formDataObj);
         toast.success('Catégorie mise à jour avec succès');
       } else {
-        await axios.post(`${apiUrl}/categorie`, formDataObj, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.post(`${apiUrl}/categorie`, formDataObj);
         toast.success('Catégorie créée avec succès');
       }
       const response = await axios.get(`${apiUrl}/categorie`);

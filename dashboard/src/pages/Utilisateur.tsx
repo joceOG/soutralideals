@@ -27,10 +27,24 @@ interface IUtilisateur {
   genre: string;
   note?: number;
   photoProfil?: string;
-  role: "Client" | "Prestataire" | "Vendeur" | "Freelance"; // ✅ nouveau
+  role: "Admin" | "Client" | "Prestataire" | "Vendeur" | "Freelance";
 }
 
 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/** L’API renvoie soit un tableau, soit { utilisateurs, total, page, totalPages }. */
+function normalizeUtilisateursPayload(data: unknown): IUtilisateur[] {
+  if (Array.isArray(data)) return data as IUtilisateur[];
+  if (data && typeof data === 'object' && Array.isArray((data as { utilisateurs?: unknown }).utilisateurs)) {
+    return (data as { utilisateurs: IUtilisateur[] }).utilisateurs;
+  }
+  return [];
+}
 
 const UtilisateurComponent: React.FC = () => {
   const [utilisateurs, setUtilisateurs] = useState<IUtilisateur[]>([]);
@@ -59,10 +73,28 @@ const [formData, setFormData] = useState<IUtilisateur>({
   const fetchUtilisateurs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/utilisateur`);
-      setUtilisateurs(response.data);
+      const response = await axios.get(`${apiUrl}/utilisateur`, {
+        params: { page: 1, limit: 100 },
+        headers: authHeaders(),
+      });
+      setUtilisateurs(normalizeUtilisateursPayload(response.data));
     } catch (error) {
-      toast.error("Erreur lors du chargement des utilisateurs");
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const msg = (error.response?.data as { error?: string })?.error;
+        if (status === 403) {
+          toast.error(
+            msg ||
+              "Accès refusé : connectez-vous avec un compte administrateur (rôle Admin)."
+          );
+        } else if (status === 401) {
+          toast.error(msg || "Session invalide ou expirée. Reconnectez-vous.");
+        } else {
+          toast.error(msg || "Erreur lors du chargement des utilisateurs");
+        }
+      } else {
+        toast.error("Erreur lors du chargement des utilisateurs");
+      }
     } finally {
       setLoading(false);
     }
@@ -105,7 +137,9 @@ const [formData, setFormData] = useState<IUtilisateur>({
     if (!utilisateur._id) return;
     if (window.confirm(`Supprimer l'utilisateur ${utilisateur.nom} ${utilisateur.prenom} ?`)) {
       try {
-        await axios.delete(`${apiUrl}/utilisateur/${utilisateur._id}`);
+        await axios.delete(`${apiUrl}/utilisateur/${utilisateur._id}`, {
+          headers: authHeaders(),
+        });
         toast.success("Utilisateur supprimé");
         fetchUtilisateurs();
       } catch {
@@ -135,7 +169,10 @@ const [formData, setFormData] = useState<IUtilisateur>({
         method,
         url,
         data,
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          ...authHeaders(),
+        },
       });
 
       toast.success(isUpdate ? "Utilisateur mis à jour" : "Utilisateur ajouté");
@@ -147,7 +184,7 @@ const [formData, setFormData] = useState<IUtilisateur>({
     }
   };
 
-  const filteredUtilisateurs = utilisateurs.filter(u =>
+  const filteredUtilisateurs = (Array.isArray(utilisateurs) ? utilisateurs : []).filter(u =>
     `${u.nom} ${u.prenom}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
     (u.telephone?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
@@ -253,6 +290,7 @@ const [formData, setFormData] = useState<IUtilisateur>({
               onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as IUtilisateur['role'] }))}
               fullWidth
             >
+              <MenuItem value="Admin">Admin</MenuItem>
               <MenuItem value="Client">Client</MenuItem>
               <MenuItem value="Prestataire">Prestataire</MenuItem>
               <MenuItem value="Vendeur">Vendeur</MenuItem>
@@ -315,9 +353,14 @@ const [formData, setFormData] = useState<IUtilisateur>({
           />
 
           <Box mt={2}>
+            <InputLabel htmlFor="utilisateur-photo-profil" sx={{ mb: 0.5 }}>
+              Photo de profil
+            </InputLabel>
             <input
+              id="utilisateur-photo-profil"
               type="file"
               accept="image/*"
+              aria-label="Choisir une photo de profil"
               onChange={e => setFile(e.target.files?.[0] ?? null)}
             />
           </Box>

@@ -4,15 +4,22 @@ import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 
+// Helper : vérifier que l'utilisateur connecté est le propriétaire de la ressource
+const checkSecurityOwnership = (req, utilisateurId) => {
+  return req.utilisateur._id.toString() === utilisateurId;
+};
+
 // ✅ OBTENIR LES PARAMÈTRES DE SÉCURITÉ D'UN UTILISATEUR
 export const getUserSecurity = async (req, res) => {
   try {
     const { utilisateurId } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez accéder qu\'à vos propres paramètres de sécurité' });
     }
 
     let security = await Security.findOne({ utilisateur: utilisateurId });
@@ -52,9 +59,10 @@ export const enable2FA = async (req, res) => {
     const { utilisateurId } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
     }
 
     let security = await Security.findOne({ utilisateur: utilisateurId });
@@ -140,20 +148,36 @@ export const verify2FA = async (req, res) => {
 export const disable2FA = async (req, res) => {
   try {
     const { utilisateurId } = req.params;
-    const { password } = req.body; // Vérifier le mot de passe pour désactiver
-    
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: 'Le mot de passe est requis pour désactiver le 2FA' });
+    }
+
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+
+    // 🛡️ Vérifier que l'utilisateur connecté est bien le propriétaire
+    if (req.utilisateur._id.toString() !== utilisateurId) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+
+    // 🔐 Vérifier le mot de passe avant de désactiver le 2FA
+    const Utilisateur = (await import('../models/utilisateurModel.js')).default;
+    const utilisateur = await Utilisateur.findById(utilisateurId);
+    if (!utilisateur) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+    const isPasswordValid = await utilisateur.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Mot de passe incorrect' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });
-    
+
     if (!security) {
-      return res.status(404).json({ 
-        error: 'Paramètres de sécurité non trouvés' 
-      });
+      return res.status(404).json({ error: 'Paramètres de sécurité non trouvés' });
     }
 
     security.twoFactorAuth.enabled = false;
@@ -186,17 +210,15 @@ export const getLoginHistory = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });
-    
     if (!security) {
-      return res.status(404).json({ 
-        error: 'Paramètres de sécurité non trouvés' 
-      });
+      return res.status(404).json({ error: 'Paramètres de sécurité non trouvés' });
     }
 
     const startIndex = (page - 1) * limit;
@@ -224,17 +246,15 @@ export const getActiveSessions = async (req, res) => {
     const { utilisateurId } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });
-    
     if (!security) {
-      return res.status(404).json({ 
-        error: 'Paramètres de sécurité non trouvés' 
-      });
+      return res.status(404).json({ error: 'Paramètres de sécurité non trouvés' });
     }
 
     const activeSessions = security.activeSessions.filter(session => session.isActive);
@@ -252,17 +272,15 @@ export const terminateSession = async (req, res) => {
     const { utilisateurId, sessionId } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });
-    
     if (!security) {
-      return res.status(404).json({ 
-        error: 'Paramètres de sécurité non trouvés' 
-      });
+      return res.status(404).json({ error: 'Paramètres de sécurité non trouvés' });
     }
 
     security.removeActiveSession(sessionId);
@@ -284,17 +302,15 @@ export const getSecurityAlerts = async (req, res) => {
     const { page = 1, limit = 20, unreadOnly = false } = req.query;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });
-    
     if (!security) {
-      return res.status(404).json({ 
-        error: 'Paramètres de sécurité non trouvés' 
-      });
+      return res.status(404).json({ error: 'Paramètres de sécurité non trouvés' });
     }
 
     let alerts = security.securityAlerts;
@@ -329,17 +345,15 @@ export const markAlertAsRead = async (req, res) => {
     const { utilisateurId, alertId } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });
-    
     if (!security) {
-      return res.status(404).json({ 
-        error: 'Paramètres de sécurité non trouvés' 
-      });
+      return res.status(404).json({ error: 'Paramètres de sécurité non trouvés' });
     }
 
     const alert = security.securityAlerts.id(alertId);
@@ -367,9 +381,10 @@ export const getTrustedDevices = async (req, res) => {
     const { utilisateurId } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
-      });
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });

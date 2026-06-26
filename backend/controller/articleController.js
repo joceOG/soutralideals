@@ -3,11 +3,10 @@ import cloudinary from 'cloudinary';
 import articleModel from '../models/articleModel.js';
 import mongoose from 'mongoose';
 
-// Configuration de Cloudinary
 cloudinary.v2.config({
-    cloud_name: "dm0c8st6k",
-    api_key: "541481188898557",
-    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ✅ Recherche d'articles
@@ -48,13 +47,36 @@ const parseTags = (tags) => {
 // ✅ Met à jour un article (avec upload d'image)
 export const updateArticleById = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie, tags } = req.body;
+        const {
+            nomArticle,
+            prixArticle,
+            ancienPrixArticle,
+            discountPercent,
+            isPromo,
+            rating,
+            salesCount,
+            quantiteArticle,
+            vendeur,
+            categorie,
+            tags
+        } = req.body;
         const { path: filePath } = req.file || {};
+
+        const parseNumber = (value) => {
+            if (value === null || typeof value === 'undefined' || value === '') return undefined;
+            const n = Number(value);
+            return Number.isFinite(n) ? n : undefined;
+        };
 
         let updatedFields = {
             nomArticle,
-            prixArticle,
             quantiteArticle,
+            ...(typeof parseNumber(prixArticle) !== 'undefined' && { prixArticle: parseNumber(prixArticle) }),
+            ...(typeof parseNumber(ancienPrixArticle) !== 'undefined' && { ancienPrixArticle: parseNumber(ancienPrixArticle) }),
+            ...(typeof parseNumber(discountPercent) !== 'undefined' && { discountPercent: parseNumber(discountPercent) }),
+            ...(typeof parseNumber(rating) !== 'undefined' && { rating: parseNumber(rating) }),
+            ...(typeof parseNumber(salesCount) !== 'undefined' && { salesCount: parseNumber(salesCount) }),
+            ...(typeof isPromo !== 'undefined' && { isPromo: isPromo === true || isPromo === 'true' }),
         };
 
         if (tags) {
@@ -62,11 +84,11 @@ export const updateArticleById = async (req, res) => {
         }
 
         if (vendeur) {
-            updatedFields.vendeur = mongoose.Types.ObjectId(vendeur);
+            updatedFields.vendeur = new mongoose.Types.ObjectId(vendeur);
         }
 
         if (categorie) {
-            updatedFields.categorie = mongoose.Types.ObjectId(categorie);
+            updatedFields.categorie = new mongoose.Types.ObjectId(categorie);
         }
 
         if (req.file) {
@@ -116,9 +138,25 @@ export const updateArticleById = async (req, res) => {
 // ✅ Crée un nouvel article avec upload d'image
 export const createArticle = async (req, res) => {
     try {
-        const { nomArticle, prixArticle, quantiteArticle, vendeur, categorie, tags } = req.body;
-        const categorieId = mongoose.Types.ObjectId(categorie);
-        const vendeurId = mongoose.Types.ObjectId(vendeur);
+        const {
+            nomArticle,
+            prixArticle,
+            ancienPrixArticle,
+            discountPercent,
+            isPromo,
+            rating,
+            salesCount,
+            quantiteArticle,
+            vendeur,
+            categorie,
+            tags
+        } = req.body;
+        const categorieId = new mongoose.Types.ObjectId(categorie);
+        const vendeurId = new mongoose.Types.ObjectId(vendeur);
+        const parseNumber = (value, fallback = 0) => {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : fallback;
+        };
 
         if (!req.file) {
             return res.status(400).json({ error: 'Aucun fichier image téléchargé' });
@@ -132,7 +170,12 @@ export const createArticle = async (req, res) => {
 
         const newArticle = new articleModel({
             nomArticle,
-            prixArticle,
+            prixArticle: parseNumber(prixArticle, 0),
+            ancienPrixArticle: ancienPrixArticle ? parseNumber(ancienPrixArticle, 0) : null,
+            discountPercent: parseNumber(discountPercent, 0),
+            isPromo: isPromo === true || isPromo === 'true',
+            rating: parseNumber(rating, 0),
+            salesCount: parseNumber(salesCount, 0),
             quantiteArticle,
             photoArticle: result.secure_url,
             vendeur: vendeurId,

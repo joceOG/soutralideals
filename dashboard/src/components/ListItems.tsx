@@ -10,6 +10,7 @@ import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import CoPresentIcon from '@mui/icons-material/CoPresent';
 import HomeIcon from '@mui/icons-material/Home';
 import WorkIcon from '@mui/icons-material/Work'; // Freelance
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import StorefrontIcon from '@mui/icons-material/Storefront'; // Vendeur
 // ✅ NOUVEAUX IMPORTS POUR LES MODULES AJOUTÉS
 import ReceiptIcon from '@mui/icons-material/Receipt';
@@ -98,6 +99,11 @@ export const MainListItems = () => {
       title: "Freelances", 
       path: "/freelance", 
       icon: <WorkIcon /> 
+    },
+    { 
+      title: "Offres freelance", 
+      path: "/freelance-offres", 
+      icon: <AssignmentTurnedInIcon /> 
     },
     { 
       title: "Vendeurs", 

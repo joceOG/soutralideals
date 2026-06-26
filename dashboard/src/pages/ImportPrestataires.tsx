@@ -50,6 +50,7 @@ interface ImportResult {
 }
 
 const ImportPrestataires: React.FC = () => {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<PrestataireData[]>([]);
   const [importing, setImporting] = useState(false);
@@ -323,7 +324,7 @@ const ImportPrestataires: React.FC = () => {
         
         try {
           // Appel API réel vers le backend
-          const response = await fetch('http://localhost:3000/api/prestataires/import-csv', {
+          const response = await fetch(`${apiUrl}/prestataires/import-csv`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

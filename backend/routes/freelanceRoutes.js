@@ -14,6 +14,7 @@ import {
   rejectFreelance,
   getPendingFreelances,
 } from "../controller/freelanceController.js";
+import { listFreelanceServicesByFreelanceId } from "../controller/freelanceServiceController.js";
 
 const upload = multer({ dest: "uploads/" }); // Stockage temporaire avant Cloudinary
 
@@ -34,18 +35,17 @@ freelanceRouter.put('/freelance/:id', upload.fields([
   { name: 'selfie', maxCount: 1 },
 ]), updateFreelance);
 
+// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
+freelanceRouter.get("/freelance/pending/list", getPendingFreelances);
+freelanceRouter.get("/freelances/category/:category", getFreelancesByCategory);
+freelanceRouter.get("/freelances/search", searchFreelances);
+
 freelanceRouter.get("/freelance", getAllFreelances);
+freelanceRouter.get("/freelance/:id/services", listFreelanceServicesByFreelanceId);
 freelanceRouter.get("/freelance/:id", getFreelanceById);
 freelanceRouter.delete("/freelance/:id", deleteFreelance);
-
-// ✅ Routes spécifiques au modèle sdealsapp
-freelanceRouter.put("/freelance/:id/rating", updateFreelanceRating);        // Mettre à jour note
-freelanceRouter.put("/freelance/:id/promote", promoteFreelance);             // Promouvoir freelance
-freelanceRouter.get("/freelances/category/:category", getFreelancesByCategory); // Par catégorie
-freelanceRouter.get("/freelances/search", searchFreelances);                 // Recherche avancée
-
-// 🆕 Routes validation (Option C)
-freelanceRouter.get("/freelance/pending/list", getPendingFreelances);
+freelanceRouter.put("/freelance/:id/rating", updateFreelanceRating);
+freelanceRouter.put("/freelance/:id/promote", promoteFreelance);
 freelanceRouter.put("/freelance/:id/validate", validateFreelance);
 freelanceRouter.put("/freelance/:id/reject", rejectFreelance);
 

@@ -52,6 +52,7 @@ interface IStatsPromotions {
 }
 
 const Promotions: React.FC = () => {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [promotions, setPromotions] = useState<IPromotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
@@ -84,7 +85,7 @@ const Promotions: React.FC = () => {
   const loadPromotions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/promotions');
+      const response = await axios.get(`${apiUrl}/promotions`);
       setPromotions(response.data.promotions || response.data);
     } catch (error) {
       console.error('Erreur chargement promotions:', error);
@@ -96,7 +97,7 @@ const Promotions: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const response = await axios.get('/api/promotions/stats');
+      const response = await axios.get(`${apiUrl}/promotions/stats`);
       setStats(response.data);
     } catch (error) {
       console.error('Erreur chargement stats:', error);
@@ -106,7 +107,7 @@ const Promotions: React.FC = () => {
   // ✅ GESTION DES PROMOTIONS
   const handleCreatePromotion = async () => {
     try {
-      await axios.post('/api/promotion', formData);
+      await axios.post(`${apiUrl}/promotion`, formData);
       toast.success('Promotion créée avec succès');
       setOpenDialog(false);
       resetForm();
@@ -122,7 +123,7 @@ const Promotions: React.FC = () => {
     if (!editingPromotion?._id) return;
     
     try {
-      await axios.put(`/api/promotion/${editingPromotion._id}`, formData);
+      await axios.put(`${apiUrl}/promotion/${editingPromotion._id}`, formData);
       toast.success('Promotion mise à jour');
       setOpenDialog(false);
       resetForm();
@@ -137,7 +138,7 @@ const Promotions: React.FC = () => {
     if (!window.confirm('Supprimer cette promotion ?')) return;
     
     try {
-      await axios.delete(`/api/promotion/${id}`);
+      await axios.delete(`${apiUrl}/promotion/${id}`);
       toast.success('Promotion supprimée');
       loadPromotions();
       loadStats();

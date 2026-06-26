@@ -382,7 +382,7 @@ VendeurSchema.statics.getVendeursByCategory = async function(category) {
 
 VendeurSchema.statics.getVendeurStats = async function(vendeurId) {
   return await this.aggregate([
-    { $match: { _id: mongoose.Types.ObjectId(vendeurId) } },
+    { $match: { _id: new mongoose.Types.ObjectId(vendeurId) } },
     {
       $lookup: {
         from: 'articles',

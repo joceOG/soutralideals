@@ -33,15 +33,18 @@ export const autoInvalidateCache = (req, res, next) => {
 
   res.json = function (data) {
     // Si la requête a réussi (status 2xx), invalider le cache
-    if (res.statusCode >= 200 && res.statusCode < 300) {
+    if (res.statusCode >= 200 && res.statusCode < 300 && !res.locals._cacheInvalidatedOnce) {
+      res.locals._cacheInvalidatedOnce = true;
       // Extraire le path de base (ex: /api/service/123 -> /api/service)
       const parts = req.originalUrl.split('?')[0].split('/');
       // Si on a un ID à la fin (ex: /api/service/123), on l'enlève
       // Si c'est juste /api/service, on garde tout
       const basePath = parts.length > 3 ? parts.slice(0, 3).join('/') : req.originalUrl.split('?')[0];
 
-      console.log(`🔄 Auto-invalidation pour: ${req.method} ${req.originalUrl} -> Paterne: ${basePath}`);
-      invalidateCache(basePath);
+      if (!shouldSkipInvalidateForBasePath(basePath)) {
+        console.log(`🔄 Auto-invalidation pour: ${req.method} ${req.originalUrl} -> Paterne: ${basePath}`);
+        invalidateCache(basePath);
+      }
     }
 
     return originalSend.call(this, data);
@@ -50,6 +53,25 @@ export const autoInvalidateCache = (req, res, next) => {
   next();
 };
 
+/** GET sous ce préfixe : pas de cache (liste souvent modifiée ; plusieurs stacks /api empilaient la même clé). */
+const SKIP_CACHE_PATH_PREFIXES = ['/api/prestataire', '/api/utilisateur', '/api/notifications'];
+
+function shouldSkipCacheForGet(req) {
+  const path = req.originalUrl.split('?')[0];
+  return SKIP_CACHE_PATH_PREFIXES.some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`)
+  );
+}
+
+/** Pas d’invalidation sur ces collections : elles ne sont plus cachées (évite logs « 0 entrée » inutiles). */
+function shouldSkipInvalidateForBasePath(basePath) {
+  return (
+    basePath === '/api/prestataire' ||
+    basePath === '/api/utilisateur' ||
+    basePath === '/api/notifications'
+  );
+}
+
 /**
  * Cache simple avec invalidation
  */
@@ -57,6 +79,10 @@ export const smartCache = (duration = 300) => {
   return (req, res, next) => {
     // Seulement pour GET
     if (req.method !== 'GET') {
+      return next();
+    }
+
+    if (shouldSkipCacheForGet(req)) {
       return next();
     }
 

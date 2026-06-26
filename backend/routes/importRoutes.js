@@ -1,11 +1,11 @@
 import express from 'express';
 import { importPrestatairesCSV, getImportStats, clearImportCache } from '../controller/importController.js';
-import auth from '../middleware/authMiddleware.js';
+import auth, { authRole } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// ✅ IMPORT CSV PRESTATAIRES (sans auth pour l'import)
-router.post('/prestataires/import-csv', importPrestatairesCSV);
+// ✅ IMPORT CSV PRESTATAIRES — réservé aux admins uniquement (opération destructive)
+router.post('/prestataires/import-csv', auth, authRole(['Admin', 'ADMIN']), importPrestatairesCSV);
 
 // ✅ STATISTIQUES D'IMPORT
 router.get('/import/stats', auth, getImportStats);

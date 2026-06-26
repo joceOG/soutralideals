@@ -278,8 +278,8 @@ PaiementSchema.statics.getStatsUtilisateur = async function(userId) {
     {
       $match: {
         $or: [
-          { payeur: mongoose.Types.ObjectId(userId) },
-          { beneficiaire: mongoose.Types.ObjectId(userId) }
+          { payeur: new mongoose.Types.ObjectId(userId) },
+          { beneficiaire: new mongoose.Types.ObjectId(userId) }
         ]
       }
     },

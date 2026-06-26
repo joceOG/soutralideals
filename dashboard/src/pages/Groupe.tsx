@@ -157,7 +157,7 @@ const Groupe: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
   console.log("API URL:", apiUrl);
   
@@ -177,7 +177,7 @@ const Groupe: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [apiUrl]);
 
   useEffect(() => {
     let result = [...groupe];
@@ -243,7 +243,6 @@ const Groupe: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
       try {
-          var apiUrl = process.env.REACT_APP_API_URL;
         await axios.delete(`${apiUrl}/groupe/${id}`);
         setAlertMessage('Groupe supprimé avec succès');
         setOpenSnackbar(true);

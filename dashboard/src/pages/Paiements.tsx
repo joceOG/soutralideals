@@ -58,6 +58,7 @@ interface IStatsPaiements {
 }
 
 const Paiements: React.FC = () => {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
@@ -90,7 +91,7 @@ const Paiements: React.FC = () => {
   const loadPaiements = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/paiements');
+      const response = await axios.get(`${apiUrl}/paiements`);
       setPaiements(response.data.paiements || response.data);
     } catch (error) {
       console.error('Erreur chargement paiements:', error);
@@ -102,7 +103,7 @@ const Paiements: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const response = await axios.get('/api/paiements/stats');
+      const response = await axios.get(`${apiUrl}/paiements/stats`);
       setStats(response.data);
     } catch (error) {
       console.error('Erreur chargement stats:', error);
@@ -112,7 +113,7 @@ const Paiements: React.FC = () => {
   // ✅ GESTION DES PAIEMENTS
   const handleCreatePaiement = async () => {
     try {
-      await axios.post('/api/paiement', formData);
+      await axios.post(`${apiUrl}/paiement`, formData);
       toast.success('Paiement créé avec succès');
       setOpenDialog(false);
       resetForm();
@@ -128,7 +129,7 @@ const Paiements: React.FC = () => {
     if (!editingPaiement?._id) return;
     
     try {
-      await axios.put(`/api/paiement/${editingPaiement._id}`, formData);
+      await axios.put(`${apiUrl}/paiement/${editingPaiement._id}`, formData);
       toast.success('Paiement mis à jour');
       setOpenDialog(false);
       resetForm();
@@ -143,7 +144,7 @@ const Paiements: React.FC = () => {
     if (!window.confirm('Supprimer ce paiement ?')) return;
     
     try {
-      await axios.delete(`/api/paiement/${id}`);
+      await axios.delete(`${apiUrl}/paiement/${id}`);
       toast.success('Paiement supprimé');
       loadPaiements();
       loadStats();
@@ -161,7 +162,7 @@ const Paiements: React.FC = () => {
 
   const handleChangeStatut = async (id: string, nouveauStatut: string) => {
     try {
-      await axios.patch(`/api/paiement/${id}/statut`, { statut: nouveauStatut });
+      await axios.patch(`${apiUrl}/paiement/${id}/statut`, { statut: nouveauStatut });
       toast.success('Statut mis à jour');
       loadPaiements();
     } catch (error) {

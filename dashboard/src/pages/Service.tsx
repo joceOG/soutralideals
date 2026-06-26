@@ -22,7 +22,7 @@ import TagsInput from '../components/TagsInput';
 interface Item {
   _id: string;
   nomservice: string;
-  imageservice: string;
+  imageservice?: string;
   prixmoyen?: number;
   tags: string[]; // ✅ Added tags
   categorie: {
@@ -62,7 +62,7 @@ const Service: React.FC = () => {
   const [openSnackbarSuccess, setOpenSnackbarSuccess] = useState(false);
   const [openSnackbarError, setOpenSnackbarError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,7 +79,7 @@ const Service: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [apiUrl]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -98,7 +98,7 @@ const Service: React.FC = () => {
       }
     };
     fetchCategories();
-  }, []);
+  }, [apiUrl]);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -120,7 +120,7 @@ const Service: React.FC = () => {
       }
     };
     fetchGroups();
-  }, []);
+  }, [apiUrl]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -298,7 +298,7 @@ const Service: React.FC = () => {
             />
             <TextField
               margin="dense"
-              label="Prix moyen"
+              label="Prix moyen (optionnel)"
               type="number"
               fullWidth
               variant="outlined"
@@ -412,11 +412,29 @@ const Service: React.FC = () => {
           <Column
             header="Image"
             body={(rowData) => (
-              <img
-                src={rowData.imageservice}
-                alt="service"
-                style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-              />
+              rowData.imageservice ? (
+                <img
+                  src={rowData.imageservice}
+                  alt="service"
+                  style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor: '#f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    color: '#64748b',
+                  }}
+                >
+                  N/A
+                </Box>
+              )
             )}
           />
           <Column field="nomservice" header="Service" sortable />

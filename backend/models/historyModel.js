@@ -268,7 +268,7 @@ HistorySchema.statics.getStatsUtilisateur = async function(utilisateurId, period
   return await this.aggregate([
     { 
       $match: { 
-        utilisateur: mongoose.Types.ObjectId(utilisateurId),
+        utilisateur: new mongoose.Types.ObjectId(utilisateurId),
         dateConsultation: { $gte: dateDebut }
       } 
     },

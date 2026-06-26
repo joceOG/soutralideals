@@ -4,7 +4,8 @@ import Utilisateur from '../models/utilisateurModel.js';
 // ➕ AJOUTER UN FAVORI
 export const addFavorite = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id || req.body.utilisateur;
+    // 🛡️ IDOR fix : toujours utiliser l'ID du token, jamais celui du body
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const { 
@@ -75,7 +76,7 @@ export const addFavorite = async (req, res) => {
 // ➖ SUPPRIMER UN FAVORI
 export const removeFavorite = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const { id } = req.params;
@@ -98,7 +99,7 @@ export const removeFavorite = async (req, res) => {
 // 📋 LISTER LES FAVORIS
 export const listFavorites = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const { 
@@ -153,7 +154,7 @@ export const listFavorites = async (req, res) => {
 // 🔍 RECHERCHER DANS LES FAVORIS
 export const searchFavorites = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const { q, objetType, categorie, ville } = req.query;
@@ -189,7 +190,7 @@ export const searchFavorites = async (req, res) => {
 // ✏️ MODIFIER UN FAVORI
 export const updateFavorite = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const { id } = req.params;
@@ -214,7 +215,7 @@ export const updateFavorite = async (req, res) => {
 // 📊 STATISTIQUES DES FAVORIS
 export const getFavoriteStats = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const stats = await Favorite.aggregate([
@@ -262,7 +263,7 @@ export const getFavoriteStats = async (req, res) => {
 // 🏷️ GÉRER LES LISTES PERSONNALISÉES
 export const getCustomLists = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const lists = await Favorite.distinct('listePersonnalisee', {
@@ -280,7 +281,7 @@ export const getCustomLists = async (req, res) => {
 // 🔄 ARCHIVER UN FAVORI
 export const archiveFavorite = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id;
     if (!userId) return res.status(401).json({ error: 'Authentification requise' });
     
     const { id } = req.params;

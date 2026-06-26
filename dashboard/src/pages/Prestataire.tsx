@@ -7,6 +7,7 @@ import {
   Chip
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
@@ -138,7 +139,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
-  const apiUrl = process.env.REACT_APP_API_URL || '';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [services, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
@@ -171,6 +172,17 @@ const [formData, setFormData] = useState<IPrestataireData>({
 
     fetchServices();
   }, [apiUrl, fetchPrestataires]);
+
+  // Recharger la liste quand l’onglet du navigateur redevient visible (ex. inscription sur le téléphone puis retour au dashboard).
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchPrestataires();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [fetchPrestataires]);
 
   const loadUtilisateurs = async () => {
     try {
@@ -418,6 +430,14 @@ const onAdd = () => {
             ),
           }}
         />
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={() => fetchPrestataires()}
+          disabled={loading}
+        >
+          Actualiser
+        </Button>
         <Button variant="contained" onClick={onAdd}>
           Ajouter
         </Button>
@@ -544,15 +564,33 @@ const onAdd = () => {
 
           <Box sx={{ mt: 1, mb: 1 }}>
             <Typography>CNI 1</Typography>
-            <input type="file" onChange={(e) => handleFileChange(e, 'cni')} accept="image/*" />
+            <input
+              type="file"
+              aria-label="Téléverser CNI 1"
+              title="Téléverser CNI 1"
+              onChange={(e) => handleFileChange(e, 'cni')}
+              accept="image/*"
+            />
           </Box>
           <Box sx={{ mt: 1, mb: 1 }}>
             <Typography>CNI 2</Typography>
-            <input type="file" onChange={(e) => handleFileChange(e, 'cni2')} accept="image/*" />
+            <input
+              type="file"
+              aria-label="Téléverser CNI 2"
+              title="Téléverser CNI 2"
+              onChange={(e) => handleFileChange(e, 'cni2')}
+              accept="image/*"
+            />
           </Box>
           <Box sx={{ mt: 1, mb: 1 }}>
             <Typography>Selfie</Typography>
-            <input type="file" onChange={(e) => handleFileChange(e, 'selfie')} accept="image/*" />
+            <input
+              type="file"
+              aria-label="Téléverser selfie avec CNI"
+              title="Téléverser selfie avec CNI"
+              onChange={(e) => handleFileChange(e, 'selfie')}
+              accept="image/*"
+            />
           </Box>
 
               {/* Métier */}
@@ -605,7 +643,13 @@ const onAdd = () => {
               {/* Assurances / RCCM */}
             <Box sx={{ mt: 1, mb: 1 }}>
               <Typography>Attestation d'Assurance</Typography>
-              <input type="file" onChange={(e) => handleFileChange(e, 'attestationAssurance')} accept="image/*" />
+              <input
+                type="file"
+                aria-label="Téléverser attestation d'assurance"
+                title="Téléverser attestation d'assurance"
+                onChange={(e) => handleFileChange(e, 'attestationAssurance')}
+                accept="image/*"
+              />
             </Box>
               <TextField margin="normal" fullWidth label="Numéro Assurance" name="numeroAssurance" value={formData.numeroAssurance} onChange={handleChange} />
               <TextField margin="normal" fullWidth label="Numéro RCCM" name="numeroRCCM" value={formData.numeroRCCM} onChange={handleChange} />

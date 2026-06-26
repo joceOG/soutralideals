@@ -5,18 +5,43 @@ import {
   markAsRead,
   markAllAsRead,
   deleteNotification,
-  getUnreadCount
+  getUnreadCount,
+  getAllNotificationsAdmin,
+  getNotificationStatsAdmin,
+  archiveNotification,
+  bulkCreateNotificationsAdmin,
 } from "../controller/notificationController.js";
+import auth, { authRole } from "../middleware/authMiddleware.js";
 
 const notificationRouter = Router();
 
-// Routes pour les notifications
-notificationRouter.post("/notification", createNotification);
-notificationRouter.get("/notification/user/:userId", getNotificationsByUser);
-notificationRouter.put("/notification/:notificationId/read", markAsRead);
-notificationRouter.put("/notification/user/:userId/read-all", markAllAsRead);
-notificationRouter.delete("/notification/:notificationId", deleteNotification);
-notificationRouter.get("/notification/user/:userId/unread-count", getUnreadCount);
+// Dashboard admin (avant les routes /notification/:id)
+notificationRouter.get(
+  "/notifications/stats",
+  auth,
+  authRole(["Admin", "ADMIN"]),
+  getNotificationStatsAdmin
+);
+notificationRouter.get(
+  "/notifications",
+  auth,
+  authRole(["Admin", "ADMIN"]),
+  getAllNotificationsAdmin
+);
+notificationRouter.post(
+  "/notifications/bulk",
+  auth,
+  authRole(["Admin", "ADMIN"]),
+  bulkCreateNotificationsAdmin
+);
+
+notificationRouter.post("/notification", auth, createNotification);
+notificationRouter.get("/notification/user/:userId", auth, getNotificationsByUser);
+notificationRouter.put("/notification/:notificationId/read", auth, markAsRead);
+notificationRouter.put("/notification/:notificationId/archive", auth, archiveNotification);
+notificationRouter.put("/notification/user/:userId/read-all", auth, markAllAsRead);
+notificationRouter.delete("/notification/:notificationId", auth, deleteNotification);
+notificationRouter.get("/notification/user/:userId/unread-count", auth, getUnreadCount);
 
 export default notificationRouter;
 

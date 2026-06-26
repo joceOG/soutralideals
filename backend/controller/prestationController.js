@@ -3,11 +3,10 @@ import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 
-// Config Cloudinary
 cloudinary.v2.config({
-  cloud_name: 'dm0c8st6k',
-  api_key: '541481188898557',
-  api_secret: '6ViefK1wxoJP50p8j2pQ7IykIYY',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ✅ CRÉER UNE NOUVELLE PRESTATION
@@ -56,9 +55,9 @@ export const createPrestation = async (req, res) => {
         }
 
         const newPrestation = new prestationModel({
-            utilisateur: mongoose.Types.ObjectId(utilisateur),
-            prestataire: prestataire ? mongoose.Types.ObjectId(prestataire) : null,
-            service: service ? mongoose.Types.ObjectId(service) : null,
+            utilisateur: new mongoose.Types.ObjectId(utilisateur),
+            prestataire: prestataire ? new mongoose.Types.ObjectId(prestataire) : null,
+            service: service ? new mongoose.Types.ObjectId(service) : null,
             datePrestation: datePrestation ? new Date(datePrestation) : new Date(),
             heureDebut: heureDebut || '09:00',
             heureFin,
@@ -146,9 +145,9 @@ export const getAllPrestations = async (req, res) => {
         const filters = {};
         if (statut) filters.statut = statut;
         if (statutPaiement) filters.statutPaiement = statutPaiement;
-        if (prestataire) filters.prestataire = mongoose.Types.ObjectId(prestataire);
-        if (utilisateur) filters.utilisateur = mongoose.Types.ObjectId(utilisateur);
-        if (service) filters.service = mongoose.Types.ObjectId(service);
+        if (prestataire) filters.prestataire = new mongoose.Types.ObjectId(prestataire);
+        if (utilisateur) filters.utilisateur = new mongoose.Types.ObjectId(utilisateur);
+        if (service) filters.service = new mongoose.Types.ObjectId(service);
         if (ville) filters.ville = { $regex: ville, $options: 'i' };
         
         if (dateDebut && dateFin) {
@@ -432,7 +431,7 @@ export const getPrestationsPrestataire = async (req, res) => {
             return res.status(400).json({ error: 'ID prestataire invalide' });
         }
 
-        const filters = { prestataire: mongoose.Types.ObjectId(prestataireId) };
+        const filters = { prestataire: new mongoose.Types.ObjectId(prestataireId) };
         if (statut) filters.statut = statut;
 
         const prestations = await prestationModel.find(filters)
@@ -467,7 +466,7 @@ export const getPrestationsUtilisateur = async (req, res) => {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
 
-        const filters = { utilisateur: mongoose.Types.ObjectId(utilisateurId) };
+        const filters = { utilisateur: new mongoose.Types.ObjectId(utilisateurId) };
         if (statut) filters.statut = statut;
 
         const prestations = await prestationModel.find(filters)
@@ -501,10 +500,10 @@ export const getPrestationStats = async (req, res) => {
         
         // Filtres optionnels
         if (prestataireId) {
-            matchCondition.prestataire = mongoose.Types.ObjectId(prestataireId);
+            matchCondition.prestataire = new mongoose.Types.ObjectId(prestataireId);
         }
         if (utilisateurId) {
-            matchCondition.utilisateur = mongoose.Types.ObjectId(utilisateurId);
+            matchCondition.utilisateur = new mongoose.Types.ObjectId(utilisateurId);
         }
         if (dateDebut && dateFin) {
             matchCondition.datePrestation = {

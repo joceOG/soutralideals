@@ -1,15 +1,17 @@
+import './bootstrapEnv.js';
+import './instrument.js';
+
 import express from 'express';
+import * as Sentry from '@sentry/node';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import morgan from 'morgan';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { config } from 'dotenv';
-import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import swaggerConfig from './swagger/swagger.config.js';
 import utilisateurRouter from './routes/utilisateurRoutes.js';
+import auth, { authRole } from './middleware/authMiddleware.js';
 import categorieRouter from './routes/categorieRoutes.js';
 import groupeRouter from './routes/groupeRoutes.js';
 import serviceRouter from './routes/serviceRoutes.js'
@@ -17,6 +19,7 @@ import prestataireRouter from './routes/prestataireRoutes.js';
 import prestataireFinalizationRouter from './routes/prestataireFinalizationRoutes.js';
 import articleRouter from './routes/articleRoutes.js'
 import freelanceRouter from './routes/freelanceRoutes.js';
+import freelanceServiceRouter from './routes/freelanceServiceRoutes.js';
 import vendeurRouter from './routes/vendeurRoutes.js';
 // ✅ NOUVEAUX IMPORTS POUR LES MODULES AJOUTÉS
 import commandeRouter from './routes/commandeRoutes.js';
@@ -35,7 +38,8 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
-import searchRouter from './routes/searchRoutes.js'; // ✅ Import déplacé ici
+import searchRouter from './routes/searchRoutes.js';
+import walletRouter from './routes/walletRoutes.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -46,14 +50,50 @@ import { cacheMiddleware, sessionCache } from './middleware/cache.js';
 import { simpleCache } from './middleware/simpleCache.js';
 import { smartCache, autoInvalidateCache } from './middleware/cacheInvalidation.js';
 
-const app = express()
+const app = express();
 const httpServer = createServer(app);
 
-// ✅ Configuration Socket.io
+// Origines autorisées : on garde les origines locales par défaut
+// et on fusionne avec ALLOWED_ORIGINS si fourni.
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:8080',
+  'http://localhost:5173'
+];
+const envAllowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+  : [];
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])];
+
+const isDev = process.env.NODE_ENV === 'development';
+
+// En développement, on autorise tous les localhost (ports dynamiques Flutter web)
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // mobile apps / Postman / curl
+  if (allowedOrigins.includes(origin)) return true;
+  if (isDev) {
+    // Flutter web utilise un port aléatoire — on autorise tous les localhost
+    if (
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
+      origin.startsWith('http://192.168.')    // LAN local (ex: ipconfig)
+    ) return true;
+  }
+  return false;
+};
+
+// ✅ Configuration Socket.io avec origines restreintes
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origine non autorisée par Socket.IO'));
+      }
+    },
+    methods: ['GET', 'POST'],
     credentials: true
   }
 });
@@ -96,9 +136,19 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
+// 🛡️ RATE LIMITING pour les avis (anti-spam)
+const avisLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: 10,
+  message: { error: 'Trop d\'avis postés, réessayez dans une heure.' },
+  keyGenerator: (req) => req.utilisateur?._id?.toString() ?? 'anonymous',
+  skip: (req) => !req.utilisateur?._id,
+});
+
 app.use(limiter);
-app.use('/api/utilisateur/login', authLimiter);
-app.use('/api/utilisateur/register', authLimiter);
+// Routes d'auth réelles : /api/login et /api/register
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
 
 // 📝 LOGGING AVANCÉ
 app.use(httpLogger);
@@ -109,21 +159,31 @@ app.use(userActionLogger);
 // 💾 CACHE ET SESSIONS
 app.use(sessionCache);
 
-app.use(morgan('tiny'));
-app.use(cors());
+// CORS avec origines restreintes
+app.use(cors({
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origine CORS non autorisée'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.options('*', cors());
+
 app.use(express.json());
-// ✅ Forcer l'encodage UTF-8 pour toutes les réponses JSON
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   next();
 });
-config();
 
 // ✅ CONFIGURATION SWAGGER
 const swaggerSpec = swaggerConfig;
 
-/** appliation port */
-const port = process.env.PORT;
+/** port défini plus bas avec fallback */
 
 
 /** routes */
@@ -136,15 +196,9 @@ app.use('/api', smartCache(300), autoInvalidateCache, serviceRouter); // Cache 5
 app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
 app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
 app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
+app.use('/api', freelanceServiceRouter); // Offres freelance (pas de cache GET home pour MVP)
 app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
-
-
-
-// ...
-
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
-app.use('/api', searchRouter); // 👈 Enregistrement Route Recherche Globale (Pas de cache pour l'instant pour tester, ou cache court)
-// app.use('/api', smartCache(60), searchRouter); // Optionnel: Cache 1 minute
+app.use('/api', searchRouter);
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -156,6 +210,7 @@ app.use('/api', favoriteRouter);
 app.use('/api', mailRouter);
 app.use('/api', smsRouter);
 app.use('/api', reportRouter);
+app.use('/api/avis', avisLimiter);
 app.use('/api', avisRouter);
 app.use('/api', historyRouter);
 app.use('/api', userPreferencesRouter);
@@ -164,6 +219,7 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
+app.use('/api', walletRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -211,6 +267,13 @@ app.get('/health', (req, res) => {
   });
 });
 
+/** Test Sentry — désactivé en production */
+if (process.env.NODE_ENV !== 'production' && process.env.SENTRY_DSN) {
+  app.get('/debug-sentry', () => {
+    throw new Error('My first Sentry error!');
+  });
+}
+
 // 📊 METRICS - Endpoint de métriques basiques
 /**
  * @swagger
@@ -244,7 +307,7 @@ app.get('/health', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.get('/metrics', (req, res) => {
+app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
   res.status(200).json({
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
@@ -293,7 +356,7 @@ app.get('/metrics', (req, res) => {
  *               error: "Cache non disponible"
  *               message: "Redis connection failed"
  */
-app.get('/cache/stats', async (req, res) => {
+app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => {
   try {
     const { getCacheStats } = await import('./middleware/cache.js');
     const stats = getCacheStats();
@@ -560,6 +623,25 @@ io.on('connection', (socket) => {
     console.log('🔌 Utilisateur déconnecté:', socket.id);
   });
 });
+
+// Sentry — après toutes les routes, avant les autres middlewares d'erreur
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
+// ✅ GESTIONNAIRE D'ERREURS GLOBAL Express
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('❌ Erreur Express non gérée:', err.message);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
+    error: err.message || 'Erreur interne du serveur',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// ✅ PORT avec valeur par défaut
+const port = process.env.PORT || 3000;
 
 // ✅ DÉMARRAGE DU SERVEUR
 connect().then(() => {

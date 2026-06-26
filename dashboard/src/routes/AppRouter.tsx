@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Home from '../pages/Home';
 import Groupe from '../pages/Groupe';
 import Categorie from '../pages/Categorie';
@@ -7,6 +7,7 @@ import Service from '../pages/Service';
 import Article from '../pages/Article';
 import Prestataire from '../pages/Prestataire';
 import Freelance from '../pages/Freelance';
+import FreelanceServices from '../pages/FreelanceServices';
 import Vendeur from '../pages/Vendeur';
 import Utilisateur from '../pages/Utilisateur';
 import Connexion from '../pages/Connexion';
@@ -38,6 +39,7 @@ const AppRouter: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/soutralideals" element={<Navigate to="/" replace />} />
       <Route path="/groupe" element={<Groupe />} />
       <Route path="/categorie" element={<Categorie />} />
       <Route path="/service" element={<Service />} />
@@ -46,6 +48,7 @@ const AppRouter: React.FC = () => {
       <Route path="/prestataire" element={<Prestataire />} />
       <Route path="/import-prestataires" element={<ImportPrestataires />} />
       <Route path="/freelance" element={<Freelance />} />
+      <Route path="/freelance-offres" element={<FreelanceServices />} />
       <Route path="/vendeur" element={<Vendeur />} />
       <Route path="/connexion" element={<Connexion />} />
       
@@ -83,6 +86,7 @@ const AppRouter: React.FC = () => {
       <Route path="/signalements" element={<div>Module Signalements - En cours de développement</div>} />
       <Route path="/verifications" element={<div>Module Vérifications - En cours de développement</div>} />
       <Route path="/support" element={<div>Module Support - En cours de développement</div>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

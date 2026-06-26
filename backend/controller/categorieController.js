@@ -1,18 +1,13 @@
-import multer from 'multer';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 import mongoose from 'mongoose';
 import categorieModel from '../models/categorieModel.js';
 
-// Configure Cloudinary
 cloudinary.v2.config({
-    cloud_name: "dm0c8st6k",
-    api_key: "541481188898557",
-    api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-// Configure Multer
-const upload = multer({ dest: 'uploads/' });
 
 // Mettre à jour une catégorie par ID
 export const updateCategoryById = async (req, res) => {
@@ -39,7 +34,7 @@ export const updateCategoryById = async (req, res) => {
         }
 
         categorie.nomcategorie = nomcategorie || categorie.nomcategorie;
-        categorie.groupe = groupe ? mongoose.Types.ObjectId(groupe) : categorie.groupe;
+        categorie.groupe = groupe ? new mongoose.Types.ObjectId(groupe) : categorie.groupe;
 
         const updatedCategorie = await categorie.save(); // ✅ ici on appelle .save() sur l'instance
 
@@ -58,7 +53,7 @@ export const createCategory = async (req, res) => {
         const result = await cloudinary.v2.uploader.upload(req.file.path);
         fs.unlinkSync(req.file.path);
 
-        var groupeId = mongoose.Types.ObjectId(groupe);
+        var groupeId = new mongoose.Types.ObjectId(groupe);
         console.log("Id Groupe" , groupeId); 
 
         const newCategorie = new categorieModel({

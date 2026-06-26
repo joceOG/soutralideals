@@ -34,32 +34,24 @@ const uploaderVendeur = upload.fields([
 
 const vendeurRouter = Router();
 
-// ✅ ROUTES CRUD PRINCIPALES (modernisées)
+// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
+vendeurRouter.get("/vendeur/pending/list", getPendingVendeurs);
+vendeurRouter.get("/vendeurs/category/:category", getVendeursByCategory);
+vendeurRouter.get("/vendeurs/search", searchVendeurs);
+vendeurRouter.get("/vendeurs/top", getTopVendeurs);
+
+// ✅ ROUTES CRUD PRINCIPALES
 vendeurRouter.post("/vendeur", uploaderVendeur, createVendeur);
-vendeurRouter.get("/vendeur", getAllVendeurs);                    // Avec filtres avancés
-vendeurRouter.get("/vendeur/:id", getVendeurById);               // Avec stats
-vendeurRouter.put("/vendeur/:id", uploaderVendeur, updateVendeur); // Moderne
+vendeurRouter.get("/vendeur", getAllVendeurs);
+vendeurRouter.get("/vendeur/:id", getVendeurById);
+vendeurRouter.put("/vendeur/:id", uploaderVendeur, updateVendeur);
 vendeurRouter.delete("/vendeur/:id", deleteVendeur);
 
-// ✅ ROUTES SPÉCIALISÉES SDEALSAPP
-
-// 🌟 SYSTÈME DE NOTATION
-vendeurRouter.put("/vendeur/:id/rating", updateVendeurRating);     // Mettre à jour note
-vendeurRouter.put("/vendeur/:id/promote", promoteVendeur);         // Promouvoir vendeur
-
-// 🔍 RECHERCHE & DÉCOUVERTE
-vendeurRouter.get("/vendeurs/category/:category", getVendeursByCategory); // Par catégorie
-vendeurRouter.get("/vendeurs/search", searchVendeurs);             // Recherche avancée
-vendeurRouter.get("/vendeurs/top", getTopVendeurs);               // Top vendeurs
-
-// 📊 STATISTIQUES & ANALYTICS
-vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);         // Statistiques vendeur
-
-// ⚙️ GESTION ADMINISTRATIVE
-vendeurRouter.patch("/vendeur/:id/status", changeVendeurStatus);   // Changer statut
-
-// 🆕 Routes validation (Option C)
-vendeurRouter.get("/vendeur/pending/list", getPendingVendeurs);
+// ✅ ROUTES SPÉCIALISÉES
+vendeurRouter.put("/vendeur/:id/rating", updateVendeurRating);
+vendeurRouter.put("/vendeur/:id/promote", promoteVendeur);
+vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);
+vendeurRouter.patch("/vendeur/:id/status", changeVendeurStatus);
 vendeurRouter.put("/vendeur/:id/validate", validateVendeur);
 vendeurRouter.put("/vendeur/:id/reject", rejectVendeur);
 

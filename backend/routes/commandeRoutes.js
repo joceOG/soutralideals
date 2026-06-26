@@ -7,18 +7,22 @@ import {
     deleteCommande,
     getCommandeStats
 } from '../controller/commandeController.js';
+import auth from '../middleware/authMiddleware.js';
 
 const commandeRouter = Router();
 
-// ✅ ROUTES CRUD COMMANDES
-commandeRouter.post('/commande', createCommande);
-commandeRouter.get('/commandes', getAllCommandes);
-commandeRouter.get('/commande/:id', getCommandeById);
-commandeRouter.put('/commande/:id', updateCommande);
-commandeRouter.delete('/commande/:id', deleteCommande);
+// ⚠️ Routes spécifiques AVANT /:id
+commandeRouter.get('/commandes/stats', auth, getCommandeStats);
+commandeRouter.get('/commandes/mes-commandes', auth, async (req, res) => {
+  req.query.utilisateur = req.utilisateur._id.toString();
+  return getAllCommandes(req, res);
+});
 
-// ✅ ROUTES SPÉCIALISÉES
-commandeRouter.get('/commandes/stats', getCommandeStats);
+// ✅ ROUTES CRUD COMMANDES (protégées)
+commandeRouter.post('/commande', auth, createCommande);
+commandeRouter.get('/commandes', auth, getAllCommandes);
+commandeRouter.get('/commande/:id', auth, getCommandeById);
+commandeRouter.put('/commande/:id', auth, updateCommande);
+commandeRouter.delete('/commande/:id', auth, deleteCommande);
 
 export default commandeRouter;
-

@@ -4,7 +4,17 @@ const ArticleSchema = new mongoose.Schema({
     nomArticle:
         { type: String, required: true },
     prixArticle:
-        { type: String, required: true },
+        { type: Number, required: true, min: 0 },
+    ancienPrixArticle:
+        { type: Number, default: null },
+    discountPercent:
+        { type: Number, default: 0, min: 0, max: 100 },
+    isPromo:
+        { type: Boolean, default: false },
+    rating:
+        { type: Number, default: 0, min: 0, max: 5 },
+    salesCount:
+        { type: Number, default: 0, min: 0 },
     quantiteArticle:
         { type: Number, required: true },
     photoArticle: {
