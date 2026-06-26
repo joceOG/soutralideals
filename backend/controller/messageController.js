@@ -170,7 +170,7 @@ export const sendMessage = async (req, res) => {
 
         const newMessage = new messageModel({
             expediteur: new mongoose.Types.ObjectId(expediteur),
-            destinataire: resolvedDestinataire,
+            destinataire: new mongoose.Types.ObjectId(destinataire),
             contenu,
             conversationId,
             typeMessage: typeMessage || 'NORMAL',

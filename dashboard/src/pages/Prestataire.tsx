@@ -140,10 +140,6 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-  const authHeaders = () => {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
   const [services, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);

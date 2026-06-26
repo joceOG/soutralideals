@@ -55,4 +55,13 @@ prestataireRouter.put(
   updatePrestataire,
 );
 
+// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
+prestataireRouter.get("/prestataire/pending/list", getPendingPrestataires);
+
+prestataireRouter.get("/prestataire", getAllPrestataires);
+prestataireRouter.get("/prestataire/:id", getPrestataireById);
+prestataireRouter.delete("/prestataire/:id", deletePrestataire);
+prestataireRouter.put("/prestataire/:id/validate", validatePrestataire);
+prestataireRouter.put("/prestataire/:id/reject", rejectPrestataire);
+
 export default prestataireRouter;

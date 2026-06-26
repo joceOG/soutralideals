@@ -4,13 +4,6 @@
 const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
 
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem('token');
-  const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  return headers;
-}
-
 export interface Coordinates {
   lat: number;
   lng: number;

@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 
-cloudinary.config({
+cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -161,28 +161,36 @@ export const createPrestataire = async (req, res) => {
       .filter((id) => mongoose.Types.ObjectId.isValid(id))
       .map((id) => new mongoose.Types.ObjectId(id));
 
-    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
-    let finalService = service;
-    const serviceMissing =
-      !service ||
-      service === "" ||
-      (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
-    if (serviceMissing && category) {
-      // Si pas de service fourni mais une catégorie, trouver le service correspondant
-      const Service = (await import("../models/serviceModel.js")).default;
-      const Categorie = (await import("../models/categorieModel.js")).default;
-      
-      // Trouver la catégorie par nom
-      const categorieDoc = await Categorie.findOne({ 
-        nomcategorie: { $regex: new RegExp(category, 'i') } 
-      });
-      
-      if (categorieDoc) {
-        // Trouver le premier service de cette catégorie
-        const serviceDoc = await Service.findOne({ categorie: categorieDoc._id });
-        if (serviceDoc) {
-          finalService = serviceDoc._id;
-          console.log(`✅ Service trouvé pour catégorie ${category}: ${serviceDoc._id}`);
+// ✅ OBTENIR TOUTES LES PRESTATIONS (avec filtres)
+export const getAllPrestations = async (req, res) => {
+    try {
+        const { 
+            page = 1, 
+            limit = 20, 
+            statut, 
+            statutPaiement,
+            prestataire,
+            utilisateur,
+            service,
+            ville,
+            dateDebut,
+            dateFin
+        } = req.query;
+
+        // Construction des filtres
+        const filters = {};
+        if (statut) filters.statut = statut;
+        if (statutPaiement) filters.statutPaiement = statutPaiement;
+        if (prestataire) filters.prestataire = new mongoose.Types.ObjectId(prestataire);
+        if (utilisateur) filters.utilisateur = new mongoose.Types.ObjectId(utilisateur);
+        if (service) filters.service = new mongoose.Types.ObjectId(service);
+        if (ville) filters.ville = { $regex: ville, $options: 'i' };
+        
+        if (dateDebut && dateFin) {
+            filters.datePrestation = {
+                $gte: new Date(dateDebut),
+                $lte: new Date(dateFin)
+            };
         }
       }
       
@@ -400,28 +408,8 @@ export const updatePrestataire = async (req, res) => {
       }
     }
 
-    const updates = {
-      ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
-      ...(service && { service: new mongoose.Types.ObjectId(service) }),
-      ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
-      ...(localisation && { localisation }),
-      ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
-      ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
-      ...(anneeExperience && { anneeExperience }),
-      ...(description && { description }),
-      ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
-      ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
-      ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
-      ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
-      ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
-      ...(numeroCNI && { numeroCNI }),
-      ...(numeroRCCM && { numeroRCCM }),
-      ...(numeroAssurance && { numeroAssurance }),
-      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
-      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
-      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
-      ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
-    };
+        const filters = { prestataire: new mongoose.Types.ObjectId(prestataireId) };
+        if (statut) filters.statut = statut;
 
     const isAdminUser = isAdmin(req);
     if (isAdminUser && typeof verifier !== "undefined") {
@@ -478,18 +466,32 @@ export const getAllPrestataires = async (req, res) => {
   try {
     const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
 
-    const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
-    const filter = {};
-    if (service) {
-      if (
-        excludedSvc.length &&
-        excludedSvc.some((id) => String(id) === String(service))
-      ) {
-        return res.json([]);
-      }
-      filter.service = service;
-    } else if (excludedSvc.length) {
-      filter.service = { $nin: excludedSvc };
+        if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
+            return res.status(400).json({ error: 'ID utilisateur invalide' });
+        }
+
+        const filters = { utilisateur: new mongoose.Types.ObjectId(utilisateurId) };
+        if (statut) filters.statut = statut;
+
+        const prestations = await prestationModel.find(filters)
+            .populate('prestataire', 'utilisateur')
+            .populate('service', 'nomservice')
+            .sort({ datePrestation: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .exec();
+
+        const total = await prestationModel.countDocuments(filters);
+
+        res.status(200).json({
+            prestations,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page),
+            total
+        });
+    } catch (err) {
+        console.error('Erreur récupération prestations utilisateur:', err.message);
+        res.status(500).json({ error: err.message });
     }
 
     const adminUser = isAdmin(req);
@@ -540,16 +542,25 @@ export const getAllPrestataires = async (req, res) => {
   }
 };
 
-// ✅ Lire prestataire par ID
-export const getPrestataireById = async (req, res) => {
-  try {
-    const prestataire = await prestataireModel.findById(req.params.id)
-      .populate("utilisateur")
-      .populate({
-        path: "service",
-        populate: {
-          path: "categorie",
-          populate: { path: "groupe" }
+// ✅ OBTENIR LES STATISTIQUES DES PRESTATIONS
+export const getPrestationStats = async (req, res) => {
+    try {
+        const { prestataireId, utilisateurId, dateDebut, dateFin } = req.query;
+
+        let matchCondition = {};
+        
+        // Filtres optionnels
+        if (prestataireId) {
+            matchCondition.prestataire = new mongoose.Types.ObjectId(prestataireId);
+        }
+        if (utilisateurId) {
+            matchCondition.utilisateur = new mongoose.Types.ObjectId(utilisateurId);
+        }
+        if (dateDebut && dateFin) {
+            matchCondition.datePrestation = {
+                $gte: new Date(dateDebut),
+                $lte: new Date(dateFin)
+            };
         }
       });
 

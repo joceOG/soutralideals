@@ -36,56 +36,26 @@ const uploaderVendeur = upload.fields([
 
 const vendeurRouter = Router();
 
-// Public — catalogue (routes spécifiques avant /:id)
-vendeurRouter.get("/vendeur/pending/list", ...authAdmin, getPendingVendeurs);
-vendeurRouter.get("/vendeur", optionalAuth, getAllVendeurs);
-vendeurRouter.get("/vendeurs/category/:category", optionalAuth, getVendeursByCategory);
-vendeurRouter.get("/vendeurs/search", optionalAuth, searchVendeurs);
-vendeurRouter.get("/vendeurs/top", optionalAuth, getTopVendeurs);
-vendeurRouter.get("/vendeur/:id", optionalAuth, getVendeurById);
+// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
+vendeurRouter.get("/vendeur/pending/list", getPendingVendeurs);
+vendeurRouter.get("/vendeurs/category/:category", getVendeursByCategory);
+vendeurRouter.get("/vendeurs/search", searchVendeurs);
+vendeurRouter.get("/vendeurs/top", getTopVendeurs);
+
+// ✅ ROUTES CRUD PRINCIPALES
+vendeurRouter.post("/vendeur", uploaderVendeur, createVendeur);
+vendeurRouter.get("/vendeur", getAllVendeurs);
+vendeurRouter.get("/vendeur/:id", getVendeurById);
+vendeurRouter.put("/vendeur/:id", uploaderVendeur, updateVendeur);
+vendeurRouter.delete("/vendeur/:id", deleteVendeur);
+
+// ✅ ROUTES SPÉCIALISÉES
+vendeurRouter.put("/vendeur/:id/rating", updateVendeurRating);
+vendeurRouter.put("/vendeur/:id/promote", promoteVendeur);
 vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);
-
-// Admin — modération
-vendeurRouter.put("/vendeur/:id/validate", ...authAdmin, validateVendeur);
-vendeurRouter.put("/vendeur/:id/reject", ...authAdmin, rejectVendeur);
-vendeurRouter.delete("/vendeur/:id", ...authAdmin, deleteVendeur);
-vendeurRouter.put("/vendeur/:id/promote", ...authAdmin, promoteVendeur);
-vendeurRouter.patch("/vendeur/:id/status", ...authAdmin, changeVendeurStatus);
-
-// Authentifié
-vendeurRouter.post(
-  "/vendeur",
-  auth,
-  requireSelfOrAdmin("utilisateur"),
-  uploaderVendeur,
-  createVendeur,
-);
-
-vendeurRouter.put(
-  "/vendeur/:id",
-  auth,
-  requireVendeurOwnerOrAdmin(),
-  uploaderVendeur,
-  updateVendeur,
-);
-
-vendeurRouter.put("/vendeur/:id/rating", auth, updateVendeurRating);
-
-// Admin — modération
-vendeurRouter.put("/vendeur/:id/validate", ...authAdmin, validateVendeur);
-vendeurRouter.put("/vendeur/:id/reject", ...authAdmin, rejectVendeur);
-vendeurRouter.delete("/vendeur/:id", ...authAdmin, deleteVendeur);
-vendeurRouter.put("/vendeur/:id/promote", ...authAdmin, promoteVendeur);
-vendeurRouter.patch("/vendeur/:id/status", ...authAdmin, changeVendeurStatus);
-
-// Authentifié
-vendeurRouter.post(
-  "/vendeur",
-  auth,
-  requireSelfOrAdmin("utilisateur"),
-  uploaderVendeur,
-  createVendeur,
-);
+vendeurRouter.patch("/vendeur/:id/status", changeVendeurStatus);
+vendeurRouter.put("/vendeur/:id/validate", validateVendeur);
+vendeurRouter.put("/vendeur/:id/reject", rejectVendeur);
 
 vendeurRouter.put(
   "/vendeur/:id",

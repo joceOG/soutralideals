@@ -1,7 +1,6 @@
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
-import { isAdmin } from "../middleware/entityAccess.js";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -50,9 +49,43 @@ export const createPrestataire = async (req, res) => {
       clients,
     } = req.body;
 
+    const parseNumber = (value, fallback = 0) => {
+      if (value === null || typeof value === "undefined" || value === "") {
+        return fallback;
+      }
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    /** multipart/form-data : specialite, zoneIntervention, clients souvent en JSON string (dashboard + mobile). */
+    const parseStringArrayField = (v) => {
+      if (v == null || v === "") return [];
+      if (Array.isArray(v)) return v.map((x) => String(x));
+      if (typeof v === "string") {
+        try {
+          const p = JSON.parse(v);
+          return Array.isArray(p) ? p.map((x) => String(x)) : [String(p)];
+        } catch {
+          return [v];
+        }
+      }
+      return [String(v)];
+    };
+
+    const specialiteArr = parseStringArrayField(specialite);
+    const zoneInterventionArr = parseStringArrayField(zoneIntervention);
+    const clientsRaw = parseStringArrayField(clients);
+    const clientsIds = clientsRaw
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
+
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
-    if (!service && category) {
+    const serviceMissing =
+      !service ||
+      service === "" ||
+      (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
+    if (serviceMissing && category) {
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -78,6 +111,8 @@ export const createPrestataire = async (req, res) => {
           error: `Aucun service trouvé pour la catégorie: ${category}` 
         });
       }
+    } else if (serviceMissing) {
+      return res.status(400).json({ error: "service ou category requis" });
     }
 
     // Parsing localisationmaps
@@ -121,13 +156,12 @@ export const createPrestataire = async (req, res) => {
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
     const newPrestataire = new prestataireModel({
-      utilisateur: mongoose.Types.ObjectId(utilisateur),
-      service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
-      prixprestataire,
+      utilisateur: new mongoose.Types.ObjectId(utilisateur),
+      service: new mongoose.Types.ObjectId(finalService),
+      prixprestataire: parseNumber(prixprestataire, 0),
       localisation,
       note: parseNumber(note, 0),
-      verifier: isAdminUser && (verifier === "true" || verifier === true),
-      status: "incomplete",
+      verifier: verifier === "true" || verifier === true,
       specialite: specialiteArr,
       anneeExperience,
       description,
@@ -230,6 +264,7 @@ export const updatePrestataire = async (req, res) => {
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
       ...(localisation && { localisation }),
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
+      ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
@@ -300,7 +335,7 @@ export const updatePrestataire = async (req, res) => {
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
-    const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
+    const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
 
     const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
     const filter = {};
@@ -315,28 +350,8 @@ export const getAllPrestataires = async (req, res) => {
     } else if (excludedSvc.length) {
       filter.service = { $nin: excludedSvc };
     }
-
-    const adminUser = isAdmin(req);
-    const isOwnProfile =
-      utilisateur &&
-      req.utilisateur &&
-      String(utilisateur) === String(req.utilisateur._id);
-
-    if (adminUser) {
-      if (status) filter.status = status;
-      if (verifier !== undefined) filter.verifier = verifier === "true" || verifier === true;
-    } else if (isOwnProfile) {
-      if (status) filter.status = status;
-      filter.utilisateur = utilisateur;
-    } else {
-      // Catalogue public : uniquement profils validés
-      filter.status = "active";
-      filter.verifier = true;
-    }
-
-    if (utilisateur && (adminUser || isOwnProfile)) {
-      filter.utilisateur = utilisateur;
-    }
+    if (status) filter.status = status;
+    if (utilisateur) filter.utilisateur = utilisateur;
     if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
 
     const prestataires = await prestataireModel.find(filter)
