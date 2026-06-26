@@ -2,33 +2,7 @@ import mongoose from 'mongoose';
 import vendeurModel from "../models/vendeurModel.js";
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -201,43 +175,9 @@ export const createVendeur = async (req, res) => {
                 status: 'Pending',
                 date: new Date(),
                 reason: 'Inscription initiale'
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             }],
             status: 'pending',
             source: req.body.source || 'web',
-=======
-            }]
-<<<<<<< HEAD
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-            }],
-            status: 'pending',
-            source: req.body.source || 'web',
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-            }],
-            status: 'pending',
-            source: req.body.source || 'web',
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-            }],
-            status: 'pending',
-            source: req.body.source || 'web',
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         });
 
         await newVendeur.save();
@@ -270,36 +210,7 @@ export const getAllVendeurs = async (req, res) => {
         } = req.query;
 
         // Construction des filtres
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         const filters = applyProPublicFilter(req, {});
-=======
-        const filters = {};
-        if (accountStatus) filters.accountStatus = accountStatus;
-<<<<<<< HEAD
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-        const filters = applyProPublicFilter(req, {});
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-        const filters = applyProPublicFilter(req, {});
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-        const filters = applyProPublicFilter(req, {});
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         if (businessType) filters.businessType = businessType;
         if (category) filters.businessCategories = { $in: [category] };
         if (city) filters['businessAddress.city'] = { $regex: city, $options: 'i' };
@@ -312,33 +223,6 @@ export const getAllVendeurs = async (req, res) => {
                 { tags: { $in: [new RegExp(search, 'i')] } }
             ];
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-        if (req.query.utilisateur) {
-            filters.utilisateur = req.query.utilisateur;
-        }
-<<<<<<< HEAD
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         // Options de tri
         const sortOptions = {};
@@ -384,45 +268,10 @@ export const getVendeurById = async (req, res) => {
             return res.status(404).json({ error: "Vendeur non trouvé" });
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         if (!canAccessProProfile(req, vendeur)) {
             return res.status(404).json({ error: "Vendeur non trouvé" });
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         // Incrémenter les vues de profil
         vendeur.profileViews += 1;
         await vendeur.save();
@@ -603,35 +452,7 @@ export const searchVendeurs = async (req, res) => {
     try {
         const { query, category, city, minRating, businessType } = req.query;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         let searchCriteria = applyProPublicFilter(req, {});
-=======
-        let searchCriteria = { accountStatus: 'Active' };
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-        let searchCriteria = applyProPublicFilter(req, {});
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-        let searchCriteria = applyProPublicFilter(req, {});
-=======
-        let searchCriteria = { accountStatus: 'Active' };
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-        let searchCriteria = applyProPublicFilter(req, {});
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-        let searchCriteria = applyProPublicFilter(req, {});
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         if (query) {
             searchCriteria.$or = [
@@ -730,38 +551,7 @@ export const changeVendeurStatus = async (req, res) => {
 // 🆕 OPTION C - Récupérer les vendeurs en attente
 export const getPendingVendeurs = async (req, res) => {
     try {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         const vendeurs = await vendeurModel.find({ status: "pending" })
-=======
-        const vendeurs = await vendeurModel.find({ 
-            status: 'pending',
-            source: 'sdealsidentification'
-        })
-<<<<<<< HEAD
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-        const vendeurs = await vendeurModel.find({ status: "pending" })
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-        const vendeurs = await vendeurModel.find({ status: "pending" })
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-        const vendeurs = await vendeurModel.find({ status: "pending" })
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             .populate("utilisateur")
             .populate("recenseur", "nom prenom telephone")
             .sort({ dateRecensement: -1 });
@@ -777,35 +567,7 @@ export const getPendingVendeurs = async (req, res) => {
 export const validateVendeur = async (req, res) => {
     try {
         const { id } = req.params;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         const adminId = req.user._id;
-=======
-        const adminId = req.body.adminId || req.user?._id;
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-        const adminId = req.user._id;
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-        const adminId = req.user._id;
-=======
-        const adminId = req.body.adminId || req.user?._id;
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-        const adminId = req.user._id;
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-        const adminId = req.user._id;
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         const vendeur = await vendeurModel.findById(id);
         
@@ -846,35 +608,7 @@ export const rejectVendeur = async (req, res) => {
     try {
         const { id } = req.params;
         const { motif } = req.body;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         const adminId = req.user._id;
-=======
-        const adminId = req.body.adminId || req.user?._id;
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-        const adminId = req.user._id;
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-        const adminId = req.user._id;
-=======
-        const adminId = req.body.adminId || req.user?._id;
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-        const adminId = req.user._id;
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-        const adminId = req.user._id;
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         const vendeur = await vendeurModel.findById(id);
         

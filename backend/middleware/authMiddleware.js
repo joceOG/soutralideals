@@ -65,24 +65,9 @@ export const authRole = (roles = []) => {
   };
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 /** auth + rôle Admin (dashboard, modération) */
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 /**
  * Auth optionnelle : peuple req.user si token valide, sinon continue sans erreur.
  * Utile pour les routes publiques avec comportement différent si authentifié.
@@ -114,46 +99,4 @@ export const optionalAuth = async (req, res, next) => {
   }
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-/** auth + rôle Admin (dashboard, modération) */
-export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
-
->>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-/** auth + rôle Admin (dashboard, modération) */
-export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
-
->>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
-<<<<<<< HEAD
->>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
-=======
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 export default auth;
-=======
-export default auth;
->>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-export default auth;
-=======
-export default auth;
->>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
->>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
