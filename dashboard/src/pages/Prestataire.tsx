@@ -140,19 +140,10 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   const authHeaders = () => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
-<<<<<<< HEAD
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   const [services, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
@@ -161,15 +152,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const fetchPrestataires = useCallback(async () => {
     try {
       setLoading(true);
-<<<<<<< HEAD
-<<<<<<< HEAD
       const response = await axios.get(`${apiUrl}/prestataire`, { headers: authHeaders() });
-=======
-      const response = await axios.get(`${apiUrl}/prestataire`);
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-      const response = await axios.get(`${apiUrl}/prestataire`, { headers: authHeaders() });
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       setPrestataires(response.data);
     } catch {
       toast.error("Erreur lors du chargement des prestataires");
@@ -235,15 +218,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const onDelete = async (rowData: IPrestataireData) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce prestataire ?')) {
       try {
-<<<<<<< HEAD
-<<<<<<< HEAD
         await axios.delete(`${apiUrl}/prestataire/${rowData._id}`, { headers: authHeaders() });
-=======
-        await axios.delete(`${apiUrl}/prestataire/${rowData._id}`);
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-        await axios.delete(`${apiUrl}/prestataire/${rowData._id}`, { headers: authHeaders() });
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         setPrestataires(prestataires.filter(item => item._id !== rowData._id));
         toast.success('Prestataire supprimé avec succès !');
       } catch {
@@ -369,22 +344,12 @@ const onAdd = () => {
       if (formData.revenus) form.append('revenus', formData.revenus.toString());
       if (formData.clients?.length) form.append('clients', JSON.stringify(formData.clients));
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       await axios({
         method,
         url,
         data: form,
         headers: { 'Content-Type': 'multipart/form-data', ...authHeaders() },
       });
-<<<<<<< HEAD
-=======
-      await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       await fetchPrestataires();
       toast.success(isUpdate ? 'Prestataire mis à jour !' : 'Prestataire ajouté !');
       setModalOpen(false);

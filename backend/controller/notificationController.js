@@ -1,8 +1,4 @@
 import notificationModel from "../models/notificationModel.js";
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 
@@ -20,13 +16,6 @@ async function repairLegacyPrestataireNotifications(userId) {
   );
 }
 
-<<<<<<< HEAD
-=======
-import mongoose from "mongoose";
-
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 // ✅ Créer une notification
 export const createNotification = async (req, res) => {
   try {
@@ -92,16 +81,8 @@ export const getNotificationsByUser = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     await repairLegacyPrestataireNotifications(userId);
 
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-    await repairLegacyPrestataireNotifications(userId);
-
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const query = { destinataire: userId };
     if (statut) {
       query.statut = statut;
@@ -224,16 +205,8 @@ export const getUnreadCount = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     await repairLegacyPrestataireNotifications(userId);
 
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-    await repairLegacyPrestataireNotifications(userId);
-
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const count = await notificationModel.countDocuments({
       destinataire: userId,
       statut: 'NON_LUE'
