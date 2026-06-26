@@ -65,4 +65,7 @@ export const authRole = (roles = []) => {
   };
 };
 
+/** auth + rôle Admin (dashboard, modération) */
+export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
+
 export default auth;
