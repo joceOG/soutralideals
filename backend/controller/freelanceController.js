@@ -3,11 +3,10 @@ import fs from "fs";
 import cloudinary from "cloudinary";
 import freelanceModel from "../models/freelanceModel.js";
 
-// Config Cloudinary
 cloudinary.v2.config({
-  cloud_name: "dm0c8st6k",
-  api_key: "541481188898557",
-  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ✅ Créer un freelance (Modèle sdealsapp)
@@ -149,6 +148,9 @@ export const getAllFreelances = async (req, res) => {
     }
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
+    }
+    if (req.query.utilisateur) {
+      filter.utilisateur = req.query.utilisateur;
     }
 
     const freelances = await freelanceModel.find(filter)

@@ -1,29 +1,9 @@
 import notificationModel from "../models/notificationModel.js";
-import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
-import { isAdmin } from '../utils/accessControl.js';
-
-async function repairLegacyPrestataireNotifications(userId) {
-  const linkedPrestataires = await prestataireModel
-    .find({ utilisateur: userId })
-    .select("_id")
-    .lean();
-
-  if (linkedPrestataires.length === 0) return;
-
-  await notificationModel.updateMany(
-    { destinataire: { $in: linkedPrestataires.map((p) => p._id) } },
-    { $set: { destinataire: new mongoose.Types.ObjectId(userId) } },
-  );
-}
 
 // ✅ Créer une notification
 export const createNotification = async (req, res) => {
   try {
-    if (!isAdmin(req)) {
-      return res.status(403).json({ error: 'Seul un administrateur peut créer des notifications manuellement.' });
-    }
-
     const {
       destinataire,
       expediteur,
@@ -86,8 +66,6 @@ export const getNotificationsByUser = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    await repairLegacyPrestataireNotifications(userId);
-
     const query = { destinataire: userId };
     if (statut) {
       query.statut = statut;
@@ -128,13 +106,6 @@ export const markAsRead = async (req, res) => {
     const notification = await notificationModel.findById(notificationId);
     if (!notification) {
       return res.status(404).json({ error: 'Notification non trouvée' });
-    }
-
-    if (
-      !isAdmin(req) &&
-      notification.destinataire?.toString() !== req.utilisateur._id.toString()
-    ) {
-      return res.status(403).json({ error: 'Accès refusé à cette notification.' });
     }
 
     await notification.marquerCommeLue();
@@ -216,8 +187,6 @@ export const getUnreadCount = async (req, res) => {
     if (req.utilisateur._id.toString() !== userId) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
-
-    await repairLegacyPrestataireNotifications(userId);
 
     const count = await notificationModel.countDocuments({
       destinataire: userId,

@@ -2,29 +2,12 @@ import mongoose from 'mongoose';
 import vendeurModel from "../models/vendeurModel.js";
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
-import { isAdmin, assertAdmin } from '../utils/accessControl.js';
-import { pickFields } from '../utils/pickFields.js';
-import { escapeRegex } from '../utils/escapeRegex.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-const VENDEUR_OWNER_FIELDS = [
-  'shopName', 'shopDescription', 'businessType', 'businessCategories',
-  'deliveryZones', 'shippingMethods', 'paymentMethods',
-  'businessRegistrationNumber', 'businessAddress', 'businessPhone', 'businessEmail',
-  'returnPolicy', 'warrantyInfo', 'minimumOrderAmount', 'maxOrdersPerDay',
-  'socialMedia', 'preferredContactMethod', 'tags', 'notes',
-];
-
-const JSON_FIELDS = [
-  'businessCategories', 'deliveryZones', 'shippingMethods',
-  'paymentMethods', 'businessAddress', 'socialMedia', 'tags',
-];
 
 // ✅ CRÉER UN NOUVEAU VENDEUR (sdealsapp standard)
 export const createVendeur = async (req, res) => {
@@ -64,13 +47,9 @@ export const createVendeur = async (req, res) => {
         } = req.body;
 
         // ✅ VALIDATION OBLIGATOIRE
-        const ownerId = isAdmin(req) && utilisateur
-            ? utilisateur
-            : req.utilisateur._id.toString();
-
-        if (!shopName || !shopDescription || !businessType) {
+        if (!utilisateur || !shopName || !shopDescription || !businessType) {
             return res.status(400).json({ 
-                error: 'Nom boutique, description et type business requis' 
+                error: 'Utilisateur, nom boutique, description et type business requis' 
             });
         }
 
@@ -102,8 +81,8 @@ export const createVendeur = async (req, res) => {
 
         // ✅ CRÉER VENDEUR AVEC MODÈLE MODERNE
         const newVendeur = new vendeurModel({
-            // Référence utilisateur (forcée pour les non-admins)
-            utilisateur: new mongoose.Types.ObjectId(ownerId),
+            // Référence utilisateur
+            utilisateur: new mongoose.Types.ObjectId(utilisateur),
             
             // 🏪 Informations boutique
             shopName,
@@ -195,9 +174,7 @@ export const createVendeur = async (req, res) => {
                 status: 'Pending',
                 date: new Date(),
                 reason: 'Inscription initiale'
-            }],
-            status: 'pending',
-            source: req.body.source || 'web',
+            }]
         });
 
         await newVendeur.save();
@@ -230,19 +207,22 @@ export const getAllVendeurs = async (req, res) => {
         } = req.query;
 
         // Construction des filtres
-        const filters = applyProPublicFilter(req, {});
+        const filters = {};
+        if (accountStatus) filters.accountStatus = accountStatus;
         if (businessType) filters.businessType = businessType;
         if (category) filters.businessCategories = { $in: [category] };
         if (city) filters['businessAddress.city'] = { $regex: city, $options: 'i' };
         if (rating) filters.rating = { $gte: parseFloat(rating) };
         
         if (search) {
-            const safeSearch = escapeRegex(search);
             filters.$or = [
-                { shopName: { $regex: safeSearch, $options: 'i' } },
-                { shopDescription: { $regex: safeSearch, $options: 'i' } },
-                { tags: { $in: [new RegExp(safeSearch, 'i')] } }
+                { shopName: { $regex: search, $options: 'i' } },
+                { shopDescription: { $regex: search, $options: 'i' } },
+                { tags: { $in: [new RegExp(search, 'i')] } }
             ];
+        }
+        if (req.query.utilisateur) {
+            filters.utilisateur = req.query.utilisateur;
         }
 
         // Options de tri
@@ -289,10 +269,6 @@ export const getVendeurById = async (req, res) => {
             return res.status(404).json({ error: "Vendeur non trouvé" });
         }
 
-        if (!canAccessProProfile(req, vendeur)) {
-            return res.status(404).json({ error: "Vendeur non trouvé" });
-        }
-
         // Incrémenter les vues de profil
         vendeur.profileViews += 1;
         await vendeur.save();
@@ -308,12 +284,11 @@ export const getVendeurById = async (req, res) => {
 export const updateVendeur = async (req, res) => {
     try {
         const { id } = req.params;
+        const updates = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'ID vendeur invalide' });
         }
-
-        const updates = pickFields(req.body, VENDEUR_OWNER_FIELDS);
 
         // ✅ UPLOAD NOUVEAU LOGO SI PRÉSENT
         if (req.files?.shopLogo?.[0]) {
@@ -339,7 +314,8 @@ export const updateVendeur = async (req, res) => {
         }
 
         // Traitement des champs JSON
-        JSON_FIELDS.forEach(field => {
+        const fieldsToParseJSON = ['businessCategories', 'deliveryZones', 'shippingMethods', 'paymentMethods', 'businessAddress', 'socialMedia', 'tags'];
+        fieldsToParseJSON.forEach(field => {
             if (updates[field] && typeof updates[field] === 'string') {
                 try {
                     updates[field] = JSON.parse(updates[field]);
@@ -348,13 +324,6 @@ export const updateVendeur = async (req, res) => {
                 }
             }
         });
-
-        if (updates.minimumOrderAmount !== undefined) {
-            updates.minimumOrderAmount = parseFloat(updates.minimumOrderAmount) || 0;
-        }
-        if (updates.maxOrdersPerDay !== undefined) {
-            updates.maxOrdersPerDay = parseInt(updates.maxOrdersPerDay, 10) || 50;
-        }
 
         // Fusionner les updates de vérification
         Object.assign(updates, verificationUpdates);
@@ -400,11 +369,9 @@ export const deleteVendeur = async (req, res) => {
 
 // ✅ NOUVELLES MÉTHODES SPÉCIALISÉES SDEALSAPP
 
-// Mettre à jour la note d'un vendeur (admin uniquement — les notes publiques viennent des avis)
+// Mettre à jour la note d'un vendeur
 export const updateVendeurRating = async (req, res) => {
     try {
-        if (!assertAdmin(req, res)) return;
-
         const { id } = req.params;
         const { rating } = req.body;
 
@@ -482,14 +449,13 @@ export const searchVendeurs = async (req, res) => {
     try {
         const { query, category, city, minRating, businessType } = req.query;
 
-        let searchCriteria = applyProPublicFilter(req, {});
+        let searchCriteria = { accountStatus: 'Active' };
 
         if (query) {
-            const safeQuery = escapeRegex(query);
             searchCriteria.$or = [
-                { shopName: { $regex: safeQuery, $options: 'i' } },
-                { shopDescription: { $regex: safeQuery, $options: 'i' } },
-                { tags: { $in: [new RegExp(safeQuery, 'i')] } }
+                { shopName: { $regex: query, $options: 'i' } },
+                { shopDescription: { $regex: query, $options: 'i' } },
+                { tags: { $in: [new RegExp(query, 'i')] } }
             ];
         }
 
@@ -582,7 +548,10 @@ export const changeVendeurStatus = async (req, res) => {
 // 🆕 OPTION C - Récupérer les vendeurs en attente
 export const getPendingVendeurs = async (req, res) => {
     try {
-        const vendeurs = await vendeurModel.find({ status: "pending" })
+        const vendeurs = await vendeurModel.find({ 
+            status: 'pending',
+            source: 'sdealsidentification'
+        })
             .populate("utilisateur")
             .populate("recenseur", "nom prenom telephone")
             .sort({ dateRecensement: -1 });
@@ -598,7 +567,7 @@ export const getPendingVendeurs = async (req, res) => {
 export const validateVendeur = async (req, res) => {
     try {
         const { id } = req.params;
-        const adminId = req.user._id;
+        const adminId = req.body.adminId || req.user?._id;
 
         const vendeur = await vendeurModel.findById(id);
         
@@ -639,7 +608,7 @@ export const rejectVendeur = async (req, res) => {
     try {
         const { id } = req.params;
         const { motif } = req.body;
-        const adminId = req.user._id;
+        const adminId = req.body.adminId || req.user?._id;
 
         const vendeur = await vendeurModel.findById(id);
         

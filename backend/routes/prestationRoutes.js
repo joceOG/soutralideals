@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { imageUpload } from '../utils/uploadMiddleware.js';
-import auth, { optionalAuth } from '../middleware/authMiddleware.js';
+import multer from 'multer';
+import auth from '../middleware/authMiddleware.js';
 import {
     createPrestation,
     getAllPrestations,
@@ -13,6 +13,8 @@ import {
     getPrestationStats
 } from '../controller/prestationController.js';
 
+const upload = multer({ dest: 'uploads/' });
+
 const prestationRouter = Router();
 
 // ✅ ROUTES SPÉCIFIQUES avant les routes paramétriques
@@ -21,14 +23,14 @@ prestationRouter.get('/prestations/prestataire/:prestataireId', auth, getPrestat
 prestationRouter.get('/prestations/utilisateur/:utilisateurId', auth, getPrestationsUtilisateur);
 
 // ✅ ROUTES CRUD PRESTATIONS
-prestationRouter.post('/prestation', auth, imageUpload.fields([
+prestationRouter.post('/prestation', auth, upload.fields([
     { name: 'photosAvant', maxCount: 5 }
 ]), createPrestation);
 
-prestationRouter.get('/prestations', optionalAuth, getAllPrestations);
-prestationRouter.get('/prestation/:id', optionalAuth, getPrestationById);
+prestationRouter.get('/prestations', getAllPrestations);
+prestationRouter.get('/prestation/:id', getPrestationById);
 
-prestationRouter.put('/prestation/:id', auth, imageUpload.fields([
+prestationRouter.put('/prestation/:id', auth, upload.fields([
     { name: 'photosApres', maxCount: 5 }
 ]), updatePrestation);
 

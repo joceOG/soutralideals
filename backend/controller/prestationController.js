@@ -13,34 +13,6 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-<<<<<<< HEAD
-// ✅ Créer un prestataire
-export const createPrestataire = async (req, res) => {
-  try {
-    const {
-      utilisateur,
-      service,
-      category, // ✅ Nouveau: catégorie pour inscription simplifiée
-      prixprestataire,
-      localisation,
-      note,
-      verifier,
-      specialite,
-      anneeExperience,
-      description,
-      rayonIntervention,
-      zoneIntervention,
-      localisationmaps,
-      tarifHoraireMin,
-      tarifHoraireMax,
-      numeroCNI,
-      numeroRCCM,
-      numeroAssurance,
-      nbMission,
-      revenus,
-      clients,
-    } = req.body;
-=======
 const PRESTATION_CLIENT_FIELDS = [
   'datePrestation', 'heureDebut', 'heureFin', 'dureeEstimee',
   'adresse', 'ville', 'codePostal', 'localisation',
@@ -106,7 +78,6 @@ export const createPrestation = async (req, res) => {
             estRecurrente,
             frequenceRecurrence
         } = req.body;
->>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
 
         // Validation des données requises (adaptée pour système gratuit)
         if (!utilisateur || !adresse || !ville) {
@@ -133,15 +104,9 @@ export const createPrestation = async (req, res) => {
         }
 
         const newPrestation = new prestationModel({
-<<<<<<< HEAD
-            utilisateur: mongoose.Types.ObjectId(utilisateur),
-            prestataire: prestataire ? mongoose.Types.ObjectId(prestataire) : null,
-            service: service ? mongoose.Types.ObjectId(service) : null,
-=======
             utilisateur: new mongoose.Types.ObjectId(requesterId),
             prestataire: prestataire ? new mongoose.Types.ObjectId(prestataire) : null,
             service: service ? new mongoose.Types.ObjectId(service) : null,
->>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
             datePrestation: datePrestation ? new Date(datePrestation) : new Date(),
             heureDebut: heureDebut || '09:00',
             heureFin,
@@ -259,9 +224,9 @@ export const getAllPrestations = async (req, res) => {
         const filters = {};
         if (statut) filters.statut = statut;
         if (statutPaiement) filters.statutPaiement = statutPaiement;
-        if (prestataire) filters.prestataire = mongoose.Types.ObjectId(prestataire);
-        if (utilisateur) filters.utilisateur = mongoose.Types.ObjectId(utilisateur);
-        if (service) filters.service = mongoose.Types.ObjectId(service);
+        if (prestataire) filters.prestataire = new mongoose.Types.ObjectId(prestataire);
+        if (utilisateur) filters.utilisateur = new mongoose.Types.ObjectId(utilisateur);
+        if (service) filters.service = new mongoose.Types.ObjectId(service);
         if (ville) filters.ville = { $regex: ville, $options: 'i' };
         
         if (dateDebut && dateFin) {
@@ -351,25 +316,6 @@ export const getPrestationById = async (req, res) => {
     }
 };
 
-<<<<<<< HEAD
-// ✅ Lire tous les prestataires (avec filtres optionnels)
-export const getAllPrestataires = async (req, res) => {
-  try {
-    const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
-
-    const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
-    const filter = {};
-    if (service) {
-      if (
-        excludedSvc.length &&
-        excludedSvc.some((id) => String(id) === String(service))
-      ) {
-        return res.json([]);
-      }
-      filter.service = service;
-    } else if (excludedSvc.length) {
-      filter.service = { $nin: excludedSvc };
-=======
 // ✅ METTRE À JOUR UNE PRESTATION
 export const updatePrestation = async (req, res) => {
     try {
@@ -428,89 +374,37 @@ export const updatePrestation = async (req, res) => {
     } catch (err) {
         console.error('Erreur mise à jour prestation:', err.message);
         res.status(500).json({ error: err.message });
->>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
     }
-
-    const adminUser = isAdmin(req);
-    const isOwnProfile =
-      utilisateur &&
-      req.utilisateur &&
-      String(utilisateur) === String(req.utilisateur._id);
-
-    if (adminUser) {
-      if (status) filter.status = status;
-      if (verifier !== undefined) filter.verifier = verifier === "true" || verifier === true;
-    } else if (isOwnProfile) {
-      if (status) filter.status = status;
-      filter.utilisateur = utilisateur;
-    } else {
-      // Catalogue public : uniquement profils validés
-      filter.status = "active";
-      filter.verifier = true;
-    }
-
-    if (utilisateur && (adminUser || isOwnProfile)) {
-      filter.utilisateur = utilisateur;
-    }
-    if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
-
-    const prestataires = await prestataireModel.find(filter)
-      .populate('utilisateur', 'nom prenom photoProfil email telephone')
-      .populate({
-        path: 'service',
-        match: categorie ? { categorie } : undefined,
-        populate: {
-          path: 'categorie',
-          populate: { path: 'groupe' }
-        }
-      })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
-
-    // Si filtre categorie via populate match, retirer les null
-    const result = categorie
-      ? prestataires.filter(p => p.service !== null)
-      : prestataires;
-
-    res.status(200).json(result);
-  } catch (err) {
-    console.error('Erreur récupération prestataires:', err.message);
-    res.status(500).json({ error: err.message });
-  }
 };
 
-// ✅ Lire prestataire par ID
-export const getPrestataireById = async (req, res) => {
-  try {
-    const prestataire = await prestataireModel.findById(req.params.id)
-      .populate("utilisateur")
-      .populate({
-        path: "service",
-        populate: {
-          path: "categorie",
-          populate: { path: "groupe" }
+// ✅ CHANGER LE STATUT D'UNE PRESTATION
+export const changerStatutPrestation = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { statut, nouveauStatut, commentaire } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'ID de prestation invalide' });
         }
-      });
 
-    if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
+        // Support des deux formats de paramètres
+        const newStatus = statut || nouveauStatut;
+        
+        const statutsValides = ['EN_ATTENTE', 'ACCEPTEE', 'REFUSEE', 'EN_COURS', 'TERMINEE', 'ANNULEE', 'LITIGE'];
+        if (!statutsValides.includes(newStatus)) {
+            return res.status(400).json({ error: 'Statut invalide' });
+        }
 
-    const adminUser = isAdmin(req);
-    const isOwner =
-      req.utilisateur &&
-      prestataire.utilisateur &&
-      String(prestataire.utilisateur._id ?? prestataire.utilisateur) ===
-        String(req.utilisateur._id);
+        const prestation = await prestationModel.findById(id);
+        if (!prestation) {
+            return res.status(404).json({ error: 'Prestation non trouvée' });
+        }
 
-<<<<<<< HEAD
-    const isPubliclyVisible =
-      prestataire.status === "active" && prestataire.verifier === true;
-=======
         if (!(await canAccessPrestation(req, prestation))) {
             return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
         }
 
         await prestation.changerStatut(newStatus, commentaire || '');
->>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
 
         // 🔔 CRÉER UNE NOTIFICATION AUTOMATIQUE
         try {
@@ -625,26 +519,8 @@ export const getPrestataireById = async (req, res) => {
         console.error('Erreur changement statut prestation:', err.message);
         res.status(500).json({ error: err.message });
     }
-
-    res.status(200).json(prestataire);
-  } catch (err) {
-    console.error("Erreur lecture prestataire:", err.message);
-    res.status(500).json({ error: err.message });
-  }
 };
 
-<<<<<<< HEAD
-// ✅ Supprimer un prestataire
-export const deletePrestataire = async (req, res) => {
-  try {
-    const prestataire = await prestataireModel.findByIdAndDelete(req.params.id);
-    if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
-    res.status(200).json({ message: "Prestataire supprimé avec succès" });
-  } catch (err) {
-    console.error("Erreur suppression prestataire:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-=======
 // ✅ SUPPRIMER UNE PRESTATION
 export const deletePrestation = async (req, res) => {
     try {
@@ -669,7 +545,6 @@ export const deletePrestation = async (req, res) => {
         console.error('Erreur suppression prestation:', err.message);
         res.status(500).json({ error: err.message });
     }
->>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
 };
 
 // ✅ OBTENIR LES PRESTATIONS D'UN PRESTATAIRE
@@ -682,9 +557,6 @@ export const getPrestationsPrestataire = async (req, res) => {
             return res.status(400).json({ error: 'ID prestataire invalide' });
         }
 
-<<<<<<< HEAD
-        const filters = { prestataire: mongoose.Types.ObjectId(prestataireId) };
-=======
         const prestDoc = await prestataireModel.findById(prestataireId).select('utilisateur');
         if (!prestDoc) {
             return res.status(404).json({ error: 'Prestataire non trouvé' });
@@ -694,7 +566,6 @@ export const getPrestationsPrestataire = async (req, res) => {
         }
 
         const filters = { prestataire: new mongoose.Types.ObjectId(prestataireId) };
->>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
         if (statut) filters.statut = statut;
 
         const prestations = await prestationModel.find(filters)
@@ -729,13 +600,9 @@ export const getPrestationsUtilisateur = async (req, res) => {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
 
-<<<<<<< HEAD
-        const filters = { utilisateur: mongoose.Types.ObjectId(utilisateurId) };
-=======
         if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
 
         const filters = { utilisateur: new mongoose.Types.ObjectId(utilisateurId) };
->>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
         if (statut) filters.statut = statut;
 
         const prestations = await prestationModel.find(filters)
@@ -748,15 +615,16 @@ export const getPrestationsUtilisateur = async (req, res) => {
 
         const total = await prestationModel.countDocuments(filters);
 
-    res.status(200).json({
-      success: true,
-      message: "Prestataire validé avec succès",
-      prestataire: populatedPrestataire
-    });
-  } catch (err) {
-    console.error("Erreur validation prestataire:", err.message);
-    res.status(500).json({ error: err.message });
-  }
+        res.status(200).json({
+            prestations,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page),
+            total
+        });
+    } catch (err) {
+        console.error('Erreur récupération prestations utilisateur:', err.message);
+        res.status(500).json({ error: err.message });
+    }
 };
 
 // ✅ OBTENIR LES STATISTIQUES DES PRESTATIONS
@@ -768,10 +636,10 @@ export const getPrestationStats = async (req, res) => {
         
         // Filtres optionnels
         if (prestataireId) {
-            matchCondition.prestataire = mongoose.Types.ObjectId(prestataireId);
+            matchCondition.prestataire = new mongoose.Types.ObjectId(prestataireId);
         }
         if (utilisateurId) {
-            matchCondition.utilisateur = mongoose.Types.ObjectId(utilisateurId);
+            matchCondition.utilisateur = new mongoose.Types.ObjectId(utilisateurId);
         }
         if (dateDebut && dateFin) {
             matchCondition.datePrestation = {
@@ -829,13 +697,15 @@ export const getPrestationStats = async (req, res) => {
             { $group: { _id: null, total: { $sum: '$montantTotal' } } }
         ]);
 
-    res.status(200).json({
-      success: true,
-      message: "Prestataire rejeté",
-      prestataire
-    });
-  } catch (err) {
-    console.error("Erreur rejet prestataire:", err.message);
-    res.status(500).json({ error: err.message });
-  }
+        res.status(200).json({
+            statsParStatut,
+            statsParVille,
+            prestationsParMois,
+            totalPrestations,
+            revenueTotal: revenueTotal[0]?.total || 0
+        });
+    } catch (err) {
+        console.error('Erreur statistiques prestations:', err.message);
+        res.status(500).json({ error: err.message });
+    }
 };

@@ -4,9 +4,8 @@ import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 
-// Helper : vérifier que l'utilisateur connecté est le propriétaire de la ressource (ou admin)
+// Helper : vérifier que l'utilisateur connecté est le propriétaire de la ressource
 const checkSecurityOwnership = (req, utilisateurId) => {
-  if (req.utilisateur?.role?.toUpperCase() === 'ADMIN') return true;
   return req.utilisateur._id.toString() === utilisateurId;
 };
 
@@ -416,10 +415,6 @@ export const removeTrustedDevice = async (req, res) => {
       });
     }
 
-    if (!checkSecurityOwnership(req, utilisateurId)) {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que vos propres paramètres de sécurité' });
-    }
-
     const security = await Security.findOne({ utilisateur: utilisateurId });
     
     if (!security) {
@@ -452,10 +447,6 @@ export const updateSecuritySettings = async (req, res) => {
       });
     }
 
-    if (!checkSecurityOwnership(req, utilisateurId)) {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que vos propres paramètres de sécurité' });
-    }
-
     let security = await Security.findOne({ utilisateur: utilisateurId });
     
     if (!security) {
@@ -485,10 +476,6 @@ export const getSecurityStats = async (req, res) => {
       return res.status(400).json({ 
         error: 'ID utilisateur invalide' 
       });
-    }
-
-    if (!checkSecurityOwnership(req, utilisateurId)) {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez consulter que vos propres statistiques de sécurité' });
     }
 
     const security = await Security.findOne({ utilisateur: utilisateurId });

@@ -111,6 +111,7 @@ export const importPrestatairesCSV = async (req, res) => {
           if (!categorie) {
             categorie = new Categorie({
               nomcategorie: IMPORT_CAT_NAME,
+              imagecategorie: 'https://via.placeholder.com/300x200?text=Import+CSV',
               groupe: groupe._id,
             });
             await categorie.save();
@@ -123,6 +124,7 @@ export const importPrestatairesCSV = async (req, res) => {
           if (!service) {
             service = new Service({
               nomservice: row.metier,
+              imageservice: 'https://via.placeholder.com/300x200?text=Service',
               prixmoyen: '0',
               categorie: categorie._id,
             });
@@ -132,21 +134,19 @@ export const importPrestatairesCSV = async (req, res) => {
           // Création du prestataire avec le modèle existant
           const prestataire = new Prestataire({
             utilisateur: utilisateur._id,
-            service: service._id,
-            prixprestataire: 0,
+            service: service._id, // ✅ Service valide
+            prixprestataire: 0, // À définir par l'utilisateur
             localisation: `${row.ville}, ${row.quartier}`,
             localisationmaps: {
               latitude: parseFloat(row.latitude),
               longitude: parseFloat(row.longitude)
             },
-            note: 0,
+            note: `Prestataire ${row.metier} importé via CSV`,
             verifier: false,
-            status: 'incomplete',
-            source: 'dashboard',
             specialite: [row.metier],
             anneeExperience: '0',
             description: `Prestataire ${row.metier} à ${row.ville}`,
-            rayonIntervention: 10,
+            rayonIntervention: 10, // 10km par défaut
             zoneIntervention: [row.ville, row.quartier],
             tarifHoraireMin: 0,
             tarifHoraireMax: 0,
@@ -155,7 +155,6 @@ export const importPrestatairesCSV = async (req, res) => {
             clients: []
           });
 
-          prestataire.syncFinalizationFromDocuments();
           const savedPrestataire = await prestataire.save();
           if (savedPrestataire._id) {
             console.log(`✅ Prestataire sauvegardé: ${row.nom} (ID: ${savedPrestataire._id})`);
