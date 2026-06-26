@@ -11,8 +11,8 @@ import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFil
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 
-// Config Cloudinary
 cloudinary.v2.config({
+<<<<<<< HEAD
 <<<<<<< HEAD
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -35,6 +35,11 @@ cloudinary.v2.config({
   api_key: "541481188898557",
   api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 });
 
 // ✅ Créer un freelance (Modèle sdealsapp)
@@ -228,6 +233,9 @@ export const getAllFreelances = async (req, res) => {
 >>>>>>> 1ca350b (Dashboard Complet and Merge)
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
+    }
+    if (req.query.utilisateur) {
+      filter.utilisateur = req.query.utilisateur;
     }
 
     const freelances = await freelanceModel.find(filter)

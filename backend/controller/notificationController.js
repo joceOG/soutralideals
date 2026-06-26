@@ -1,8 +1,11 @@
 import notificationModel from "../models/notificationModel.js";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 
@@ -21,12 +24,19 @@ async function repairLegacyPrestataireNotifications(userId) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import mongoose from "mongoose";
 
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+import mongoose from "mongoose";
+
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // ✅ Créer une notification
 export const createNotification = async (req, res) => {
   try {
@@ -94,6 +104,7 @@ export const getNotificationsByUser = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     await repairLegacyPrestataireNotifications(userId);
 
 =======
@@ -102,6 +113,12 @@ export const getNotificationsByUser = async (req, res) => {
     await repairLegacyPrestataireNotifications(userId);
 
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    await repairLegacyPrestataireNotifications(userId);
+
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const query = { destinataire: userId };
     if (statut) {
       query.statut = statut;
@@ -226,6 +243,7 @@ export const getUnreadCount = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     await repairLegacyPrestataireNotifications(userId);
 
 =======
@@ -234,6 +252,12 @@ export const getUnreadCount = async (req, res) => {
     await repairLegacyPrestataireNotifications(userId);
 
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    await repairLegacyPrestataireNotifications(userId);
+
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const count = await notificationModel.countDocuments({
       destinataire: userId,
       statut: 'NON_LUE'

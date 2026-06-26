@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
 import multer from 'multer';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
@@ -13,14 +6,6 @@ import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
 import { assertPhoneVerificationToken, normalizePhone } from '../services/otpService.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 
@@ -125,32 +110,7 @@ export const signUp = async (req, res) => {
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
-<<<<<<< HEAD
 };
-=======
-  next();
-=======
-
-// Config Cloudinary
-cloudinary.v2.config({
-  cloud_name: 'dm0c8st6k',
-  api_key: '541481188898557',
-  api_secret: '6ViefK1wxoJP50p8j2pQ7IykIYY',
-});
-
-// Config Multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/utilisateurs'),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-});
-export const upload = multer({ storage });
-
-// ✅ INSCRIPTION
-export const signUp = async (req, res) => {
-  try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
 
 
 // ✅ CONNEXION
@@ -189,74 +149,9 @@ export const signIn = async (req, res) => {
   } catch (e) {
     console.error("❌ Erreur signIn:", e);
     res.status(500).json({ error: "Erreur interne du serveur" });
-<<<<<<< HEAD
   }
 };
 
-=======
-=======
-// Méthode statique pour login par email ou téléphone
-UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
-  let user = null;
-  if (validator.isEmail(identifiant)) {
-    user = await this.findOne({ email: identifiant });
-  } else {
-    user = await this.findOne({ telephone: identifiant });
->>>>>>> 1ca350b (Dashboard Complet and Merge)
-=======
-    // ✅ Accepter les rôles en minuscules et les convertir
-    const validRoles = ["prestataire", "vendeur", "freelance", "client"];
-    const roleMap = {
-      "prestataire": "Prestataire",
-      "vendeur": "Vendeur", 
-      "freelance": "Freelance",
-      "client": "Client"
-    };
-    
-    if (!role || !validRoles.includes(role.toLowerCase())) {
-      return res.status(400).json({ error: "Rôle invalide ou manquant" });
-    }
-    
-    // Convertir le rôle en format backend
-    const normalizedRole = roleMap[role.toLowerCase()];
-
-    // Vérification unicité email/téléphone
-    const conditions = [];
-    if (email) conditions.push({ email });
-    if (telephone) conditions.push({ telephone });
-    const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
-
-    if (existingUser) {
-      let error = '';
-      if (email && existingUser.email === email) error = 'Email déjà utilisé';
-      else if (telephone && existingUser.telephone === telephone) error = 'Numéro de téléphone déjà utilisé';
-      return res.status(400).json({ error });
-    }
-
-    // Upload photo si présent
-    let photoProfil = '';
-    if (req.file) {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
-      photoProfil = result.secure_url;
-      fs.unlinkSync(req.file.path);
-    }
-
-    // Création de l'utilisateur
-    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role: normalizedRole });
-    await newUser.save();
-
-    const token = await newUser.generateAuthToken();
-
-    res.status(201).json({ utilisateur: newUser, token });
-  } catch (e) {
-    res.status(400).json({ error: e.message });
->>>>>>> 9ae6c75 (Merge Dashboard Complete 2026)
-  }
-};
-
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
 
 // ✅ DECONNEXION : invalide le token courant en base
 export const logout = async (req, res) => {
@@ -273,83 +168,6 @@ export const logout = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-// Méthode d'instance pour comparer un mot de passe en clair avec le hash
-UtilisateurSchema.methods.comparePassword = async function(password) {
-  return bcrypt.compare(password, this.password);
->>>>>>> 1ca350b (Dashboard Complet and Merge)
-=======
-
-// ✅ CONNEXION
-export const signIn = async (req, res) => {
-  try {
-    let { identifiant, password } = req.body;
-
-    // 🔹 Sécurité : forcer en string + trim
-    identifiant = identifiant ? String(identifiant).trim() : '';
-    password = password ? String(password).trim() : '';
-
-    console.log("📥 Requête reçue signIn:", { identifiant, password });
-
-    // 🔹 Vérification des champs
-    if (!identifiant) {
-      return res.status(400).json({ error: 'Email ou téléphone requis' });
-    }
-    if (!password) {
-      return res.status(400).json({ error: 'Mot de passe requis' });
-    }
-
-    // 🔹 Recherche utilisateur via méthode statique
-    let user;
-    try {
-      user = await Utilisateur.findByCredentials(identifiant, password);
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
-    }
-
-    // 🔹 Génération du token
-    const token = await user.generateAuthToken();
-
-    res.status(200).json({
-      message: 'Connexion réussie',
-      utilisateur: user,
-      token
-    });
-  } catch (e) {
-    console.error("❌ Erreur signIn:", e);
-    res.status(500).json({ error: "Erreur interne du serveur" });
-  }
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-};
-
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-    const [utilisateurs, total] = await Promise.all([
-      Utilisateur.find({})
-        .select('-password -tokens')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Utilisateur.countDocuments({})
-    ]);
-
-    res.status(200).json({
-      utilisateurs,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
-    });
-=======
-// ✅ DECONNEXION (statique)
-export const logout = (req, res) => {
-  res.status(200).json({ message: 'Déconnexion réussie' });
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
 };
 
 // ✅ LISTER TOUS LES UTILISATEURS (ADMIN seulement, avec pagination)
@@ -374,22 +192,6 @@ export const getAllUsers = async (req, res) => {
       page,
       totalPages: Math.ceil(total / limit)
     });
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-// ✅ DECONNEXION (statique)
-export const logout = (req, res) => {
-  res.status(200).json({ message: 'Déconnexion réussie' });
-};
-
-// ✅ LISTER TOUS LES UTILISATEURS
-export const getAllUsers = async (req, res) => {
-  try {
-    const utilisateurs = await Utilisateur.find({});
-    res.status(200).json(utilisateurs);
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -409,14 +211,6 @@ export const getUserById = async (req, res) => {
 // ✅ MODIFIER UN UTILISATEUR
 export const updateUserById = async (req, res) => {
   try {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
     // 🛡️ IDOR : l'utilisateur ne peut modifier que son propre profil (sauf admin)
     const requesterId = req.utilisateur?._id?.toString();
     const targetId = req.params.id;
@@ -424,16 +218,6 @@ export const updateUserById = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que votre propre profil' });
     }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
     // 1️⃣ Champs autorisés à être mis à jour par le front
     const allowedFields = [
       'nom',
@@ -453,34 +237,12 @@ export const updateUserById = async (req, res) => {
     }
 
     // 3️⃣ Vérification du rôle si présent
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
     const validRoles = ['Admin', 'Prestataire', 'Vendeur', 'Freelance', 'Client'];
     if (safeUpdates.role && !validRoles.includes(safeUpdates.role)) {
       return res.status(400).json({ error: 'Rôle invalide' });
     }
     if (safeUpdates.role === 'Admin' && req.utilisateur?.role !== 'Admin') {
       return res.status(403).json({ error: 'Seul un administrateur peut attribuer le rôle Admin' });
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-    if (safeUpdates.role && !['Prestataire', 'Vendeur', 'Freelance', 'Client'].includes(safeUpdates.role)) {
-      return res.status(400).json({ error: "Rôle invalide" });
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-    if (safeUpdates.role && !['Prestataire', 'Vendeur', 'Freelance', 'Client'].includes(safeUpdates.role)) {
-      return res.status(400).json({ error: "Rôle invalide" });
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
     }
 
     // 4️⃣ Upload photoProfil si présent
@@ -500,44 +262,16 @@ export const updateUserById = async (req, res) => {
     // 7️⃣ Sauvegarder l'utilisateur (pré-save pour hasher le mot de passe si modifié)
     await user.save();
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
     const safeUser = user.toObject();
     delete safeUser.password;
     delete safeUser.tokens;
     res.status(200).json(safeUser);
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-    res.status(200).json(user);
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-    res.status(200).json(user);
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
   } catch (err) {
     console.error("❌ Erreur updateUserById:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
 // ✅ CHANGER LE MOT DE PASSE
 export const changePassword = async (req, res) => {
   try {
@@ -585,22 +319,6 @@ export const deleteUserById = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé : vous ne pouvez supprimer que votre propre compte' });
     }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-// ✅ SUPPRIMER UN UTILISATEUR
-export const deleteUserById = async (req, res) => {
-  try {
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-// ✅ SUPPRIMER UN UTILISATEUR
-export const deleteUserById = async (req, res) => {
-  try {
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)
     const utilisateur = await Utilisateur.findByIdAndDelete(req.params.id);
     if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
@@ -649,15 +367,4 @@ export const getUserRoles = async (req, res) => {
     console.error('Erreur getUserRoles:', err.message);
     res.status(500).json({ error: err.message });
   }
-<<<<<<< HEAD
 };
-=======
-};
-<<<<<<< HEAD
-=======
-const utilisateurModel = mongoose.model("Utilisateur", UtilisateurSchema);
-export default utilisateurModel;
->>>>>>> 1ca350b (Dashboard Complet and Merge)
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
->>>>>>> af7ea57 (Amelioration du Dashboard Prestataire 2026)

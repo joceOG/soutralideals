@@ -3,15 +3,19 @@ import mongoose from "mongoose";
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
-// Config Cloudinary
 cloudinary.config({
+<<<<<<< HEAD
 <<<<<<< HEAD
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -39,6 +43,11 @@ cloudinary.config({
   api_key: "541481188898557",
   api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 });
 
 // 🔹 Fonction utilitaire upload Cloudinary
@@ -84,8 +93,11 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const parseNumber = (value, fallback = 0) => {
       if (value === null || typeof value === "undefined" || value === "") {
         return fallback;
@@ -117,6 +129,7 @@ export const createPrestataire = async (req, res) => {
       .map((id) => new mongoose.Types.ObjectId(id));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
     const serviceMissing =
@@ -137,17 +150,24 @@ export const createPrestataire = async (req, res) => {
 =======
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
+=======
+    // ✅ GESTION INSCRIPTION SIMPLIFIÉE
+    let finalService = service;
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const serviceMissing =
       !service ||
       service === "" ||
       (typeof service === "string" && !mongoose.Types.ObjectId.isValid(service));
     if (serviceMissing && category) {
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
     // ✅ GESTION INSCRIPTION SIMPLIFIÉE
     let finalService = service;
     if (!service && category) {
 >>>>>>> 1ca350b (Dashboard Complet and Merge)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
@@ -177,6 +197,7 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     } else if (serviceMissing) {
       return res.status(400).json({ error: "service ou category requis" });
 =======
@@ -189,6 +210,10 @@ export const createPrestataire = async (req, res) => {
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 1ca350b (Dashboard Complet and Merge)
+=======
+    } else if (serviceMissing) {
+      return res.status(400).json({ error: "service ou category requis" });
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     }
 
     // Parsing localisationmaps
@@ -240,6 +265,7 @@ export const createPrestataire = async (req, res) => {
     const newPrestataire = new prestataireModel({
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       utilisateur: new mongoose.Types.ObjectId(utilisateur),
       service: new mongoose.Types.ObjectId(finalService),
       prixprestataire: parseNumber(prixprestataire, 0),
@@ -253,25 +279,34 @@ export const createPrestataire = async (req, res) => {
       service: mongoose.Types.ObjectId(finalService), // ✅ Utiliser le service trouvé
       prixprestataire,
 >>>>>>> 1ca350b (Dashboard Complet and Merge)
+=======
+      utilisateur: new mongoose.Types.ObjectId(utilisateur),
+      service: new mongoose.Types.ObjectId(finalService),
+      prixprestataire: parseNumber(prixprestataire, 0),
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       localisation,
-      note,
+      note: parseNumber(note, 0),
       verifier: verifier === "true" || verifier === true,
-      specialite: specialite ? (Array.isArray(specialite) ? specialite : [specialite]) : [],
+      specialite: specialiteArr,
       anneeExperience,
       description,
-      rayonIntervention,
-      zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
+      rayonIntervention: parseNumber(rayonIntervention, 10),
+      zoneIntervention: zoneInterventionArr,
       localisationmaps: parsedLocalisation,
-      tarifHoraireMin,
-      tarifHoraireMax,
+      tarifHoraireMin: parseNumber(tarifHoraireMin, 0),
+      tarifHoraireMax: parseNumber(tarifHoraireMax, 0),
       numeroCNI,
       numeroRCCM,
       numeroAssurance,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       nbMission: parseNumber(nbMission, 0),
       nbAvis: parseNumber(req.body.nbAvis, 0),
       revenus: parseNumber(revenus, 0),
       clients: clientsIds,
+<<<<<<< HEAD
 =======
     // Création prestataire
 =======
@@ -313,6 +348,8 @@ export const createPrestataire = async (req, res) => {
       revenus,
       clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       diplomeCertificat,
       ...uploads,
     });
@@ -331,6 +368,7 @@ export const createPrestataire = async (req, res) => {
       newPrestataire.status = req.body.status;
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
       newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
 =======
@@ -353,6 +391,9 @@ export const createPrestataire = async (req, res) => {
 =======
       newPrestataire.recenseur = mongoose.Types.ObjectId(req.body.recenseur);
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+      newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     }
     if (req.body.dateRecensement) {
       newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
@@ -413,8 +454,11 @@ export const updatePrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const parseNumber = (value) => {
       if (value === null || typeof value === "undefined" || value === "") {
         return undefined;
@@ -424,12 +468,15 @@ export const updatePrestataire = async (req, res) => {
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
@@ -448,6 +495,7 @@ export const updatePrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: new mongoose.Types.ObjectId(service) }),
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
@@ -458,24 +506,30 @@ export const updatePrestataire = async (req, res) => {
       ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: mongoose.Types.ObjectId(service) }),
       ...(prixprestataire && { prixprestataire }),
+=======
+      ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
+      ...(service && { service: new mongoose.Types.ObjectId(service) }),
+      ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       ...(localisation && { localisation }),
-      ...(note && { note }),
+      ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
       ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
-      ...(rayonIntervention && { rayonIntervention }),
+      ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
       ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
       ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
-      ...(tarifHoraireMin && { tarifHoraireMin }),
-      ...(tarifHoraireMax && { tarifHoraireMax }),
+      ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
+      ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
       ...(numeroCNI && { numeroCNI }),
       ...(numeroRCCM && { numeroRCCM }),
       ...(numeroAssurance && { numeroAssurance }),
-      ...(nbMission && { nbMission }),
-      ...(revenus && { revenus }),
-      ...(clients && { clients: clients.map(id => mongoose.Types.ObjectId(id)) }),
+      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
+      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
+      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
+      ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
     };
 
 <<<<<<< HEAD
@@ -589,6 +643,7 @@ export const updatePrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
@@ -648,9 +703,51 @@ export const getAllPrestataires = async (req, res) => {
           populate: { path: "groupe" }
         }
       });
+=======
+// ✅ Lire tous les prestataires (avec filtres optionnels)
+export const getAllPrestataires = async (req, res) => {
+  try {
+    const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
-    res.status(200).json(prestataires);
+    const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
+    const filter = {};
+    if (service) {
+      if (
+        excludedSvc.length &&
+        excludedSvc.some((id) => String(id) === String(service))
+      ) {
+        return res.json([]);
+      }
+      filter.service = service;
+    } else if (excludedSvc.length) {
+      filter.service = { $nin: excludedSvc };
+    }
+    if (status) filter.status = status;
+    if (utilisateur) filter.utilisateur = utilisateur;
+    if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
+
+    const prestataires = await prestataireModel.find(filter)
+      .populate('utilisateur', 'nom prenom photoProfil email telephone')
+      .populate({
+        path: 'service',
+        match: categorie ? { categorie } : undefined,
+        populate: {
+          path: 'categorie',
+          populate: { path: 'groupe' }
+        }
+      })
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit));
+
+    // Si filtre categorie via populate match, retirer les null
+    const result = categorie
+      ? prestataires.filter(p => p.service !== null)
+      : prestataires;
+
+    res.status(200).json(result);
   } catch (err) {
+<<<<<<< HEAD
 <<<<<<< HEAD
     console.error('Erreur récupération prestataires:', err.message);
 =======
@@ -730,6 +827,9 @@ export const getAllPrestataires = async (req, res) => {
 =======
     console.error("Erreur récupération prestataires:", err.message);
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+    console.error('Erreur récupération prestataires:', err.message);
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     res.status(500).json({ error: err.message });
   }
 };

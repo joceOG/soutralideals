@@ -6,8 +6,11 @@ const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 function authHeaders(): HeadersInit {
   const token = localStorage.getItem('token');
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
@@ -16,10 +19,15 @@ function authHeaders(): HeadersInit {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -91,15 +99,22 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult> =>
       method: 'POST',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
       headers: authHeaders(),
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       body: JSON.stringify({ address }),
     });
 
@@ -121,15 +136,22 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeR
       method: 'POST',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
       headers: authHeaders(),
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       body: JSON.stringify({ lat, lng }),
     });
 
@@ -155,15 +177,22 @@ export const calculateDistance = async (
       method: 'POST',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
       headers: authHeaders(),
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -197,17 +226,24 @@ export const searchNearbyPlaces = async (
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
       headers: authHeaders(),
     });
 =======
     const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`);
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
     const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
       headers: authHeaders(),
     });
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const result = await response.json();
     return result;
   } catch (error) {
@@ -230,15 +266,22 @@ export const getDirections = async (
       method: 'POST',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
       headers: authHeaders(),
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       body: JSON.stringify({ origin, destination, mode }),
     });
 
@@ -260,15 +303,22 @@ export const validateAddress = async (address: string): Promise<GeocodeResult> =
       method: 'POST',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
       headers: authHeaders(),
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       body: JSON.stringify({ address }),
     });
 
@@ -294,15 +344,22 @@ export const calculateServiceArea = async (
       method: 'POST',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       headers: authHeaders(),
 =======
       headers: {
         'Content-Type': 'application/json',
       },
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
       headers: authHeaders(),
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       body: JSON.stringify({ lat, lng, radius }),
     });
 

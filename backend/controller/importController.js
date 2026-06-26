@@ -136,16 +136,23 @@ export const importPrestatairesCSV = async (req, res) => {
             utilisateur: utilisateur._id,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             service: service._id,
             prixprestataire: 0,
 =======
             service: service._id, // ✅ Service valide
             prixprestataire: 0, // À définir par l'utilisateur
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
             service: service._id,
             prixprestataire: 0,
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             localisation: `${row.ville}, ${row.quartier}`,
             localisationmaps: {
               latitude: parseFloat(row.latitude),
@@ -153,6 +160,9 @@ export const importPrestatairesCSV = async (req, res) => {
             },
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             note: 0,
             verifier: false,
             status: 'incomplete',
@@ -163,6 +173,7 @@ export const importPrestatairesCSV = async (req, res) => {
             rayonIntervention: 10,
 =======
             note: `Prestataire ${row.metier} importé via CSV`,
+<<<<<<< HEAD
 =======
             note: 0,
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
@@ -178,6 +189,14 @@ export const importPrestatairesCSV = async (req, res) => {
 =======
             rayonIntervention: 10,
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+            verifier: false,
+            specialite: [row.metier],
+            anneeExperience: '0',
+            description: `Prestataire ${row.metier} à ${row.ville}`,
+            rayonIntervention: 10, // 10km par défaut
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             zoneIntervention: [row.ville, row.quartier],
             tarifHoraireMin: 0,
             tarifHoraireMax: 0,
@@ -188,12 +207,18 @@ export const importPrestatairesCSV = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           prestataire.syncFinalizationFromDocuments();
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
           prestataire.syncFinalizationFromDocuments();
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+          prestataire.syncFinalizationFromDocuments();
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
           const savedPrestataire = await prestataire.save();
           if (savedPrestataire._id) {
             console.log(`✅ Prestataire sauvegardé: ${row.nom} (ID: ${savedPrestataire._id})`);

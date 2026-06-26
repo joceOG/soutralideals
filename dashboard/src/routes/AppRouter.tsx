@@ -34,18 +34,26 @@ import ImportPrestataires from '../pages/ImportPrestataires';
 import RecensementsPending from '../pages/RecensementsPending';
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const withAuth = (element: React.ReactElement) => (
   <ProtectedRoute>{element}</ProtectedRoute>
 );
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 // Ce composant ne contient que les routes, sans le BrowserRouter
 // Le BrowserRouter est maintenant dans Dashboard.tsx
@@ -54,6 +62,9 @@ const AppRouter: React.FC = () => {
     <Routes>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       <Route path="/connexion" element={<Connexion />} />
       
       {/* ✅ Routes protégées — JWT requis */}
@@ -100,6 +111,7 @@ const AppRouter: React.FC = () => {
       <Route path="/freelance" element={<Freelance />} />
       <Route path="/freelance-offres" element={<FreelanceServices />} />
       <Route path="/vendeur" element={<Vendeur />} />
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       <Route path="/connexion" element={<Connexion />} />
@@ -134,6 +146,15 @@ const AppRouter: React.FC = () => {
       <Route path="/recensements-pending" element={withAuth(<RecensementsPending />)} />
       
 <<<<<<< HEAD
+=======
+      <Route path="/connexion" element={<Connexion />} />
+      
+      {/* ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS */}
+      <Route path="/commandes" element={<Commandes />} />
+      <Route path="/notifications" element={<Notifications />} />
+      <Route path="/messages" element={<Messages />} />
+      
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       {/* ✅ PRESTATIONS MODULE COMPLET */}
       <Route path="/prestations" element={<Prestations />} />
       
@@ -158,11 +179,15 @@ const AppRouter: React.FC = () => {
       
       {/* ✅ OPTION C - Validation recensements SDEALSIDENTIFICATION */}
       <Route path="/recensements-pending" element={<RecensementsPending />} />
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
       {/* Legacy redirect */}
       <Route path="/soutralideals" element={<Navigate to="/" replace />} />
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       
       {/* 🚧 ROUTES À VENIR (pages temporaires ou placeholders) */}
       <Route path="/signalements" element={<div>Module Signalements - En cours de développement</div>} />

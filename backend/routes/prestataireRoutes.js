@@ -3,6 +3,9 @@ import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
@@ -15,10 +18,15 @@ import {
   requireSelfOrAdmin,
 } from "../middleware/entityAccess.js";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import {
   createPrestataire,
   getAllPrestataires,
@@ -32,6 +40,9 @@ import {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 const upload = multer({ dest: "uploads/" });
 
 const prestataireRouter = Router();
@@ -74,6 +85,7 @@ prestataireRouter.put(
 
 =======
 const upload = multer({ dest: "uploads/" }); // stockage temporaire pour Cloudinary
+<<<<<<< HEAD
 =======
 const upload = multer({ dest: "uploads/" });
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
@@ -118,6 +130,35 @@ prestataireRouter.put(
 );
 
 <<<<<<< HEAD
+=======
+
+const prestataireRouter = Router();
+
+prestataireRouter.post(
+  '/prestataire',
+  upload.fields([
+    { name: 'cni1', maxCount: 1 },
+    { name: 'cni2', maxCount: 1 },
+    { name: 'selfie', maxCount: 1 },
+    { name: 'diplomeCertificat', maxCount: 10 }, // plusieurs diplômes
+    { name: 'attestationAssurance', maxCount: 1 }, // si tu veux gérer l'assurance
+  ]),
+  createPrestataire
+);
+
+prestataireRouter.put(
+  '/prestataire/:id',
+  upload.fields([
+    { name: 'cni1', maxCount: 1 },
+    { name: 'cni2', maxCount: 1 },
+    { name: 'selfie', maxCount: 1 },
+    { name: 'diplomeCertificat', maxCount: 10 },
+    { name: 'attestationAssurance', maxCount: 1 },
+  ]),
+  updatePrestataire
+);
+
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
 prestataireRouter.get("/prestataire/pending/list", getPendingPrestataires);
 
@@ -127,7 +168,11 @@ prestataireRouter.delete("/prestataire/:id", deletePrestataire);
 prestataireRouter.put("/prestataire/:id/validate", validatePrestataire);
 prestataireRouter.put("/prestataire/:id/reject", rejectPrestataire);
 
+<<<<<<< HEAD
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 export default prestataireRouter;

@@ -3,6 +3,9 @@ import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
@@ -15,10 +18,15 @@ import {
   requireVendeurOwnerOrAdmin,
 } from "../middleware/entityAccess.js";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import {
   createVendeur,
   getAllVendeurs,
@@ -27,11 +35,17 @@ import {
   deleteVendeur,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // ✅ NOUVELLES MÉTHODES SDEALSAPP
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+  // ✅ NOUVELLES MÉTHODES SDEALSAPP
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   updateVendeurRating,
   promoteVendeur,
   getVendeursByCategory,
@@ -43,6 +57,9 @@ import {
   rejectVendeur,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   getPendingVendeurs,
 } from "../controller/vendeurController.js";
 
@@ -57,6 +74,7 @@ const uploaderVendeur = upload.fields([
   { name: "taxDocument", maxCount: 1 },
 =======
   getPendingVendeurs
+<<<<<<< HEAD
 =======
   getPendingVendeurs,
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
@@ -77,12 +95,31 @@ const uploaderVendeur = upload.fields([
   { name: "businessLicense", maxCount: 1 },
   { name: "taxDocument", maxCount: 1 },
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+} from "../controller/vendeurController.js";
+
+// ✅ CONFIGURATION MULTER POUR UPLOAD TEMPORAIRE
+const upload = multer({ dest: "uploads/" }); // Stockage temporaire avant Cloudinary
+
+// ✅ MULTER MODERNISÉ : Accepter tous les fichiers nécessaires
+const uploaderVendeur = upload.fields([
+  { name: "shopLogo", maxCount: 1 },        // ✅ NOUVEAU: Logo boutique
+  { name: "cni1", maxCount: 1 },           // Documents vérification
+  { name: "cni2", maxCount: 1 },
+  { name: "selfie", maxCount: 1 },
+  { name: "businessLicense", maxCount: 1 }, // ✅ NOUVEAU: Licence commerciale
+  { name: "taxDocument", maxCount: 1 },     // ✅ NOUVEAU: Document fiscal
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 ]);
 
 const vendeurRouter = Router();
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // Public — catalogue (routes spécifiques avant /:id)
 vendeurRouter.get("/vendeur/pending/list", ...authAdmin, getPendingVendeurs);
 vendeurRouter.get("/vendeur", optionalAuth, getAllVendeurs);
@@ -120,6 +157,7 @@ vendeurRouter.put("/vendeur/:id/rating", auth, updateVendeurRating);
 =======
 // ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
 vendeurRouter.get("/vendeur/pending/list", getPendingVendeurs);
+<<<<<<< HEAD
 =======
 // Public — catalogue (routes spécifiques avant /:id)
 vendeurRouter.get("/vendeur/pending/list", ...authAdmin, getPendingVendeurs);
@@ -163,6 +201,27 @@ vendeurRouter.put(
 
 vendeurRouter.put("/vendeur/:id/rating", auth, updateVendeurRating);
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+vendeurRouter.get("/vendeurs/category/:category", getVendeursByCategory);
+vendeurRouter.get("/vendeurs/search", searchVendeurs);
+vendeurRouter.get("/vendeurs/top", getTopVendeurs);
+
+// ✅ ROUTES CRUD PRINCIPALES
+vendeurRouter.post("/vendeur", uploaderVendeur, createVendeur);
+vendeurRouter.get("/vendeur", getAllVendeurs);
+vendeurRouter.get("/vendeur/:id", getVendeurById);
+vendeurRouter.put("/vendeur/:id", uploaderVendeur, updateVendeur);
+vendeurRouter.delete("/vendeur/:id", deleteVendeur);
+
+// ✅ ROUTES SPÉCIALISÉES
+vendeurRouter.put("/vendeur/:id/rating", updateVendeurRating);
+vendeurRouter.put("/vendeur/:id/promote", promoteVendeur);
+vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);
+vendeurRouter.patch("/vendeur/:id/status", changeVendeurStatus);
+vendeurRouter.put("/vendeur/:id/validate", validateVendeur);
+vendeurRouter.put("/vendeur/:id/reject", rejectVendeur);
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 vendeurRouter.put(
   "/vendeur/:id",
