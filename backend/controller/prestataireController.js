@@ -1,13 +1,13 @@
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
+import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
-// Config Cloudinary
 cloudinary.config({
-  cloud_name: "dm0c8st6k",
-  api_key: "541481188898557",
-  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // 🔹 Fonction utilitaire upload Cloudinary
@@ -159,22 +159,23 @@ export const createPrestataire = async (req, res) => {
       service: new mongoose.Types.ObjectId(finalService),
       prixprestataire: parseNumber(prixprestataire, 0),
       localisation,
-      note,
+      note: parseNumber(note, 0),
       verifier: verifier === "true" || verifier === true,
-      specialite: specialite ? (Array.isArray(specialite) ? specialite : [specialite]) : [],
+      specialite: specialiteArr,
       anneeExperience,
       description,
-      rayonIntervention,
-      zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
+      rayonIntervention: parseNumber(rayonIntervention, 10),
+      zoneIntervention: zoneInterventionArr,
       localisationmaps: parsedLocalisation,
-      tarifHoraireMin,
-      tarifHoraireMax,
+      tarifHoraireMin: parseNumber(tarifHoraireMin, 0),
+      tarifHoraireMax: parseNumber(tarifHoraireMax, 0),
       numeroCNI,
       numeroRCCM,
       numeroAssurance,
-      nbMission,
-      revenus,
-      clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
+      nbMission: parseNumber(nbMission, 0),
+      nbAvis: parseNumber(req.body.nbAvis, 0),
+      revenus: parseNumber(revenus, 0),
+      clients: clientsIds,
       diplomeCertificat,
       ...uploads,
     });
@@ -187,7 +188,7 @@ export const createPrestataire = async (req, res) => {
       newPrestataire.status = req.body.status;
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
-      newPrestataire.recenseur = mongoose.Types.ObjectId(req.body.recenseur);
+      newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
     }
     if (req.body.dateRecensement) {
       newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
@@ -234,6 +235,14 @@ export const updatePrestataire = async (req, res) => {
       clients
     } = req.body;
 
+    const parseNumber = (value) => {
+      if (value === null || typeof value === "undefined" || value === "") {
+        return undefined;
+      }
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    };
+
     // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
@@ -249,26 +258,27 @@ export const updatePrestataire = async (req, res) => {
     }
 
     const updates = {
-      ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
-      ...(service && { service: mongoose.Types.ObjectId(service) }),
-      ...(prixprestataire && { prixprestataire }),
+      ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
+      ...(service && { service: new mongoose.Types.ObjectId(service) }),
+      ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
       ...(localisation && { localisation }),
-      ...(note && { note }),
+      ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
       ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
-      ...(rayonIntervention && { rayonIntervention }),
+      ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
       ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
       ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
-      ...(tarifHoraireMin && { tarifHoraireMin }),
-      ...(tarifHoraireMax && { tarifHoraireMax }),
+      ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
+      ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
       ...(numeroCNI && { numeroCNI }),
       ...(numeroRCCM && { numeroRCCM }),
       ...(numeroAssurance && { numeroAssurance }),
-      ...(nbMission && { nbMission }),
-      ...(revenus && { revenus }),
-      ...(clients && { clients: clients.map(id => mongoose.Types.ObjectId(id)) }),
+      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
+      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
+      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
+      ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
     };
 
     // Upload fichiers simples
@@ -307,22 +317,49 @@ export const updatePrestataire = async (req, res) => {
   }
 };
 
-// ✅ Lire tous les prestataires
+// ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
-    const prestataires = await prestataireModel.find()
-      .populate("utilisateur")
-      .populate({
-        path: "service",
-        populate: {
-          path: "categorie",
-          populate: { path: "groupe" }
-        }
-      });
+    const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
 
-    res.status(200).json(prestataires);
+    const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
+    const filter = {};
+    if (service) {
+      if (
+        excludedSvc.length &&
+        excludedSvc.some((id) => String(id) === String(service))
+      ) {
+        return res.json([]);
+      }
+      filter.service = service;
+    } else if (excludedSvc.length) {
+      filter.service = { $nin: excludedSvc };
+    }
+    if (status) filter.status = status;
+    if (utilisateur) filter.utilisateur = utilisateur;
+    if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
+
+    const prestataires = await prestataireModel.find(filter)
+      .populate('utilisateur', 'nom prenom photoProfil email telephone')
+      .populate({
+        path: 'service',
+        match: categorie ? { categorie } : undefined,
+        populate: {
+          path: 'categorie',
+          populate: { path: 'groupe' }
+        }
+      })
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit));
+
+    // Si filtre categorie via populate match, retirer les null
+    const result = categorie
+      ? prestataires.filter(p => p.service !== null)
+      : prestataires;
+
+    res.status(200).json(result);
   } catch (err) {
-    console.error("Erreur récupération prestataires:", err.message);
+    console.error('Erreur récupération prestataires:', err.message);
     res.status(500).json({ error: err.message });
   }
 };

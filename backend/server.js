@@ -39,10 +39,6 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
-import searchRouter from './routes/searchRoutes.js';
-import walletRouter from './routes/walletRoutes.js';
-import refreshTokenRouter from './routes/refreshTokenRoutes.js';
-import { authenticateSocketUser } from './utils/socketAuth.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -139,30 +135,9 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
-// 🛡️ RATE LIMITING pour les avis (anti-spam)
-const avisLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 heure
-  max: 10,
-  message: { error: 'Trop d\'avis postés, réessayez dans une heure.' },
-  keyGenerator: (req) => req.utilisateur?._id?.toString() ?? 'anonymous',
-  skip: (req) => !req.utilisateur?._id,
-});
-
-// 🛡️ RATE LIMITING pour le refresh token
-const refreshLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  message: {
-    error: 'Trop de tentatives de rafraîchissement, veuillez réessayer plus tard.',
-    retryAfter: '15 minutes'
-  },
-});
-
 app.use(limiter);
-// Routes d'auth réelles : /api/login et /api/register
-app.use('/api/login', authLimiter);
-app.use('/api/register', authLimiter);
-app.use('/api/refresh-token', refreshLimiter);
+app.use('/api/utilisateur/login', authLimiter);
+app.use('/api/utilisateur/register', authLimiter);
 
 // 📝 LOGGING AVANCÉ
 app.use(httpLogger);
@@ -239,8 +214,6 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
-app.use('/api', walletRouter);
-app.use('/api', refreshTokenRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -520,25 +493,11 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('🔌 Utilisateur connecté:', socket.id);
 
-  // 📱 Authentification de l'utilisateur (JWT requis en production)
-  socket.on('authenticate', async (payload) => {
-    try {
-      const userId = await authenticateSocketUser(payload);
-      if (!userId) {
-        socket.emit('auth-error', { error: 'Authentification Socket refusée.' });
-        return;
-      }
-      const utilisateurModel = (await import('./models/utilisateurModel.js')).default;
-      const userDoc = await utilisateurModel.findById(userId).select('role');
-      socket.userId = userId;
-      socket.userRole = userDoc?.role;
-      socket.authenticated = true;
-      socket.join(`user_${userId}`);
-      console.log(`👤 Utilisateur ${userId} authentifié (socket)`);
-    } catch (err) {
-      console.error('[Socket] Erreur auth:', err.message);
-      socket.emit('auth-error', { error: 'Token invalide.' });
-    }
+  // 📱 Authentification de l'utilisateur
+  socket.on('authenticate', (userId) => {
+    socket.userId = userId;
+    socket.join(`user_${userId}`);
+    console.log(`👤 Utilisateur ${userId} authentifié`);
   });
 
   // 💬 REJOINDRE UNE CONVERSATION
@@ -556,26 +515,35 @@ io.on('connection', (socket) => {
   // 📨 RELAY TEMPS RÉEL (persistance via API HTTP uniquement)
   socket.on('send-message', async (messageData) => {
     try {
-      if (!socket.authenticated || !socket.userId) {
-        socket.emit('message-error', { error: 'Non authentifié' });
-        return;
-      }
-      if (messageData.expediteur?.toString() !== socket.userId) {
-        socket.emit('message-error', { error: 'Expéditeur non autorisé' });
-        return;
-      }
-
+      console.log('📨 Nouveau message reçu:', messageData);
+      
+      // Sauvegarder le message en base de données
+      const messageModel = (await import('./models/messageModel.js')).default;
+      const newMessage = new messageModel({
+        expediteur: messageData.expediteur,
+        destinataire: messageData.destinataire,
+        contenu: messageData.contenu,
+        conversationId: messageData.conversationId,
+        typeMessage: messageData.typeMessage || 'NORMAL',
+        statut: 'ENVOYE'
+      });
+      
+      await newMessage.save();
+      
+      // Diffuser le message à tous les participants de la conversation
       io.to(`conversation_${messageData.conversationId}`).emit('new-message', {
         ...messageData,
         timestamp: new Date(),
       });
-
+      
+      // Notifier le destinataire s'il est en ligne
       io.to(`user_${messageData.destinataire}`).emit('message-notification', {
         type: 'new_message',
         conversationId: messageData.conversationId,
         sender: messageData.expediteur,
         content: messageData.contenu,
       });
+      
     } catch (error) {
       console.error('❌ Erreur lors du relay message:', error);
       socket.emit('message-error', { error: 'Erreur lors de l\'envoi du message' });
@@ -604,9 +572,11 @@ io.on('connection', (socket) => {
       }
 
       console.log('📦 Mise à jour statut commande:', orderData);
-
-      await commandeModel.findByIdAndUpdate(orderData.orderId, {
-        statusCommande: orderData.status
+      
+      // Mettre à jour en base de données
+      const commandeModel = (await import('./models/commandeModel.js')).default;
+      await commandeModel.findByIdAndUpdate(orderData.orderId, { 
+        statusCommande: orderData.status 
       });
 
       // Notifier le client
