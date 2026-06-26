@@ -1,6 +1,9 @@
 import { body, param, query, validationResult } from 'express-validator';
 import logger from './logger.js';
+<<<<<<< HEAD
 import { isValidCiPhone } from '../services/otpService.js';
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 // 🛡️ Middleware pour gérer les erreurs de validation
 export const handleValidationErrors = (req, res, next) => {
@@ -52,6 +55,7 @@ export const validateUserRegistration = [
     .withMessage('Email invalide'),
 
   body('telephone')
+<<<<<<< HEAD
     .custom((value) => {
       if (!isValidCiPhone(value)) {
         throw new Error('Numéro de téléphone invalide');
@@ -67,10 +71,25 @@ export const validateUserRegistration = [
     .optional()
     .isString()
     .withMessage('Token de vérification téléphone invalide'),
+=======
+    .isMobilePhone('any')
+    .withMessage('Numéro de téléphone invalide'),
+
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Le mot de passe doit contenir au moins 8 caractères')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
   body('role')
     .isIn(['Client', 'Prestataire', 'Vendeur', 'Freelance'])
     .withMessage('Rôle invalide'),
+<<<<<<< HEAD
+=======
+    
+  handleValidationErrors,
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 ];
 
 // 🔐 Validation pour la connexion (email OU téléphone)

@@ -134,13 +134,19 @@ export const importPrestatairesCSV = async (req, res) => {
           // Création du prestataire avec le modèle existant
           const prestataire = new Prestataire({
             utilisateur: utilisateur._id,
+<<<<<<< HEAD
             service: service._id,
             prixprestataire: 0,
+=======
+            service: service._id, // ✅ Service valide
+            prixprestataire: 0, // À définir par l'utilisateur
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             localisation: `${row.ville}, ${row.quartier}`,
             localisationmaps: {
               latitude: parseFloat(row.latitude),
               longitude: parseFloat(row.longitude)
             },
+<<<<<<< HEAD
             note: 0,
             verifier: false,
             status: 'incomplete',
@@ -149,6 +155,14 @@ export const importPrestatairesCSV = async (req, res) => {
             anneeExperience: '0',
             description: `Prestataire ${row.metier} à ${row.ville}`,
             rayonIntervention: 10,
+=======
+            note: `Prestataire ${row.metier} importé via CSV`,
+            verifier: false,
+            specialite: [row.metier],
+            anneeExperience: '0',
+            description: `Prestataire ${row.metier} à ${row.ville}`,
+            rayonIntervention: 10, // 10km par défaut
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             zoneIntervention: [row.ville, row.quartier],
             tarifHoraireMin: 0,
             tarifHoraireMax: 0,
@@ -157,7 +171,10 @@ export const importPrestatairesCSV = async (req, res) => {
             clients: []
           });
 
+<<<<<<< HEAD
           prestataire.syncFinalizationFromDocuments();
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
           const savedPrestataire = await prestataire.save();
           if (savedPrestataire._id) {
             console.log(`✅ Prestataire sauvegardé: ${row.nom} (ID: ${savedPrestataire._id})`);

@@ -39,9 +39,17 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
+<<<<<<< HEAD
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
+=======
+<<<<<<< HEAD
+=======
+import searchRouter from './routes/searchRoutes.js';
+import walletRouter from './routes/walletRoutes.js';
+>>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -176,8 +184,11 @@ app.use(cors({
 }));
 app.options('*', cors());
 
+<<<<<<< HEAD
 app.use('/uploads', express.static('uploads'));
 
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -187,6 +198,7 @@ app.use((req, res, next) => {
 // ✅ CONFIGURATION SWAGGER
 const swaggerSpec = swaggerConfig;
 
+<<<<<<< HEAD
 /** port défini plus bas avec fallback */
 
 
@@ -206,6 +218,34 @@ app.use('/api', freelanceRouter);
 app.use('/api', freelanceServiceRouter);
 app.use('/api', vendeurRouter);
 app.use('/api', searchRouter);
+=======
+<<<<<<< HEAD
+/** appliation port */
+const port = process.env.PORT ;
+=======
+/** port défini plus bas avec fallback */
+>>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+
+
+/** routes */
+// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
+app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
+app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
+app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
+app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
+app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
+app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
+<<<<<<< HEAD
+app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
+=======
+app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
+app.use('/api', freelanceServiceRouter); // Offres freelance (pas de cache GET home pour MVP)
+app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+app.use('/api', searchRouter);
+>>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -315,6 +355,23 @@ if (process.env.NODE_ENV !== 'production' && process.env.SENTRY_DSN) {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+app.get('/metrics', (req, res) => {
+    res.status(200).json({
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: {
+            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+        },
+        cpu: process.cpuUsage(),
+        platform: process.platform,
+        nodeVersion: process.version
+    });
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
   res.status(200).json({
     timestamp: new Date().toISOString(),
@@ -327,6 +384,10 @@ app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
     platform: process.platform,
     nodeVersion: process.version
   });
+<<<<<<< HEAD
+=======
+>>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 });
 
 // 💾 CACHE STATS - Statistiques du cache Redis
@@ -364,6 +425,27 @@ app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
  *               error: "Cache non disponible"
  *               message: "Redis connection failed"
  */
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+app.get('/cache/stats', async (req, res) => {
+    try {
+        const { getCacheStats } = await import('./middleware/cache.js');
+        const stats = getCacheStats();
+        res.status(200).json({
+            cache: stats,
+            timestamp: new Date().toISOString(),
+            status: 'OK'
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: 'Cache non disponible',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => {
   try {
     const { getCacheStats } = await import('./middleware/cache.js');
@@ -380,6 +462,10 @@ app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => 
       timestamp: new Date().toISOString()
     });
   }
+<<<<<<< HEAD
+=======
+>>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 });
 
 /**
@@ -670,6 +756,34 @@ io.on('connection', (socket) => {
 // Sentry — après toutes les routes, avant les autres middlewares d'erreur
 if (process.env.SENTRY_DSN) {
   Sentry.setupExpressErrorHandler(app);
+<<<<<<< HEAD
+=======
+}
+
+// ✅ GESTIONNAIRE D'ERREURS GLOBAL Express
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('❌ Erreur Express non gérée:', err.message);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
+    error: err.message || 'Erreur interne du serveur',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// ✅ PORT avec valeur par défaut
+const port = process.env.PORT || 3000;
+
+// ✅ DÉMARRAGE DU SERVEUR
+connect().then(()=> {
+    try{
+    httpServer.listen(port, '0.0.0.0', ()=>{
+        console.log(`🚀 Server connected to http://localhost:${port}`);
+        console.log(`🔌 WebSocket server ready for connections`);
+    })
+}catch (error) {
+    console.log("❌ Cannot connect to the server");
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 }
 
 // ✅ GESTIONNAIRE D'ERREURS GLOBAL Express

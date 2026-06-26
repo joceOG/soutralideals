@@ -204,11 +204,11 @@ const UtilisateurSchema = new mongoose.Schema({
   note: { type: String },
   photoProfil: { type: String },
 
-  // ✅ Ajout du rôle Client
-  role: { 
-    type: String, 
-    enum: ["Prestataire", "Vendeur", "Freelance", "Client"], 
-    required: true 
+  // Admin : accès dashboard (liste utilisateurs, etc.) — à n’attribuer qu’en base ou via script sécurisé
+  role: {
+    type: String,
+    enum: ["Admin", "Prestataire", "Vendeur", "Freelance", "Client"],
+    required: true,
   },
 
   tokens: [{
@@ -230,7 +230,13 @@ UtilisateurSchema.pre("save", async function(next) {
 // Génération token JWT incluant le rôle
 UtilisateurSchema.methods.generateAuthToken = async function() {
   const user = this;
-  const token = jwt.sign({ _id: user._id.toString(), role: user.role }, 'thisisoutrali');
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET manquant dans les variables d\'environnement');
+  const token = jwt.sign(
+    { _id: user._id.toString(), id: user._id.toString(), role: user.role },
+    secret,
+    { expiresIn: '7d' }
+  );
   user.tokens = user.tokens.concat({ token });
   await user.save();
   return token;
@@ -238,38 +244,24 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
 
 // Méthode statique pour login par email ou téléphone
 UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
-  console.log("🔍 findByCredentials - Recherche utilisateur:", { identifiant, password: "***" });
-  
   let user = null;
   if (validator.isEmail(identifiant)) {
-    console.log("📧 Recherche par email:", identifiant);
     user = await this.findOne({ email: identifiant });
   } else {
-    console.log("📱 Recherche par téléphone:", identifiant);
     user = await this.findOne({ telephone: identifiant });
   }
 
-  console.log("👤 Utilisateur trouvé:", user ? "OUI" : "NON");
-  if (user) {
-    console.log("👤 Détails utilisateur:", { 
-      id: user._id, 
-      nom: user.nom, 
-      email: user.email, 
-      telephone: user.telephone,
-      role: user.role 
-    });
-  }
+  if (!user) throw new Error('Identifiants incorrects');
 
-  if (!user) throw new Error('Utilisateur non trouvé');
-
-  console.log("🔐 Vérification du mot de passe...");
   const isMatch = await bcrypt.compare(password, user.password);
-  console.log("🔐 Mot de passe correct:", isMatch);
-  
-  if (!isMatch) throw new Error('Mot de passe incorrect');
+  if (!isMatch) throw new Error('Identifiants incorrects');
 
-  console.log("✅ Authentification réussie pour:", user.nom);
   return user;
+};
+
+// Méthode d'instance pour comparer un mot de passe en clair avec le hash
+UtilisateurSchema.methods.comparePassword = async function(password) {
+  return bcrypt.compare(password, this.password);
 };
 
 // Virtuals pour relations

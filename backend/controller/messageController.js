@@ -1,5 +1,8 @@
 import messageModel from '../models/messageModel.js';
+<<<<<<< HEAD
 import prestataireModel from '../models/prestataireModel.js';
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
@@ -10,6 +13,7 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+<<<<<<< HEAD
 async function formatConversationsForUser(conversations, userId) {
     const userIdStr = userId.toString();
     const utilisateurModel = (await import('../models/utilisateurModel.js')).default;
@@ -112,6 +116,8 @@ async function enrichAndRepairMessages(messages) {
         .exec();
 }
 
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 // ✅ ENVOYER UN MESSAGE
 export const sendMessage = async (req, res) => {
     try {
@@ -132,6 +138,7 @@ export const sendMessage = async (req, res) => {
             });
         }
 
+<<<<<<< HEAD
         if (req.utilisateur?._id?.toString() !== String(expediteur)) {
             return res.status(403).json({ error: 'Expéditeur non autorisé' });
         }
@@ -147,6 +154,14 @@ export const sendMessage = async (req, res) => {
         // Upload de pièce jointe si présente
         let pieceJointe;
         let typePieceJointe;
+=======
+        // Génération de l'ID de conversation
+        const conversationId = messageModel.genererConversationId(expediteur, destinataire);
+
+        // Upload de pièce jointe si présente
+        let pieceJointe = '';
+        let typePieceJointe = '';
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
@@ -170,13 +185,22 @@ export const sendMessage = async (req, res) => {
 
         const newMessage = new messageModel({
             expediteur: new mongoose.Types.ObjectId(expediteur),
+<<<<<<< HEAD
             destinataire: resolvedDestinataire,
+=======
+            destinataire: new mongoose.Types.ObjectId(destinataire),
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             contenu,
             conversationId,
             typeMessage: typeMessage || 'NORMAL',
             referenceId: referenceId ? new mongoose.Types.ObjectId(referenceId) : undefined,
             referenceType,
+<<<<<<< HEAD
             ...(pieceJointe && typePieceJointe ? { pieceJointe, typePieceJointe } : {}),
+=======
+            pieceJointe,
+            typePieceJointe,
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             localisation,
             statut: 'ENVOYE'
         });
@@ -206,6 +230,7 @@ export const getUserConversations = async (req, res) => {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
 
+<<<<<<< HEAD
         // Réparer les anciens messages créés avec l'id du document Prestataire
         const linkedPrestataires = await prestataireModel
             .find({ utilisateur: userId })
@@ -232,12 +257,15 @@ export const getUserConversations = async (req, res) => {
             }
         }
 
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
         const conversations = await messageModel.getConversations(userId);
 
         // Pagination
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
         const paginatedConversations = conversations.slice(startIndex, endIndex);
+<<<<<<< HEAD
         const formattedConversations = await formatConversationsForUser(
             paginatedConversations,
             userId,
@@ -245,6 +273,11 @@ export const getUserConversations = async (req, res) => {
 
         res.status(200).json({
             conversations: formattedConversations,
+=======
+
+        res.status(200).json({
+            conversations: paginatedConversations,
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             totalPages: Math.ceil(conversations.length / limit),
             currentPage: parseInt(page),
             total: conversations.length
@@ -266,7 +299,11 @@ export const getConversationMessages = async (req, res) => {
         }
 
         // Filtrer les messages non supprimés par l'utilisateur
+<<<<<<< HEAD
         let matchCondition = {
+=======
+        const matchCondition = {
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             conversationId,
             estSupprime: false
         };
@@ -276,7 +313,11 @@ export const getConversationMessages = async (req, res) => {
             matchCondition['supprimePar.utilisateur'] = { $ne: new mongoose.Types.ObjectId(userId) };
         }
 
+<<<<<<< HEAD
         let messages = await messageModel.find(matchCondition)
+=======
+        const messages = await messageModel.find(matchCondition)
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             .populate('expediteur', 'nom prenom photoProfil')
             .populate('destinataire', 'nom prenom photoProfil')
             .sort({ createdAt: -1 })
@@ -284,6 +325,7 @@ export const getConversationMessages = async (req, res) => {
             .skip((page - 1) * limit)
             .exec();
 
+<<<<<<< HEAD
         // Auto-réparation : anciennes conversations créées avec l'id du document Prestataire
         if (messages.length === 0 && conversationId.startsWith('conv_')) {
             const altConversationIds = await resolveConversationIds(conversationId);
@@ -345,6 +387,9 @@ export const getConversationMessages = async (req, res) => {
                 'supprimePar.utilisateur': { $ne: new mongoose.Types.ObjectId(userId) },
             }),
         });
+=======
+        const total = await messageModel.countDocuments(matchCondition);
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
         res.status(200).json({
             messages: messages.reverse(), // Inverser pour avoir les plus anciens en premier

@@ -1,5 +1,8 @@
 import prestationModel from '../models/prestationModel.js';
+<<<<<<< HEAD
 import prestataireModel from '../models/prestataireModel.js';
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
@@ -90,6 +93,7 @@ export const createPrestation = async (req, res) => {
             .populate('prestataire', 'utilisateur localisation')
             .populate('service', 'nomservice categorie');
 
+<<<<<<< HEAD
         // 🔔 CRÉER UNE NOTIFICATION + MESSAGE POUR LE PRESTATAIRE (compte utilisateur)
         try {
             const notificationModel = (await import('../models/notificationModel.js')).default;
@@ -143,6 +147,31 @@ export const createPrestation = async (req, res) => {
                 } else {
                     console.warn(`⚠️ Prestataire ${prestataire} sans utilisateur lié — notification ignorée`);
                 }
+=======
+        // 🔔 CRÉER UNE NOTIFICATION POUR LE PRESTATAIRE
+        try {
+            const notificationModel = (await import('../models/notificationModel.js')).default;
+            
+            if (prestataire) {
+                const notification = new notificationModel({
+                    destinataire: prestataire,
+                    expediteur: utilisateur,
+                    type: 'NOUVELLE_MISSION',
+                    titre: 'Nouvelle mission disponible !',
+                    contenu: `Une nouvelle mission vous a été assignée. Consultez vos missions pour plus de détails.`,
+                    prestation: newPrestation._id,
+                    priorite: 'HAUTE',
+                    donnees: {
+                        prestationId: newPrestation._id,
+                        service: populatedPrestation.service?.nomservice,
+                        adresse: adresse,
+                        ville: ville
+                    }
+                });
+                
+                await notification.save();
+                console.log(`🔔 Notification nouvelle mission créée pour prestataire: ${prestataire}`);
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
             }
         } catch (notificationError) {
             console.error('Erreur création notification nouvelle mission:', notificationError.message);
@@ -382,6 +411,7 @@ export const changerStatutPrestation = async (req, res) => {
             // Ne pas faire échouer la requête principale
         }
 
+<<<<<<< HEAD
         // 💬 CRÉER / CORRIGER LA CONVERSATION AUTOMATIQUE POUR LES PRESTATIONS ACCEPTÉES
         if (newStatus === 'ACCEPTEE') {
             try {
@@ -429,6 +459,39 @@ export const changerStatutPrestation = async (req, res) => {
                         await welcomeMessage.save();
                         console.log(`💬 Conversation créée automatiquement pour prestation: ${prestation._id}`);
                     }
+=======
+        // 💬 CRÉER UNE CONVERSATION AUTOMATIQUE POUR LES PRESTATIONS ACCEPTÉES
+        if (newStatus === 'ACCEPTEE') {
+            try {
+                const messageModel = (await import('../models/messageModel.js')).default;
+                
+                // Générer l'ID de conversation
+                const conversationId = messageModel.genererConversationId(
+                    prestation.utilisateur.toString(),
+                    prestation.prestataire.toString()
+                );
+
+                // Vérifier si une conversation existe déjà
+                const existingMessage = await messageModel.findOne({ conversationId });
+                
+                if (!existingMessage) {
+                    // Créer un message de bienvenue automatique
+                    const welcomeMessage = new messageModel({
+                        expediteur: prestation.prestataire,
+                        destinataire: prestation.utilisateur,
+                        contenu: `Bonjour ! J'ai accepté votre mission. Je vais commencer bientôt. N'hésitez pas à me contacter si vous avez des questions.`,
+                        typeMessage: 'PRESTATION',
+                        referenceId: prestation._id,
+                        referenceType: 'Prestation',
+                        conversationId: conversationId,
+                        statut: 'ENVOYE'
+                    });
+
+                    await welcomeMessage.save();
+                    console.log(`💬 Conversation créée automatiquement pour prestation: ${prestation._id}`);
+                } else {
+                    console.log(`💬 Conversation existante trouvée pour prestation: ${prestation._id}`);
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
                 }
             } catch (conversationError) {
                 console.error('Erreur création conversation:', conversationError.message);
