@@ -41,6 +41,7 @@ import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
+import { authenticateSocketUser } from './utils/socketAuth.js';
 
 /** import connection file */
 import connect from './database/connex.js';
