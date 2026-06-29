@@ -5,6 +5,7 @@ import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
@@ -15,11 +16,19 @@ import auth, { authAdmin } from "../middleware/authMiddleware.js";
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requireSelfOrAdmin,
   requireVendeurOwnerOrAdmin,

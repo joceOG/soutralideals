@@ -6,11 +6,14 @@ import mongoose from "mongoose";
 <<<<<<< HEAD
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
+<<<<<<< HEAD
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 =======
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -257,11 +260,16 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
 =======
     // Création prestataire
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+    // Création prestataire — status/verifier contrôlés côté serveur
+    const isAdminUser = isAdmin(req);
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const newPrestataire = new prestataireModel({
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -286,7 +294,8 @@ export const createPrestataire = async (req, res) => {
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
       localisation,
       note: parseNumber(note, 0),
-      verifier: verifier === "true" || verifier === true,
+      verifier: isAdminUser && (verifier === "true" || verifier === true),
+      status: "incomplete",
       specialite: specialiteArr,
       anneeExperience,
       description,
@@ -357,15 +366,18 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Traçabilité (source autorisée ; status ignoré du client)
 =======
     // 🆕 OPTION C - Traçabilité (ajout conditionnel pour éviter erreurs)
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+    // Traçabilité (source autorisée ; status ignoré du client)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     if (req.body.source) {
-      newPrestataire.source = req.body.source;
-    }
-    if (req.body.status) {
-      newPrestataire.status = req.body.status;
+      newPrestataire.source = Array.isArray(req.body.source)
+        ? req.body.source[0]
+        : req.body.source;
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
 <<<<<<< HEAD
@@ -402,6 +414,7 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     newPrestataire.syncFinalizationFromDocuments();
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
@@ -410,6 +423,9 @@ export const createPrestataire = async (req, res) => {
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+    newPrestataire.syncFinalizationFromDocuments();
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     await newPrestataire.save();
 
     const populatedPrestataire = await prestataireModel
@@ -502,6 +518,7 @@ export const updatePrestataire = async (req, res) => {
       ...(localisation && { localisation }),
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: mongoose.Types.ObjectId(service) }),
@@ -515,6 +532,8 @@ export const updatePrestataire = async (req, res) => {
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
       ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
@@ -533,6 +552,9 @@ export const updatePrestataire = async (req, res) => {
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const isAdminUser = isAdmin(req);
     if (isAdminUser && typeof verifier !== "undefined") {
       updates.verifier = verifier === "true" || verifier === true;
@@ -541,6 +563,7 @@ export const updatePrestataire = async (req, res) => {
       updates.status = req.body.status;
     }
 
+<<<<<<< HEAD
 =======
       ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: mongoose.Types.ObjectId(service) }),
@@ -586,6 +609,8 @@ export const updatePrestataire = async (req, res) => {
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     // Upload fichiers simples
     for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
       if (req.files?.[field]?.[0]) {
@@ -617,8 +642,11 @@ export const updatePrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     if (!isAdminUser) {
       prestataire.syncFinalizationFromDocuments();
@@ -626,12 +654,15 @@ export const updatePrestataire = async (req, res) => {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json(prestataire);
 
   } catch (err) {
@@ -707,8 +738,12 @@ export const getAllPrestataires = async (req, res) => {
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
+<<<<<<< HEAD
     const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+    const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
     const filter = {};
@@ -723,8 +758,28 @@ export const getAllPrestataires = async (req, res) => {
     } else if (excludedSvc.length) {
       filter.service = { $nin: excludedSvc };
     }
-    if (status) filter.status = status;
-    if (utilisateur) filter.utilisateur = utilisateur;
+
+    const adminUser = isAdmin(req);
+    const isOwnProfile =
+      utilisateur &&
+      req.utilisateur &&
+      String(utilisateur) === String(req.utilisateur._id);
+
+    if (adminUser) {
+      if (status) filter.status = status;
+      if (verifier !== undefined) filter.verifier = verifier === "true" || verifier === true;
+    } else if (isOwnProfile) {
+      if (status) filter.status = status;
+      filter.utilisateur = utilisateur;
+    } else {
+      // Catalogue public : uniquement profils validés
+      filter.status = "active";
+      filter.verifier = true;
+    }
+
+    if (utilisateur && (adminUser || isOwnProfile)) {
+      filter.utilisateur = utilisateur;
+    }
     if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
 
     const prestataires = await prestataireModel.find(filter)
@@ -852,8 +907,11 @@ export const getPrestataireById = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const adminUser = isAdmin(req);
     const isOwner =
       req.utilisateur &&
@@ -869,12 +927,15 @@ export const getPrestataireById = async (req, res) => {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json(prestataire);
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
@@ -894,6 +955,7 @@ export const deletePrestataire = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -932,6 +994,12 @@ export const getPendingPrestataires = async (req, res) => {
       source: { $in: ['sdealsidentification', 'sdealsmobile'] }
     })
 >>>>>>> 1ca350b (Dashboard Complet and Merge)
+=======
+// 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
+export const getPendingPrestataires = async (req, res) => {
+  try {
+    const prestataires = await prestataireModel.find({ status: "pending" })
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({
@@ -957,6 +1025,7 @@ export const validatePrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
@@ -967,6 +1036,9 @@ export const validatePrestataire = async (req, res) => {
 =======
     const adminId = req.body.adminId || req.user?._id;
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+    const adminId = req.user._id;
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const prestataire = await prestataireModel.findById(id);
     
@@ -1009,6 +1081,7 @@ export const rejectPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
@@ -1019,6 +1092,9 @@ export const rejectPrestataire = async (req, res) => {
 =======
     const adminId = req.body.adminId || req.user?._id;
 >>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
+=======
+    const adminId = req.user._id;
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const prestataire = await prestataireModel.findById(id);
     

@@ -35,15 +35,21 @@ import RecensementsPending from '../pages/RecensementsPending';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const withAuth = (element: React.ReactElement) => (
   <ProtectedRoute>{element}</ProtectedRoute>
 );
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -54,6 +60,12 @@ const withAuth = (element: React.ReactElement) => (
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // Ce composant ne contient que les routes, sans le BrowserRouter
 // Le BrowserRouter est maintenant dans Dashboard.tsx
@@ -63,8 +75,11 @@ const AppRouter: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       <Route path="/connexion" element={<Connexion />} />
       
       {/* ✅ Routes protégées — JWT requis */}
@@ -112,6 +127,7 @@ const AppRouter: React.FC = () => {
       <Route path="/freelance-offres" element={<FreelanceServices />} />
       <Route path="/vendeur" element={<Vendeur />} />
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       <Route path="/connexion" element={<Connexion />} />
@@ -147,14 +163,46 @@ const AppRouter: React.FC = () => {
       
 <<<<<<< HEAD
 =======
+=======
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       <Route path="/connexion" element={<Connexion />} />
       
-      {/* ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS */}
-      <Route path="/commandes" element={<Commandes />} />
-      <Route path="/notifications" element={<Notifications />} />
-      <Route path="/messages" element={<Messages />} />
+      {/* ✅ Routes protégées — JWT requis */}
+      <Route path="/" element={withAuth(<Home />)} />
+      <Route path="/groupe" element={withAuth(<Groupe />)} />
+      <Route path="/categorie" element={withAuth(<Categorie />)} />
+      <Route path="/service" element={withAuth(<Service />)} />
+      <Route path="/article" element={withAuth(<Article />)} />
+      <Route path="/utilisateur" element={withAuth(<Utilisateur />)} />
+      <Route path="/prestataire" element={withAuth(<Prestataire />)} />
+      <Route path="/import-prestataires" element={withAuth(<ImportPrestataires />)} />
+      <Route path="/freelance" element={withAuth(<Freelance />)} />
+      <Route path="/freelance-offres" element={withAuth(<FreelanceServices />)} />
+      <Route path="/vendeur" element={withAuth(<Vendeur />)} />
+      <Route path="/commandes" element={withAuth(<Commandes />)} />
+      <Route path="/notifications" element={withAuth(<Notifications />)} />
+      <Route path="/messages" element={withAuth(<Messages />)} />
+      <Route path="/prestations" element={withAuth(<Prestations />)} />
+      <Route path="/promotions" element={withAuth(<Promotions />)} />
+      <Route path="/paiements" element={withAuth(<Paiements />)} />
+      <Route path="/statistiques" element={withAuth(<Statistiques />)} />
+      <Route path="/prestataires-map" element={withAuth(<PrestatairesMap />)} />
+      <Route path="/vendeurs-map" element={withAuth(<VendeursMap />)} />
+      <Route path="/freelances-map" element={withAuth(<FreelancesMap />)} />
+      <Route path="/geographic-analytics" element={withAuth(<GeographicAnalytics />)} />
+      <Route path="/avis" element={withAuth(<Avis />)} />
+      <Route path="/favoris" element={withAuth(<Favoris />)} />
+      <Route path="/historique" element={withAuth(<Historique />)} />
+      <Route path="/parametres" element={withAuth(<Parametres />)} />
+      <Route path="/recensements-pending" element={withAuth(<RecensementsPending />)} />
       
+<<<<<<< HEAD
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+<<<<<<< HEAD
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       {/* ✅ PRESTATIONS MODULE COMPLET */}
       <Route path="/prestations" element={<Prestations />} />
       
@@ -187,7 +235,14 @@ const AppRouter: React.FC = () => {
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+<<<<<<< HEAD
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+      {/* Legacy redirect */}
+      <Route path="/soutralideals" element={<Navigate to="/" replace />} />
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       
       {/* 🚧 ROUTES À VENIR (pages temporaires ou placeholders) */}
       <Route path="/signalements" element={<div>Module Signalements - En cours de développement</div>} />

@@ -143,14 +143,20 @@ const [formData, setFormData] = useState<IPrestataireData>({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   const authHeaders = () => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -161,6 +167,12 @@ const [formData, setFormData] = useState<IPrestataireData>({
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   const [services, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
@@ -172,6 +184,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       const response = await axios.get(`${apiUrl}/prestataire`, { headers: authHeaders() });
 =======
       const response = await axios.get(`${apiUrl}/prestataire`);
@@ -180,11 +193,19 @@ const [formData, setFormData] = useState<IPrestataireData>({
       const response = await axios.get(`${apiUrl}/prestataire`, { headers: authHeaders() });
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       const response = await axios.get(`${apiUrl}/prestataire`, { headers: authHeaders() });
 =======
       const response = await axios.get(`${apiUrl}/prestataire`);
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+<<<<<<< HEAD
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+      const response = await axios.get(`${apiUrl}/prestataire`, { headers: authHeaders() });
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       setPrestataires(response.data);
     } catch {
       toast.error("Erreur lors du chargement des prestataires");
@@ -253,6 +274,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         await axios.delete(`${apiUrl}/prestataire/${rowData._id}`, { headers: authHeaders() });
 =======
         await axios.delete(`${apiUrl}/prestataire/${rowData._id}`);
@@ -261,11 +283,19 @@ const [formData, setFormData] = useState<IPrestataireData>({
         await axios.delete(`${apiUrl}/prestataire/${rowData._id}`, { headers: authHeaders() });
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
+=======
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         await axios.delete(`${apiUrl}/prestataire/${rowData._id}`, { headers: authHeaders() });
 =======
         await axios.delete(`${apiUrl}/prestataire/${rowData._id}`);
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+<<<<<<< HEAD
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+        await axios.delete(`${apiUrl}/prestataire/${rowData._id}`, { headers: authHeaders() });
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         setPrestataires(prestataires.filter(item => item._id !== rowData._id));
         toast.success('Prestataire supprimé avec succès !');
       } catch {
@@ -394,16 +424,22 @@ const onAdd = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       await axios({
         method,
         url,
         data: form,
         headers: { 'Content-Type': 'multipart/form-data', ...authHeaders() },
       });
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -416,6 +452,13 @@ const onAdd = () => {
       await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+=======
+      await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
+>>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       await fetchPrestataires();
       toast.success(isUpdate ? 'Prestataire mis à jour !' : 'Prestataire ajouté !');
       setModalOpen(false);
