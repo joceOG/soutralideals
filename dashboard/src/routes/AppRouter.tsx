@@ -35,8 +35,11 @@ import RecensementsPending from '../pages/RecensementsPending';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -46,10 +49,13 @@ const withAuth = (element: React.ReactElement) => (
 );
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
@@ -58,6 +64,7 @@ const withAuth = (element: React.ReactElement) => (
 const AppRouter: React.FC = () => {
   return (
     <Routes>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -111,6 +118,8 @@ const AppRouter: React.FC = () => {
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       <Route path="/connexion" element={<Connexion />} />
       
       {/* ✅ Routes protégées — JWT requis */}
@@ -144,6 +153,7 @@ const AppRouter: React.FC = () => {
       
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       {/* ✅ PRESTATIONS MODULE COMPLET */}
       <Route path="/prestations" element={<Prestations />} />
       
@@ -173,6 +183,10 @@ const AppRouter: React.FC = () => {
       {/* Legacy redirect */}
       <Route path="/soutralideals" element={<Navigate to="/" replace />} />
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+      {/* Legacy redirect */}
+      <Route path="/soutralideals" element={<Navigate to="/" replace />} />
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
       {/* Legacy redirect */}
       <Route path="/soutralideals" element={<Navigate to="/" replace />} />

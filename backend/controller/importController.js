@@ -137,6 +137,7 @@ export const importPrestatairesCSV = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             service: service._id,
             prixprestataire: 0,
 =======
@@ -151,6 +152,10 @@ export const importPrestatairesCSV = async (req, res) => {
             service: service._id,
             prixprestataire: 0,
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+            service: service._id,
+            prixprestataire: 0,
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             localisation: `${row.ville}, ${row.quartier}`,
             localisationmaps: {
               latitude: parseFloat(row.latitude),
@@ -159,6 +164,9 @@ export const importPrestatairesCSV = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             note: 0,
@@ -169,6 +177,7 @@ export const importPrestatairesCSV = async (req, res) => {
             anneeExperience: '0',
             description: `Prestataire ${row.metier} à ${row.ville}`,
             rayonIntervention: 10,
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             note: `Prestataire ${row.metier} importé via CSV`,
@@ -189,6 +198,8 @@ export const importPrestatairesCSV = async (req, res) => {
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             zoneIntervention: [row.ville, row.quartier],
             tarifHoraireMin: 0,
             tarifHoraireMax: 0,
@@ -200,12 +211,16 @@ export const importPrestatairesCSV = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           prestataire.syncFinalizationFromDocuments();
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
           prestataire.syncFinalizationFromDocuments();
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+          prestataire.syncFinalizationFromDocuments();
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
           prestataire.syncFinalizationFromDocuments();
 >>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
