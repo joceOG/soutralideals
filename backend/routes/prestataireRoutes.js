@@ -8,6 +8,7 @@ import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
@@ -35,11 +36,19 @@ import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 >>>>>>> 1ba4214 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
+=======
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
 >>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requirePrestataireOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -101,12 +110,17 @@ const uploadFields = upload.fields([
 // Public — catalogue (routes spécifiques avant /:id)
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
 <<<<<<< HEAD
+<<<<<<< HEAD
 prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
 =======
 prestataireRouter.get("/prestataire", getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", getPrestataireById);
 >>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
+prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // Admin — modération
 prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);

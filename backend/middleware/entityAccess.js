@@ -50,6 +50,7 @@ export function requirePrestataireOwnerOrAdmin() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
@@ -60,6 +61,12 @@ export function requirePrestataireOwnerOrAdmin() {
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 /** Vérifie la propriété via prestataireId dans req.body (upload documents). */
 export function requirePrestataireOwnerByBodyId() {
   return async (req, res, next) => {
@@ -84,6 +91,7 @@ export function requirePrestataireOwnerByBodyId() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
 =======
@@ -94,6 +102,8 @@ export function requirePrestataireOwnerByBodyId() {
 >>>>>>> 37a9202 (fix(security): protéger routes admin, maps API et authentification Socket)
 =======
 =======
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
 =======
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
@@ -102,7 +112,12 @@ export function requirePrestataireOwnerByBodyId() {
 =======
 =======
 >>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+<<<<<<< HEAD
 >>>>>>> e122389 (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 export function requireFreelanceOwnerOrAdmin() {
   return async (req, res, next) => {
     try {

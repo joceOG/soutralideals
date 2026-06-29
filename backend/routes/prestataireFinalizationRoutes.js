@@ -5,10 +5,13 @@ import express from 'express';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import auth from '../middleware/authMiddleware.js';
 import {
   requirePrestataireOwnerOrAdmin,
@@ -17,6 +20,7 @@ import {
 import {
   uploadDocument,
   finalizePrestataireProfile,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -31,27 +35,48 @@ import {
   uploadDocument, 
   finalizePrestataireProfile, 
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   getFinalizationStatus,
-  upload 
+  getPrestataireDocuments,
+  upload
 } from '../controller/prestataireFinalizationController.js';
-import prestataireModel from '../models/prestataireModel.js';
 
 const router = express.Router();
 
-// 🎯 UPLOAD D'UN DOCUMENT
-router.post('/upload/document', upload.single('document'), uploadDocument);
+// Upload document — propriétaire ou admin
+router.post(
+  '/upload/document',
+  auth,
+  requirePrestataireOwnerByBodyId(),
+  upload.single('document'),
+  uploadDocument,
+);
 
-// 🎯 FINALISATION DU PROFIL
-router.put('/prestataire/:id/finalize', finalizePrestataireProfile);
+// Finalisation profil — propriétaire ou admin
+router.put(
+  '/prestataire/:id/finalize',
+  auth,
+  requirePrestataireOwnerOrAdmin(),
+  finalizePrestataireProfile,
+);
 
-// 🎯 RÉCUPÉRER LE STATUT DE FINALISATION
-router.get('/prestataire/:id/finalization-status', getFinalizationStatus);
+// Statut finalisation — propriétaire ou admin
+router.get(
+  '/prestataire/:id/finalization-status',
+  auth,
+  requirePrestataireOwnerOrAdmin(),
+  getFinalizationStatus,
+);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 // Documents identité — propriétaire ou admin (admin pour modération dashboard)
 router.get(
   '/prestataire/:id/documents',
@@ -59,6 +84,7 @@ router.get(
   requirePrestataireOwnerOrAdmin(),
   getPrestataireDocuments,
 );
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -162,5 +188,7 @@ router.get(
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 export default router;

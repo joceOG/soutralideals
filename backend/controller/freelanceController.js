@@ -224,6 +224,7 @@ export const getAllFreelances = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // ✅ Filtre statut (catalogue public si non authentifié)
     const filter = applyProPublicFilter(req, {});
 =======
@@ -256,11 +257,12 @@ export const getAllFreelances = async (req, res) => {
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+    // ✅ Filtre statut (catalogue public si non authentifié)
+    const filter = applyProPublicFilter(req, {});
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
-    }
-    if (req.query.utilisateur) {
-      filter.utilisateur = req.query.utilisateur;
     }
 
     const freelances = await freelanceModel.find(filter)
@@ -542,6 +544,7 @@ export const searchFreelances = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     let searchCriteria = applyProPublicFilter(req, {});
 =======
     let searchCriteria = { accountStatus: 'Active' };
@@ -561,6 +564,9 @@ export const searchFreelances = async (req, res) => {
 =======
     let searchCriteria = { accountStatus: 'Active' };
 >>>>>>> da08acd (Dashboard Complet and Merge)
+=======
+    let searchCriteria = applyProPublicFilter(req, {});
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     if (query) {
       searchCriteria.$or = [

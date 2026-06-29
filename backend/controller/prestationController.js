@@ -3,6 +3,7 @@ import prestationModel from '../models/prestationModel.js';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import prestataireModel from '../models/prestataireModel.js';
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
@@ -15,13 +16,21 @@ import prestataireModel from '../models/prestataireModel.js';
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
+=======
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import prestataireModel from '../models/prestataireModel.js';
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 import prestataireModel from '../models/prestataireModel.js';
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+<<<<<<< HEAD
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+import prestataireModel from '../models/prestataireModel.js';
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
@@ -118,10 +127,15 @@ export const createPrestataire = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         // 🔔 CRÉER UNE NOTIFICATION + MESSAGE POUR LE PRESTATAIRE (compte utilisateur)
         try {
             const notificationModel = (await import('../models/notificationModel.js')).default;
@@ -175,6 +189,7 @@ export const createPrestataire = async (req, res) => {
                 } else {
                     console.warn(`⚠️ Prestataire ${prestataire} sans utilisateur lié — notification ignorée`);
                 }
+<<<<<<< HEAD
 =======
         // 🔔 CRÉER UNE NOTIFICATION POUR LE PRESTATAIRE
 <<<<<<< HEAD
@@ -327,7 +342,12 @@ export const createPrestataire = async (req, res) => {
                     console.warn(`⚠️ Prestataire ${prestataire} sans utilisateur lié — notification ignorée`);
                 }
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+<<<<<<< HEAD
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
             }
         } catch (notificationError) {
             console.error('Erreur création notification nouvelle mission:', notificationError.message);
@@ -402,10 +422,15 @@ export const getAllPrestations = async (req, res) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         // 💬 CRÉER / CORRIGER LA CONVERSATION AUTOMATIQUE POUR LES PRESTATIONS ACCEPTÉES
         if (newStatus === 'ACCEPTEE') {
             try {
@@ -453,6 +478,7 @@ export const getAllPrestations = async (req, res) => {
                         await welcomeMessage.save();
                         console.log(`💬 Conversation créée automatiquement pour prestation: ${prestation._id}`);
                     }
+<<<<<<< HEAD
 =======
         // 💬 CRÉER UNE CONVERSATION AUTOMATIQUE POUR LES PRESTATIONS ACCEPTÉES
 <<<<<<< HEAD
@@ -579,7 +605,12 @@ export const getAllPrestations = async (req, res) => {
                         console.log(`💬 Conversation créée automatiquement pour prestation: ${prestation._id}`);
                     }
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+<<<<<<< HEAD
 >>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+>>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
                 }
             } catch (conversationError) {
                 console.error('Erreur création conversation:', conversationError.message);
