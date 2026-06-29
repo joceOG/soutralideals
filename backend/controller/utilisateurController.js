@@ -1,7 +1,20 @@
+<<<<<<< HEAD
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import validator from "validator";
 import jwt from "jsonwebtoken";
+=======
+import multer from 'multer';
+import cloudinary from 'cloudinary';
+import fs from 'fs';
+import Utilisateur from '../models/utilisateurModel.js';
+import prestataireModel from '../models/prestataireModel.js';
+import freelanceModel from '../models/freelanceModel.js';
+import vendeurModel from '../models/vendeurModel.js';
+import validator from 'validator';
+import { assertPhoneVerificationToken, normalizePhone } from '../services/otpService.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // Config Cloudinary depuis les variables d'environnement
 cloudinary.v2.config({
@@ -10,11 +23,107 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+<<<<<<< HEAD
 // Hash du mot de passe avant sauvegarde
 UtilisateurSchema.pre("save", async function(next) {
   const user = this;
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 10);
+=======
+// Config Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/utilisateurs'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+});
+export const upload = multer({ storage });
+
+// ✅ INSCRIPTION
+export const signUp = async (req, res) => {
+  try {
+    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role, phoneVerificationToken } = req.body;
+
+    const otpEnforced = process.env.OTP_REQUIRED === 'true';
+    let normalizedPhone = telephone ? normalizePhone(telephone) : null;
+    let telephoneVerified = false;
+
+    if (otpEnforced && !phoneVerificationToken) {
+      return res.status(400).json({ error: 'Vérification du téléphone requise (code OTP)' });
+    }
+
+    if (phoneVerificationToken) {
+      try {
+        normalizedPhone = assertPhoneVerificationToken(phoneVerificationToken, telephone);
+        telephoneVerified = true;
+      } catch (otpErr) {
+        return res.status(400).json({ error: otpErr.message });
+      }
+    } else if (normalizedPhone) {
+      normalizedPhone = normalizePhone(telephone);
+    }
+
+    // ✅ Accepter les rôles en minuscules et les convertir
+    const validRoles = ["prestataire", "vendeur", "freelance", "client"];
+    const roleMap = {
+      "prestataire": "Prestataire",
+      "vendeur": "Vendeur", 
+      "freelance": "Freelance",
+      "client": "Client"
+    };
+    
+    if (!role || !validRoles.includes(role.toLowerCase())) {
+      return res.status(400).json({ error: "Rôle invalide ou manquant" });
+    }
+    
+    // Convertir le rôle en format backend
+    const normalizedRole = roleMap[role.toLowerCase()];
+
+    // Vérification unicité email/téléphone
+    const conditions = [];
+    if (email) conditions.push({ email });
+    if (telephone) conditions.push({ telephone: normalizedPhone || telephone });
+    const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
+
+    if (existingUser) {
+      let error = '';
+      if (email && existingUser.email === email) error = 'Email déjà utilisé';
+      else if (telephone && existingUser.telephone === telephone) error = 'Numéro de téléphone déjà utilisé';
+      return res.status(400).json({ error });
+    }
+
+    // Upload photo si présent
+    let photoProfil = '';
+    if (req.file) {
+      const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
+      photoProfil = result.secure_url;
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Création de l'utilisateur
+    const newUser = new Utilisateur({
+      nom,
+      prenom,
+      datedenaissance,
+      email,
+      password,
+      telephone: normalizedPhone || telephone,
+      telephoneVerified: telephoneVerified,
+      genre,
+      note,
+      photoProfil,
+      role: normalizedRole,
+    });
+    await newUser.save();
+
+    if (email) {
+      sendWelcomeEmail(email, prenom).catch(() => {});
+    }
+
+    const token = await newUser.generateAuthToken();
+
+    res.status(201).json({ utilisateur: newUser, token });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   }
   next();
 });

@@ -1,10 +1,14 @@
 import { Router } from "express";
 import multer from "multer";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
 >>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requireFreelanceOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -38,6 +42,7 @@ const uploadFields = upload.fields([
 // Public — catalogue (routes spécifiques avant /:id)
 freelanceRouter.get("/freelance/pending/list", ...authAdmin, getPendingFreelances);
 <<<<<<< HEAD
+<<<<<<< HEAD
 freelanceRouter.get("/freelance", optionalAuth, getAllFreelances);
 freelanceRouter.get("/freelances/category/:category", optionalAuth, getFreelancesByCategory);
 freelanceRouter.get("/freelances/search", optionalAuth, searchFreelances);
@@ -47,8 +52,13 @@ freelanceRouter.get("/freelance/:id", optionalAuth, getFreelanceById);
 freelanceRouter.get("/freelance", getAllFreelances);
 freelanceRouter.get("/freelances/category/:category", getFreelancesByCategory);
 freelanceRouter.get("/freelances/search", searchFreelances);
+=======
+freelanceRouter.get("/freelance", optionalAuth, getAllFreelances);
+freelanceRouter.get("/freelances/category/:category", optionalAuth, getFreelancesByCategory);
+freelanceRouter.get("/freelances/search", optionalAuth, searchFreelances);
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 freelanceRouter.get("/freelance/:id/services", listFreelanceServicesByFreelanceId);
-freelanceRouter.get("/freelance/:id", getFreelanceById);
+freelanceRouter.get("/freelance/:id", optionalAuth, getFreelanceById);
 
 // Admin — modération
 freelanceRouter.put("/freelance/:id/validate", ...authAdmin, validateFreelance);

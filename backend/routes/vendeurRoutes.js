@@ -1,10 +1,14 @@
 import { Router } from "express";
 import multer from "multer";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
 >>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requireSelfOrAdmin,
   requireVendeurOwnerOrAdmin,
@@ -43,11 +47,15 @@ const vendeurRouter = Router();
 // Public — catalogue (routes spécifiques avant /:id)
 vendeurRouter.get("/vendeur/pending/list", ...authAdmin, getPendingVendeurs);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 vendeurRouter.get("/vendeur", optionalAuth, getAllVendeurs);
 vendeurRouter.get("/vendeurs/category/:category", optionalAuth, getVendeursByCategory);
 vendeurRouter.get("/vendeurs/search", optionalAuth, searchVendeurs);
 vendeurRouter.get("/vendeurs/top", optionalAuth, getTopVendeurs);
 vendeurRouter.get("/vendeur/:id", optionalAuth, getVendeurById);
+<<<<<<< HEAD
 vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);
 =======
 vendeurRouter.get("/vendeur", getAllVendeurs);
@@ -55,6 +63,8 @@ vendeurRouter.get("/vendeurs/category/:category", getVendeursByCategory);
 vendeurRouter.get("/vendeurs/search", searchVendeurs);
 vendeurRouter.get("/vendeurs/top", getTopVendeurs);
 vendeurRouter.get("/vendeur/:id", getVendeurById);
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);
 
 // Admin — modération

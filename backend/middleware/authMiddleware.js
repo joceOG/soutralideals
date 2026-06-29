@@ -69,6 +69,9 @@ export const authRole = (roles = []) => {
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 /**
  * Auth optionnelle : peuple req.user si token valide, sinon continue sans erreur.
  * Utile pour les routes publiques avec comportement différent si authentifié.
