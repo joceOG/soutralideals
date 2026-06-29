@@ -40,6 +40,7 @@ import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
@@ -57,6 +58,11 @@ import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
 >>>>>>> 5be76ff (fix(security): protéger routes admin, maps API et authentification Socket)
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+import searchRouter from './routes/searchRoutes.js';
+import walletRouter from './routes/walletRoutes.js';
+import { authenticateSocketUser } from './utils/socketAuth.js';
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -192,10 +198,15 @@ app.use(cors({
 app.options('*', cors());
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 app.use('/uploads', express.static('uploads'));
 
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+app.use('/uploads', express.static('uploads'));
+
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -205,6 +216,7 @@ app.use((req, res, next) => {
 // ✅ CONFIGURATION SWAGGER
 const swaggerSpec = swaggerConfig;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 /** port défini plus bas avec fallback */
 
@@ -230,29 +242,32 @@ app.use('/api', searchRouter);
 /** appliation port */
 const port = process.env.PORT ;
 =======
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 /** port défini plus bas avec fallback */
->>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 
 
 /** routes */
-// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
-app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
-app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
-app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
-app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
-app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-<<<<<<< HEAD
-app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
-=======
-app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
-app.use('/api', freelanceServiceRouter); // Offres freelance (pas de cache GET home pour MVP)
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+// Cache + invalidation une seule fois pour toutes les routes /api (évite 7× MISS par requête)
+app.use('/api', autoInvalidateCache);
+app.use('/api', smartCache(300));
+
+app.use('/api', utilisateurRouter);
+app.use('/api', groupeRouter);
+app.use('/api', categorieRouter);
+app.use('/api', articleRouter);
+app.use('/api', serviceRouter);
+app.use('/api', prestataireRouter);
+app.use('/api', prestataireFinalizationRouter);
+app.use('/api', freelanceRouter);
+app.use('/api', freelanceServiceRouter);
+app.use('/api', vendeurRouter);
 app.use('/api', searchRouter);
+<<<<<<< HEAD
 >>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -363,6 +378,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.SENTRY_DSN) {
  *               $ref: '#/components/schemas/Error'
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 app.get('/metrics', (req, res) => {
@@ -379,6 +395,8 @@ app.get('/metrics', (req, res) => {
     });
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
   res.status(200).json({
     timestamp: new Date().toISOString(),
@@ -392,9 +410,12 @@ app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
     nodeVersion: process.version
   });
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 });
 
 // 💾 CACHE STATS - Statistiques du cache Redis
@@ -433,6 +454,7 @@ app.get('/metrics', auth, authRole(['Admin', 'ADMIN']), (req, res) => {
  *               message: "Redis connection failed"
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 app.get('/cache/stats', async (req, res) => {
@@ -453,6 +475,8 @@ app.get('/cache/stats', async (req, res) => {
     }
 =======
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => {
   try {
     const { getCacheStats } = await import('./middleware/cache.js');
@@ -470,9 +494,12 @@ app.get('/cache/stats', auth, authRole(['Admin', 'ADMIN']), async (req, res) => 
     });
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1a64ce0 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 });
 
 /**
@@ -782,14 +809,15 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 3000;
 
 // ✅ DÉMARRAGE DU SERVEUR
-connect().then(()=> {
-    try{
-    httpServer.listen(port, '0.0.0.0', ()=>{
-        console.log(`🚀 Server connected to http://localhost:${port}`);
-        console.log(`🔌 WebSocket server ready for connections`);
+connect().then(() => {
+  try {
+    httpServer.listen(port, '0.0.0.0', () => {
+      console.log(`🚀 Server connected to http://localhost:${port}`);
+      console.log(`🔌 WebSocket server ready for connections`);
     })
-}catch (error) {
+  } catch (error) {
     console.log("❌ Cannot connect to the server");
+<<<<<<< HEAD
 >>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 }
 
@@ -816,6 +844,8 @@ connect().then(() => {
     })
   } catch (error) {
     console.log("❌ Cannot connect to the server");
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   }
 })
   .catch(error => {

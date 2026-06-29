@@ -9,12 +9,18 @@ import {
     getDirections,
     validateAddress,
 <<<<<<< HEAD
+<<<<<<< HEAD
     calculateServiceArea,
     placesAutocomplete,
     getPlaceDetails,
 =======
     calculateServiceArea
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+    calculateServiceArea,
+    placesAutocomplete,
+    getPlaceDetails,
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 } from '../api/googleMaps.js';
 
 const googleMapsRouter = Router();
@@ -120,6 +126,9 @@ googleMapsRouter.post('/validate-address', async (req, res) => {
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 googleMapsRouter.post('/autocomplete', async (req, res) => {
     try {
         const { input, country, location, radius } = req.body;
@@ -150,8 +159,11 @@ googleMapsRouter.post('/place-details', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 =======
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 googleMapsRouter.post('/service-area', async (req, res) => {
     try {
         const { center, radiusKm } = req.body;

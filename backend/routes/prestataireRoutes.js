@@ -2,10 +2,14 @@ import { Router } from "express";
 import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
 >>>>>>> cc0abbd (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requirePrestataireOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -44,6 +48,7 @@ const uploadFields = upload.fields([
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
 prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", optionalAuth, getPrestataireById);
+<<<<<<< HEAD
 
 // Admin — modération
 prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);
@@ -87,6 +92,8 @@ const uploadFields = upload.fields([
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
 prestataireRouter.get("/prestataire", getAllPrestataires);
 prestataireRouter.get("/prestataire/:id", getPrestataireById);
+=======
+>>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // Admin — modération
 prestataireRouter.put("/prestataire/:id/validate", ...authAdmin, validatePrestataire);

@@ -200,6 +200,7 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
+  telephoneVerified: { type: Boolean, default: false },
   genre: { type: String },
   note: { type: String },
   photoProfil: { type: String },
