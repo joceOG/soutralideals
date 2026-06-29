@@ -250,6 +250,96 @@ export const validateAddress = async (address) => {
   }
 };
 
+// ✅ AUTocomplétion de lieux (Google Places)
+export const placesAutocomplete = async (input, options = {}) => {
+  if (!GOOGLE_MAPS_API_KEY) {
+    return { success: false, error: 'Clé Google Maps non configurée', predictions: [] };
+  }
+  if (!input || String(input).trim().length < 2) {
+    return { success: true, predictions: [] };
+  }
+
+  try {
+    const params = {
+      input: String(input).trim(),
+      key: GOOGLE_MAPS_API_KEY,
+      components: options.country ? `country:${options.country}` : 'country:ci',
+      language: options.language ?? 'fr',
+    };
+    if (options.location) {
+      params.location = options.location;
+      params.radius = options.radius ?? 50000;
+    }
+
+    const response = await axios.get(`${GOOGLE_MAPS_BASE_URL}/place/autocomplete/json`, {
+      params,
+    });
+
+    if (response.data.status === 'OK' || response.data.status === 'ZERO_RESULTS') {
+      return {
+        success: true,
+        predictions: (response.data.predictions ?? []).map((p) => ({
+          placeId: p.place_id,
+          description: p.description,
+          mainText: p.structured_formatting?.main_text ?? p.description,
+          secondaryText: p.structured_formatting?.secondary_text ?? '',
+        })),
+      };
+    }
+
+    return {
+      success: false,
+      error: response.data.status || 'Autocomplétion indisponible',
+      predictions: [],
+    };
+  } catch (error) {
+    console.error('Erreur autocomplétion:', error);
+    return { success: false, error: 'Erreur lors de la recherche de lieux', predictions: [] };
+  }
+};
+
+// ✅ Détails d'un lieu (coordonnées à partir d'un place_id)
+export const getPlaceDetails = async (placeId) => {
+  if (!GOOGLE_MAPS_API_KEY) {
+    return { success: false, error: 'Clé Google Maps non configurée' };
+  }
+  if (!placeId) {
+    return { success: false, error: 'Identifiant de lieu requis' };
+  }
+
+  try {
+    const response = await axios.get(`${GOOGLE_MAPS_BASE_URL}/place/details/json`, {
+      params: {
+        place_id: placeId,
+        fields: 'geometry,formatted_address,name',
+        language: 'fr',
+        key: GOOGLE_MAPS_API_KEY,
+      },
+    });
+
+    if (response.data.status === 'OK' && response.data.result) {
+      const result = response.data.result;
+      return {
+        success: true,
+        coordinates: {
+          lat: result.geometry.location.lat,
+          lng: result.geometry.location.lng,
+        },
+        formattedAddress: result.formatted_address,
+        name: result.name,
+      };
+    }
+
+    return {
+      success: false,
+      error: response.data.status || 'Lieu introuvable',
+    };
+  } catch (error) {
+    console.error('Erreur détails lieu:', error);
+    return { success: false, error: 'Erreur lors de la récupération du lieu' };
+  }
+};
+
 // ✅ CALCUL DE ZONE DE COUVERTURE
 export const calculateServiceArea = async (centerLat, centerLng, radiusKm) => {
   try {

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import auth, { authAdmin } from "../middleware/authMiddleware.js";
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 import {
   requireSelfOrAdmin,
   requireVendeurOwnerOrAdmin,
@@ -38,11 +38,11 @@ const vendeurRouter = Router();
 
 // Public — catalogue (routes spécifiques avant /:id)
 vendeurRouter.get("/vendeur/pending/list", ...authAdmin, getPendingVendeurs);
-vendeurRouter.get("/vendeur", getAllVendeurs);
-vendeurRouter.get("/vendeurs/category/:category", getVendeursByCategory);
-vendeurRouter.get("/vendeurs/search", searchVendeurs);
-vendeurRouter.get("/vendeurs/top", getTopVendeurs);
-vendeurRouter.get("/vendeur/:id", getVendeurById);
+vendeurRouter.get("/vendeur", optionalAuth, getAllVendeurs);
+vendeurRouter.get("/vendeurs/category/:category", optionalAuth, getVendeursByCategory);
+vendeurRouter.get("/vendeurs/search", optionalAuth, searchVendeurs);
+vendeurRouter.get("/vendeurs/top", optionalAuth, getTopVendeurs);
+vendeurRouter.get("/vendeur/:id", optionalAuth, getVendeurById);
 vendeurRouter.get("/vendeur/:id/stats", getVendeurStats);
 
 // Admin — modération

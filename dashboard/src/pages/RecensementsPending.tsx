@@ -79,8 +79,27 @@ export const RecensementsPending: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null);
   const [motifRejet, setMotifRejet] = useState('');
   const toast = React.useRef<Toast>(null);
+  const [docsDialogVisible, setDocsDialogVisible] = useState(false);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [selectedDocs, setSelectedDocs] = useState<{
+    cni1?: string;
+    cni2?: string;
+    selfie?: string;
+  } | null>(null);
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  const apiBase = apiUrl.replace(/\/api\/?$/, '');
+
+  const authHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const resolveDocUrl = (url?: string) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `${apiBase}${url.startsWith('/') ? url : `/${url}`}`;
+  };
 
   useEffect(() => {
     loadPending();
@@ -92,10 +111,11 @@ export const RecensementsPending: React.FC = () => {
     try {
       // Ajouter timestamp pour éviter le cache 304
       const timestamp = Date.now();
+      const headers = authHeaders();
       const [prestRes, freelRes, vendRes] = await Promise.all([
-        axios.get(`${apiUrl}/prestataire/pending/list?t=${timestamp}`),
-        axios.get(`${apiUrl}/freelance/pending/list?t=${timestamp}`),
-        axios.get(`${apiUrl}/vendeur/pending/list?t=${timestamp}`),
+        axios.get(`${apiUrl}/prestataire/pending/list?t=${timestamp}`, { headers }),
+        axios.get(`${apiUrl}/freelance/pending/list?t=${timestamp}`, { headers }),
+        axios.get(`${apiUrl}/vendeur/pending/list?t=${timestamp}`, { headers }),
       ]);
 
       setPrestataires(prestRes.data);
@@ -128,7 +148,7 @@ export const RecensementsPending: React.FC = () => {
       rejectLabel: 'Annuler',
       accept: async () => {
         try {
-          await axios.put(`${apiUrl}/${type}/${id}/validate`);
+          await axios.put(`${apiUrl}/${type}/${id}/validate`, {}, { headers: authHeaders() });
           
           toast.current?.show({
             severity: 'success',
@@ -165,7 +185,8 @@ export const RecensementsPending: React.FC = () => {
     try {
       await axios.put(
         `${apiUrl}/${selectedItem.type}/${selectedItem.id}/reject`,
-        { motif: motifRejet }
+        { motif: motifRejet },
+        { headers: authHeaders() },
       );
 
       toast.current?.show({
@@ -195,8 +216,43 @@ export const RecensementsPending: React.FC = () => {
     setRejectDialogVisible(true);
   };
 
+  const viewDocuments = async (prestataireId: string) => {
+    setDocsLoading(true);
+    setDocsDialogVisible(true);
+    setSelectedDocs(null);
+    try {
+      const res = await axios.get(`${apiUrl}/prestataire/${prestataireId}/documents`, {
+        headers: authHeaders(),
+      });
+      const docs = res.data?.prestataire?.documents ?? {};
+      setSelectedDocs({
+        cni1: docs.cni1,
+        cni2: docs.cni2,
+        selfie: docs.selfie,
+      });
+    } catch (error) {
+      console.error('❌ Erreur chargement documents:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: 'Impossible de charger les documents',
+        life: 3000,
+      });
+      setDocsDialogVisible(false);
+    }
+    setDocsLoading(false);
+  };
+
   const actionsTemplate = (rowData: any, type: string, nameField: string) => (
     <div style={{ display: 'flex', gap: '0.5rem' }}>
+      {type === 'prestataire' && (
+        <Button
+          icon="pi pi-eye"
+          className="p-button-info p-button-sm"
+          tooltip="Voir documents"
+          onClick={() => viewDocuments(rowData._id)}
+        />
+      )}
       <Button
         icon="pi pi-check"
         className="p-button-success p-button-sm"
@@ -523,6 +579,40 @@ export const RecensementsPending: React.FC = () => {
             style={{ width: '100%' }}
           />
         </div>
+      </Dialog>
+
+      <Dialog
+        visible={docsDialogVisible}
+        header="Documents d'identité"
+        modal
+        style={{ width: '720px' }}
+        onHide={() => {
+          setDocsDialogVisible(false);
+          setSelectedDocs(null);
+        }}
+      >
+        {docsLoading ? (
+          <p>Chargement...</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            {(['cni1', 'cni2', 'selfie'] as const).map((key) => (
+              <div key={key}>
+                <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
+                  {key === 'cni1' ? 'CNI Recto' : key === 'cni2' ? 'CNI Verso' : 'Selfie'}
+                </p>
+                {selectedDocs?.[key] ? (
+                  <img
+                    src={resolveDocUrl(selectedDocs[key])}
+                    alt={key}
+                    style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd' }}
+                  />
+                ) : (
+                  <p style={{ color: '#999' }}>Non fourni</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </Dialog>
     </div>
   );

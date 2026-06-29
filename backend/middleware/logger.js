@@ -142,8 +142,12 @@ export const transactionLogger = (req, res, next) => {
   next();
 };
 
-// 📱 Middleware pour logger les actions des utilisateurs
+// 📱 Middleware pour logger les actions des utilisateurs (mutations uniquement)
 export const userActionLogger = (req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return next();
+  }
+
   const originalSend = res.send;
   
   res.send = function(data) {

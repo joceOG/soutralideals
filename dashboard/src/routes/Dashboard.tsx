@@ -17,9 +17,12 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import { List, Avatar, Tooltip, Zoom } from '@mui/material';
 import { mainListItems } from '../components/ListItems';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, useMatch } from 'react-router-dom';
 import AppRouter from './AppRouter';
 import { alpha } from '@mui/material/styles';
+import { getRouterBasename } from '../utils/routerBasename';
+
+const routerBasename = getRouterBasename();
 
 function Copyright(props: any) {
   return (
@@ -101,7 +104,40 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
   };
 
   return (
-    <Router>
+    <Router basename={routerBasename}>
+      <DashboardShell
+        open={open}
+        toggleDrawer={toggleDrawer}
+        toggleThemeMode={toggleThemeMode}
+        themeMode={themeMode}
+      />
+    </Router>
+  );
+};
+
+interface DashboardShellProps extends DashboardProps {
+  open: boolean;
+  toggleDrawer: () => void;
+}
+
+const DashboardShell: React.FC<DashboardShellProps> = ({
+  open,
+  toggleDrawer,
+  toggleThemeMode,
+  themeMode,
+}) => {
+  const isAuthPage = Boolean(useMatch({ path: '/connexion', end: true }));
+
+  if (isAuthPage) {
+    return (
+      <>
+        <CssBaseline />
+        <AppRouter />
+      </>
+    );
+  }
+
+  return (
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
         <AppBar position="absolute" open={open}>
@@ -333,10 +369,8 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => 
           <Copyright sx={{ pt: 4 }} />
         </Box>
       </Box>
-
-      </Router>
   );
-}
+};
 
 
 export default Dashboard;

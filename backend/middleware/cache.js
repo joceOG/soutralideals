@@ -127,8 +127,12 @@ export const cleanExpiredCache = async () => {
   }
 };
 
-// 🔧 Middleware pour les sessions utilisateur
+// 🔧 Middleware pour les sessions utilisateur (Redis optionnel)
 export const sessionCache = async (req, res, next) => {
+  if (!process.env.REDIS_HOST && !process.env.REDIS_URL) {
+    return next();
+  }
+
   if (req.headers.authorization) {
     const token = req.headers.authorization.replace('Bearer ', '');
     const sessionKey = `session:${token}`;
