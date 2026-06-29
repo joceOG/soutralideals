@@ -1,5 +1,20 @@
 import notificationModel from "../models/notificationModel.js";
+import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
+
+async function repairLegacyPrestataireNotifications(userId) {
+  const linkedPrestataires = await prestataireModel
+    .find({ utilisateur: userId })
+    .select("_id")
+    .lean();
+
+  if (linkedPrestataires.length === 0) return;
+
+  await notificationModel.updateMany(
+    { destinataire: { $in: linkedPrestataires.map((p) => p._id) } },
+    { $set: { destinataire: new mongoose.Types.ObjectId(userId) } },
+  );
+}
 
 // ✅ Créer une notification
 export const createNotification = async (req, res) => {
@@ -65,6 +80,8 @@ export const getNotificationsByUser = async (req, res) => {
     if (req.utilisateur._id.toString() !== userId) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
+
+    await repairLegacyPrestataireNotifications(userId);
 
     const query = { destinataire: userId };
     if (statut) {
@@ -187,6 +204,8 @@ export const getUnreadCount = async (req, res) => {
     if (req.utilisateur._id.toString() !== userId) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
+
+    await repairLegacyPrestataireNotifications(userId);
 
     const count = await notificationModel.countDocuments({
       destinataire: userId,

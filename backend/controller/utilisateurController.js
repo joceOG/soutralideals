@@ -6,6 +6,8 @@ import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
+import { assertPhoneVerificationToken, normalizePhone } from '../services/otpService.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 
 // Config Cloudinary depuis les variables d'environnement
 cloudinary.v2.config({
@@ -24,7 +26,26 @@ export const upload = multer({ storage });
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
+    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role, phoneVerificationToken } = req.body;
+
+    const otpEnforced = process.env.OTP_REQUIRED === 'true';
+    let normalizedPhone = telephone ? normalizePhone(telephone) : null;
+    let telephoneVerified = false;
+
+    if (otpEnforced && !phoneVerificationToken) {
+      return res.status(400).json({ error: 'Vérification du téléphone requise (code OTP)' });
+    }
+
+    if (phoneVerificationToken) {
+      try {
+        normalizedPhone = assertPhoneVerificationToken(phoneVerificationToken, telephone);
+        telephoneVerified = true;
+      } catch (otpErr) {
+        return res.status(400).json({ error: otpErr.message });
+      }
+    } else if (normalizedPhone) {
+      normalizedPhone = normalizePhone(telephone);
+    }
 
     // ✅ Accepter les rôles en minuscules et les convertir
     const validRoles = ["prestataire", "vendeur", "freelance", "client"];
@@ -45,7 +66,7 @@ export const signUp = async (req, res) => {
     // Vérification unicité email/téléphone
     const conditions = [];
     if (email) conditions.push({ email });
-    if (telephone) conditions.push({ telephone });
+    if (telephone) conditions.push({ telephone: normalizedPhone || telephone });
     const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
 
     if (existingUser) {
@@ -64,12 +85,24 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-<<<<<<< HEAD
-    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role });
-=======
-    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role: normalizedRole });
->>>>>>> 33d3fb3 (feat: Backend complet pour système prestataire et panier)
+    const newUser = new Utilisateur({
+      nom,
+      prenom,
+      datedenaissance,
+      email,
+      password,
+      telephone: normalizedPhone || telephone,
+      telephoneVerified: telephoneVerified,
+      genre,
+      note,
+      photoProfil,
+      role: normalizedRole,
+    });
     await newUser.save();
+
+    if (email) {
+      sendWelcomeEmail(email, prenom).catch(() => {});
+    }
 
     const token = await newUser.generateAuthToken();
 
