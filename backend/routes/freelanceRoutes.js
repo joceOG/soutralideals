@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import auth, { authAdmin } from "../middleware/authMiddleware.js";
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 import {
   requireFreelanceOwnerOrAdmin,
   requireSelfOrAdmin,
@@ -33,11 +33,11 @@ const uploadFields = upload.fields([
 
 // Public — catalogue (routes spécifiques avant /:id)
 freelanceRouter.get("/freelance/pending/list", ...authAdmin, getPendingFreelances);
-freelanceRouter.get("/freelance", getAllFreelances);
-freelanceRouter.get("/freelances/category/:category", getFreelancesByCategory);
-freelanceRouter.get("/freelances/search", searchFreelances);
+freelanceRouter.get("/freelance", optionalAuth, getAllFreelances);
+freelanceRouter.get("/freelances/category/:category", optionalAuth, getFreelancesByCategory);
+freelanceRouter.get("/freelances/search", optionalAuth, searchFreelances);
 freelanceRouter.get("/freelance/:id/services", listFreelanceServicesByFreelanceId);
-freelanceRouter.get("/freelance/:id", getFreelanceById);
+freelanceRouter.get("/freelance/:id", optionalAuth, getFreelanceById);
 
 // Admin — modération
 freelanceRouter.put("/freelance/:id/validate", ...authAdmin, validateFreelance);

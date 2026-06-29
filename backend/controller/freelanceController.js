@@ -2,48 +2,12 @@ import mongoose from "mongoose";
 import fs from "fs";
 import cloudinary from "cloudinary";
 import freelanceModel from "../models/freelanceModel.js";
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 cloudinary.v2.config({
-<<<<<<< HEAD
-<<<<<<< HEAD
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-=======
-
-cloudinary.v2.config({
-<<<<<<< HEAD
-  cloud_name: "dm0c8st6k",
-  api_key: "541481188898557",
-  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-  cloud_name: "dm0c8st6k",
-  api_key: "541481188898557",
-  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 });
 
 // ✅ Créer un freelance (Modèle sdealsapp)
@@ -150,10 +114,6 @@ export const createFreelance = async (req, res) => {
       
       // Statut du compte
       accountStatus: 'Pending',
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
       subscriptionType: 'Free',
       status: 'pending',
     });
@@ -162,35 +122,6 @@ export const createFreelance = async (req, res) => {
       newFreelance.source = req.body.source;
     }
 
-=======
-      subscriptionType: 'Free'
-    });
-
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-      subscriptionType: 'Free',
-      status: 'pending',
-    });
-
-=======
-      subscriptionType: 'Free',
-      status: 'pending',
-    });
-
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-    if (req.body.source) {
-      newFreelance.source = req.body.source;
-    }
-
-<<<<<<< HEAD
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-      subscriptionType: 'Free'
-    });
-
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     await newFreelance.save();
     
     // ✅ Populer les références pour la réponse
@@ -218,60 +149,10 @@ export const getAllFreelances = async (req, res) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     // ✅ Filtre statut (catalogue public si non authentifié)
     const filter = applyProPublicFilter(req, {});
-=======
-=======
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
->>>>>>> 1ca350b (Dashboard Complet and Merge)
-=======
->>>>>>> da08acd (Dashboard Complet and Merge)
-=======
->>>>>>> 5b8fb41 (Dashboard Complet and Merge)
-    // ✅ Filtre statut
-    const filter = {};
-    if (req.query.status) {
-      filter.accountStatus = req.query.status;
-    }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 22ecb18 (Dashboard Complet and Merge)
-=======
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-    // ✅ Filtre statut (catalogue public si non authentifié)
-    const filter = applyProPublicFilter(req, {});
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1ca350b (Dashboard Complet and Merge)
-=======
-    // ✅ Filtre statut (catalogue public si non authentifié)
-    const filter = applyProPublicFilter(req, {});
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> da08acd (Dashboard Complet and Merge)
-=======
-    // ✅ Filtre statut (catalogue public si non authentifié)
-    const filter = applyProPublicFilter(req, {});
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 5b8fb41 (Dashboard Complet and Merge)
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
-    }
-    if (req.query.utilisateur) {
-      filter.utilisateur = req.query.utilisateur;
     }
 
     const freelances = await freelanceModel.find(filter)
@@ -315,28 +196,10 @@ export const getFreelanceById = async (req, res) => {
 
     if (!freelance) return res.status(404).json({ error: "Freelance non trouvé" });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     if (!canAccessProProfile(req, freelance)) {
       return res.status(404).json({ error: "Freelance non trouvé" });
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json(freelance);
   } catch (err) {
     console.error("Erreur lecture freelance:", err.message);
@@ -498,34 +361,9 @@ export const getFreelancesByCategory = async (req, res) => {
       default: sortOptions = { rating: -1 };
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     const freelances = await freelanceModel.find(
       applyProPublicFilter(req, { category }),
     )
-=======
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-    const freelances = await freelanceModel.find({ 
-      category: category,
-      accountStatus: 'Active'
-    })
-<<<<<<< HEAD
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-    const freelances = await freelanceModel.find(
-      applyProPublicFilter(req, { category }),
-    )
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-    const freelances = await freelanceModel.find(
-      applyProPublicFilter(req, { category }),
-    )
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     .populate("utilisateur")
     .sort(sortOptions)
     .limit(parseInt(limit));
@@ -547,39 +385,7 @@ export const searchFreelances = async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Max 100 résultats
     const skip = (page - 1) * limit;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     let searchCriteria = applyProPublicFilter(req, {});
-=======
-    let searchCriteria = { accountStatus: 'Active' };
->>>>>>> 22ecb18 (Dashboard Complet and Merge)
-=======
-    let searchCriteria = { accountStatus: 'Active' };
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-    let searchCriteria = applyProPublicFilter(req, {});
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-    let searchCriteria = { accountStatus: 'Active' };
->>>>>>> 1ca350b (Dashboard Complet and Merge)
-=======
-    let searchCriteria = applyProPublicFilter(req, {});
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-    let searchCriteria = { accountStatus: 'Active' };
->>>>>>> da08acd (Dashboard Complet and Merge)
-=======
-    let searchCriteria = applyProPublicFilter(req, {});
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-    let searchCriteria = { accountStatus: 'Active' };
->>>>>>> 5b8fb41 (Dashboard Complet and Merge)
 
     if (query) {
       searchCriteria.$or = [
@@ -652,28 +458,7 @@ export const deleteFreelance = async (req, res) => {
 // 🆕 OPTION C - Récupérer les freelances en attente
 export const getPendingFreelances = async (req, res) => {
   try {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     const freelances = await freelanceModel.find({ status: "pending" })
-=======
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-    const freelances = await freelanceModel.find({ 
-      status: 'pending',
-      source: 'sdealsidentification'
-    })
-<<<<<<< HEAD
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-    const freelances = await freelanceModel.find({ status: "pending" })
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-    const freelances = await freelanceModel.find({ status: "pending" })
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .sort({ dateRecensement: -1 });
@@ -689,23 +474,7 @@ export const getPendingFreelances = async (req, res) => {
 export const validateFreelance = async (req, res) => {
   try {
     const { id } = req.params;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     const adminId = req.user._id;
-=======
-    const adminId = req.body.adminId || req.user?._id;
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-    const adminId = req.user._id;
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-    const adminId = req.body.adminId || req.user?._id;
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-    const adminId = req.user._id;
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const freelance = await freelanceModel.findById(id);
     
@@ -745,23 +514,7 @@ export const rejectFreelance = async (req, res) => {
   try {
     const { id } = req.params;
     const { motif } = req.body;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     const adminId = req.user._id;
-=======
-    const adminId = req.body.adminId || req.user?._id;
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-    const adminId = req.user._id;
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-    const adminId = req.body.adminId || req.user?._id;
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-    const adminId = req.user._id;
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const freelance = await freelanceModel.findById(id);
     

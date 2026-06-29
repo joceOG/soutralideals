@@ -12,23 +12,7 @@ const prestataireSchema = new mongoose.Schema({
   prixprestataire: { type: Number, required: true },
   localisation: { type: String, required: true },
   localisationmaps:{ type: localisationSchema , required : false  } ,// ✅ ajouté
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   note: { type: Number, default: 0, min: 0, max: 5 },
-=======
-  note: { type: String },
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-  note: { type: Number, default: 0, min: 0, max: 5 },
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-  note: { type: String },
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-  note: { type: Number, default: 0, min: 0, max: 5 },
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   verifier: { type: Boolean, default: false },
 
   // Identité
@@ -54,21 +38,7 @@ const prestataireSchema = new mongoose.Schema({
 
   // Stats
   nbMission: { type: Number, default: 0 },
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   nbAvis: { type: Number, default: 0 },
-=======
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
-  nbAvis: { type: Number, default: 0 },
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
-=======
-  nbAvis: { type: Number, default: 0 },
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
   revenus: { type: Number, default: 0 },
   clients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur" }],
 
@@ -109,20 +79,6 @@ const prestataireSchema = new mongoose.Schema({
   motifRejet: { type: String },
 }, { timestamps: true });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 // 🆕 SYNCHRONISER finalizationStatus depuis les champs réels du document
 prestataireSchema.methods.syncFinalizationFromDocuments = function() {
   const fs = this.finalizationStatus;
@@ -137,25 +93,6 @@ prestataireSchema.methods.syncFinalizationFromDocuments = function() {
   return this.calculateFinalizationStatus();
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 22ecb18 (Dashboard Complet and Merge)
-=======
->>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1ca350b (Dashboard Complet and Merge)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> da08acd (Dashboard Complet and Merge)
-=======
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 5b8fb41 (Dashboard Complet and Merge)
 // 🆕 MÉTHODE POUR CALCULER LE STATUT DE FINALISATION
 prestataireSchema.methods.calculateFinalizationStatus = function() {
   const status = this.finalizationStatus;

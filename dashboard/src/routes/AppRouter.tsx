@@ -32,72 +32,17 @@ import Parametres from '../pages/Parametres/Parametres';
 import ImportPrestataires from '../pages/ImportPrestataires';
 // ✅ OPTION C - Page validation recensements SDEALSIDENTIFICATION
 import RecensementsPending from '../pages/RecensementsPending';
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const withAuth = (element: React.ReactElement) => (
   <ProtectedRoute>{element}</ProtectedRoute>
 );
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-<<<<<<< HEAD
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // Ce composant ne contient que les routes, sans le BrowserRouter
 // Le BrowserRouter est maintenant dans Dashboard.tsx
 const AppRouter: React.FC = () => {
   return (
     <Routes>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       <Route path="/connexion" element={<Connexion />} />
       
       {/* ✅ Routes protégées — JWT requis */}
@@ -131,153 +76,6 @@ const AppRouter: React.FC = () => {
       
       {/* Legacy redirect */}
       <Route path="/soutralideals" element={<Navigate to="/" replace />} />
-=======
-      <Route path="/" element={<Home />} />
-      <Route path="/soutralideals" element={<Navigate to="/" replace />} />
-      <Route path="/groupe" element={<Groupe />} />
-      <Route path="/categorie" element={<Categorie />} />
-      <Route path="/service" element={<Service />} />
-      <Route path="/article" element={<Article />} />
-      <Route path="/utilisateur" element={<Utilisateur />} />
-      <Route path="/prestataire" element={<Prestataire />} />
-      <Route path="/import-prestataires" element={<ImportPrestataires />} />
-      <Route path="/freelance" element={<Freelance />} />
-      <Route path="/freelance-offres" element={<FreelanceServices />} />
-      <Route path="/vendeur" element={<Vendeur />} />
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-      <Route path="/connexion" element={<Connexion />} />
-      
-      {/* ✅ Routes protégées — JWT requis */}
-      <Route path="/" element={withAuth(<Home />)} />
-      <Route path="/groupe" element={withAuth(<Groupe />)} />
-      <Route path="/categorie" element={withAuth(<Categorie />)} />
-      <Route path="/service" element={withAuth(<Service />)} />
-      <Route path="/article" element={withAuth(<Article />)} />
-      <Route path="/utilisateur" element={withAuth(<Utilisateur />)} />
-      <Route path="/prestataire" element={withAuth(<Prestataire />)} />
-      <Route path="/import-prestataires" element={withAuth(<ImportPrestataires />)} />
-      <Route path="/freelance" element={withAuth(<Freelance />)} />
-      <Route path="/freelance-offres" element={withAuth(<FreelanceServices />)} />
-      <Route path="/vendeur" element={withAuth(<Vendeur />)} />
-      <Route path="/commandes" element={withAuth(<Commandes />)} />
-      <Route path="/notifications" element={withAuth(<Notifications />)} />
-      <Route path="/messages" element={withAuth(<Messages />)} />
-      <Route path="/prestations" element={withAuth(<Prestations />)} />
-      <Route path="/promotions" element={withAuth(<Promotions />)} />
-      <Route path="/paiements" element={withAuth(<Paiements />)} />
-      <Route path="/statistiques" element={withAuth(<Statistiques />)} />
-      <Route path="/prestataires-map" element={withAuth(<PrestatairesMap />)} />
-      <Route path="/vendeurs-map" element={withAuth(<VendeursMap />)} />
-      <Route path="/freelances-map" element={withAuth(<FreelancesMap />)} />
-      <Route path="/geographic-analytics" element={withAuth(<GeographicAnalytics />)} />
-      <Route path="/avis" element={withAuth(<Avis />)} />
-      <Route path="/favoris" element={withAuth(<Favoris />)} />
-      <Route path="/historique" element={withAuth(<Historique />)} />
-      <Route path="/parametres" element={withAuth(<Parametres />)} />
-      <Route path="/recensements-pending" element={withAuth(<RecensementsPending />)} />
-      
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-=======
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-      <Route path="/connexion" element={<Connexion />} />
-      
-      {/* ✅ Routes protégées — JWT requis */}
-      <Route path="/" element={withAuth(<Home />)} />
-      <Route path="/groupe" element={withAuth(<Groupe />)} />
-      <Route path="/categorie" element={withAuth(<Categorie />)} />
-      <Route path="/service" element={withAuth(<Service />)} />
-      <Route path="/article" element={withAuth(<Article />)} />
-      <Route path="/utilisateur" element={withAuth(<Utilisateur />)} />
-      <Route path="/prestataire" element={withAuth(<Prestataire />)} />
-      <Route path="/import-prestataires" element={withAuth(<ImportPrestataires />)} />
-      <Route path="/freelance" element={withAuth(<Freelance />)} />
-      <Route path="/freelance-offres" element={withAuth(<FreelanceServices />)} />
-      <Route path="/vendeur" element={withAuth(<Vendeur />)} />
-      <Route path="/commandes" element={withAuth(<Commandes />)} />
-      <Route path="/notifications" element={withAuth(<Notifications />)} />
-      <Route path="/messages" element={withAuth(<Messages />)} />
-      <Route path="/prestations" element={withAuth(<Prestations />)} />
-      <Route path="/promotions" element={withAuth(<Promotions />)} />
-      <Route path="/paiements" element={withAuth(<Paiements />)} />
-      <Route path="/statistiques" element={withAuth(<Statistiques />)} />
-      <Route path="/prestataires-map" element={withAuth(<PrestatairesMap />)} />
-      <Route path="/vendeurs-map" element={withAuth(<VendeursMap />)} />
-      <Route path="/freelances-map" element={withAuth(<FreelancesMap />)} />
-      <Route path="/geographic-analytics" element={withAuth(<GeographicAnalytics />)} />
-      <Route path="/avis" element={withAuth(<Avis />)} />
-      <Route path="/favoris" element={withAuth(<Favoris />)} />
-      <Route path="/historique" element={withAuth(<Historique />)} />
-      <Route path="/parametres" element={withAuth(<Parametres />)} />
-      <Route path="/recensements-pending" element={withAuth(<RecensementsPending />)} />
-      
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-<<<<<<< HEAD
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-<<<<<<< HEAD
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-      {/* ✅ PRESTATIONS MODULE COMPLET */}
-      <Route path="/prestations" element={<Prestations />} />
-      
-      {/* ✅ NOUVELLES PAGES CRÉÉES */}
-      <Route path="/promotions" element={<Promotions />} />
-      <Route path="/paiements" element={<Paiements />} />
-      <Route path="/statistiques" element={<Statistiques />} />
-      
-      {/* ✅ GOOGLE MAPS ROUTES */}
-      <Route path="/prestataires-map" element={<PrestatairesMap />} />
-      <Route path="/vendeurs-map" element={<VendeursMap />} />
-      <Route path="/freelances-map" element={<FreelancesMap />} />
-      <Route path="/geographic-analytics" element={<GeographicAnalytics />} />
-      
-      {/* ✅ MODULES QUALITÉ & MODÉRATION */}
-      <Route path="/avis" element={<Avis />} />
-      <Route path="/favoris" element={<Favoris />} />
-      <Route path="/historique" element={<Historique />} />
-      
-      {/* ✅ PAGES CONFIGURÉES */}
-      <Route path="/parametres" element={<Parametres />} />
-      
-      {/* ✅ OPTION C - Validation recensements SDEALSIDENTIFICATION */}
-      <Route path="/recensements-pending" element={<RecensementsPending />} />
-<<<<<<< HEAD
->>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-      {/* Legacy redirect */}
-      <Route path="/soutralideals" element={<Navigate to="/" replace />} />
->>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
->>>>>>> 9f1908c (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-<<<<<<< HEAD
->>>>>>> 1656df6 (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
-=======
-=======
-      {/* Legacy redirect */}
-      <Route path="/soutralideals" element={<Navigate to="/" replace />} />
->>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-<<<<<<< HEAD
->>>>>>> d0a481d (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
-=======
-=======
-      {/* Legacy redirect */}
-      <Route path="/soutralideals" element={<Navigate to="/" replace />} />
->>>>>>> 455ed65 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
->>>>>>> 8c79d39 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       
       {/* 🚧 ROUTES À VENIR (pages temporaires ou placeholders) */}
       <Route path="/signalements" element={<div>Module Signalements - En cours de développement</div>} />
