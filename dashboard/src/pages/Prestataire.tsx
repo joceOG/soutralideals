@@ -140,6 +140,10 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  const authHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
   const [services, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
@@ -148,7 +152,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const fetchPrestataires = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${apiUrl}/prestataire`);
+      const response = await axios.get(`${apiUrl}/prestataire`, { headers: authHeaders() });
       setPrestataires(response.data);
     } catch {
       toast.error("Erreur lors du chargement des prestataires");
@@ -214,7 +218,7 @@ const [formData, setFormData] = useState<IPrestataireData>({
   const onDelete = async (rowData: IPrestataireData) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce prestataire ?')) {
       try {
-        await axios.delete(`${apiUrl}/prestataire/${rowData._id}`);
+        await axios.delete(`${apiUrl}/prestataire/${rowData._id}`, { headers: authHeaders() });
         setPrestataires(prestataires.filter(item => item._id !== rowData._id));
         toast.success('Prestataire supprimé avec succès !');
       } catch {
@@ -340,7 +344,12 @@ const onAdd = () => {
       if (formData.revenus) form.append('revenus', formData.revenus.toString());
       if (formData.clients?.length) form.append('clients', JSON.stringify(formData.clients));
 
-      await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
+      await axios({
+        method,
+        url,
+        data: form,
+        headers: { 'Content-Type': 'multipart/form-data', ...authHeaders() },
+      });
       await fetchPrestataires();
       toast.success(isUpdate ? 'Prestataire mis à jour !' : 'Prestataire ajouté !');
       setModalOpen(false);
