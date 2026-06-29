@@ -68,4 +68,35 @@ export const authRole = (roles = []) => {
 /** auth + rôle Admin (dashboard, modération) */
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
+/**
+ * Auth optionnelle : peuple req.user si token valide, sinon continue sans erreur.
+ * Utile pour les routes publiques avec comportement différent si authentifié.
+ */
+export const optionalAuth = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return next();
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return next();
+
+    const decoded = jwt.verify(token, secret);
+    const userId = decoded._id || decoded.id;
+    if (!userId) return next();
+
+    const utilisateur = await Utilisateur.findById(userId);
+    if (!utilisateur) return next();
+
+    const tokenExists = utilisateur.tokens.some((t) => t.token === token);
+    if (!tokenExists) return next();
+
+    req.utilisateur = utilisateur;
+    req.user = utilisateur;
+    req.token = token;
+    next();
+  } catch {
+    next();
+  }
+};
+
 export default auth;

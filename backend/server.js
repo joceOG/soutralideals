@@ -175,6 +175,8 @@ app.use(cors({
 }));
 app.options('*', cors());
 
+app.use('/uploads', express.static('uploads'));
+
 app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -188,24 +190,21 @@ const swaggerSpec = swaggerConfig;
 
 
 /** routes */
-// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
-app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
-app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
-app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
-app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
-app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+// Cache + invalidation une seule fois pour toutes les routes /api (évite 7× MISS par requête)
+app.use('/api', autoInvalidateCache);
+app.use('/api', smartCache(300));
 
-
-
-// ...
-
-app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
-app.use('/api', searchRouter); // 👈 Enregistrement Route Recherche Globale (Pas de cache pour l'instant pour tester, ou cache court)
-// app.use('/api', smartCache(60), searchRouter); // Optionnel: Cache 1 minute
+app.use('/api', utilisateurRouter);
+app.use('/api', groupeRouter);
+app.use('/api', categorieRouter);
+app.use('/api', articleRouter);
+app.use('/api', serviceRouter);
+app.use('/api', prestataireRouter);
+app.use('/api', prestataireFinalizationRouter);
+app.use('/api', freelanceRouter);
+app.use('/api', freelanceServiceRouter);
+app.use('/api', vendeurRouter);
+app.use('/api', searchRouter);
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);

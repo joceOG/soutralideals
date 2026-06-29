@@ -147,16 +147,10 @@ export const getAllFreelances = async (req, res) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder;
 
-    // ✅ Filtre statut
-    const filter = {};
-    if (req.query.status) {
-      filter.accountStatus = req.query.status;
-    }
+    // ✅ Filtre statut (catalogue public si non authentifié)
+    const filter = applyProPublicFilter(req, {});
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
-    }
-    if (req.query.utilisateur) {
-      filter.utilisateur = req.query.utilisateur;
     }
 
     const freelances = await freelanceModel.find(filter)
@@ -389,7 +383,7 @@ export const searchFreelances = async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Max 100 résultats
     const skip = (page - 1) * limit;
 
-    let searchCriteria = { accountStatus: 'Active' };
+    let searchCriteria = applyProPublicFilter(req, {});
 
     if (query) {
       searchCriteria.$or = [

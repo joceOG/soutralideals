@@ -26,7 +26,26 @@ export const upload = multer({ storage });
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
+    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role, phoneVerificationToken } = req.body;
+
+    const otpEnforced = process.env.OTP_REQUIRED === 'true';
+    let normalizedPhone = telephone ? normalizePhone(telephone) : null;
+    let telephoneVerified = false;
+
+    if (otpEnforced && !phoneVerificationToken) {
+      return res.status(400).json({ error: 'Vérification du téléphone requise (code OTP)' });
+    }
+
+    if (phoneVerificationToken) {
+      try {
+        normalizedPhone = assertPhoneVerificationToken(phoneVerificationToken, telephone);
+        telephoneVerified = true;
+      } catch (otpErr) {
+        return res.status(400).json({ error: otpErr.message });
+      }
+    } else if (normalizedPhone) {
+      normalizedPhone = normalizePhone(telephone);
+    }
 
     if (!role || !["Prestataire","Vendeur","Freelance","Client"].includes(role)) {
       return res.status(400).json({ error: "Rôle invalide ou manquant" });
@@ -57,7 +76,19 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role });
+    const newUser = new Utilisateur({
+      nom,
+      prenom,
+      datedenaissance,
+      email,
+      password,
+      telephone: normalizedPhone || telephone,
+      telephoneVerified: telephoneVerified,
+      genre,
+      note,
+      photoProfil,
+      role: normalizedRole,
+    });
     await newUser.save();
 
     if (email) {

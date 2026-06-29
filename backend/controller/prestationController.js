@@ -1,4 +1,5 @@
 import prestationModel from '../models/prestationModel.js';
+import prestataireModel from '../models/prestataireModel.js';
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
@@ -90,29 +91,59 @@ export const createPrestataire = async (req, res) => {
             .populate('prestataire', 'utilisateur localisation')
             .populate('service', 'nomservice categorie');
 
-        // 🔔 CRÉER UNE NOTIFICATION POUR LE PRESTATAIRE
+        // 🔔 CRÉER UNE NOTIFICATION + MESSAGE POUR LE PRESTATAIRE (compte utilisateur)
         try {
             const notificationModel = (await import('../models/notificationModel.js')).default;
-            
+            const messageModel = (await import('../models/messageModel.js')).default;
+
             if (prestataire) {
-                const notification = new notificationModel({
-                    destinataire: prestataire,
-                    expediteur: utilisateur,
-                    type: 'NOUVELLE_MISSION',
-                    titre: 'Nouvelle mission disponible !',
-                    contenu: `Une nouvelle mission vous a été assignée. Consultez vos missions pour plus de détails.`,
-                    prestation: newPrestation._id,
-                    priorite: 'HAUTE',
-                    donnees: {
-                        prestationId: newPrestation._id,
-                        service: populatedPrestation.service?.nomservice,
-                        adresse: adresse,
-                        ville: ville
-                    }
-                });
-                
-                await notification.save();
-                console.log(`🔔 Notification nouvelle mission créée pour prestataire: ${prestataire}`);
+                const prestataireDoc = await prestataireModel
+                    .findById(prestataire)
+                    .select('utilisateur');
+
+                const prestataireUserId = prestataireDoc?.utilisateur;
+
+                if (prestataireUserId) {
+                    const notification = new notificationModel({
+                        destinataire: prestataireUserId,
+                        expediteur: utilisateur,
+                        type: 'NOUVELLE_MISSION',
+                        titre: 'Nouvelle mission disponible !',
+                        contenu: `Une nouvelle mission vous a été assignée. Consultez vos missions pour plus de détails.`,
+                        prestation: newPrestation._id,
+                        priorite: 'HAUTE',
+                        donnees: {
+                            prestationId: newPrestation._id,
+                            service: populatedPrestation.service?.nomservice,
+                            adresse: adresse,
+                            ville: ville
+                        }
+                    });
+
+                    await notification.save();
+                    console.log(`🔔 Notification nouvelle mission créée pour prestataire: ${prestataireUserId}`);
+
+                    const conversationId = messageModel.genererConversationId(
+                        utilisateur,
+                        prestataireUserId.toString()
+                    );
+
+                    const demandeMessage = new messageModel({
+                        expediteur: new mongoose.Types.ObjectId(utilisateur),
+                        destinataire: prestataireUserId,
+                        contenu: `Bonjour, j'ai une demande de prestation${notesClient ? ` : ${notesClient}` : '.'} Adresse : ${adresse}, ${ville}.`,
+                        typeMessage: 'PRESTATION',
+                        referenceId: newPrestation._id,
+                        referenceType: 'Prestation',
+                        conversationId,
+                        statut: 'ENVOYE'
+                    });
+
+                    await demandeMessage.save();
+                    console.log(`💬 Message de demande créé pour prestation: ${newPrestation._id}`);
+                } else {
+                    console.warn(`⚠️ Prestataire ${prestataire} sans utilisateur lié — notification ignorée`);
+                }
             }
         } catch (notificationError) {
             console.error('Erreur création notification nouvelle mission:', notificationError.message);
@@ -325,8 +356,118 @@ export const getPrestataireById = async (req, res) => {
     const isPubliclyVisible =
       prestataire.status === "active" && prestataire.verifier === true;
 
-    if (!isPubliclyVisible && !adminUser && !isOwner) {
-      return res.status(404).json({ error: "Prestataire non trouvé" });
+        // 🔔 CRÉER UNE NOTIFICATION AUTOMATIQUE
+        try {
+            const notificationModel = (await import('../models/notificationModel.js')).default;
+            
+            let notificationData = {
+                destinataire: prestation.utilisateur,
+                prestation: prestation._id,
+                donnees: {
+                    prestationId: prestation._id,
+                    ancienStatut: prestation.statut,
+                    nouveauStatut: newStatus
+                }
+            };
+
+            switch (newStatus) {
+                case 'ACCEPTEE':
+                    notificationData.type = 'MISSION_ACCEPTEE';
+                    notificationData.titre = 'Mission acceptée !';
+                    notificationData.contenu = `Votre mission a été acceptée par le prestataire. Il va bientôt commencer.`;
+                    notificationData.priorite = 'HAUTE';
+                    break;
+                case 'REFUSEE':
+                    notificationData.type = 'MISSION_REFUSEE';
+                    notificationData.titre = 'Mission refusée';
+                    notificationData.contenu = `Votre mission a été refusée par le prestataire.`;
+                    notificationData.priorite = 'NORMALE';
+                    break;
+                case 'EN_COURS':
+                    notificationData.type = 'MISSION_DEMARREE';
+                    notificationData.titre = 'Mission démarrée !';
+                    notificationData.contenu = `Le prestataire a commencé votre mission.`;
+                    notificationData.priorite = 'HAUTE';
+                    break;
+                case 'TERMINEE':
+                    notificationData.type = 'MISSION_TERMINEE';
+                    notificationData.titre = 'Mission terminée !';
+                    notificationData.contenu = `Votre mission a été terminée par le prestataire.`;
+                    notificationData.priorite = 'HAUTE';
+                    break;
+            }
+
+            if (notificationData.type) {
+                const notification = new notificationModel(notificationData);
+                await notification.save();
+                console.log(`🔔 Notification créée: ${notificationData.type}`);
+            }
+        } catch (notificationError) {
+            console.error('Erreur création notification:', notificationError.message);
+            // Ne pas faire échouer la requête principale
+        }
+
+        // 💬 CRÉER / CORRIGER LA CONVERSATION AUTOMATIQUE POUR LES PRESTATIONS ACCEPTÉES
+        if (newStatus === 'ACCEPTEE') {
+            try {
+                const messageModel = (await import('../models/messageModel.js')).default;
+
+                const prestataireDoc = await prestataireModel
+                    .findById(prestation.prestataire)
+                    .select('utilisateur');
+
+                if (!prestataireDoc?.utilisateur) {
+                    console.warn(`⚠️ Prestataire ${prestation.prestataire} sans utilisateur — conversation ignorée`);
+                } else {
+                    const prestataireUserId = prestataireDoc.utilisateur.toString();
+                    const conversationId = messageModel.genererConversationId(
+                        prestation.utilisateur.toString(),
+                        prestataireUserId
+                    );
+
+                    const welcomeContent =
+                        `Bonjour ! J'ai accepté votre mission. Je vais commencer bientôt. N'hésitez pas à me contacter si vous avez des questions.`;
+
+                    const existingForPrestation = await messageModel.findOne({
+                        referenceId: prestation._id,
+                        contenu: { $regex: /accepté votre mission/i },
+                    });
+
+                    if (existingForPrestation) {
+                        existingForPrestation.expediteur = prestataireDoc.utilisateur;
+                        existingForPrestation.destinataire = prestation.utilisateur;
+                        existingForPrestation.conversationId = conversationId;
+                        await existingForPrestation.save();
+                        console.log(`💬 Message prestation corrigé pour: ${prestation._id}`);
+                    } else {
+                        const welcomeMessage = new messageModel({
+                            expediteur: prestataireDoc.utilisateur,
+                            destinataire: prestation.utilisateur,
+                            contenu: welcomeContent,
+                            typeMessage: 'PRESTATION',
+                            referenceId: prestation._id,
+                            referenceType: 'Prestation',
+                            conversationId,
+                            statut: 'ENVOYE'
+                        });
+
+                        await welcomeMessage.save();
+                        console.log(`💬 Conversation créée automatiquement pour prestation: ${prestation._id}`);
+                    }
+                }
+            } catch (conversationError) {
+                console.error('Erreur création conversation:', conversationError.message);
+                // Ne pas faire échouer la requête principale
+            }
+        }
+
+        res.status(200).json({
+            message: 'Statut mis à jour avec succès',
+            prestation
+        });
+    } catch (err) {
+        console.error('Erreur changement statut prestation:', err.message);
+        res.status(500).json({ error: err.message });
     }
 
     res.status(200).json(prestataire);
