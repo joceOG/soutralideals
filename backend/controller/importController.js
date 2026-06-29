@@ -134,19 +134,21 @@ export const importPrestatairesCSV = async (req, res) => {
           // Création du prestataire avec le modèle existant
           const prestataire = new Prestataire({
             utilisateur: utilisateur._id,
-            service: service._id, // ✅ Service valide
-            prixprestataire: 0, // À définir par l'utilisateur
+            service: service._id,
+            prixprestataire: 0,
             localisation: `${row.ville}, ${row.quartier}`,
             localisationmaps: {
               latitude: parseFloat(row.latitude),
               longitude: parseFloat(row.longitude)
             },
-            note: `Prestataire ${row.metier} importé via CSV`,
+            note: 0,
             verifier: false,
+            status: 'incomplete',
+            source: 'dashboard',
             specialite: [row.metier],
             anneeExperience: '0',
             description: `Prestataire ${row.metier} à ${row.ville}`,
-            rayonIntervention: 10, // 10km par défaut
+            rayonIntervention: 10,
             zoneIntervention: [row.ville, row.quartier],
             tarifHoraireMin: 0,
             tarifHoraireMax: 0,
@@ -155,6 +157,7 @@ export const importPrestatairesCSV = async (req, res) => {
             clients: []
           });
 
+          prestataire.syncFinalizationFromDocuments();
           const savedPrestataire = await prestataire.save();
           if (savedPrestataire._id) {
             console.log(`✅ Prestataire sauvegardé: ${row.nom} (ID: ${savedPrestataire._id})`);

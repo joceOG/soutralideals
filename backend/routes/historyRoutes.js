@@ -18,12 +18,13 @@ const historyRouter = Router();
 historyRouter.post('/history', auth, addHistory);
 historyRouter.get('/history', auth, listHistory);
 historyRouter.get('/history/search', auth, searchHistory);
+historyRouter.put('/history/:id', auth, updateHistory);
+historyRouter.delete('/history/:id', auth, removeHistory);
+
 historyRouter.get('/history/stats', auth, getHistoryStats);
 historyRouter.get('/history/recent', auth, getRecentHistory);
 historyRouter.get('/history/by-type', auth, getHistoryByType);
-historyRouter.put('/history/:id', auth, updateHistory);
 historyRouter.patch('/history/:id/archive', auth, archiveHistory);
 historyRouter.delete('/history/clean', auth, cleanOldHistory);
-historyRouter.delete('/history/:id', auth, removeHistory);
 
 export default historyRouter;

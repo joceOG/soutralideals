@@ -8,7 +8,9 @@ import {
     searchNearbyPlaces,
     getDirections,
     validateAddress,
-    calculateServiceArea
+    calculateServiceArea,
+    placesAutocomplete,
+    getPlaceDetails,
 } from '../api/googleMaps.js';
 
 const googleMapsRouter = Router();
@@ -109,6 +111,36 @@ googleMapsRouter.post('/validate-address', async (req, res) => {
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
         console.error('Erreur route validate-address:', error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+googleMapsRouter.post('/autocomplete', async (req, res) => {
+    try {
+        const { input, country, location, radius } = req.body;
+        if (!input) {
+            return res.status(400).json({ error: 'Texte de recherche requis' });
+        }
+
+        const result = await placesAutocomplete(input, { country, location, radius });
+        res.status(result.success ? 200 : 400).json(result);
+    } catch (error) {
+        console.error('Erreur route autocomplete:', error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+googleMapsRouter.post('/place-details', async (req, res) => {
+    try {
+        const { placeId } = req.body;
+        if (!placeId) {
+            return res.status(400).json({ error: 'placeId requis' });
+        }
+
+        const result = await getPlaceDetails(placeId);
+        res.status(result.success ? 200 : 400).json(result);
+    } catch (error) {
+        console.error('Erreur route place-details:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });

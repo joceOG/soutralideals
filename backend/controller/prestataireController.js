@@ -1,6 +1,7 @@
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
+import { isAdmin } from "../middleware/entityAccess.js";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -153,14 +154,16 @@ export const createPrestataire = async (req, res) => {
       uploads.attestationAssurance = (await uploadToCloudinary(req.files.attestationAssurance[0].path, "prestataires/assurance")).secure_url;
     }
 
-    // Création prestataire
+    // Création prestataire — status/verifier contrôlés côté serveur
+    const isAdminUser = isAdmin(req);
     const newPrestataire = new prestataireModel({
       utilisateur: new mongoose.Types.ObjectId(utilisateur),
       service: new mongoose.Types.ObjectId(finalService),
       prixprestataire: parseNumber(prixprestataire, 0),
       localisation,
       note: parseNumber(note, 0),
-      verifier: verifier === "true" || verifier === true,
+      verifier: isAdminUser && (verifier === "true" || verifier === true),
+      status: "incomplete",
       specialite: specialiteArr,
       anneeExperience,
       description,
@@ -180,12 +183,11 @@ export const createPrestataire = async (req, res) => {
       ...uploads,
     });
 
-    // 🆕 OPTION C - Traçabilité (ajout conditionnel pour éviter erreurs)
+    // Traçabilité (source autorisée ; status ignoré du client)
     if (req.body.source) {
-      newPrestataire.source = req.body.source;
-    }
-    if (req.body.status) {
-      newPrestataire.status = req.body.status;
+      newPrestataire.source = Array.isArray(req.body.source)
+        ? req.body.source[0]
+        : req.body.source;
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
       newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
@@ -194,6 +196,7 @@ export const createPrestataire = async (req, res) => {
       newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
     }
 
+    newPrestataire.syncFinalizationFromDocuments();
     await newPrestataire.save();
 
     const populatedPrestataire = await prestataireModel
@@ -263,7 +266,6 @@ export const updatePrestataire = async (req, res) => {
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
       ...(localisation && { localisation }),
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
-      ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
@@ -280,6 +282,14 @@ export const updatePrestataire = async (req, res) => {
       ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
       ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
     };
+
+    const isAdminUser = isAdmin(req);
+    if (isAdminUser && typeof verifier !== "undefined") {
+      updates.verifier = verifier === "true" || verifier === true;
+    }
+    if (isAdminUser && req.body.status) {
+      updates.status = req.body.status;
+    }
 
     // Upload fichiers simples
     for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
@@ -309,6 +319,12 @@ export const updatePrestataire = async (req, res) => {
       .populate("clients");
 
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
+
+    if (!isAdminUser) {
+      prestataire.syncFinalizationFromDocuments();
+      await prestataire.save();
+    }
+
     res.status(200).json(prestataire);
 
   } catch (err) {
@@ -320,7 +336,7 @@ export const updatePrestataire = async (req, res) => {
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
-    const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
+    const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
 
     const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
     const filter = {};
@@ -335,8 +351,28 @@ export const getAllPrestataires = async (req, res) => {
     } else if (excludedSvc.length) {
       filter.service = { $nin: excludedSvc };
     }
-    if (status) filter.status = status;
-    if (utilisateur) filter.utilisateur = utilisateur;
+
+    const adminUser = isAdmin(req);
+    const isOwnProfile =
+      utilisateur &&
+      req.utilisateur &&
+      String(utilisateur) === String(req.utilisateur._id);
+
+    if (adminUser) {
+      if (status) filter.status = status;
+      if (verifier !== undefined) filter.verifier = verifier === "true" || verifier === true;
+    } else if (isOwnProfile) {
+      if (status) filter.status = status;
+      filter.utilisateur = utilisateur;
+    } else {
+      // Catalogue public : uniquement profils validés
+      filter.status = "active";
+      filter.verifier = true;
+    }
+
+    if (utilisateur && (adminUser || isOwnProfile)) {
+      filter.utilisateur = utilisateur;
+    }
     if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
 
     const prestataires = await prestataireModel.find(filter)
@@ -379,6 +415,20 @@ export const getPrestataireById = async (req, res) => {
 
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
 
+    const adminUser = isAdmin(req);
+    const isOwner =
+      req.utilisateur &&
+      prestataire.utilisateur &&
+      String(prestataire.utilisateur._id ?? prestataire.utilisateur) ===
+        String(req.utilisateur._id);
+
+    const isPubliclyVisible =
+      prestataire.status === "active" && prestataire.verifier === true;
+
+    if (!isPubliclyVisible && !adminUser && !isOwner) {
+      return res.status(404).json({ error: "Prestataire non trouvé" });
+    }
+
     res.status(200).json(prestataire);
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
@@ -398,13 +448,10 @@ export const deletePrestataire = async (req, res) => {
   }
 };
 
-// 🆕 OPTION C - Récupérer les prestataires en attente
+// 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
 export const getPendingPrestataires = async (req, res) => {
   try {
-    const prestataires = await prestataireModel.find({ 
-      status: { $in: ['pending', 'incomplete'] },
-      source: { $in: ['sdealsidentification', 'sdealsmobile'] }
-    })
+    const prestataires = await prestataireModel.find({ status: "pending" })
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({
@@ -427,7 +474,7 @@ export const getPendingPrestataires = async (req, res) => {
 export const validatePrestataire = async (req, res) => {
   try {
     const { id } = req.params;
-    const adminId = req.body.adminId || req.user?._id;
+    const adminId = req.user._id;
 
     const prestataire = await prestataireModel.findById(id);
     
@@ -467,7 +514,7 @@ export const rejectPrestataire = async (req, res) => {
   try {
     const { id } = req.params;
     const { motif } = req.body;
-    const adminId = req.body.adminId || req.user?._id;
+    const adminId = req.user._id;
 
     const prestataire = await prestataireModel.findById(id);
     

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import fs from "fs";
 import cloudinary from "cloudinary";
 import freelanceModel from "../models/freelanceModel.js";
+import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -113,8 +114,13 @@ export const createFreelance = async (req, res) => {
       
       // Statut du compte
       accountStatus: 'Pending',
-      subscriptionType: 'Free'
+      subscriptionType: 'Free',
+      status: 'pending',
     });
+
+    if (req.body.source) {
+      newFreelance.source = req.body.source;
+    }
 
     await newFreelance.save();
     
@@ -141,16 +147,10 @@ export const getAllFreelances = async (req, res) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder;
 
-    // ✅ Filtre statut
-    const filter = {};
-    if (req.query.status) {
-      filter.accountStatus = req.query.status;
-    }
+    // ✅ Filtre statut (catalogue public si non authentifié)
+    const filter = applyProPublicFilter(req, {});
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
-    }
-    if (req.query.utilisateur) {
-      filter.utilisateur = req.query.utilisateur;
     }
 
     const freelances = await freelanceModel.find(filter)
@@ -193,6 +193,10 @@ export const getFreelanceById = async (req, res) => {
       });
 
     if (!freelance) return res.status(404).json({ error: "Freelance non trouvé" });
+
+    if (!canAccessProProfile(req, freelance)) {
+      return res.status(404).json({ error: "Freelance non trouvé" });
+    }
 
     res.status(200).json(freelance);
   } catch (err) {
@@ -355,10 +359,9 @@ export const getFreelancesByCategory = async (req, res) => {
       default: sortOptions = { rating: -1 };
     }
 
-    const freelances = await freelanceModel.find({ 
-      category: category,
-      accountStatus: 'Active'
-    })
+    const freelances = await freelanceModel.find(
+      applyProPublicFilter(req, { category }),
+    )
     .populate("utilisateur")
     .sort(sortOptions)
     .limit(parseInt(limit));
@@ -380,7 +383,7 @@ export const searchFreelances = async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Max 100 résultats
     const skip = (page - 1) * limit;
 
-    let searchCriteria = { accountStatus: 'Active' };
+    let searchCriteria = applyProPublicFilter(req, {});
 
     if (query) {
       searchCriteria.$or = [
@@ -453,10 +456,7 @@ export const deleteFreelance = async (req, res) => {
 // 🆕 OPTION C - Récupérer les freelances en attente
 export const getPendingFreelances = async (req, res) => {
   try {
-    const freelances = await freelanceModel.find({ 
-      status: 'pending',
-      source: 'sdealsidentification'
-    })
+    const freelances = await freelanceModel.find({ status: "pending" })
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .sort({ dateRecensement: -1 });
@@ -472,7 +472,7 @@ export const getPendingFreelances = async (req, res) => {
 export const validateFreelance = async (req, res) => {
   try {
     const { id } = req.params;
-    const adminId = req.body.adminId || req.user?._id;
+    const adminId = req.user._id;
 
     const freelance = await freelanceModel.findById(id);
     
@@ -512,7 +512,7 @@ export const rejectFreelance = async (req, res) => {
   try {
     const { id } = req.params;
     const { motif } = req.body;
-    const adminId = req.body.adminId || req.user?._id;
+    const adminId = req.user._id;
 
     const freelance = await freelanceModel.findById(id);
     
