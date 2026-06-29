@@ -5,11 +5,15 @@ import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { isAdmin, isSelf } from '../middleware/entityAccess.js';
 =======
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+import { isAdmin, isSelf } from '../middleware/entityAccess.js';
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
 // 🎯 CONFIGURATION MULTER POUR UPLOAD
 const storage = multer.diskStorage({
@@ -28,6 +32,7 @@ const storage = multer.diskStorage({
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -41,10 +46,16 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|pdf/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 
@@ -95,22 +106,64 @@ async function assertPrestataireAccess(req, prestataireId) {
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     
+=======
+
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     if (mimetype && extname) {
       return cb(null, true);
-    } else {
-      cb(new Error('Type de fichier non autorisé. Seuls JPEG, PNG et PDF sont acceptés.'));
     }
+    cb(new Error('Type de fichier non autorisé. Seuls JPEG, PNG et PDF sont acceptés.'));
   }
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+const DOCUMENT_FIELD_MAP = {
+  cniRecto: 'cni1',
+  cni_recto: 'cni1',
+  cniVerso: 'cni2',
+  cni_verso: 'cni2',
+  selfie: 'selfie',
+  insurance: 'attestationAssurance',
+};
+
+function applyDocumentToPrestataire(prestataire, documentType, fileUrl) {
+  const field = DOCUMENT_FIELD_MAP[documentType];
+  if (field) {
+    prestataire[field] = fileUrl;
+    return;
+  }
+  if (documentType.startsWith('certificate')) {
+    if (!Array.isArray(prestataire.diplomeCertificat)) {
+      prestataire.diplomeCertificat = [];
+    }
+    prestataire.diplomeCertificat.push(fileUrl);
+  }
+}
+
+async function assertPrestataireAccess(req, prestataireId) {
+  const prestataire = await prestataireModel.findById(prestataireId);
+  if (!prestataire) {
+    return { error: { status: 404, message: 'Prestataire non trouvé' } };
+  }
+  if (isAdmin(req)) return { prestataire };
+  const ownerId = prestataire.utilisateur?.toString();
+  if (!isSelf(req, ownerId)) {
+    return { error: { status: 403, message: 'Accès refusé : profil prestataire invalide.' } };
+  }
+  return { prestataire };
+}
+
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 // 🎯 UPLOAD D'UN DOCUMENT
 export const uploadDocument = async (req, res) => {
   try {
     const { prestataireId, documentType } = req.body;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 
@@ -142,28 +195,29 @@ export const uploadDocument = async (req, res) => {
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
     
+=======
+
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     if (!prestataireId || !documentType) {
-      return res.status(400).json({ 
-        error: 'prestataireId et documentType requis' 
+      return res.status(400).json({
+        error: 'prestataireId et documentType requis'
       });
     }
-    
+
     if (!req.file) {
-      return res.status(400).json({ 
-        error: 'Aucun fichier fourni' 
+      return res.status(400).json({
+        error: 'Aucun fichier fourni'
       });
     }
-    
-    // Vérifier que le prestataire existe
-    const prestataire = await prestataireModel.findById(prestataireId);
-    if (!prestataire) {
-      return res.status(404).json({ 
-        error: 'Prestataire non trouvé' 
-      });
+
+    const access = await assertPrestataireAccess(req, prestataireId);
+    if (access.error) {
+      return res.status(access.error.status).json({ error: access.error.message });
     }
-    
-    // Construire l'URL du fichier
+
+    const prestataire = access.prestataire;
     const fileUrl = `/uploads/prestataires/documents/${req.file.filename}`;
+<<<<<<< HEAD
     
     console.log(`📤 Document uploadé: ${documentType} pour prestataire ${prestataireId}`);
     console.log(`📁 Fichier: ${req.file.filename}`);
@@ -172,10 +226,18 @@ export const uploadDocument = async (req, res) => {
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+
+    applyDocumentToPrestataire(prestataire, documentType, fileUrl);
+    prestataire.syncFinalizationFromDocuments();
+    await prestataire.save();
+
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json({
       success: true,
       message: 'Document uploadé avec succès',
       url: fileUrl,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
       documentType,
@@ -191,16 +253,25 @@ export const uploadDocument = async (req, res) => {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
       documentType: documentType,
       filename: req.file.filename
+=======
+      documentType,
+      filename: req.file.filename,
+      status: prestataire.status,
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     });
-    
   } catch (error) {
     console.error('❌ Erreur upload document:', error);
+<<<<<<< HEAD
     res.status(500).json({ 
       error: 'Erreur lors de l\'upload du document' 
 <<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    res.status(500).json({
+      error: 'Erreur lors de l\'upload du document'
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     });
   }
 };
@@ -212,10 +283,14 @@ export const finalizePrestataireProfile = async (req, res) => {
     const updateData = req.body;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const access = await assertPrestataireAccess(req, id);
     if (access.error) {
       return res.status(access.error.status).json({ error: access.error.message });
+<<<<<<< HEAD
     }
 
     const prestataire = access.prestataire;
@@ -250,28 +325,23 @@ export const finalizePrestataireProfile = async (req, res) => {
       return res.status(404).json({ 
         error: 'Prestataire non trouvé' 
       });
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     }
-    
-    // Mettre à jour le statut de finalisation
-    const finalizationStatus = updateData.finalizationStatus || {};
-    
-    // Calculer si le profil est complet
-    const requiredDocs = finalizationStatus.cniUploaded && 
-                        finalizationStatus.selfieUploaded && 
-                        finalizationStatus.locationSet;
-    
-    // Mettre à jour le statut
-    const newStatus = requiredDocs ? 'pending' : 'incomplete';
-    
-    // Préparer les données de mise à jour
-    const updateFields = {
-      ...updateData,
-      status: newStatus,
-      finalizationStatus: {
-        ...prestataire.finalizationStatus,
-        ...finalizationStatus,
-        isComplete: requiredDocs
+
+    const prestataire = access.prestataire;
+
+    const allowedFields = [
+      'cni1', 'cni2', 'selfie', 'localisation', 'localisationmaps',
+      'diplomeCertificat', 'attestationAssurance', 'numeroCNI',
+      'rayonIntervention', 'zoneIntervention', 'description',
+    ];
+
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        prestataire[field] = updateData[field];
       }
+<<<<<<< HEAD
     };
     
     // Mettre à jour le prestataire
@@ -294,10 +364,20 @@ export const finalizePrestataireProfile = async (req, res) => {
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    }
+
+    prestataire.syncFinalizationFromDocuments();
+    await prestataire.save();
+
+    const finalizationResult = prestataire.calculateFinalizationStatus();
+
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json({
       success: true,
       message: 'Profil finalisé avec succès',
       prestataire: {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         id: prestataire._id,
@@ -314,18 +394,26 @@ export const finalizePrestataireProfile = async (req, res) => {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
         id: updatedPrestataire._id,
         status: updatedPrestataire.status,
+=======
+        id: prestataire._id,
+        status: prestataire.status,
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
         finalizationStatus: finalizationResult
       }
     });
-    
   } catch (error) {
     console.error('❌ Erreur finalisation profil:', error);
+<<<<<<< HEAD
     res.status(500).json({ 
       error: 'Erreur lors de la finalisation du profil' 
 <<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    res.status(500).json({
+      error: 'Erreur lors de la finalisation du profil'
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     });
   }
 };
@@ -336,10 +424,14 @@ export const getFinalizationStatus = async (req, res) => {
     const { id } = req.params;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const access = await assertPrestataireAccess(req, id);
     if (access.error) {
       return res.status(access.error.status).json({ error: access.error.message });
+<<<<<<< HEAD
     }
 
     const prestataire = access.prestataire;
@@ -354,19 +446,27 @@ export const getFinalizationStatus = async (req, res) => {
       return res.status(404).json({ 
         error: 'Prestataire non trouvé' 
       });
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     }
-    
+
+    const prestataire = access.prestataire;
     const finalizationResult = prestataire.calculateFinalizationStatus();
+<<<<<<< HEAD
     
 <<<<<<< HEAD
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json({
       success: true,
       status: prestataire.status,
       finalizationStatus: finalizationResult
     });
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   } catch (error) {
@@ -385,12 +485,21 @@ export const getFinalizationStatus = async (req, res) => {
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+  } catch (error) {
+    console.error('❌ Erreur récupération statut:', error);
+    res.status(500).json({
+      error: 'Erreur lors de la récupération du statut'
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     });
   }
 };
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 // 🎯 RÉCUPÉRER LES DOCUMENTS D'UN PRESTATAIRE
 export const getPrestataireDocuments = async (req, res) => {
   try {
@@ -430,10 +539,13 @@ export const getPrestataireDocuments = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 =======
 // 🎯 EXPORT DU MIDDLEWARE MULTER
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 // 🎯 EXPORT DU MIDDLEWARE MULTER
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 export { upload };

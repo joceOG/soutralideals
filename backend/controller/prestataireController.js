@@ -211,6 +211,7 @@ export const createPrestataire = async (req, res) => {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
     const newPrestataire = new prestataireModel({
@@ -244,13 +245,18 @@ export const createPrestataire = async (req, res) => {
       clients: clientsIds,
 =======
     // Création prestataire
+=======
+    // Création prestataire — status/verifier contrôlés côté serveur
+    const isAdminUser = isAdmin(req);
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const newPrestataire = new prestataireModel({
       utilisateur: new mongoose.Types.ObjectId(utilisateur),
       service: new mongoose.Types.ObjectId(finalService),
       prixprestataire: parseNumber(prixprestataire, 0),
       localisation,
       note: parseNumber(note, 0),
-      verifier: verifier === "true" || verifier === true,
+      verifier: isAdminUser && (verifier === "true" || verifier === true),
+      status: "incomplete",
       specialite: specialiteArr,
       anneeExperience,
       description,
@@ -278,6 +284,7 @@ export const createPrestataire = async (req, res) => {
     });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Traçabilité (source autorisée ; status ignoré du client)
     if (req.body.source) {
       newPrestataire.source = Array.isArray(req.body.source)
@@ -288,11 +295,13 @@ export const createPrestataire = async (req, res) => {
       newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
 =======
     // 🆕 OPTION C - Traçabilité (ajout conditionnel pour éviter erreurs)
+=======
+    // Traçabilité (source autorisée ; status ignoré du client)
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     if (req.body.source) {
-      newPrestataire.source = req.body.source;
-    }
-    if (req.body.status) {
-      newPrestataire.status = req.body.status;
+      newPrestataire.source = Array.isArray(req.body.source)
+        ? req.body.source[0]
+        : req.body.source;
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
 <<<<<<< HEAD
@@ -307,9 +316,13 @@ export const createPrestataire = async (req, res) => {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     newPrestataire.syncFinalizationFromDocuments();
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    newPrestataire.syncFinalizationFromDocuments();
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     await newPrestataire.save();
 
     const populatedPrestataire = await prestataireModel
@@ -390,6 +403,7 @@ export const updatePrestataire = async (req, res) => {
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
       ...(localisation && { localisation }),
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
+<<<<<<< HEAD
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
@@ -427,6 +441,8 @@ export const updatePrestataire = async (req, res) => {
       ...(localisation && { localisation }),
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
       ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
@@ -444,7 +460,18 @@ export const updatePrestataire = async (req, res) => {
       ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
     };
 
+<<<<<<< HEAD
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    const isAdminUser = isAdmin(req);
+    if (isAdminUser && typeof verifier !== "undefined") {
+      updates.verifier = verifier === "true" || verifier === true;
+    }
+    if (isAdminUser && req.body.status) {
+      updates.status = req.body.status;
+    }
+
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     // Upload fichiers simples
     for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
       if (req.files?.[field]?.[0]) {
@@ -474,14 +501,20 @@ export const updatePrestataire = async (req, res) => {
 
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     if (!isAdminUser) {
       prestataire.syncFinalizationFromDocuments();
       await prestataire.save();
     }
 
+<<<<<<< HEAD
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json(prestataire);
 
   } catch (err) {
@@ -496,6 +529,7 @@ export const updatePrestataire = async (req, res) => {
 export const getAllPrestataires = async (req, res) => {
   try {
     const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
+<<<<<<< HEAD
 
     const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
     const filter = {};
@@ -563,6 +597,8 @@ export const getAllPrestataires = async (req, res) => {
 export const getAllPrestataires = async (req, res) => {
   try {
     const { service, categorie, ville, status, utilisateur, limit = 50, page = 1 } = req.query;
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
     const filter = {};
@@ -577,8 +613,28 @@ export const getAllPrestataires = async (req, res) => {
     } else if (excludedSvc.length) {
       filter.service = { $nin: excludedSvc };
     }
-    if (status) filter.status = status;
-    if (utilisateur) filter.utilisateur = utilisateur;
+
+    const adminUser = isAdmin(req);
+    const isOwnProfile =
+      utilisateur &&
+      req.utilisateur &&
+      String(utilisateur) === String(req.utilisateur._id);
+
+    if (adminUser) {
+      if (status) filter.status = status;
+      if (verifier !== undefined) filter.verifier = verifier === "true" || verifier === true;
+    } else if (isOwnProfile) {
+      if (status) filter.status = status;
+      filter.utilisateur = utilisateur;
+    } else {
+      // Catalogue public : uniquement profils validés
+      filter.status = "active";
+      filter.verifier = true;
+    }
+
+    if (utilisateur && (adminUser || isOwnProfile)) {
+      filter.utilisateur = utilisateur;
+    }
     if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
 
     const prestataires = await prestataireModel.find(filter)
@@ -627,6 +683,9 @@ export const getPrestataireById = async (req, res) => {
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     const adminUser = isAdmin(req);
     const isOwner =
       req.utilisateur &&
@@ -641,8 +700,11 @@ export const getPrestataireById = async (req, res) => {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
 
+<<<<<<< HEAD
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     res.status(200).json(prestataire);
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
@@ -663,6 +725,7 @@ export const deletePrestataire = async (req, res) => {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
 export const getPendingPrestataires = async (req, res) => {
   try {
@@ -682,6 +745,12 @@ export const getPendingPrestataires = async (req, res) => {
 >>>>>>> 22ecb18 (Dashboard Complet and Merge)
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+// 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
+export const getPendingPrestataires = async (req, res) => {
+  try {
+    const prestataires = await prestataireModel.find({ status: "pending" })
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({
@@ -705,10 +774,14 @@ export const validatePrestataire = async (req, res) => {
   try {
     const { id } = req.params;
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    const adminId = req.user._id;
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const prestataire = await prestataireModel.findById(id);
     
@@ -749,10 +822,14 @@ export const rejectPrestataire = async (req, res) => {
     const { id } = req.params;
     const { motif } = req.body;
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+    const adminId = req.user._id;
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
     const prestataire = await prestataireModel.findById(id);
     

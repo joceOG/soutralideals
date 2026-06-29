@@ -2,10 +2,14 @@ import { Router } from "express";
 import multer from "multer";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 =======
 import auth, { authAdmin } from "../middleware/authMiddleware.js";
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import {
   requireFreelanceOwnerOrAdmin,
   requireSelfOrAdmin,

@@ -101,6 +101,7 @@ export const optionalAuth = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
 =======
@@ -108,4 +109,6 @@ export const optionalAuth = async (req, res, next) => {
 export const authAdmin = [auth, authRole(['Admin', 'ADMIN'])];
 
 >>>>>>> bbafccc (fix(security): protéger routes admin, maps API et authentification Socket)
+=======
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 export default auth;

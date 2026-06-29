@@ -57,9 +57,13 @@ email: {
     unique: true
   },
 <<<<<<< HEAD
+<<<<<<< HEAD
   telephoneVerified: { type: Boolean, default: false },
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
+=======
+  telephoneVerified: { type: Boolean, default: false },
+>>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
   genre: { type: String },
   note: { type: String },
   photoProfil: { type: String },
