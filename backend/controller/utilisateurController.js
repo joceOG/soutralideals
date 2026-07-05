@@ -1,90 +1,30 @@
-import bcrypt from "bcrypt";
-import mongoose from "mongoose";
-import validator from "validator";
-import jwt from "jsonwebtoken";
+import multer from 'multer';
+import cloudinary from 'cloudinary';
+import fs from 'fs';
+import Utilisateur from '../models/utilisateurModel.js';
+import prestataireModel from '../models/prestataireModel.js';
+import freelanceModel from '../models/freelanceModel.js';
+import vendeurModel from '../models/vendeurModel.js';
+import validator from 'validator';
 
-const UtilisateurSchema = new mongoose.Schema({
-  nom: { 
-    type: String, 
-    required: true,
-    trim: true
-  },
-  prenom: {
-    type: String,
-    trim: true
-  },
-  datedenaissance: {
-    type: String,
-    trim: true
-  },
-  email: {  
-    type: String,
-    trim: true,
-    lowercase: true,
-    unique: true,
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error('Email invalide');
-      }
-    }
-  },
-  password: { 
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 6,
-    validate(value) {
-      if (value.toLowerCase() === 'password') {
-        throw new Error("Le mot de passe ne peut pas être 'password'");
-      }
-    }
-  },
-  telephone: { 
-    type: String,
-    unique: true
-  },
-  telephoneVerified: { type: Boolean, default: false },
-  genre: { type: String },
-  note: { type: String },
-  photoProfil: { type: String },
-
-  // Admin : accès dashboard (liste utilisateurs, etc.) — à n’attribuer qu’en base ou via script sécurisé
-  role: {
-    type: String,
-    enum: ["Admin", "Prestataire", "Vendeur", "Freelance", "Client"],
-    required: true,
-  },
-
-  tokens: [{
-    token: { type: String, required: true }
-  }]
-}, {
-  timestamps: true
+// Config Cloudinary
+cloudinary.v2.config({
+  cloud_name: 'dm0c8st6k',
+  api_key: '541481188898557',
+  api_secret: '6ViefK1wxoJP50p8j2pQ7IykIYY',
 });
 
-// Hash du mot de passe avant sauvegarde
-UtilisateurSchema.pre("save", async function(next) {
-  const user = this;
-  if (user.isModified('password')) {
-    user.password = await bcrypt.hash(user.password, 10);
-  }
-  next();
+// Config Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/utilisateurs'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
+export const upload = multer({ storage });
 
-// Génération token JWT incluant le rôle
-UtilisateurSchema.methods.generateAuthToken = async function() {
-  const user = this;
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET manquant dans les variables d\'environnement');
-  const token = jwt.sign(
-    { _id: user._id.toString(), id: user._id.toString(), role: user.role },
-    secret,
-    { expiresIn: '7d' }
-  );
-  user.tokens = user.tokens.concat({ token });
-  await user.save();
-  return token;
-};
+// ✅ INSCRIPTION
+export const signUp = async (req, res) => {
+  try {
+    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role } = req.body;
 
     // ✅ Accepter les rôles en minuscules et les convertir
     const validRoles = ["prestataire", "vendeur", "freelance", "client"];
@@ -98,20 +38,15 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
     if (!role || !validRoles.includes(role.toLowerCase())) {
       return res.status(400).json({ error: "Rôle invalide ou manquant" });
     }
-
-    // Normaliser email vide → null
-    if (email === "") {
-      email = null;
-    }
+    
+    // Convertir le rôle en format backend
+    const normalizedRole = roleMap[role.toLowerCase()];
 
     // Vérification unicité email/téléphone
     const conditions = [];
     if (email) conditions.push({ email });
     if (telephone) conditions.push({ telephone });
-
-    const existingUser = conditions.length > 0 
-      ? await Utilisateur.findOne({ $or: conditions }) 
-      : null;
+    const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
 
     if (existingUser) {
       let error = '';
@@ -129,18 +64,7 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
     }
 
     // Création de l'utilisateur
-    const newUser = new Utilisateur({ 
-      nom, 
-      prenom, 
-      datedenaissance, 
-      email, 
-      password, 
-      telephone, 
-      genre, 
-      note, 
-      photoProfil, 
-      role 
-    });
+    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role: normalizedRole });
     await newUser.save();
 
     const token = await newUser.generateAuthToken();
@@ -149,41 +73,176 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
-
-  if (!user) throw new Error('Identifiants incorrects');
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error('Identifiants incorrects');
-
-  return user;
 };
 
-// Méthode d'instance pour comparer un mot de passe en clair avec le hash
-UtilisateurSchema.methods.comparePassword = async function(password) {
-  return bcrypt.compare(password, this.password);
+
+// ✅ CONNEXION
+export const signIn = async (req, res) => {
+  try {
+    let { identifiant, password } = req.body;
+
+    // 🔹 Sécurité : forcer en string + trim
+    identifiant = identifiant ? String(identifiant).trim() : '';
+    password = password ? String(password).trim() : '';
+
+    console.log("📥 Requête reçue signIn:", { identifiant, password });
+
+    // 🔹 Vérification des champs
+    if (!identifiant) {
+      return res.status(400).json({ error: 'Email ou téléphone requis' });
+    }
+    if (!password) {
+      return res.status(400).json({ error: 'Mot de passe requis' });
+    }
+
+    // 🔹 Recherche utilisateur via méthode statique
+    let user;
+    try {
+      user = await Utilisateur.findByCredentials(identifiant, password);
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    // 🔹 Génération du token
+    const token = await user.generateAuthToken();
+
+    res.status(200).json({
+      message: 'Connexion réussie',
+      utilisateur: user,
+      token
+    });
+  } catch (e) {
+    console.error("❌ Erreur signIn:", e);
+    res.status(500).json({ error: "Erreur interne du serveur" });
+  }
 };
 
-// Virtuals pour relations
-UtilisateurSchema.virtual('articles', {
-  ref: 'Article',
-  localField: '_id',
-  foreignField: 'utilisateur'
-});
-UtilisateurSchema.virtual('prestataire', {
-  ref: 'Prestataire',
-  localField: '_id',
-  foreignField: 'utilisateur'
-});
-UtilisateurSchema.virtual('freelance', {
-  ref: 'Freelance',
-  localField: '_id',
-  foreignField: 'utilisateur'
-});
-UtilisateurSchema.virtual('vendeur', {
-  ref: 'Vendeur',
-  localField: '_id',
-  foreignField: 'utilisateur'
-});
 
-const utilisateurModel = mongoose.model("Utilisateur", UtilisateurSchema);
-export default utilisateurModel;
+// ✅ DECONNEXION (statique)
+export const logout = (req, res) => {
+  res.status(200).json({ message: 'Déconnexion réussie' });
+};
+
+// ✅ LISTER TOUS LES UTILISATEURS
+export const getAllUsers = async (req, res) => {
+  try {
+    const utilisateurs = await Utilisateur.find({});
+    res.status(200).json(utilisateurs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ RÉCUPÉRER UN UTILISATEUR PAR ID
+export const getUserById = async (req, res) => {
+  try {
+    const utilisateur = await Utilisateur.findById(req.params.id);
+    if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    res.status(200).json(utilisateur);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ MODIFIER UN UTILISATEUR
+export const updateUserById = async (req, res) => {
+  try {
+    // 1️⃣ Champs autorisés à être mis à jour par le front
+    const allowedFields = [
+      'nom',
+      'prenom',
+      'email',
+      'telephone',
+      'genre',
+      'note',
+      'datedenaissance',
+      'role' // uniquement si tu veux autoriser la modification
+    ];
+
+    // 2️⃣ Construire l'objet safeUpdates avec uniquement les champs autorisés
+    const safeUpdates = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) safeUpdates[key] = req.body[key];
+    }
+
+    // 3️⃣ Vérification du rôle si présent
+    if (safeUpdates.role && !['Prestataire', 'Vendeur', 'Freelance', 'Client'].includes(safeUpdates.role)) {
+      return res.status(400).json({ error: "Rôle invalide" });
+    }
+
+    // 4️⃣ Upload photoProfil si présent
+    if (req.file) {
+      const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
+      safeUpdates.photoProfil = result.secure_url;
+      fs.unlinkSync(req.file.path);
+    }
+
+    // 5️⃣ Chercher l'utilisateur
+    const user = await Utilisateur.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    // 6️⃣ Mettre à jour uniquement les champs autorisés
+    Object.assign(user, safeUpdates);
+
+    // 7️⃣ Sauvegarder l'utilisateur (pré-save pour hasher le mot de passe si modifié)
+    await user.save();
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("❌ Erreur updateUserById:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ SUPPRIMER UN UTILISATEUR
+export const deleteUserById = async (req, res) => {
+  try {
+    const utilisateur = await Utilisateur.findByIdAndDelete(req.params.id);
+    if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ RÔLES UTILISATEUR AGRÉGÉS
+export const getUserRoles = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await Utilisateur.findById(id).lean();
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    // Rôle de base
+    const roles = new Set(['CLIENT']);
+
+    // Vérifier existence des documents liés
+    const [prestataire, freelance, vendeur] = await Promise.all([
+      prestataireModel.findOne({ utilisateur: id }).lean(),
+      freelanceModel.findOne({ utilisateur: id }).lean(),
+      vendeurModel.findOne({ utilisateur: id }).lean(),
+    ]);
+
+    if (prestataire) roles.add('PRESTATAIRE');
+    if (freelance) roles.add('FREELANCE');
+    if (vendeur) roles.add('VENDEUR');
+
+    // L’admin peut être déterminé par un champ futur, placeholder ici
+    if (user.role === 'ADMIN' || user.isAdmin === true) roles.add('ADMIN');
+
+    // Statuts détaillés par rôle
+    const details = {
+      prestataire: prestataire ? { id: prestataire._id, verifier: !!prestataire.verifier } : null,
+      freelance: freelance ? { id: freelance._id, accountStatus: freelance.accountStatus || 'Pending' } : null,
+      vendeur: vendeur ? { id: vendeur._id, verifier: !!vendeur.verifier } : null,
+    };
+
+    return res.status(200).json({
+      utilisateur: { _id: user._id, nom: user.nom, prenom: user.prenom, email: user.email, telephone: user.telephone },
+      roles: Array.from(roles),
+      details,
+    });
+  } catch (err) {
+    console.error('Erreur getUserRoles:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};

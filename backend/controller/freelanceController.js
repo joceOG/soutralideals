@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 import fs from "fs";
 import cloudinary from "cloudinary";
 import freelanceModel from "../models/freelanceModel.js";
-import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
 
+// Config Cloudinary
 cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: "dm0c8st6k",
+  api_key: "541481188898557",
+  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
 });
 
 // ✅ Créer un freelance (Modèle sdealsapp)
@@ -114,13 +114,8 @@ export const createFreelance = async (req, res) => {
       
       // Statut du compte
       accountStatus: 'Pending',
-      subscriptionType: 'Free',
-      status: 'pending',
+      subscriptionType: 'Free'
     });
-
-    if (req.body.source) {
-      newFreelance.source = req.body.source;
-    }
 
     await newFreelance.save();
     
@@ -198,10 +193,6 @@ export const getFreelanceById = async (req, res) => {
       });
 
     if (!freelance) return res.status(404).json({ error: "Freelance non trouvé" });
-
-    if (!canAccessProProfile(req, freelance)) {
-      return res.status(404).json({ error: "Freelance non trouvé" });
-    }
 
     res.status(200).json(freelance);
   } catch (err) {
@@ -364,9 +355,10 @@ export const getFreelancesByCategory = async (req, res) => {
       default: sortOptions = { rating: -1 };
     }
 
-    const freelances = await freelanceModel.find(
-      applyProPublicFilter(req, { category }),
-    )
+    const freelances = await freelanceModel.find({ 
+      category: category,
+      accountStatus: 'Active'
+    })
     .populate("utilisateur")
     .sort(sortOptions)
     .limit(parseInt(limit));
@@ -461,7 +453,10 @@ export const deleteFreelance = async (req, res) => {
 // 🆕 OPTION C - Récupérer les freelances en attente
 export const getPendingFreelances = async (req, res) => {
   try {
-    const freelances = await freelanceModel.find({ status: "pending" })
+    const freelances = await freelanceModel.find({ 
+      status: 'pending',
+      source: 'sdealsidentification'
+    })
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .sort({ dateRecensement: -1 });
@@ -477,7 +472,7 @@ export const getPendingFreelances = async (req, res) => {
 export const validateFreelance = async (req, res) => {
   try {
     const { id } = req.params;
-    const adminId = req.user._id;
+    const adminId = req.body.adminId || req.user?._id;
 
     const freelance = await freelanceModel.findById(id);
     
@@ -517,7 +512,7 @@ export const rejectFreelance = async (req, res) => {
   try {
     const { id } = req.params;
     const { motif } = req.body;
-    const adminId = req.user._id;
+    const adminId = req.body.adminId || req.user?._id;
 
     const freelance = await freelanceModel.findById(id);
     

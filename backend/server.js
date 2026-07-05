@@ -39,12 +39,9 @@ import userPreferencesRouter from './routes/userPreferencesRoutes.js';
 import securityRouter from './routes/securityRoutes.js';
 import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
-<<<<<<< HEAD
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
-=======
->>>>>>> 22ecb18 (Dashboard Complet and Merge)
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -194,7 +191,6 @@ const swaggerSpec = swaggerConfig;
 
 
 /** routes */
-<<<<<<< HEAD
 // Cache + invalidation une seule fois pour toutes les routes /api (évite 7× MISS par requête)
 app.use('/api', autoInvalidateCache);
 app.use('/api', smartCache(300));
@@ -210,18 +206,6 @@ app.use('/api', freelanceRouter);
 app.use('/api', freelanceServiceRouter);
 app.use('/api', vendeurRouter);
 app.use('/api', searchRouter);
-=======
-// 🚀 ROUTES AVEC CACHE SIMPLE (sans Redis)
-app.use('/api', simpleCache(300), utilisateurRouter) /** apis utilisateur */
-app.use('/api', simpleCache(600), groupeRouter); // Cache 10 minutes
-app.use('/api', simpleCache(600), categorieRouter); // Cache 10 minutes
-app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
-app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
-app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
-app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
-app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
->>>>>>> 22ecb18 (Dashboard Complet and Merge)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
@@ -243,10 +227,7 @@ app.use('/api', simpleCache(300), securityRouter);
 app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
-<<<<<<< HEAD
 app.use('/api', walletRouter);
-=======
->>>>>>> 22ecb18 (Dashboard Complet and Merge)
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
