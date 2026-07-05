@@ -74,6 +74,7 @@ export const signUp = async (req, res) => {
     }
 
     // Création de l'utilisateur
+<<<<<<< HEAD
     const newUser = new Utilisateur({ 
       nom, 
       prenom, 
@@ -86,6 +87,9 @@ export const signUp = async (req, res) => {
       photoProfil, 
       role 
     });
+=======
+    const newUser = new Utilisateur({ nom, prenom, datedenaissance, email, password, telephone, genre, note, photoProfil, role: normalizedRole });
+>>>>>>> 417f3e9 (feat: Backend complet pour système prestataire et panier)
     await newUser.save();
 
     if (email) {

@@ -42,6 +42,7 @@ import cartRouter from './routes/cartRoutes.js';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
@@ -66,6 +67,14 @@ import { authenticateSocketUser } from './utils/socketAuth.js';
 >>>>>>> dad8436 (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 =======
 >>>>>>> 048b559 (Dashboard Complet and Merge)
+=======
+=======
+<<<<<<< HEAD
+import searchRouter from './routes/searchRoutes.js'; // ✅ Import déplacé ici
+=======
+>>>>>>> 417f3e9 (feat: Backend complet pour système prestataire et panier)
+>>>>>>> 73f0ccc (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
+>>>>>>> f31c196 (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -281,9 +290,30 @@ app.use('/api', simpleCache(300), articleRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), serviceRouter); // Cache 5 minutes
 app.use('/api', prestataireRouter); // ✅ Cache désactivé temporairement
 app.use('/api', prestataireFinalizationRouter); // ✅ Routes de finalisation
+<<<<<<< HEAD
 app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
 app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
+<<<<<<< HEAD
 >>>>>>> 048b559 (Dashboard Complet and Merge)
+=======
+=======
+<<<<<<< HEAD
+app.use('/api', smartCache(300), autoInvalidateCache, freelanceRouter); // Cache 5 minutes
+app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+
+
+
+// ...
+
+app.use('/api', smartCache(300), autoInvalidateCache, vendeurRouter); // Cache 5 minutes
+app.use('/api', searchRouter); // 👈 Enregistrement Route Recherche Globale (Pas de cache pour l'instant pour tester, ou cache court)
+// app.use('/api', smartCache(60), searchRouter); // Optionnel: Cache 1 minute
+=======
+app.use('/api', simpleCache(300), freelanceRouter); // Cache 5 minutes
+app.use('/api', simpleCache(300), vendeurRouter); // Cache 5 minutes
+>>>>>>> 417f3e9 (feat: Backend complet pour système prestataire et panier)
+>>>>>>> 73f0ccc (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
+>>>>>>> f31c196 (Amelioration du Dashboard Prestataire Modeles Panier COntrolleur Route Statut Juillet 2026)
 
 // ✅ NOUVELLES ROUTES POUR LES MODULES AJOUTÉS
 app.use('/api', commandeRouter);
