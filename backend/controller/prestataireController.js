@@ -2,12 +2,17 @@ import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
+// Config Cloudinary
 cloudinary.config({
+<<<<<<< HEAD
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -29,6 +34,11 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+  cloud_name: "dm0c8st6k",
+  api_key: "541481188898557",
+  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 });
 
 // 🔹 Fonction utilitaire upload Cloudinary
@@ -221,8 +231,12 @@ export const createPrestataire = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
+=======
+    // Création prestataire
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     const newPrestataire = new prestataireModel({
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -240,20 +254,20 @@ export const createPrestataire = async (req, res) => {
       prixprestataire,
 >>>>>>> 1ca350b (Dashboard Complet and Merge)
       localisation,
-      note: parseNumber(note, 0),
-      verifier: isAdminUser && (verifier === "true" || verifier === true),
-      status: "incomplete",
-      specialite: specialiteArr,
+      note,
+      verifier: verifier === "true" || verifier === true,
+      specialite: specialite ? (Array.isArray(specialite) ? specialite : [specialite]) : [],
       anneeExperience,
       description,
-      rayonIntervention: parseNumber(rayonIntervention, 10),
-      zoneIntervention: zoneInterventionArr,
+      rayonIntervention,
+      zoneIntervention: zoneIntervention ? (Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention]) : [],
       localisationmaps: parsedLocalisation,
-      tarifHoraireMin: parseNumber(tarifHoraireMin, 0),
-      tarifHoraireMax: parseNumber(tarifHoraireMax, 0),
+      tarifHoraireMin,
+      tarifHoraireMax,
       numeroCNI,
       numeroRCCM,
       numeroAssurance,
+<<<<<<< HEAD
       nbMission: parseNumber(nbMission, 0),
       nbAvis: parseNumber(req.body.nbAvis, 0),
       revenus: parseNumber(revenus, 0),
@@ -294,19 +308,30 @@ export const createPrestataire = async (req, res) => {
       revenus: parseNumber(revenus, 0),
       clients: clientsIds,
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      nbMission,
+      revenus,
+      clients: Array.isArray(clients) ? clients.map(id => mongoose.Types.ObjectId(id)) : [],
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
       diplomeCertificat,
       ...uploads,
     });
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Traçabilité (source autorisée ; status ignoré du client)
+=======
+    // 🆕 OPTION C - Traçabilité (ajout conditionnel pour éviter erreurs)
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     if (req.body.source) {
-      newPrestataire.source = Array.isArray(req.body.source)
-        ? req.body.source[0]
-        : req.body.source;
+      newPrestataire.source = req.body.source;
+    }
+    if (req.body.status) {
+      newPrestataire.status = req.body.status;
     }
     if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
+<<<<<<< HEAD
       newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
 =======
     // 🆕 OPTION C - Traçabilité (ajout conditionnel pour éviter erreurs)
@@ -325,11 +350,15 @@ export const createPrestataire = async (req, res) => {
 =======
       newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+      newPrestataire.recenseur = mongoose.Types.ObjectId(req.body.recenseur);
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     }
     if (req.body.dateRecensement) {
       newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     newPrestataire.syncFinalizationFromDocuments();
@@ -338,6 +367,8 @@ export const createPrestataire = async (req, res) => {
 =======
     newPrestataire.syncFinalizationFromDocuments();
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     await newPrestataire.save();
 
     const populatedPrestataire = await prestataireModel
@@ -381,6 +412,7 @@ export const updatePrestataire = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
     const parseNumber = (value) => {
@@ -396,6 +428,8 @@ export const updatePrestataire = async (req, res) => {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
@@ -413,29 +447,38 @@ export const updatePrestataire = async (req, res) => {
     const updates = {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: new mongoose.Types.ObjectId(service) }),
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
       ...(localisation && { localisation }),
       ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
 <<<<<<< HEAD
+=======
+      ...(utilisateur && { utilisateur: mongoose.Types.ObjectId(utilisateur) }),
+      ...(service && { service: mongoose.Types.ObjectId(service) }),
+      ...(prixprestataire && { prixprestataire }),
+      ...(localisation && { localisation }),
+      ...(note && { note }),
+      ...(typeof verifier !== "undefined" && { verifier: verifier === "true" || verifier === true }),
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
-      ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
+      ...(rayonIntervention && { rayonIntervention }),
       ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
       ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
-      ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
-      ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
+      ...(tarifHoraireMin && { tarifHoraireMin }),
+      ...(tarifHoraireMax && { tarifHoraireMax }),
       ...(numeroCNI && { numeroCNI }),
       ...(numeroRCCM && { numeroRCCM }),
       ...(numeroAssurance && { numeroAssurance }),
-      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
-      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
-      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
-      ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
+      ...(nbMission && { nbMission }),
+      ...(revenus && { revenus }),
+      ...(clients && { clients: clients.map(id => mongoose.Types.ObjectId(id)) }),
     };
 
+<<<<<<< HEAD
     const isAdminUser = isAdmin(req);
     if (isAdminUser && typeof verifier !== "undefined") {
       updates.verifier = verifier === "true" || verifier === true;
@@ -487,6 +530,8 @@ export const updatePrestataire = async (req, res) => {
     }
 
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     // Upload fichiers simples
     for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
       if (req.files?.[field]?.[0]) {
@@ -517,6 +562,7 @@ export const updatePrestataire = async (req, res) => {
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 
@@ -530,6 +576,8 @@ export const updatePrestataire = async (req, res) => {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     res.status(200).json(prestataire);
 
   } catch (err) {
@@ -538,6 +586,7 @@ export const updatePrestataire = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 // ✅ Lire tous les prestataires (avec filtres optionnels)
@@ -585,24 +634,24 @@ export const getAllPrestataires = async (req, res) => {
 
     const prestataires = await prestataireModel.find(filter)
       .populate('utilisateur', 'nom prenom photoProfil email telephone')
+=======
+// ✅ Lire tous les prestataires
+export const getAllPrestataires = async (req, res) => {
+  try {
+    const prestataires = await prestataireModel.find()
+      .populate("utilisateur")
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
       .populate({
-        path: 'service',
-        match: categorie ? { categorie } : undefined,
+        path: "service",
         populate: {
-          path: 'categorie',
-          populate: { path: 'groupe' }
+          path: "categorie",
+          populate: { path: "groupe" }
         }
-      })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+      });
 
-    // Si filtre categorie via populate match, retirer les null
-    const result = categorie
-      ? prestataires.filter(p => p.service !== null)
-      : prestataires;
-
-    res.status(200).json(result);
+    res.status(200).json(prestataires);
   } catch (err) {
+<<<<<<< HEAD
     console.error('Erreur récupération prestataires:', err.message);
 =======
 // ✅ Lire tous les prestataires
@@ -678,6 +727,9 @@ export const getAllPrestataires = async (req, res) => {
 =======
     console.error('Erreur récupération prestataires:', err.message);
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+    console.error("Erreur récupération prestataires:", err.message);
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     res.status(500).json({ error: err.message });
   }
 };
@@ -697,6 +749,7 @@ export const getPrestataireById = async (req, res) => {
 
     if (!prestataire) return res.status(404).json({ error: "Prestataire non trouvé" });
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -720,6 +773,8 @@ export const getPrestataireById = async (req, res) => {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     res.status(200).json(prestataire);
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
@@ -741,7 +796,11 @@ export const deletePrestataire = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
+=======
+// 🆕 OPTION C - Récupérer les prestataires en attente
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 export const getPendingPrestataires = async (req, res) => {
   try {
 <<<<<<< HEAD
@@ -797,6 +856,7 @@ export const validatePrestataire = async (req, res) => {
     const { id } = req.params;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
@@ -804,6 +864,9 @@ export const validatePrestataire = async (req, res) => {
 =======
     const adminId = req.user._id;
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 
     const prestataire = await prestataireModel.findById(id);
     
@@ -845,6 +908,7 @@ export const rejectPrestataire = async (req, res) => {
     const { motif } = req.body;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
@@ -852,6 +916,9 @@ export const rejectPrestataire = async (req, res) => {
 =======
     const adminId = req.user._id;
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 
     const prestataire = await prestataireModel.findById(id);
     

@@ -4,11 +4,16 @@ import cloudinary from "cloudinary";
 import freelanceModel from "../models/freelanceModel.js";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 
+// Config Cloudinary
 cloudinary.v2.config({
+<<<<<<< HEAD
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -25,6 +30,11 @@ cloudinary.v2.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+  cloud_name: "dm0c8st6k",
+  api_key: "541481188898557",
+  api_secret: "6ViefK1wxoJP50p8j2pQ7IykIYY",
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 });
 
 // ✅ Créer un freelance (Modèle sdealsapp)
@@ -133,6 +143,7 @@ export const createFreelance = async (req, res) => {
       accountStatus: 'Pending',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       subscriptionType: 'Free',
       status: 'pending',
     });
@@ -156,6 +167,11 @@ export const createFreelance = async (req, res) => {
     }
 
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+      subscriptionType: 'Free'
+    });
+
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     await newFreelance.save();
     
     // ✅ Populer les références pour la réponse
@@ -257,6 +273,7 @@ export const getFreelanceById = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
     if (!canAccessProProfile(req, freelance)) {
@@ -268,6 +285,8 @@ export const getFreelanceById = async (req, res) => {
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     res.status(200).json(freelance);
   } catch (err) {
     console.error("Erreur lecture freelance:", err.message);
@@ -431,20 +450,26 @@ export const getFreelancesByCategory = async (req, res) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const freelances = await freelanceModel.find(
       applyProPublicFilter(req, { category }),
     )
 =======
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     const freelances = await freelanceModel.find({ 
       category: category,
       accountStatus: 'Active'
     })
+<<<<<<< HEAD
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
     const freelances = await freelanceModel.find(
       applyProPublicFilter(req, { category }),
     )
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     .populate("utilisateur")
     .sort(sortOptions)
     .limit(parseInt(limit));
@@ -557,16 +582,22 @@ export const getPendingFreelances = async (req, res) => {
   try {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const freelances = await freelanceModel.find({ status: "pending" })
 =======
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
     const freelances = await freelanceModel.find({ 
       status: 'pending',
       source: 'sdealsidentification'
     })
+<<<<<<< HEAD
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
     const freelances = await freelanceModel.find({ status: "pending" })
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .sort({ dateRecensement: -1 });
@@ -584,6 +615,7 @@ export const validateFreelance = async (req, res) => {
     const { id } = req.params;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
@@ -591,6 +623,9 @@ export const validateFreelance = async (req, res) => {
 =======
     const adminId = req.user._id;
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 
     const freelance = await freelanceModel.findById(id);
     
@@ -632,6 +667,7 @@ export const rejectFreelance = async (req, res) => {
     const { motif } = req.body;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const adminId = req.user._id;
 =======
     const adminId = req.body.adminId || req.user?._id;
@@ -639,6 +675,9 @@ export const rejectFreelance = async (req, res) => {
 =======
     const adminId = req.user._id;
 >>>>>>> 7a152ec (feat: backend OTP/prestataire, messagerie, cache et dashboard admin)
+=======
+    const adminId = req.body.adminId || req.user?._id;
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
 
     const freelance = await freelanceModel.findById(id);
     

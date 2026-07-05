@@ -14,6 +14,7 @@ const prestataireSchema = new mongoose.Schema({
   localisationmaps:{ type: localisationSchema , required : false  } ,// ✅ ajouté
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   note: { type: Number, default: 0, min: 0, max: 5 },
 =======
   note: { type: String },
@@ -21,6 +22,9 @@ const prestataireSchema = new mongoose.Schema({
 =======
   note: { type: Number, default: 0, min: 0, max: 5 },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+  note: { type: String },
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
   verifier: { type: Boolean, default: false },
 
   // Identité
@@ -48,12 +52,15 @@ const prestataireSchema = new mongoose.Schema({
   nbMission: { type: Number, default: 0 },
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   nbAvis: { type: Number, default: 0 },
 =======
 >>>>>>> e19f1be (feat: Backend complet pour système prestataire et panier)
 =======
   nbAvis: { type: Number, default: 0 },
 >>>>>>> a74433b (feat(backend): Sentry, bootstrap env, wallet, services freelance et sécurité)
+=======
+>>>>>>> 1cbdf58 (Amelioration du Dashboard Prestataire 2026)
   revenus: { type: Number, default: 0 },
   clients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur" }],
 
