@@ -126,3 +126,4 @@ ServiceSchema.virtual('freelance', {
 const serviceModel = mongoose.model('Service', ServiceSchema);
 
 export default serviceModel
+
