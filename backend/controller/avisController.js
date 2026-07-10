@@ -1,9 +1,57 @@
 import Avis from '../models/avisModel.js';
+import vendeurModel from '../models/vendeurModel.js';
+import prestataireModel from '../models/prestataireModel.js';
+import freelanceModel from '../models/freelanceModel.js';
+import articleModel from '../models/articleModel.js';
 import mongoose from 'mongoose';
+import { isAdmin } from '../utils/accessControl.js';
+import { pickFields } from '../utils/pickFields.js';
+import { syncEntityRating } from '../utils/ratingSync.js';
+
+const AVIS_EDITABLE_FIELDS = [
+  'note', 'titre', 'commentaire', 'categories', 'medias',
+  'recommande', 'localisation', 'tags', 'anonyme',
+];
+
+const VALID_SIGNALEMENT_MOTIFS = [
+  'CONTENU_INAPPROPRIE', 'FAUSSE_INFORMATION', 'SPAM', 'HARCELEMENT', 'AUTRE',
+];
+
+function getAuthUserId(req) {
+  return req.utilisateur?._id?.toString();
+}
+
+async function isObjetOwner(userId, objetType, objetId) {
+  switch (objetType) {
+    case 'VENDEUR': {
+      const doc = await vendeurModel.findById(objetId).select('utilisateur');
+      return doc?.utilisateur?.toString() === userId;
+    }
+    case 'PRESTATAIRE': {
+      const doc = await prestataireModel.findById(objetId).select('utilisateur');
+      return doc?.utilisateur?.toString() === userId;
+    }
+    case 'FREELANCE': {
+      const doc = await freelanceModel.findById(objetId).select('utilisateur');
+      return doc?.utilisateur?.toString() === userId;
+    }
+    case 'ARTICLE': {
+      const doc = await articleModel.findById(objetId).populate({ path: 'vendeur', select: 'utilisateur' });
+      return doc?.vendeur?.utilisateur?.toString() === userId;
+    }
+    default:
+      return false;
+  }
+}
 
 // 📝 CRÉER UN AVIS
 export const createAvis = async (req, res) => {
   try {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentification requise' });
+    }
+
     const {
       objetType,
       objetId,
@@ -18,7 +66,6 @@ export const createAvis = async (req, res) => {
       anonyme
     } = req.body;
 
-    // Validation des données
     if (!objetType || !objetId || !note || !titre || !commentaire) {
       return res.status(400).json({ 
         error: 'Champs obligatoires manquants' 
@@ -31,9 +78,8 @@ export const createAvis = async (req, res) => {
       });
     }
 
-    // Vérifier si l'utilisateur a déjà donné un avis pour cet objet
     const avisExistant = await Avis.findOne({
-      auteur: req.userId,
+      auteur: userId,
       objetType,
       objetId
     });
@@ -44,9 +90,8 @@ export const createAvis = async (req, res) => {
       });
     }
 
-    // Créer l'avis
     const nouvelAvis = new Avis({
-      auteur: req.userId,
+      auteur: userId,
       objetType,
       objetId,
       note,
@@ -63,9 +108,11 @@ export const createAvis = async (req, res) => {
     });
 
     const avisSauvegarde = await nouvelAvis.save();
-    
-    // Populer les données de l'auteur
     await avisSauvegarde.populate('auteur', 'nom prenom photoProfil');
+
+    if (avisSauvegarde.statut === 'PUBLIE') {
+      await syncEntityRating(objetType, objetId);
+    }
 
     res.status(201).json({
       message: 'Avis créé avec succès',
@@ -95,7 +142,6 @@ export const getAllAvis = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // Construction du filtre
     const filtre = {};
     
     if (objetType) filtre.objetType = objetType;
@@ -103,11 +149,9 @@ export const getAllAvis = async (req, res) => {
     if (note) filtre.note = parseInt(note);
     if (statut) filtre.statut = statut;
 
-    // Options de tri
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const avis = await Avis.find(filtre)
@@ -169,28 +213,35 @@ export const getAvisById = async (req, res) => {
 export const updateAvis = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const userId = getAuthUserId(req);
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID invalide' });
     }
 
-    // Vérifier que l'utilisateur est l'auteur de l'avis
     const avis = await Avis.findById(id);
     if (!avis) {
       return res.status(404).json({ error: 'Avis non trouvé' });
     }
 
-    if (avis.auteur.toString() !== req.userId) {
+    if (!isAdmin(req) && avis.auteur.toString() !== userId) {
       return res.status(403).json({ error: 'Non autorisé à modifier cet avis' });
     }
 
-    // Mise à jour
+    const updates = pickFields(req.body, AVIS_EDITABLE_FIELDS);
+    if (updates.note !== undefined && (updates.note < 1 || updates.note > 5)) {
+      return res.status(400).json({ error: 'La note doit être entre 1 et 5' });
+    }
+
     const avisModifie = await Avis.findByIdAndUpdate(
       id,
       { ...updates, updatedAt: new Date() },
       { new: true, runValidators: true }
     ).populate('auteur', 'nom prenom photoProfil');
+
+    if (avisModifie?.statut === 'PUBLIE') {
+      await syncEntityRating(avisModifie.objetType, avisModifie.objetId);
+    }
 
     res.json({
       message: 'Avis modifié avec succès',
@@ -210,22 +261,24 @@ export const updateAvis = async (req, res) => {
 export const deleteAvis = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = getAuthUserId(req);
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID invalide' });
     }
 
-    // Vérifier que l'utilisateur est l'auteur de l'avis
     const avis = await Avis.findById(id);
     if (!avis) {
       return res.status(404).json({ error: 'Avis non trouvé' });
     }
 
-    if (avis.auteur.toString() !== req.userId) {
+    if (!isAdmin(req) && avis.auteur.toString() !== userId) {
       return res.status(403).json({ error: 'Non autorisé à supprimer cet avis' });
     }
 
+    const { objetType, objetId } = avis;
     await Avis.findByIdAndDelete(id);
+    await syncEntityRating(objetType, objetId);
 
     res.json({ message: 'Avis supprimé avec succès' });
 
@@ -255,7 +308,6 @@ export const getStatsObjet = async (req, res) => {
 
     const result = stats[0];
     
-    // Calculer la distribution des notes
     const distribution = result.distributionNotes.reduce((acc, note) => {
       acc[note] = (acc[note] || 0) + 1;
       return acc;
@@ -286,7 +338,7 @@ export const getStatsObjet = async (req, res) => {
 export const marquerUtile = async (req, res) => {
   try {
     const { id } = req.params;
-    const { utile } = req.body; // true pour utile, false pour pas utile
+    const { utile } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID invalide' });
@@ -297,7 +349,7 @@ export const marquerUtile = async (req, res) => {
       return res.status(404).json({ error: 'Avis non trouvé' });
     }
 
-    if (utile) {
+    if (utile === true || utile === 'true') {
       avis.utile += 1;
     } else {
       avis.pasUtile += 1;
@@ -325,6 +377,11 @@ export const repondreAvis = async (req, res) => {
   try {
     const { id } = req.params;
     const { contenu } = req.body;
+    const userId = getAuthUserId(req);
+
+    if (!contenu?.trim()) {
+      return res.status(400).json({ error: 'Contenu de réponse requis' });
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID invalide' });
@@ -335,14 +392,15 @@ export const repondreAvis = async (req, res) => {
       return res.status(404).json({ error: 'Avis non trouvé' });
     }
 
-    // Vérifier que l'utilisateur peut répondre (propriétaire de l'objet)
-    // Cette logique dépend de votre structure de données
-    // Pour l'instant, on autorise tous les utilisateurs authentifiés
+    const canRespond = isAdmin(req) || await isObjetOwner(userId, avis.objetType, avis.objetId);
+    if (!canRespond) {
+      return res.status(403).json({ error: 'Seul le propriétaire peut répondre à cet avis' });
+    }
 
     avis.reponse = {
-      contenu,
+      contenu: contenu.trim(),
       date: new Date(),
-      auteur: req.userId
+      auteur: userId
     };
 
     await avis.save();
@@ -376,8 +434,12 @@ export const signalerAvis = async (req, res) => {
       return res.status(404).json({ error: 'Avis non trouvé' });
     }
 
+    const safeMotifs = Array.isArray(motifs)
+      ? motifs.filter((m) => VALID_SIGNALEMENT_MOTIFS.includes(m))
+      : [];
+
     avis.signale = true;
-    avis.motifsSignalement = motifs || [];
+    avis.motifsSignalement = safeMotifs;
     avis.statut = 'MODERE';
 
     await avis.save();
@@ -445,6 +507,3 @@ export const searchAvis = async (req, res) => {
     });
   }
 };
-
-
-

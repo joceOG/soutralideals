@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 const SecuritySchema = new mongoose.Schema({
@@ -349,7 +348,7 @@ SecuritySchema.virtual('isHighRisk').get(function() {
 
 // 🔄 MÉTHODES D'INSTANCE
 SecuritySchema.methods.generate2FASecret = function() {
-  const secret = crypto.randomBytes(32).toString('base32');
+  const secret = crypto.randomBytes(20).toString('base64url');
   this.twoFactorAuth.secret = secret;
   this.twoFactorAuth.backupCodes = this.generateBackupCodes();
   return secret;

@@ -2,7 +2,7 @@ import Report from '../models/reportModel.js';
 
 export const createReport = async (req, res) => {
   try {
-    const userId = req.userId || req.utilisateur?._id;
+    const userId = req.utilisateur?._id ?? req.userId;
     if (!userId) return res.status(401).json({ error: 'Auth requise' });
     const { targetType, targetId, reason } = req.body;
     if (!targetType || !targetId || !reason) {

@@ -1,7 +1,7 @@
 import multer from 'multer';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-import Utilisateur from '../models/utilisateurModel.js';
+import { assertOwnerOrAdmin } from '../utils/accessControl.js';
 import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
@@ -105,8 +105,13 @@ export const signUp = async (req, res) => {
     }
 
     const token = await newUser.generateAuthToken();
+    const refreshToken = await newUser.generateRefreshToken();
 
-    res.status(201).json({ utilisateur: newUser, token });
+    res.status(201).json({
+      utilisateur: newUser.toJSON(),
+      token,
+      refreshToken,
+    });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -140,11 +145,13 @@ export const signIn = async (req, res) => {
 
     // 🔹 Génération du token
     const token = await user.generateAuthToken();
+    const refreshToken = await user.generateRefreshToken();
 
     res.status(200).json({
       message: 'Connexion réussie',
-      utilisateur: user,
-      token
+      utilisateur: user.toJSON(),
+      token,
+      refreshToken
     });
   } catch (e) {
     console.error("❌ Erreur signIn:", e);
@@ -153,17 +160,26 @@ export const signIn = async (req, res) => {
 };
 
 
-// ✅ DECONNEXION : invalide le token courant en base
+// ✅ DECONNEXION : invalide access + refresh tokens en base (route publique)
 export const logout = async (req, res) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
+    const { refreshToken } = req.body || {};
+
     if (token) {
-      // Retirer le token actif de la liste des tokens de l'utilisateur
       await Utilisateur.updateOne(
         { 'tokens.token': token },
         { $pull: { tokens: { token } } }
       );
     }
+
+    if (refreshToken) {
+      await Utilisateur.updateOne(
+        { 'refreshTokens.token': refreshToken },
+        { $pull: { refreshTokens: { token: refreshToken } } }
+      );
+    }
+
     res.status(200).json({ message: 'Déconnexion réussie' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -200,7 +216,9 @@ export const getAllUsers = async (req, res) => {
 // ✅ RÉCUPÉRER UN UTILISATEUR PAR ID
 export const getUserById = async (req, res) => {
   try {
-    const utilisateur = await Utilisateur.findById(req.params.id);
+    if (!assertOwnerOrAdmin(req, res, req.params.id)) return;
+
+    const utilisateur = await Utilisateur.findById(req.params.id).select('-password -tokens');
     if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json(utilisateur);
   } catch (err) {

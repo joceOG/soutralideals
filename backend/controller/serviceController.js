@@ -1,6 +1,7 @@
 import Service from "../models/serviceModel.js";
 import mongoose from "mongoose";
 import { getCategorieIdsUnderServicesGenerauxGroupe } from "../utils/catalogFilters.js";
+import { escapeRegex } from "../utils/escapeRegex.js";
 import multer from "multer";
 import cloudinary from "cloudinary";
 import fs from "fs";
@@ -28,9 +29,10 @@ export const searchServices = async (req, res) => {
 
         // Recherche textuelle et tags (Regex uniquement pour stabilité)
         if (query) {
+            const safeQuery = escapeRegex(query);
             searchCriteria.$or = [
-                { nomservice: { $regex: query, $options: 'i' } },
-                { tags: { $in: [new RegExp(query, 'i')] } }
+                { nomservice: { $regex: safeQuery, $options: 'i' } },
+                { tags: { $in: [new RegExp(safeQuery, 'i')] } }
             ];
         }
 

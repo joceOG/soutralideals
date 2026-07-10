@@ -1,26 +1,30 @@
 import UserPreferences from '../models/userPreferencesModel.js';
 import mongoose from 'mongoose';
+import { assertOwnerOrAdmin } from '../utils/accessControl.js';
 
 // ✅ CRÉER/METTRE À JOUR LES PRÉFÉRENCES D'UN UTILISATEUR
 export const createOrUpdatePreferences = async (req, res) => {
   try {
-    const { utilisateur } = req.body;
-    
-    if (!utilisateur) {
+    const utilisateurId = req.params.utilisateurId || req.body.utilisateur;
+
+    if (!utilisateurId) {
       return res.status(400).json({ 
         error: 'ID utilisateur requis' 
       });
     }
 
+    if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
+
     // Vérifier si l'utilisateur existe
-    const existingPreferences = await UserPreferences.findOne({ utilisateur });
+    const existingPreferences = await UserPreferences.findOne({ utilisateur: utilisateurId });
     
     if (existingPreferences) {
-      // Mettre à jour les préférences existantes
+      const { utilisateur: _ignored, ...safeBody } = req.body;
       const updatedPreferences = await UserPreferences.findOneAndUpdate(
-        { utilisateur },
+        { utilisateur: utilisateurId },
         { 
-          ...req.body,
+          ...safeBody,
+          utilisateur: utilisateurId,
           derniereModification: new Date()
         },
         { new: true, runValidators: true }
@@ -31,8 +35,11 @@ export const createOrUpdatePreferences = async (req, res) => {
         preferences: updatedPreferences
       });
     } else {
-      // Créer de nouvelles préférences
-      const newPreferences = new UserPreferences(req.body);
+      const { utilisateur: _ignored, ...safeBody } = req.body;
+      const newPreferences = new UserPreferences({
+        ...safeBody,
+        utilisateur: utilisateurId,
+      });
       await newPreferences.save();
       
       res.status(201).json({
@@ -57,7 +64,9 @@ export const getUserPreferences = async (req, res) => {
       });
     }
 
-    const preferences = await UserPreferences.findOne({ 
+    if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
+
+    const preferences = await UserPreferences.findOne({
       utilisateur: utilisateurId 
     });
 
@@ -102,6 +111,8 @@ export const updateLanguage = async (req, res) => {
       });
     }
 
+    if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
+
     const validLanguages = ['fr', 'en', 'es', 'pt', 'ar'];
     if (!validLanguages.includes(langue)) {
       return res.status(400).json({ 
@@ -141,6 +152,8 @@ export const updateCurrency = async (req, res) => {
       });
     }
 
+    if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
+
     const validCurrencies = ['FCFA', 'EUR', 'USD', 'XOF', 'XAF'];
     if (!validCurrencies.includes(devise)) {
       return res.status(400).json({ 
@@ -178,6 +191,8 @@ export const updateCountry = async (req, res) => {
         error: 'ID utilisateur invalide' 
       });
     }
+
+    if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
 
     const validCountries = ['CI', 'FR', 'US', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ', 'GH', 'NG'];
     if (!validCountries.includes(pays)) {
@@ -223,6 +238,8 @@ export const resetPreferences = async (req, res) => {
         error: 'ID utilisateur invalide' 
       });
     }
+
+    if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
 
     const preferences = await UserPreferences.findOneAndUpdate(
       { utilisateur: utilisateurId },
@@ -363,6 +380,8 @@ export const deletePreferences = async (req, res) => {
         error: 'ID utilisateur invalide' 
       });
     }
+
+    if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
 
     const deletedPreferences = await UserPreferences.findOneAndDelete({ 
       utilisateur: utilisateurId 

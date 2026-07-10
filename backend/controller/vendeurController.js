@@ -3,12 +3,28 @@ import vendeurModel from "../models/vendeurModel.js";
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
+import { isAdmin, assertAdmin } from '../utils/accessControl.js';
+import { pickFields } from '../utils/pickFields.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const VENDEUR_OWNER_FIELDS = [
+  'shopName', 'shopDescription', 'businessType', 'businessCategories',
+  'deliveryZones', 'shippingMethods', 'paymentMethods',
+  'businessRegistrationNumber', 'businessAddress', 'businessPhone', 'businessEmail',
+  'returnPolicy', 'warrantyInfo', 'minimumOrderAmount', 'maxOrdersPerDay',
+  'socialMedia', 'preferredContactMethod', 'tags', 'notes',
+];
+
+const JSON_FIELDS = [
+  'businessCategories', 'deliveryZones', 'shippingMethods',
+  'paymentMethods', 'businessAddress', 'socialMedia', 'tags',
+];
 
 // ✅ CRÉER UN NOUVEAU VENDEUR (sdealsapp standard)
 export const createVendeur = async (req, res) => {
@@ -48,9 +64,13 @@ export const createVendeur = async (req, res) => {
         } = req.body;
 
         // ✅ VALIDATION OBLIGATOIRE
-        if (!utilisateur || !shopName || !shopDescription || !businessType) {
+        const ownerId = isAdmin(req) && utilisateur
+            ? utilisateur
+            : req.utilisateur._id.toString();
+
+        if (!shopName || !shopDescription || !businessType) {
             return res.status(400).json({ 
-                error: 'Utilisateur, nom boutique, description et type business requis' 
+                error: 'Nom boutique, description et type business requis' 
             });
         }
 
@@ -82,8 +102,8 @@ export const createVendeur = async (req, res) => {
 
         // ✅ CRÉER VENDEUR AVEC MODÈLE MODERNE
         const newVendeur = new vendeurModel({
-            // Référence utilisateur
-            utilisateur: new mongoose.Types.ObjectId(utilisateur),
+            // Référence utilisateur (forcée pour les non-admins)
+            utilisateur: new mongoose.Types.ObjectId(ownerId),
             
             // 🏪 Informations boutique
             shopName,
@@ -217,10 +237,11 @@ export const getAllVendeurs = async (req, res) => {
         if (rating) filters.rating = { $gte: parseFloat(rating) };
         
         if (search) {
+            const safeSearch = escapeRegex(search);
             filters.$or = [
-                { shopName: { $regex: search, $options: 'i' } },
-                { shopDescription: { $regex: search, $options: 'i' } },
-                { tags: { $in: [new RegExp(search, 'i')] } }
+                { shopName: { $regex: safeSearch, $options: 'i' } },
+                { shopDescription: { $regex: safeSearch, $options: 'i' } },
+                { tags: { $in: [new RegExp(safeSearch, 'i')] } }
             ];
         }
 
@@ -287,11 +308,12 @@ export const getVendeurById = async (req, res) => {
 export const updateVendeur = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'ID vendeur invalide' });
         }
+
+        const updates = pickFields(req.body, VENDEUR_OWNER_FIELDS);
 
         // ✅ UPLOAD NOUVEAU LOGO SI PRÉSENT
         if (req.files?.shopLogo?.[0]) {
@@ -317,8 +339,7 @@ export const updateVendeur = async (req, res) => {
         }
 
         // Traitement des champs JSON
-        const fieldsToParseJSON = ['businessCategories', 'deliveryZones', 'shippingMethods', 'paymentMethods', 'businessAddress', 'socialMedia', 'tags'];
-        fieldsToParseJSON.forEach(field => {
+        JSON_FIELDS.forEach(field => {
             if (updates[field] && typeof updates[field] === 'string') {
                 try {
                     updates[field] = JSON.parse(updates[field]);
@@ -327,6 +348,13 @@ export const updateVendeur = async (req, res) => {
                 }
             }
         });
+
+        if (updates.minimumOrderAmount !== undefined) {
+            updates.minimumOrderAmount = parseFloat(updates.minimumOrderAmount) || 0;
+        }
+        if (updates.maxOrdersPerDay !== undefined) {
+            updates.maxOrdersPerDay = parseInt(updates.maxOrdersPerDay, 10) || 50;
+        }
 
         // Fusionner les updates de vérification
         Object.assign(updates, verificationUpdates);
@@ -372,9 +400,11 @@ export const deleteVendeur = async (req, res) => {
 
 // ✅ NOUVELLES MÉTHODES SPÉCIALISÉES SDEALSAPP
 
-// Mettre à jour la note d'un vendeur
+// Mettre à jour la note d'un vendeur (admin uniquement — les notes publiques viennent des avis)
 export const updateVendeurRating = async (req, res) => {
     try {
+        if (!assertAdmin(req, res)) return;
+
         const { id } = req.params;
         const { rating } = req.body;
 
@@ -455,10 +485,11 @@ export const searchVendeurs = async (req, res) => {
         let searchCriteria = applyProPublicFilter(req, {});
 
         if (query) {
+            const safeQuery = escapeRegex(query);
             searchCriteria.$or = [
-                { shopName: { $regex: query, $options: 'i' } },
-                { shopDescription: { $regex: query, $options: 'i' } },
-                { tags: { $in: [new RegExp(query, 'i')] } }
+                { shopName: { $regex: safeQuery, $options: 'i' } },
+                { shopDescription: { $regex: safeQuery, $options: 'i' } },
+                { tags: { $in: [new RegExp(safeQuery, 'i')] } }
             ];
         }
 

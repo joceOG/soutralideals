@@ -15,7 +15,7 @@ const upload = multer({ storage });
 // --- AUTHENTIFICATION (publique) ---
 utilisateurRouter.post('/register', upload.single('photoProfil'), validateUserRegistration, handleValidationErrors, utilisateurController.signUp);
 utilisateurRouter.post('/login', validateUserLogin, handleValidationErrors, utilisateurController.signIn);
-utilisateurRouter.post('/logout', auth, utilisateurController.logout);
+utilisateurRouter.post('/logout', utilisateurController.logout);
 
 // --- TOKEN VALIDATION (vérifier que le token est encore valide) ---
 utilisateurRouter.get('/utilisateur/profile', auth, (req, res) => {

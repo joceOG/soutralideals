@@ -41,6 +41,7 @@ import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
+import refreshTokenRouter from './routes/refreshTokenRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
 
 /** import connection file */
@@ -147,10 +148,21 @@ const avisLimiter = rateLimit({
   skip: (req) => !req.utilisateur?._id,
 });
 
+// 🛡️ RATE LIMITING pour le refresh token
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: {
+    error: 'Trop de tentatives de rafraîchissement, veuillez réessayer plus tard.',
+    retryAfter: '15 minutes'
+  },
+});
+
 app.use(limiter);
 // Routes d'auth réelles : /api/login et /api/register
 app.use('/api/login', authLimiter);
 app.use('/api/register', authLimiter);
+app.use('/api/refresh-token', refreshLimiter);
 
 // 📝 LOGGING AVANCÉ
 app.use(httpLogger);
@@ -228,6 +240,7 @@ app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
 app.use('/api', walletRouter);
+app.use('/api', refreshTokenRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -515,7 +528,10 @@ io.on('connection', (socket) => {
         socket.emit('auth-error', { error: 'Authentification Socket refusée.' });
         return;
       }
+      const utilisateurModel = (await import('./models/utilisateurModel.js')).default;
+      const userDoc = await utilisateurModel.findById(userId).select('role');
       socket.userId = userId;
+      socket.userRole = userDoc?.role;
       socket.authenticated = true;
       socket.join(`user_${userId}`);
       console.log(`👤 Utilisateur ${userId} authentifié (socket)`);
@@ -537,7 +553,7 @@ io.on('connection', (socket) => {
     console.log(`💬 Socket ${socket.id} a quitté la conversation ${conversationId}`);
   });
 
-  // 📨 ENVOYER UN MESSAGE
+  // 📨 RELAY TEMPS RÉEL (persistance via API HTTP uniquement)
   socket.on('send-message', async (messageData) => {
     try {
       if (!socket.authenticated || !socket.userId) {
@@ -549,52 +565,19 @@ io.on('connection', (socket) => {
         return;
       }
 
-      console.log('📨 Nouveau message reçu:', messageData);
-
-      // Sauvegarder le message en base de données
-      const messageModel = (await import('./models/messageModel.js')).default;
-      const prestataireModel = (await import('./models/prestataireModel.js')).default;
-
-      let destinataireId = messageData.destinataire;
-      const destUser = await (await import('./models/utilisateurModel.js')).default
-        .findById(destinataireId)
-        .select('_id');
-      if (!destUser) {
-        const prestDoc = await prestataireModel.findById(destinataireId).select('utilisateur');
-        if (prestDoc?.utilisateur) destinataireId = prestDoc.utilisateur.toString();
-      }
-
-      const conversationId =
-        messageData.conversationId ||
-        messageModel.genererConversationId(socket.userId, destinataireId);
-
-      const newMessage = new messageModel({
-        expediteur: messageData.expediteur,
-        destinataire: destinataireId,
-        contenu: messageData.contenu,
-        conversationId,
-        typeMessage: messageData.typeMessage || 'NORMAL',
-        statut: 'ENVOYE'
-      });
-
-      await newMessage.save();
-
-      // Diffuser le message à tous les participants de la conversation
       io.to(`conversation_${messageData.conversationId}`).emit('new-message', {
-        ...newMessage.toObject(),
-        timestamp: new Date()
+        ...messageData,
+        timestamp: new Date(),
       });
 
-      // Notifier le destinataire s'il est en ligne
       io.to(`user_${messageData.destinataire}`).emit('message-notification', {
         type: 'new_message',
         conversationId: messageData.conversationId,
         sender: messageData.expediteur,
-        content: messageData.contenu
+        content: messageData.contenu,
       });
-
     } catch (error) {
-      console.error('❌ Erreur lors de l\'envoi du message:', error);
+      console.error('❌ Erreur lors du relay message:', error);
       socket.emit('message-error', { error: 'Erreur lors de l\'envoi du message' });
     }
   });
@@ -602,10 +585,26 @@ io.on('connection', (socket) => {
   // 📦 MISE À JOUR STATUT COMMANDE
   socket.on('update-order-status', async (orderData) => {
     try {
+      if (!socket.authenticated || !socket.userId) {
+        socket.emit('order-error', { error: 'Non authentifié' });
+        return;
+      }
+
+      const commandeModel = (await import('./models/commandeModel.js')).default;
+      const commande = await commandeModel.findById(orderData.orderId);
+      if (!commande) {
+        socket.emit('order-error', { error: 'Commande introuvable' });
+        return;
+      }
+
+      const isOwner = commande.utilisateur?.toString() === socket.userId;
+      if (!isOwner) {
+        socket.emit('order-error', { error: 'Non autorisé' });
+        return;
+      }
+
       console.log('📦 Mise à jour statut commande:', orderData);
 
-      // Mettre à jour en base de données
-      const commandeModel = (await import('./models/commandeModel.js')).default;
       await commandeModel.findByIdAndUpdate(orderData.orderId, {
         statusCommande: orderData.status
       });
@@ -630,8 +629,13 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 🔔 NOTIFICATION PUSH
+  // 🔔 NOTIFICATION PUSH (réservé aux admins connectés)
   socket.on('send-notification', (notificationData) => {
+    if (!socket.authenticated || socket.userRole?.toUpperCase() !== 'ADMIN') {
+      socket.emit('notification-error', { error: 'Non autorisé' });
+      return;
+    }
+
     console.log('🔔 Notification envoyée:', notificationData);
 
     // Diffuser la notification au destinataire

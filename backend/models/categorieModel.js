@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { sanitizeMediaUrl } from '../utils/sanitizeMediaUrl.js';
 
 const CategorieSchema = mongoose.Schema({
     nomcategorie: 
@@ -21,6 +22,15 @@ const CategorieSchema = mongoose.Schema({
     ref: 'Article',       
     localField: '_id',       
     foreignField: 'categorie'    
+});
+
+CategorieSchema.set('toJSON', {
+  transform(_doc, ret) {
+    const clean = sanitizeMediaUrl(ret.imagecategorie);
+    if (!clean) delete ret.imagecategorie;
+    else ret.imagecategorie = clean;
+    return ret;
+  },
 });
 
 

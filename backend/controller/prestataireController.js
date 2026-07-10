@@ -2,6 +2,7 @@ import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
+import { pickFields } from '../utils/pickFields.js';
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -22,6 +23,14 @@ const uploadToCloudinary = async (filePath, folder) => {
     throw err;
   }
 };
+
+const PRESTATAIRE_OWNER_FIELDS = [
+  'service', 'prixprestataire', 'localisation', 'specialite', 'anneeExperience',
+  'description', 'rayonIntervention', 'zoneIntervention', 'localisationmaps',
+  'tarifHoraireMin', 'tarifHoraireMax', 'numeroCNI', 'numeroRCCM', 'numeroAssurance', 'clients',
+];
+
+const PRESTATAIRE_ADMIN_FIELDS = ['note', 'nbAvis', 'nbMission', 'revenus', 'verifier', 'status', 'utilisateur'];
 
 // ✅ Créer un prestataire
 export const createPrestataire = async (req, res) => {
@@ -156,12 +165,16 @@ export const createPrestataire = async (req, res) => {
 
     // Création prestataire — status/verifier contrôlés côté serveur
     const isAdminUser = isAdmin(req);
+    const ownerId = isAdminUser && utilisateur
+      ? utilisateur
+      : req.utilisateur._id.toString();
+
     const newPrestataire = new prestataireModel({
-      utilisateur: new mongoose.Types.ObjectId(utilisateur),
+      utilisateur: new mongoose.Types.ObjectId(ownerId),
       service: new mongoose.Types.ObjectId(finalService),
       prixprestataire: parseNumber(prixprestataire, 0),
       localisation,
-      note: parseNumber(note, 0),
+      note: isAdminUser ? parseNumber(note, 0) : 0,
       verifier: isAdminUser && (verifier === "true" || verifier === true),
       status: "incomplete",
       specialite: specialiteArr,
@@ -175,24 +188,24 @@ export const createPrestataire = async (req, res) => {
       numeroCNI,
       numeroRCCM,
       numeroAssurance,
-      nbMission: parseNumber(nbMission, 0),
-      nbAvis: parseNumber(req.body.nbAvis, 0),
-      revenus: parseNumber(revenus, 0),
+      nbMission: isAdminUser ? parseNumber(nbMission, 0) : 0,
+      nbAvis: isAdminUser ? parseNumber(req.body.nbAvis, 0) : 0,
+      revenus: isAdminUser ? parseNumber(revenus, 0) : 0,
       clients: clientsIds,
       diplomeCertificat,
       ...uploads,
     });
 
-    // Traçabilité (source autorisée ; status ignoré du client)
+    // Traçabilité (source autorisée ; champs sensibles admin-only)
     if (req.body.source) {
       newPrestataire.source = Array.isArray(req.body.source)
         ? req.body.source[0]
         : req.body.source;
     }
-    if (req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
+    if (isAdminUser && req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
       newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
     }
-    if (req.body.dateRecensement) {
+    if (isAdminUser && req.body.dateRecensement) {
       newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
     }
 
@@ -215,6 +228,12 @@ export const createPrestataire = async (req, res) => {
 // ✅ Mettre à jour un prestataire
 export const updatePrestataire = async (req, res) => {
   try {
+    const isAdminUser = isAdmin(req);
+    const allowedFields = isAdminUser
+      ? [...PRESTATAIRE_OWNER_FIELDS, ...PRESTATAIRE_ADMIN_FIELDS]
+      : PRESTATAIRE_OWNER_FIELDS;
+    const body = pickFields(req.body, allowedFields);
+
     const {
       utilisateur,
       service,
@@ -235,8 +254,9 @@ export const updatePrestataire = async (req, res) => {
       numeroAssurance,
       nbMission,
       revenus,
-      clients
-    } = req.body;
+      clients,
+      status,
+    } = body;
 
     const parseNumber = (value) => {
       if (value === null || typeof value === "undefined" || value === "") {
@@ -261,11 +281,11 @@ export const updatePrestataire = async (req, res) => {
     }
 
     const updates = {
-      ...(utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
+      ...(isAdminUser && utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: new mongoose.Types.ObjectId(service) }),
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
       ...(localisation && { localisation }),
-      ...(typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
+      ...(isAdminUser && typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
       ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
@@ -277,18 +297,17 @@ export const updatePrestataire = async (req, res) => {
       ...(numeroCNI && { numeroCNI }),
       ...(numeroRCCM && { numeroRCCM }),
       ...(numeroAssurance && { numeroAssurance }),
-      ...(typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
-      ...(typeof parseNumber(req.body.nbAvis) !== "undefined" && { nbAvis: parseNumber(req.body.nbAvis) }),
-      ...(typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
+      ...(isAdminUser && typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
+      ...(isAdminUser && typeof parseNumber(body.nbAvis) !== "undefined" && { nbAvis: parseNumber(body.nbAvis) }),
+      ...(isAdminUser && typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
       ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
     };
 
-    const isAdminUser = isAdmin(req);
     if (isAdminUser && typeof verifier !== "undefined") {
       updates.verifier = verifier === "true" || verifier === true;
     }
-    if (isAdminUser && req.body.status) {
-      updates.status = req.body.status;
+    if (isAdminUser && status) {
+      updates.status = status;
     }
 
     // Upload fichiers simples

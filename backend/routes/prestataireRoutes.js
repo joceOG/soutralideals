@@ -1,5 +1,5 @@
 import { Router } from "express";
-import multer from "multer";
+import { documentUpload } from "../utils/uploadMiddleware.js";
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 import {
   requirePrestataireOwnerOrAdmin,
@@ -16,11 +16,9 @@ import {
   getPendingPrestataires,
 } from "../controller/prestataireController.js";
 
-const upload = multer({ dest: "uploads/" });
-
 const prestataireRouter = Router();
 
-const uploadFields = upload.fields([
+const uploadFields = documentUpload.fields([
   { name: "cni1", maxCount: 1 },
   { name: "cni2", maxCount: 1 },
   { name: "selfie", maxCount: 1 },

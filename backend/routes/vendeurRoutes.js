@@ -1,5 +1,5 @@
 import { Router } from "express";
-import multer from "multer";
+import { documentUpload } from "../utils/uploadMiddleware.js";
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 import {
   requireSelfOrAdmin,
@@ -23,9 +23,7 @@ import {
   getPendingVendeurs,
 } from "../controller/vendeurController.js";
 
-const upload = multer({ dest: "uploads/" });
-
-const uploaderVendeur = upload.fields([
+const uploaderVendeur = documentUpload.fields([
   { name: "shopLogo", maxCount: 1 },
   { name: "cni1", maxCount: 1 },
   { name: "cni2", maxCount: 1 },
@@ -69,6 +67,6 @@ vendeurRouter.put(
   updateVendeur,
 );
 
-vendeurRouter.put("/vendeur/:id/rating", auth, updateVendeurRating);
+vendeurRouter.put("/vendeur/:id/rating", ...authAdmin, updateVendeurRating);
 
 export default vendeurRouter;

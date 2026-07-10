@@ -1,5 +1,6 @@
 import { Router } from "express";
-import multer from "multer";
+import { imageUpload } from "../utils/uploadMiddleware.js";
+import auth, { authAdmin } from "../middleware/authMiddleware.js";
 import {
     createService,
     createServiceDirect,
@@ -11,14 +12,14 @@ import {
 } from "../controller/serviceController.js";
 
 const serviceRouter = Router();
-const upload = multer({ dest: "uploads/" });
 
-serviceRouter.get("/service/search", searchServices); // 👈 Nouvelle route de recherche (Placée AVANT /:categorie pour éviter les conflits)
-serviceRouter.post("/service", upload.single("imageservice"), createService);
-serviceRouter.post("/service/direct", createServiceDirect); // Endpoint direct sans multer
-serviceRouter.put("/service/:id", upload.single("imageservice"), updateService);
+serviceRouter.get("/service/search", searchServices);
 serviceRouter.get("/service", getAllServices);
 serviceRouter.get("/service/:categorie", getServicesByCategorie);
-serviceRouter.delete("/service/:id", deleteService);
+
+serviceRouter.post("/service", ...authAdmin, imageUpload.single("imageservice"), createService);
+serviceRouter.post("/service/direct", ...authAdmin, createServiceDirect);
+serviceRouter.put("/service/:id", ...authAdmin, imageUpload.single("imageservice"), updateService);
+serviceRouter.delete("/service/:id", ...authAdmin, deleteService);
 
 export default serviceRouter;

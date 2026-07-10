@@ -1,5 +1,5 @@
 import { Router } from "express";
-import multer from "multer";
+import { imageUpload } from "../utils/uploadMiddleware.js";
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 import {
   requireFreelanceOwnerOrAdmin,
@@ -21,15 +21,14 @@ import {
 } from "../controller/freelanceController.js";
 import { listFreelanceServicesByFreelanceId } from "../controller/freelanceServiceController.js";
 
-const upload = multer({ dest: "uploads/" });
-const freelanceRouter = Router();
-
-const uploadFields = upload.fields([
+const uploadFields = imageUpload.fields([
   { name: "profileImage", maxCount: 1 },
   { name: "cni1", maxCount: 1 },
   { name: "cni2", maxCount: 1 },
   { name: "selfie", maxCount: 1 },
 ]);
+
+const freelanceRouter = Router();
 
 // Public — catalogue (routes spécifiques avant /:id)
 freelanceRouter.get("/freelance/pending/list", ...authAdmin, getPendingFreelances);
@@ -62,6 +61,6 @@ freelanceRouter.put(
   updateFreelance,
 );
 
-freelanceRouter.put("/freelance/:id/rating", auth, updateFreelanceRating);
+freelanceRouter.put("/freelance/:id/rating", ...authAdmin, updateFreelanceRating);
 
 export default freelanceRouter;

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { sanitizeMediaUrl } from '../utils/sanitizeMediaUrl.js';
 
 const ServiceSchema = new mongoose.Schema({
   nomservice: { type: String, required: true },
@@ -26,6 +27,15 @@ ServiceSchema.virtual('freelance', {
   ref: 'Freelance',             // Référence à la collection 'Task'
   localField: '_id',
   foreignField: 'service'
+});
+
+ServiceSchema.set('toJSON', {
+  transform(_doc, ret) {
+    const clean = sanitizeMediaUrl(ret.imageservice);
+    if (!clean) delete ret.imageservice;
+    else ret.imageservice = clean;
+    return ret;
+  },
 });
 
 

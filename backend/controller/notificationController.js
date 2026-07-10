@@ -1,6 +1,7 @@
 import notificationModel from "../models/notificationModel.js";
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
+import { isAdmin } from '../utils/accessControl.js';
 
 async function repairLegacyPrestataireNotifications(userId) {
   const linkedPrestataires = await prestataireModel
@@ -19,6 +20,10 @@ async function repairLegacyPrestataireNotifications(userId) {
 // ✅ Créer une notification
 export const createNotification = async (req, res) => {
   try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ error: 'Seul un administrateur peut créer des notifications manuellement.' });
+    }
+
     const {
       destinataire,
       expediteur,
@@ -123,6 +128,13 @@ export const markAsRead = async (req, res) => {
     const notification = await notificationModel.findById(notificationId);
     if (!notification) {
       return res.status(404).json({ error: 'Notification non trouvée' });
+    }
+
+    if (
+      !isAdmin(req) &&
+      notification.destinataire?.toString() !== req.utilisateur._id.toString()
+    ) {
+      return res.status(403).json({ error: 'Accès refusé à cette notification.' });
     }
 
     await notification.marquerCommeLue();

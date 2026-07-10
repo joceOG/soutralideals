@@ -3,12 +3,55 @@ import prestataireModel from '../models/prestataireModel.js';
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
+import { isAdmin, assertOwnerOrAdmin } from '../utils/accessControl.js';
+import { pickFields } from '../utils/pickFields.js';
+import { formatPrestationResponse } from '../utils/prestationVisibility.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const PRESTATION_CLIENT_FIELDS = [
+  'datePrestation', 'heureDebut', 'heureFin', 'dureeEstimee',
+  'adresse', 'ville', 'codePostal', 'localisation',
+  'description', 'notesClient', 'telephoneUrgence', 'estRecurrente', 'frequenceRecurrence',
+];
+
+const PRESTATION_PRESTATAIRE_FIELDS = [
+  'notesPrestataire', 'notePrestataire', 'commentairePrestataire',
+];
+
+const PRESTATION_ADMIN_FIELDS = [
+  'prestataire', 'service', 'tarifHoraire', 'montantTotal', 'fraisDeplacements',
+  'moyenPaiement', 'statut', 'statutPaiement', 'referencePaiement',
+  'noteClient', 'commentaireClient',
+];
+
+async function getPrestationAllowedFields(req, prestation) {
+  if (isAdmin(req)) {
+    return [...PRESTATION_CLIENT_FIELDS, ...PRESTATION_PRESTATAIRE_FIELDS, ...PRESTATION_ADMIN_FIELDS];
+  }
+  const userId = req.utilisateur._id.toString();
+  if (prestation.utilisateur?.toString() === userId) {
+    return PRESTATION_CLIENT_FIELDS;
+  }
+  const prestDoc = await prestataireModel.findById(prestation.prestataire).select('utilisateur');
+  if (prestDoc?.utilisateur?.toString() === userId) {
+    return PRESTATION_PRESTATAIRE_FIELDS;
+  }
+  return [];
+}
+
+async function canAccessPrestation(req, prestation) {
+  if (!prestation) return false;
+  if (!req.utilisateur?._id) return false;
+  if (isAdmin(req)) return true;
+  if (prestation.utilisateur?.toString() === req.utilisateur._id.toString()) return true;
+  const prestDoc = await prestataireModel.findById(prestation.prestataire).select('utilisateur');
+  return prestDoc?.utilisateur?.toString() === req.utilisateur._id.toString();
+}
 
 // ✅ CRÉER UNE NOUVELLE PRESTATION
 export const createPrestation = async (req, res) => {
@@ -43,6 +86,11 @@ export const createPrestation = async (req, res) => {
             });
         }
 
+        const requesterId = req.utilisateur._id.toString();
+        if (utilisateur.toString() !== requesterId && !isAdmin(req)) {
+            return res.status(403).json({ error: 'Vous ne pouvez créer une prestation que pour votre compte.' });
+        }
+
         // Upload de photos avant si présentes
         const photosAvant = [];
         if (req.files?.photosAvant) {
@@ -56,7 +104,7 @@ export const createPrestation = async (req, res) => {
         }
 
         const newPrestation = new prestationModel({
-            utilisateur: new mongoose.Types.ObjectId(utilisateur),
+            utilisateur: new mongoose.Types.ObjectId(requesterId),
             prestataire: prestataire ? new mongoose.Types.ObjectId(prestataire) : null,
             service: service ? new mongoose.Types.ObjectId(service) : null,
             datePrestation: datePrestation ? new Date(datePrestation) : new Date(),
@@ -211,8 +259,12 @@ export const getAllPrestations = async (req, res) => {
 
         const total = await prestationModel.countDocuments(filters);
 
+        const formatted = await Promise.all(
+            prestations.map((p) => formatPrestationResponse(req, p, canAccessPrestation))
+        );
+
         res.status(200).json({
-            prestations,
+            prestations: formatted,
             totalPages: Math.ceil(total / limit),
             currentPage: parseInt(page),
             total
@@ -256,7 +308,8 @@ export const getPrestationById = async (req, res) => {
             return res.status(404).json({ error: 'Prestation non trouvée' });
         }
 
-        res.status(200).json(prestation);
+        const formatted = await formatPrestationResponse(req, prestation, canAccessPrestation);
+        res.status(200).json(formatted);
     } catch (err) {
         console.error('Erreur récupération prestation:', err.message);
         res.status(500).json({ error: err.message });
@@ -267,13 +320,31 @@ export const getPrestationById = async (req, res) => {
 export const updatePrestation = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'ID de prestation invalide' });
         }
 
-        // Upload de photos après si présentes
+        const existing = await prestationModel.findById(id);
+        if (!existing) {
+            return res.status(404).json({ error: 'Prestation non trouvée' });
+        }
+        if (!(await canAccessPrestation(req, existing))) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        }
+
+        const allowedFields = await getPrestationAllowedFields(req, existing);
+        if (allowedFields.length === 0) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        }
+
+        const body = pickFields(req.body, allowedFields);
+        const updates = { ...body, updatedAt: new Date() };
+
+        if (body.datePrestation) updates.datePrestation = new Date(body.datePrestation);
+        if (body.prestataire) updates.prestataire = new mongoose.Types.ObjectId(body.prestataire);
+        if (body.service) updates.service = new mongoose.Types.ObjectId(body.service);
+
         if (req.files?.photosApres) {
             const photosApres = [];
             for (const file of req.files.photosApres) {
@@ -327,6 +398,10 @@ export const changerStatutPrestation = async (req, res) => {
         const prestation = await prestationModel.findById(id);
         if (!prestation) {
             return res.status(404).json({ error: 'Prestation non trouvée' });
+        }
+
+        if (!(await canAccessPrestation(req, prestation))) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
         }
 
         await prestation.changerStatut(newStatus, commentaire || '');
@@ -455,11 +530,15 @@ export const deletePrestation = async (req, res) => {
             return res.status(400).json({ error: 'ID de prestation invalide' });
         }
 
-        const prestation = await prestationModel.findByIdAndDelete(id);
-        
+        const prestation = await prestationModel.findById(id);
         if (!prestation) {
             return res.status(404).json({ error: 'Prestation non trouvée' });
         }
+        if (!(await canAccessPrestation(req, prestation))) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        }
+
+        await prestationModel.findByIdAndDelete(id);
         
         res.status(200).json({ message: 'Prestation supprimée avec succès' });
     } catch (err) {
@@ -476,6 +555,14 @@ export const getPrestationsPrestataire = async (req, res) => {
 
         if (!mongoose.Types.ObjectId.isValid(prestataireId)) {
             return res.status(400).json({ error: 'ID prestataire invalide' });
+        }
+
+        const prestDoc = await prestataireModel.findById(prestataireId).select('utilisateur');
+        if (!prestDoc) {
+            return res.status(404).json({ error: 'Prestataire non trouvé' });
+        }
+        if (!isAdmin(req) && prestDoc.utilisateur?.toString() !== req.utilisateur._id.toString()) {
+            return res.status(403).json({ error: 'Accès refusé à ces prestations.' });
         }
 
         const filters = { prestataire: new mongoose.Types.ObjectId(prestataireId) };
@@ -512,6 +599,8 @@ export const getPrestationsUtilisateur = async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
+
+        if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
 
         const filters = { utilisateur: new mongoose.Types.ObjectId(utilisateurId) };
         if (statut) filters.statut = statut;

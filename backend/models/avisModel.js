@@ -170,12 +170,19 @@ AvisSchema.virtual('ageAvis').get(function() {
 });
 
 // 🔄 MIDDLEWARE PRE-SAVE
-AvisSchema.pre('save', function(next) {
-  // Auto-approbation si l'utilisateur est vérifié
-  if (this.isNew && this.auteur && this.auteur.verifie) {
-    this.statut = 'PUBLIE';
+AvisSchema.pre('save', async function(next) {
+  try {
+    if (this.isNew && this.auteur) {
+      const Utilisateur = mongoose.model('Utilisateur');
+      const user = await Utilisateur.findById(this.auteur).select('telephoneVerified role');
+      if (user?.telephoneVerified || user?.role === 'Admin') {
+        this.statut = 'PUBLIE';
+      }
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 });
 
 // 📊 MÉTHODES STATIQUES
