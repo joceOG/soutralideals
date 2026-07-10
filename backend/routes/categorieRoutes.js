@@ -1,20 +1,16 @@
 import { Router } from "express";
-import multer from "multer";
+import { imageUpload } from "../utils/uploadMiddleware.js";
+import { authAdmin } from "../middleware/authMiddleware.js";
 import * as controller from "../controller/categorieController.js";
 
 const categorieRouter = Router();
 
-// Configure Multer
-const upload = multer({ dest: 'uploads/' });
-
-// ⚠️ Routes spécifiques AVANT les routes paramétriques /:id
 categorieRouter.get("/categorie/groupe/:nomgroupe", controller.getCategoriesByGroupe);
-
-// Routes CRUD catégories
-categorieRouter.post("/categorie", upload.single('imagecategorie'), controller.createCategory);
 categorieRouter.get("/categorie", controller.getAllCategories);
 categorieRouter.get("/categorie/:id", controller.getCategoryById);
-categorieRouter.put("/categorie/:id", upload.single('imagecategorie'), controller.updateCategoryById);
-categorieRouter.delete("/categorie/:id", controller.deleteCategoryById);
+
+categorieRouter.post("/categorie", ...authAdmin, imageUpload.single('imagecategorie'), controller.createCategory);
+categorieRouter.put("/categorie/:id", ...authAdmin, imageUpload.single('imagecategorie'), controller.updateCategoryById);
+categorieRouter.delete("/categorie/:id", ...authAdmin, controller.deleteCategoryById);
 
 export default categorieRouter;

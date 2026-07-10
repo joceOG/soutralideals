@@ -3,6 +3,9 @@ import prestataireModel from '../models/prestataireModel.js';
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
+import { isAdmin, assertOwnerOrAdmin } from '../utils/accessControl.js';
+import { pickFields } from '../utils/pickFields.js';
+import { formatPrestationResponse } from '../utils/prestationVisibility.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,6 +13,7 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+<<<<<<< HEAD
 // ✅ Créer un prestataire
 export const createPrestataire = async (req, res) => {
   try {
@@ -36,12 +40,84 @@ export const createPrestataire = async (req, res) => {
       revenus,
       clients,
     } = req.body;
+=======
+const PRESTATION_CLIENT_FIELDS = [
+  'datePrestation', 'heureDebut', 'heureFin', 'dureeEstimee',
+  'adresse', 'ville', 'codePostal', 'localisation',
+  'description', 'notesClient', 'telephoneUrgence', 'estRecurrente', 'frequenceRecurrence',
+];
+
+const PRESTATION_PRESTATAIRE_FIELDS = [
+  'notesPrestataire', 'notePrestataire', 'commentairePrestataire',
+];
+
+const PRESTATION_ADMIN_FIELDS = [
+  'prestataire', 'service', 'tarifHoraire', 'montantTotal', 'fraisDeplacements',
+  'moyenPaiement', 'statut', 'statutPaiement', 'referencePaiement',
+  'noteClient', 'commentaireClient',
+];
+
+async function getPrestationAllowedFields(req, prestation) {
+  if (isAdmin(req)) {
+    return [...PRESTATION_CLIENT_FIELDS, ...PRESTATION_PRESTATAIRE_FIELDS, ...PRESTATION_ADMIN_FIELDS];
+  }
+  const userId = req.utilisateur._id.toString();
+  if (prestation.utilisateur?.toString() === userId) {
+    return PRESTATION_CLIENT_FIELDS;
+  }
+  const prestDoc = await prestataireModel.findById(prestation.prestataire).select('utilisateur');
+  if (prestDoc?.utilisateur?.toString() === userId) {
+    return PRESTATION_PRESTATAIRE_FIELDS;
+  }
+  return [];
+}
+
+async function canAccessPrestation(req, prestation) {
+  if (!prestation) return false;
+  if (!req.utilisateur?._id) return false;
+  if (isAdmin(req)) return true;
+  if (prestation.utilisateur?.toString() === req.utilisateur._id.toString()) return true;
+  const prestDoc = await prestataireModel.findById(prestation.prestataire).select('utilisateur');
+  return prestDoc?.utilisateur?.toString() === req.utilisateur._id.toString();
+}
+
+// ✅ CRÉER UNE NOUVELLE PRESTATION
+export const createPrestation = async (req, res) => {
+    try {
+        const {
+            utilisateur,
+            prestataire,
+            service,
+            datePrestation,
+            heureDebut,
+            heureFin,
+            dureeEstimee,
+            adresse,
+            ville,
+            codePostal,
+            localisation,
+            tarifHoraire,
+            montantTotal,
+            fraisDeplacements,
+            moyenPaiement,
+            description,
+            notesClient,
+            telephoneUrgence,
+            estRecurrente,
+            frequenceRecurrence
+        } = req.body;
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
 
         // Validation des données requises (adaptée pour système gratuit)
         if (!utilisateur || !adresse || !ville) {
             return res.status(400).json({ 
                 error: 'Utilisateur, adresse et ville requis' 
             });
+        }
+
+        const requesterId = req.utilisateur._id.toString();
+        if (utilisateur.toString() !== requesterId && !isAdmin(req)) {
+            return res.status(403).json({ error: 'Vous ne pouvez créer une prestation que pour votre compte.' });
         }
 
         // Upload de photos avant si présentes
@@ -57,9 +133,15 @@ export const createPrestataire = async (req, res) => {
         }
 
         const newPrestation = new prestationModel({
+<<<<<<< HEAD
             utilisateur: mongoose.Types.ObjectId(utilisateur),
             prestataire: prestataire ? mongoose.Types.ObjectId(prestataire) : null,
             service: service ? mongoose.Types.ObjectId(service) : null,
+=======
+            utilisateur: new mongoose.Types.ObjectId(requesterId),
+            prestataire: prestataire ? new mongoose.Types.ObjectId(prestataire) : null,
+            service: service ? new mongoose.Types.ObjectId(service) : null,
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
             datePrestation: datePrestation ? new Date(datePrestation) : new Date(),
             heureDebut: heureDebut || '09:00',
             heureFin,
@@ -212,8 +294,12 @@ export const getAllPrestations = async (req, res) => {
 
         const total = await prestationModel.countDocuments(filters);
 
+        const formatted = await Promise.all(
+            prestations.map((p) => formatPrestationResponse(req, p, canAccessPrestation))
+        );
+
         res.status(200).json({
-            prestations,
+            prestations: formatted,
             totalPages: Math.ceil(total / limit),
             currentPage: parseInt(page),
             total
@@ -257,13 +343,15 @@ export const getPrestationById = async (req, res) => {
             return res.status(404).json({ error: 'Prestation non trouvée' });
         }
 
-        res.status(200).json(prestation);
+        const formatted = await formatPrestationResponse(req, prestation, canAccessPrestation);
+        res.status(200).json(formatted);
     } catch (err) {
         console.error('Erreur récupération prestation:', err.message);
         res.status(500).json({ error: err.message });
     }
 };
 
+<<<<<<< HEAD
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
@@ -281,6 +369,66 @@ export const getAllPrestataires = async (req, res) => {
       filter.service = service;
     } else if (excludedSvc.length) {
       filter.service = { $nin: excludedSvc };
+=======
+// ✅ METTRE À JOUR UNE PRESTATION
+export const updatePrestation = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'ID de prestation invalide' });
+        }
+
+        const existing = await prestationModel.findById(id);
+        if (!existing) {
+            return res.status(404).json({ error: 'Prestation non trouvée' });
+        }
+        if (!(await canAccessPrestation(req, existing))) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        }
+
+        const allowedFields = await getPrestationAllowedFields(req, existing);
+        if (allowedFields.length === 0) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        }
+
+        const body = pickFields(req.body, allowedFields);
+        const updates = { ...body, updatedAt: new Date() };
+
+        if (body.datePrestation) updates.datePrestation = new Date(body.datePrestation);
+        if (body.prestataire) updates.prestataire = new mongoose.Types.ObjectId(body.prestataire);
+        if (body.service) updates.service = new mongoose.Types.ObjectId(body.service);
+
+        if (req.files?.photosApres) {
+            const photosApres = [];
+            for (const file of req.files.photosApres) {
+                const result = await cloudinary.v2.uploader.upload(file.path, {
+                    folder: 'prestations/apres',
+                });
+                photosApres.push(result.secure_url);
+                fs.unlinkSync(file.path);
+            }
+            updates.photosApres = photosApres;
+        }
+
+        const prestation = await prestationModel.findByIdAndUpdate(
+            id,
+            { ...updates, updatedAt: new Date() },
+            { new: true, runValidators: true }
+        )
+        .populate('utilisateur', 'nom prenom email telephone')
+        .populate('prestataire', 'utilisateur')
+        .populate('service', 'nomservice');
+
+        if (!prestation) {
+            return res.status(404).json({ error: 'Prestation non trouvée' });
+        }
+
+        res.status(200).json(prestation);
+    } catch (err) {
+        console.error('Erreur mise à jour prestation:', err.message);
+        res.status(500).json({ error: err.message });
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
     }
 
     const adminUser = isAdmin(req);
@@ -353,8 +501,16 @@ export const getPrestataireById = async (req, res) => {
       String(prestataire.utilisateur._id ?? prestataire.utilisateur) ===
         String(req.utilisateur._id);
 
+<<<<<<< HEAD
     const isPubliclyVisible =
       prestataire.status === "active" && prestataire.verifier === true;
+=======
+        if (!(await canAccessPrestation(req, prestation))) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        }
+
+        await prestation.changerStatut(newStatus, commentaire || '');
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
 
         // 🔔 CRÉER UNE NOTIFICATION AUTOMATIQUE
         try {
@@ -477,6 +633,7 @@ export const getPrestataireById = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // ✅ Supprimer un prestataire
 export const deletePrestataire = async (req, res) => {
   try {
@@ -487,6 +644,32 @@ export const deletePrestataire = async (req, res) => {
     console.error("Erreur suppression prestataire:", err.message);
     res.status(500).json({ error: err.message });
   }
+=======
+// ✅ SUPPRIMER UNE PRESTATION
+export const deletePrestation = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'ID de prestation invalide' });
+        }
+
+        const prestation = await prestationModel.findById(id);
+        if (!prestation) {
+            return res.status(404).json({ error: 'Prestation non trouvée' });
+        }
+        if (!(await canAccessPrestation(req, prestation))) {
+            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        }
+
+        await prestationModel.findByIdAndDelete(id);
+        
+        res.status(200).json({ message: 'Prestation supprimée avec succès' });
+    } catch (err) {
+        console.error('Erreur suppression prestation:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
 };
 
 // ✅ OBTENIR LES PRESTATIONS D'UN PRESTATAIRE
@@ -499,7 +682,19 @@ export const getPrestationsPrestataire = async (req, res) => {
             return res.status(400).json({ error: 'ID prestataire invalide' });
         }
 
+<<<<<<< HEAD
         const filters = { prestataire: mongoose.Types.ObjectId(prestataireId) };
+=======
+        const prestDoc = await prestataireModel.findById(prestataireId).select('utilisateur');
+        if (!prestDoc) {
+            return res.status(404).json({ error: 'Prestataire non trouvé' });
+        }
+        if (!isAdmin(req) && prestDoc.utilisateur?.toString() !== req.utilisateur._id.toString()) {
+            return res.status(403).json({ error: 'Accès refusé à ces prestations.' });
+        }
+
+        const filters = { prestataire: new mongoose.Types.ObjectId(prestataireId) };
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
         if (statut) filters.statut = statut;
 
         const prestations = await prestationModel.find(filters)
@@ -534,7 +729,13 @@ export const getPrestationsUtilisateur = async (req, res) => {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
 
+<<<<<<< HEAD
         const filters = { utilisateur: mongoose.Types.ObjectId(utilisateurId) };
+=======
+        if (!assertOwnerOrAdmin(req, res, utilisateurId)) return;
+
+        const filters = { utilisateur: new mongoose.Types.ObjectId(utilisateurId) };
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
         if (statut) filters.statut = statut;
 
         const prestations = await prestationModel.find(filters)

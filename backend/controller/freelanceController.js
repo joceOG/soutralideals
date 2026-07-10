@@ -3,12 +3,23 @@ import fs from "fs";
 import cloudinary from "cloudinary";
 import freelanceModel from "../models/freelanceModel.js";
 import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFilter.js";
+import { isAdmin, assertAdmin } from '../utils/accessControl.js';
+import { pickFields } from '../utils/pickFields.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const FREELANCE_OWNER_FIELDS = [
+  'name', 'job', 'category', 'hourlyRate', 'description', 'location', 'phoneNumber',
+  'experienceLevel', 'availabilityStatus', 'workingHours', 'skills',
+  'preferredCategories', 'minimumProjectBudget', 'maxProjectsPerMonth', 'portfolioItems',
+];
+
+const FREELANCE_JSON_FIELDS = ['skills', 'preferredCategories', 'portfolioItems'];
 
 // ✅ Créer un freelance (Modèle sdealsapp)
 export const createFreelance = async (req, res) => {
@@ -31,6 +42,10 @@ export const createFreelance = async (req, res) => {
       maxProjectsPerMonth,
       portfolioItems
     } = req.body;
+
+    const ownerId = isAdmin(req) && utilisateur
+      ? utilisateur
+      : req.utilisateur._id.toString();
 
     // ✅ Upload de fichiers avec structure sdealsapp
     const uploads = {};
@@ -60,7 +75,7 @@ export const createFreelance = async (req, res) => {
     // ✅ Création freelance avec modèle sdealsapp
     const newFreelance = new freelanceModel({
       // Champs de base
-      utilisateur,
+      utilisateur: new mongoose.Types.ObjectId(ownerId),
       name,
       job,
       category,
@@ -208,56 +223,35 @@ export const getFreelanceById = async (req, res) => {
 // ✅ Mettre à jour un freelance (Modèle sdealsapp)
 export const updateFreelance = async (req, res) => {
   try {
-    const {
-      name,
-      job,
-      category,
-      hourlyRate,
-      description,
-      location,
-      phoneNumber,
-      experienceLevel,
-      availabilityStatus,
-      workingHours,
-      skills,
-      preferredCategories,
-      minimumProjectBudget,
-      maxProjectsPerMonth,
-      portfolioItems,
-      rating,
-      completedJobs,
-      isTopRated,
-      isFeatured,
-      responseTime,
-      accountStatus,
-      subscriptionType
-    } = req.body;
+    const body = pickFields(req.body, FREELANCE_OWNER_FIELDS);
 
-    const updates = {
-      ...(name && { name }),
-      ...(job && { job }),
-      ...(category && { category }),
-      ...(hourlyRate && { hourlyRate: parseFloat(hourlyRate) }),
-      ...(description && { description }),
-      ...(location && { location }),
-      ...(phoneNumber && { phoneNumber }),
-      ...(experienceLevel && { experienceLevel }),
-      ...(availabilityStatus && { availabilityStatus }),
-      ...(workingHours && { workingHours }),
-      ...(skills && { skills: Array.isArray(skills) ? skills : JSON.parse(skills) }),
-      ...(preferredCategories && { preferredCategories: JSON.parse(preferredCategories) }),
-      ...(minimumProjectBudget && { minimumProjectBudget: parseFloat(minimumProjectBudget) }),
-      ...(maxProjectsPerMonth && { maxProjectsPerMonth: parseInt(maxProjectsPerMonth) }),
-      ...(portfolioItems && { portfolioItems: JSON.parse(portfolioItems) }),
-      ...(rating && { rating: parseFloat(rating) }),
-      ...(completedJobs && { completedJobs: parseInt(completedJobs) }),
-      ...(typeof isTopRated !== "undefined" && { isTopRated: isTopRated === "true" || isTopRated === true }),
-      ...(typeof isFeatured !== "undefined" && { isFeatured: isFeatured === "true" || isFeatured === true }),
-      ...(responseTime && { responseTime: parseInt(responseTime) }),
-      ...(accountStatus && { accountStatus }),
-      ...(subscriptionType && { subscriptionType }),
-      lastActive: new Date()
-    };
+    const updates = { lastActive: new Date() };
+
+    if (body.name) updates.name = body.name;
+    if (body.job) updates.job = body.job;
+    if (body.category) updates.category = body.category;
+    if (body.hourlyRate) updates.hourlyRate = parseFloat(body.hourlyRate);
+    if (body.description) updates.description = body.description;
+    if (body.location) updates.location = body.location;
+    if (body.phoneNumber) updates.phoneNumber = body.phoneNumber;
+    if (body.experienceLevel) updates.experienceLevel = body.experienceLevel;
+    if (body.availabilityStatus) updates.availabilityStatus = body.availabilityStatus;
+    if (body.workingHours) updates.workingHours = body.workingHours;
+    if (body.skills) {
+      updates.skills = Array.isArray(body.skills) ? body.skills : JSON.parse(body.skills);
+    }
+    if (body.preferredCategories) {
+      updates.preferredCategories = typeof body.preferredCategories === 'string'
+        ? JSON.parse(body.preferredCategories)
+        : body.preferredCategories;
+    }
+    if (body.minimumProjectBudget) updates.minimumProjectBudget = parseFloat(body.minimumProjectBudget);
+    if (body.maxProjectsPerMonth) updates.maxProjectsPerMonth = parseInt(body.maxProjectsPerMonth, 10);
+    if (body.portfolioItems) {
+      updates.portfolioItems = typeof body.portfolioItems === 'string'
+        ? JSON.parse(body.portfolioItems)
+        : body.portfolioItems;
+    }
 
     // ✅ Upload photo principale
     if (req.files?.profileImage?.[0]) {
@@ -298,10 +292,12 @@ export const updateFreelance = async (req, res) => {
 
 // ✅ Nouvelles méthodes spécifiques au modèle sdealsapp
 
-// Mettre à jour la note d'un freelance
+// Mettre à jour la note d'un freelance (admin uniquement — notes publiques via avis)
 export const updateFreelanceRating = async (req, res) => {
   try {
-    const { rating, clientId } = req.body;
+    if (!assertAdmin(req, res)) return;
+
+    const { rating } = req.body;
     const freelanceId = req.params.id;
 
     const freelance = await freelanceModel.findById(freelanceId);
@@ -386,11 +382,12 @@ export const searchFreelances = async (req, res) => {
     let searchCriteria = applyProPublicFilter(req, {});
 
     if (query) {
+      const safeQuery = escapeRegex(query);
       searchCriteria.$or = [
-        { name: { $regex: query, $options: 'i' } },
-        { job: { $regex: query, $options: 'i' } },
-        { description: { $regex: query, $options: 'i' } },
-        { skills: { $in: [new RegExp(query, 'i')] } }
+        { name: { $regex: safeQuery, $options: 'i' } },
+        { job: { $regex: safeQuery, $options: 'i' } },
+        { description: { $regex: safeQuery, $options: 'i' } },
+        { skills: { $in: [new RegExp(safeQuery, 'i')] } }
       ];
     }
 

@@ -2,8 +2,9 @@ import cartModel from '../models/cartModel.js';
 import commandeModel from '../models/commandeModel.js';
 import articleModel from '../models/articleModel.js';
 import mongoose from 'mongoose';
+import { assertOwnerOrAdmin, assertAdmin } from '../utils/accessControl.js';
 
-const ARTICLE_POPULATE_FIELDS = 'nomarticle prixarticle imagearticle quantiteArticle';
+const ARTICLE_POPULATE_FIELDS = 'nomArticle prixArticle photoArticle quantiteArticle';
 
 function getArticleStock(article) {
     if (!article) return 0;
@@ -15,6 +16,8 @@ function getArticleStock(article) {
 export const getCartByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
+
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
@@ -75,7 +78,9 @@ export const addToCart = async (req, res) => {
             });
         }
 
-        if (!mongoose.Types.ObjectId.isValid(userId) || 
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) ||
             !mongoose.Types.ObjectId.isValid(articleId) || 
             !mongoose.Types.ObjectId.isValid(vendeurId)) {
             return res.status(400).json({ error: 'IDs invalides' });
@@ -114,9 +119,9 @@ export const addToCart = async (req, res) => {
         cart.ajouterArticle({
             article: articleId,
             vendeur: vendeurId,
-            nomArticle: article.nomarticle,
-            imageArticle: article.imagearticle,
-            prixUnitaire: article.prixarticle,
+            nomArticle: article.nomArticle,
+            imageArticle: article.photoArticle,
+            prixUnitaire: article.prixArticle,
             quantite,
             variantes
         });
@@ -143,7 +148,9 @@ export const updateCartItemQuantity = async (req, res) => {
         const { userId, itemId } = req.params;
         const { quantite } = req.body;
 
-        if (!mongoose.Types.ObjectId.isValid(userId) || 
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) ||
             !mongoose.Types.ObjectId.isValid(itemId)) {
             return res.status(400).json({ error: 'IDs invalides' });
         }
@@ -200,7 +207,9 @@ export const removeFromCart = async (req, res) => {
     try {
         const { userId, itemId } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(userId) || 
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) ||
             !mongoose.Types.ObjectId.isValid(itemId)) {
             return res.status(400).json({ error: 'IDs invalides' });
         }
@@ -238,6 +247,8 @@ export const clearCart = async (req, res) => {
     try {
         const { userId } = req.params;
 
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
@@ -271,6 +282,8 @@ export const applyPromoCode = async (req, res) => {
     try {
         const { userId } = req.params;
         const { code, reduction, typeReduction } = req.body;
+
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
@@ -314,6 +327,8 @@ export const updateDeliveryAddress = async (req, res) => {
         const { userId } = req.params;
         const { adresse, ville, codePostal, pays, telephone } = req.body;
 
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
@@ -354,6 +369,8 @@ export const checkout = async (req, res) => {
     try {
         const { userId } = req.params;
         const { moyenPaiement, notesClient } = req.body;
+
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
@@ -478,7 +495,9 @@ export const checkout = async (req, res) => {
 // ✅ OBTENIR TOUS LES PANIERS (ADMIN)
 export const getAllCarts = async (req, res) => {
     try {
-        const { 
+        if (!assertAdmin(req, res)) return;
+
+        const {
             page = 1, 
             limit = 20, 
             statut,
@@ -498,7 +517,7 @@ export const getAllCarts = async (req, res) => {
 
         const carts = await cartModel.find(filters)
             .populate('utilisateur', 'nom prenom email telephone')
-            .populate('articles.article', 'nomarticle prixarticle imagearticle')
+            .populate('articles.article', ARTICLE_POPULATE_FIELDS)
             .populate('articles.vendeur', 'utilisateur entreprise')
             .sort({ updatedAt: -1 })
             .limit(limit * 1)
@@ -522,6 +541,8 @@ export const getAllCarts = async (req, res) => {
 // ✅ STATISTIQUES DES PANIERS (ADMIN)
 export const getCartStats = async (req, res) => {
     try {
+        if (!assertAdmin(req, res)) return;
+
         const stats = await cartModel.getStatistiques();
 
         // Nombre total d'articles dans tous les paniers actifs
@@ -560,6 +581,8 @@ export const getCartStats = async (req, res) => {
 // ✅ NETTOYER LES PANIERS EXPIRÉS (CRON JOB)
 export const cleanupExpiredCarts = async (req, res) => {
     try {
+        if (!assertAdmin(req, res)) return;
+
         const count = await cartModel.nettoyerPaniersExpires();
 
         res.status(200).json({

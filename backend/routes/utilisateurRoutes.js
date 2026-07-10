@@ -14,10 +14,17 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+<<<<<<< HEAD
 // --- AUTHENTIFICATION ---
 utilisateurRouter.post("/register", upload.single('photoProfil'), utilisateurController.signUp);
 utilisateurRouter.post("/login", utilisateurController.signIn);
 utilisateurRouter.get("/logout", utilisateurController.logout);
+=======
+// --- AUTHENTIFICATION (publique) ---
+utilisateurRouter.post('/register', upload.single('photoProfil'), validateUserRegistration, handleValidationErrors, utilisateurController.signUp);
+utilisateurRouter.post('/login', validateUserLogin, handleValidationErrors, utilisateurController.signIn);
+utilisateurRouter.post('/logout', utilisateurController.logout);
+>>>>>>> c0e0612 (fix: durcissement sécurité API et auth)
 
 // --- UTILISATEUR CRUD ---
 utilisateurRouter.get("/utilisateur", utilisateurController.getAllUsers);

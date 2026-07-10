@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import mongoose from "mongoose";
 import validator from "validator";
 import jwt from "jsonwebtoken";
@@ -58,6 +59,11 @@ email: {
 
   tokens: [{
     token: { type: String, required: true }
+  }],
+  refreshTokens: [{
+    token: { type: String, required: true },
+    expiresAt: { type: Date, required: true },
+    createdAt: { type: Date, default: Date.now }
   }]
 }, {
   timestamps: true
@@ -72,7 +78,7 @@ UtilisateurSchema.pre("save", async function(next) {
   next();
 });
 
-// Génération token JWT incluant le rôle
+// Génération token JWT incluant le rôle (expire en 15 minutes)
 UtilisateurSchema.methods.generateAuthToken = async function() {
   const user = this;
   const secret = process.env.JWT_SECRET;
@@ -80,9 +86,28 @@ UtilisateurSchema.methods.generateAuthToken = async function() {
   const token = jwt.sign(
     { _id: user._id.toString(), id: user._id.toString(), role: user.role },
     secret,
-    { expiresIn: '7d' }
+    { expiresIn: '15m' }
   );
   user.tokens = user.tokens.concat({ token });
+  // Limiter la taille du tableau pour éviter une croissance illimitée (JWT 15min)
+  user.tokens = user.tokens.slice(-10);
+  await user.save();
+  return token;
+};
+
+// Génération d'un refresh token opaque (valide 30 jours)
+UtilisateurSchema.methods.generateRefreshToken = async function() {
+  const user = this;
+  const token = crypto.randomBytes(64).toString('hex');
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 jours
+  
+  user.refreshTokens = user.refreshTokens.concat({ token, expiresAt });
+  
+  // Nettoyage des refresh tokens expirés ou anciens (garde max 5)
+  user.refreshTokens = user.refreshTokens
+    .filter(rt => rt.expiresAt > new Date())
+    .slice(-5);
+    
   await user.save();
   return token;
 };
@@ -129,6 +154,23 @@ UtilisateurSchema.virtual('vendeur', {
   ref: 'Vendeur',
   localField: '_id',
   foreignField: 'utilisateur'
+});
+
+UtilisateurSchema.set('toJSON', {
+  transform(_doc, ret) {
+    delete ret.password;
+    delete ret.tokens;
+    delete ret.refreshTokens;
+    return ret;
+  },
+});
+UtilisateurSchema.set('toObject', {
+  transform(_doc, ret) {
+    delete ret.password;
+    delete ret.tokens;
+    delete ret.refreshTokens;
+    return ret;
+  },
 });
 
 const utilisateurModel = mongoose.model("Utilisateur", UtilisateurSchema);

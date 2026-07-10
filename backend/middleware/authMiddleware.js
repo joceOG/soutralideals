@@ -21,6 +21,10 @@ const auth = async (req, res, next) => {
 
     const decoded = jwt.verify(token, secret);
 
+    if (decoded.typ === 'socket') {
+      return res.status(401).json({ error: 'Token socket non utilisable pour l\'API HTTP.' });
+    }
+
     // Support _id et id dans le payload (rétrocompatibilité)
     const userId = decoded._id || decoded.id;
     if (!userId) {
@@ -81,6 +85,8 @@ export const optionalAuth = async (req, res, next) => {
     if (!secret) return next();
 
     const decoded = jwt.verify(token, secret);
+    if (decoded.typ === 'socket') return next();
+
     const userId = decoded._id || decoded.id;
     if (!userId) return next();
 

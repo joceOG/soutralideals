@@ -1,5 +1,46 @@
 import commandeModel from '../models/commandeModel.js';
 import mongoose from 'mongoose';
+import { assertOwnerOrAdmin, assertAdmin, isAdmin, isOwnerOrAdmin } from '../utils/accessControl.js';
+
+const COMMANDE_UPDATE_WHITELIST = [
+  'statusCommande',
+  'dateLivraison',
+  'notesClient',
+  'infoCommande',
+];
+
+async function loadCommandeOr404(id, res) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ error: 'ID de commande invalide' });
+    return null;
+  }
+  const commande = await commandeModel.findById(id);
+  if (!commande) {
+    res.status(404).json({ error: 'Commande non trouvée' });
+    return null;
+  }
+  return commande;
+}
+
+function assertCommandeAccess(req, res, commande) {
+  const ownerId = commande.utilisateur?.toString();
+  if (ownerId && isOwnerOrAdmin(req, ownerId)) return true;
+  // Fallback : infoCommande peut contenir l'email/téléphone du client
+  if (!ownerId && isAdmin(req)) return true;
+  res.status(403).json({ error: 'Accès refusé : commande d\'un autre utilisateur.' });
+  return false;
+}
+
+function pickAllowedUpdates(body, isAdminUser) {
+  const allowed = isAdminUser
+    ? [...COMMANDE_UPDATE_WHITELIST, 'prixTotal', 'prixArticles', 'prixLivraison', 'paiementInfo']
+    : COMMANDE_UPDATE_WHITELIST;
+  const updates = {};
+  for (const key of allowed) {
+    if (body[key] !== undefined) updates[key] = body[key];
+  }
+  return updates;
+}
 
 // ✅ CRÉER UNE NOUVELLE COMMANDE
 export const createCommande = async (req, res) => {
@@ -16,12 +57,12 @@ export const createCommande = async (req, res) => {
             dateLivraison
         } = req.body;
 
-        // Validation des données
         if (!infoCommande || !articles || articles.length === 0) {
             return res.status(400).json({ error: 'Informations de commande et articles requis' });
         }
 
         const newCommande = new commandeModel({
+            utilisateur: req.utilisateur._id,
             infoCommande,
             articles,
             paiementInfo,
@@ -45,16 +86,20 @@ export const createCommande = async (req, res) => {
 export const getAllCommandes = async (req, res) => {
     try {
         const { page = 1, limit = 10, status, dateDebut, dateFin, utilisateur } = req.query;
-        
-        // Filtres dynamiques
+
         const filters = {};
         if (status) filters.statusCommande = status;
-        if (utilisateur) filters.utilisateur = utilisateur;
         if (dateDebut && dateFin) {
             filters.dateCreation = {
                 $gte: new Date(dateDebut),
                 $lte: new Date(dateFin)
             };
+        }
+
+        if (isAdmin(req)) {
+            if (utilisateur) filters.utilisateur = utilisateur;
+        } else {
+            filters.utilisateur = req.utilisateur._id;
         }
 
         const commandes = await commandeModel.find(filters)
@@ -77,21 +122,11 @@ export const getAllCommandes = async (req, res) => {
     }
 };
 
-// ✅ OBTENIR UNE COMMANDE PAR ID
 export const getCommandeById = async (req, res) => {
     try {
-        const { id } = req.params;
-        
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID de commande invalide' });
-        }
-
-        const commande = await commandeModel.findById(id);
-        
-        if (!commande) {
-            return res.status(404).json({ error: 'Commande non trouvée' });
-        }
-        
+        const commande = await loadCommandeOr404(req.params.id, res);
+        if (!commande) return;
+        if (!assertCommandeAccess(req, res, commande)) return;
         res.status(200).json(commande);
     } catch (err) {
         console.error('Erreur récupération commande:', err.message);
@@ -99,49 +134,35 @@ export const getCommandeById = async (req, res) => {
     }
 };
 
-// ✅ METTRE À JOUR UNE COMMANDE
 export const updateCommande = async (req, res) => {
     try {
-        const { id } = req.params;
-        const updates = req.body;
+        const commande = await loadCommandeOr404(req.params.id, res);
+        if (!commande) return;
+        if (!assertCommandeAccess(req, res, commande)) return;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID de commande invalide' });
-        }
+        const updates = pickAllowedUpdates(req.body, isAdmin(req));
+        updates.dateModification = new Date();
 
-        // Mise à jour avec validation
-        const commande = await commandeModel.findByIdAndUpdate(
-            id, 
-            { ...updates, dateModification: new Date() },
+        const updated = await commandeModel.findByIdAndUpdate(
+            req.params.id,
+            updates,
             { new: true, runValidators: true }
         );
 
-        if (!commande) {
-            return res.status(404).json({ error: 'Commande non trouvée' });
-        }
-
-        res.status(200).json(commande);
+        res.status(200).json(updated);
     } catch (err) {
         console.error('Erreur mise à jour commande:', err.message);
         res.status(500).json({ error: err.message });
     }
 };
 
-// ✅ SUPPRIMER UNE COMMANDE
 export const deleteCommande = async (req, res) => {
     try {
-        const { id } = req.params;
+        const commande = await loadCommandeOr404(req.params.id, res);
+        if (!commande) return;
+        if (!assertCommandeAccess(req, res, commande)) return;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID de commande invalide' });
-        }
-
-        const commande = await commandeModel.findByIdAndDelete(id);
-        
-        if (!commande) {
-            return res.status(404).json({ error: 'Commande non trouvée' });
-        }
-        
+        await commandeModel.findByIdAndDelete(req.params.id);
         res.status(200).json({ message: 'Commande supprimée avec succès' });
     } catch (err) {
         console.error('Erreur suppression commande:', err.message);
@@ -149,9 +170,10 @@ export const deleteCommande = async (req, res) => {
     }
 };
 
-// ✅ STATISTIQUES COMMANDES
 export const getCommandeStats = async (req, res) => {
     try {
+        if (!assertAdmin(req, res)) return;
+
         const stats = await commandeModel.aggregate([
             {
                 $group: {

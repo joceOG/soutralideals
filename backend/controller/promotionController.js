@@ -1,5 +1,12 @@
 import promotionModel from '../models/promotionModel.js';
 import mongoose from 'mongoose';
+import { pickFields } from '../utils/pickFields.js';
+
+const PROMOTION_EDITABLE_FIELDS = [
+  'titre', 'description', 'typeCiblage', 'cibles', 'cibleModel',
+  'typeOffre', 'valeurOffre', 'montantMinimum', 'dateDebut', 'dateFin',
+  'image', 'couleur', 'statut',
+];
 
 // ✅ CRÉER UNE NOUVELLE PROMOTION
 export const createPromotion = async (req, res) => {
@@ -17,7 +24,6 @@ export const createPromotion = async (req, res) => {
             dateFin,
             image,
             couleur,
-            createur
         } = req.body;
 
         // Validation des données requises
@@ -47,7 +53,7 @@ export const createPromotion = async (req, res) => {
             dateFin: new Date(dateFin),
             image,
             couleur: couleur || '#FF6B6B',
-            createur: new mongoose.Types.ObjectId(createur)
+            createur: req.utilisateur._id,
         });
 
         await nouvellePromotion.save();
@@ -146,22 +152,26 @@ export const getPromotionById = async (req, res) => {
 export const updatePromotion = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'ID de promotion invalide' });
         }
 
-        // Ajouter l'historique des modifications
         const promotion = await promotionModel.findById(id);
         if (!promotion) {
             return res.status(404).json({ error: 'Promotion non trouvée' });
         }
 
-        // Enregistrer l'ancienne valeur
+        const updates = pickFields(req.body, PROMOTION_EDITABLE_FIELDS);
+        if (updates.dateDebut) updates.dateDebut = new Date(updates.dateDebut);
+        if (updates.dateFin) updates.dateFin = new Date(updates.dateFin);
+
+        if (updates.dateDebut && updates.dateFin && updates.dateDebut >= updates.dateFin) {
+            return res.status(400).json({ error: 'La date de début doit être antérieure à la date de fin' });
+        }
+
         const ancienneValeur = { ...promotion.toObject() };
 
-        // Mise à jour
         const promotionMiseAJour = await promotionModel.findByIdAndUpdate(
             id, 
             { 
@@ -169,7 +179,7 @@ export const updatePromotion = async (req, res) => {
                 $push: {
                     historiqueModifications: {
                         date: new Date(),
-                        utilisateur: req.user?.id || null,
+                        utilisateur: req.utilisateur?._id || null,
                         action: 'MODIFICATION',
                         ancienneValeur,
                         nouvelleValeur: updates

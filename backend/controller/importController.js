@@ -111,7 +111,6 @@ export const importPrestatairesCSV = async (req, res) => {
           if (!categorie) {
             categorie = new Categorie({
               nomcategorie: IMPORT_CAT_NAME,
-              imagecategorie: 'https://via.placeholder.com/300x200?text=Import+CSV',
               groupe: groupe._id,
             });
             await categorie.save();
@@ -124,7 +123,6 @@ export const importPrestatairesCSV = async (req, res) => {
           if (!service) {
             service = new Service({
               nomservice: row.metier,
-              imageservice: 'https://via.placeholder.com/300x200?text=Service',
               prixmoyen: '0',
               categorie: categorie._id,
             });

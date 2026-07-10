@@ -3,6 +3,14 @@ import prestataireModel from '../models/prestataireModel.js';
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
+import { assertOwnerOrAdmin, assertAdmin, isAdmin } from '../utils/accessControl.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
+
+function conversationIncludesUser(conversationId, userId) {
+  if (!conversationId?.startsWith('conv_')) return false;
+  const parts = conversationId.replace('conv_', '').split('_').filter(Boolean);
+  return parts.includes(userId.toString());
+}
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -206,7 +214,9 @@ export const getUserConversations = async (req, res) => {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
 
-        // Réparer les anciens messages créés avec l'id du document Prestataire
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+
+        // Réparer les anciens messages
         const linkedPrestataires = await prestataireModel
             .find({ utilisateur: userId })
             .select('_id')
@@ -265,15 +275,30 @@ export const getConversationMessages = async (req, res) => {
             return res.status(400).json({ error: 'ID de conversation requis' });
         }
 
+        const requesterId = req.utilisateur?._id?.toString();
+        const queryUserId = userId?.toString();
+
+        if (queryUserId && queryUserId !== requesterId && !isAdmin(req)) {
+            return res.status(403).json({ error: 'Accès refusé à cette conversation.' });
+        }
+
+        const effectiveUserId = queryUserId ?? requesterId;
+        if (!effectiveUserId) {
+            return res.status(401).json({ error: 'Utilisateur requis.' });
+        }
+
+        if (!conversationIncludesUser(conversationId, effectiveUserId) && !isAdmin(req)) {
+            return res.status(403).json({ error: 'Accès refusé : vous n\'êtes pas participant de cette conversation.' });
+        }
+
         // Filtrer les messages non supprimés par l'utilisateur
         let matchCondition = {
             conversationId,
             estSupprime: false
         };
 
-        // Si un userId est fourni, filtrer les messages non supprimés par cet utilisateur
-        if (userId) {
-            matchCondition['supprimePar.utilisateur'] = { $ne: new mongoose.Types.ObjectId(userId) };
+        if (effectiveUserId) {
+            matchCondition['supprimePar.utilisateur'] = { $ne: new mongoose.Types.ObjectId(effectiveUserId) };
         }
 
         let messages = await messageModel.find(matchCondition)
@@ -291,9 +316,9 @@ export const getConversationMessages = async (req, res) => {
                 conversationId: { $in: altConversationIds },
                 estSupprime: false,
             };
-            if (userId) {
+            if (effectiveUserId) {
                 fallbackCondition['supprimePar.utilisateur'] = {
-                    $ne: new mongoose.Types.ObjectId(userId),
+                    $ne: new mongoose.Types.ObjectId(effectiveUserId),
                 };
             }
 
@@ -341,8 +366,8 @@ export const getConversationMessages = async (req, res) => {
         const total = await messageModel.countDocuments({
             conversationId,
             estSupprime: false,
-            ...(userId && {
-                'supprimePar.utilisateur': { $ne: new mongoose.Types.ObjectId(userId) },
+            ...(effectiveUserId && {
+                'supprimePar.utilisateur': { $ne: new mongoose.Types.ObjectId(effectiveUserId) },
             }),
         });
 
@@ -365,6 +390,11 @@ export const markMessagesAsRead = async (req, res) => {
 
         if (!conversationId || !userId) {
             return res.status(400).json({ error: 'ID conversation et utilisateur requis' });
+        }
+
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+        if (!conversationIncludesUser(conversationId, userId) && !isAdmin(req)) {
+            return res.status(403).json({ error: 'Accès refusé à cette conversation.' });
         }
 
         const result = await messageModel.updateMany(
@@ -399,13 +429,16 @@ export const deleteMessageForUser = async (req, res) => {
             return res.status(400).json({ error: 'ID de message invalide' });
         }
 
+        const actorId = userId ?? req.utilisateur?._id?.toString();
+        if (!assertOwnerOrAdmin(req, res, actorId)) return;
+
         const message = await messageModel.findById(messageId);
         
         if (!message) {
             return res.status(404).json({ error: 'Message non trouvé' });
         }
 
-        await message.supprimerPourUtilisateur(userId);
+        await message.supprimerPourUtilisateur(actorId);
 
         res.status(200).json({ message: 'Message supprimé pour l\'utilisateur' });
     } catch (err) {
@@ -423,12 +456,15 @@ export const searchMessages = async (req, res) => {
             return res.status(400).json({ error: 'ID utilisateur et terme de recherche requis' });
         }
 
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
+
+        const safeQuery = escapeRegex(query);
         const searchCondition = {
             $or: [
                 { expediteur: new mongoose.Types.ObjectId(userId) },
                 { destinataire: new mongoose.Types.ObjectId(userId) }
             ],
-            contenu: { $regex: query, $options: 'i' },
+            contenu: { $regex: safeQuery, $options: 'i' },
             estSupprime: false
         };
 
@@ -457,19 +493,19 @@ export const searchMessages = async (req, res) => {
 // ✅ OBTENIR LES STATISTIQUES DES MESSAGES
 export const getMessageStats = async (req, res) => {
     try {
-        const { userId } = req.query;
+        const userId = isAdmin(req) && req.query.userId
+            ? req.query.userId
+            : req.utilisateur._id.toString();
 
         let matchCondition = { estSupprime: false };
         
-        if (userId) {
-            matchCondition = {
-                ...matchCondition,
-                $or: [
-                    { expediteur: new mongoose.Types.ObjectId(userId) },
-                    { destinataire: new mongoose.Types.ObjectId(userId) }
-                ]
-            };
-        }
+        matchCondition = {
+            ...matchCondition,
+            $or: [
+                { expediteur: new mongoose.Types.ObjectId(userId) },
+                { destinataire: new mongoose.Types.ObjectId(userId) }
+            ]
+        };
 
         const stats = await messageModel.aggregate([
             { $match: matchCondition },
@@ -520,6 +556,8 @@ export const getUnreadMessages = async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
+
+        if (!assertOwnerOrAdmin(req, res, userId)) return;
 
         const messages = await messageModel.find({
             destinataire: new mongoose.Types.ObjectId(userId),
