@@ -63,6 +63,12 @@ const UtilisateurSchema = new mongoose.Schema({
     token: { type: String, required: true },
     expiresAt: { type: Date, required: true },
     createdAt: { type: Date, default: Date.now }
+  }],
+  /** Tokens FCM appareils (push mobile) */
+  fcmTokens: [{
+    token: { type: String, required: true },
+    platform: { type: String, enum: ['android', 'ios', 'web', 'unknown'], default: 'unknown' },
+    updatedAt: { type: Date, default: Date.now }
   }]
 }, {
   timestamps: true
@@ -160,6 +166,7 @@ UtilisateurSchema.set('toJSON', {
     delete ret.password;
     delete ret.tokens;
     delete ret.refreshTokens;
+    delete ret.fcmTokens;
     return ret;
   },
 });
@@ -168,6 +175,7 @@ UtilisateurSchema.set('toObject', {
     delete ret.password;
     delete ret.tokens;
     delete ret.refreshTokens;
+    delete ret.fcmTokens;
     return ret;
   },
 });

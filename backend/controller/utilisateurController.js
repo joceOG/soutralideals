@@ -386,3 +386,53 @@ export const getUserRoles = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+/** Enregistre / met à jour un token FCM pour l'utilisateur connecté. */
+export const registerFcmToken = async (req, res) => {
+  try {
+    const { token, platform } = req.body || {};
+    if (!token || typeof token !== 'string' || token.length < 20) {
+      return res.status(400).json({ error: 'Token FCM invalide' });
+    }
+
+    const user = await Utilisateur.findById(req.utilisateur._id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    const plat = ['android', 'ios', 'web'].includes(platform) ? platform : 'unknown';
+    user.fcmTokens = (user.fcmTokens || []).filter((t) => t.token !== token);
+    user.fcmTokens.push({ token, platform: plat, updatedAt: new Date() });
+    // Garder max 10 appareils
+    user.fcmTokens = user.fcmTokens.slice(-10);
+    await user.save();
+
+    res.status(200).json({ message: 'Token FCM enregistré', count: user.fcmTokens.length });
+  } catch (err) {
+    console.error('Erreur registerFcmToken:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/** Retire un token FCM (logout / désinscription). */
+export const unregisterFcmToken = async (req, res) => {
+  try {
+    const { token } = req.body || {};
+    if (!token) {
+      return res.status(400).json({ error: 'Token FCM requis' });
+    }
+
+    const user = await Utilisateur.findById(req.utilisateur._id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    const before = (user.fcmTokens || []).length;
+    user.fcmTokens = (user.fcmTokens || []).filter((t) => t.token !== token);
+    await user.save();
+
+    res.status(200).json({
+      message: 'Token FCM retiré',
+      removed: before - user.fcmTokens.length,
+    });
+  } catch (err) {
+    console.error('Erreur unregisterFcmToken:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -1,7 +1,31 @@
 import notificationModel from "../models/notificationModel.js";
 import prestataireModel from "../models/prestataireModel.js";
+import Utilisateur from "../models/utilisateurModel.js";
 import mongoose from "mongoose";
 import { isAdmin } from '../utils/accessControl.js';
+import { sendFcmToUser } from '../utils/fcmPush.js';
+
+async function pushNotificationToDestinataire(notification) {
+  try {
+    const destinataireId = notification.destinataire?.toString?.() || notification.destinataire;
+    if (!destinataireId) return;
+    const user = await Utilisateur.findById(destinataireId);
+    if (!user) return;
+    await sendFcmToUser(user, {
+      title: notification.titre,
+      body: notification.contenu,
+      data: {
+        type: notification.type || 'SYSTEME',
+        notificationId: notification._id?.toString() || '',
+        conversationId: notification.donnees?.conversationId || '',
+        missionId: notification.donnees?.missionId || notification.prestation?.toString() || '',
+        route: notification.donnees?.route || '',
+      },
+    });
+  } catch (err) {
+    console.error('[FCM] push après notification:', err.message);
+  }
+}
 
 async function repairLegacyPrestataireNotifications(userId) {
   const linkedPrestataires = await prestataireModel
@@ -56,6 +80,9 @@ export const createNotification = async (req, res) => {
     });
 
     await notification.save();
+
+    // Push FCM (non bloquant pour la réponse HTTP)
+    pushNotificationToDestinataire(notification).catch(() => {});
 
     // Populer les références pour la réponse
     await notification.populate([
@@ -366,6 +393,7 @@ export const createAutoNotification = async (data) => {
   try {
     const notification = new notificationModel(data);
     await notification.save();
+    pushNotificationToDestinataire(notification).catch(() => {});
     return notification;
   } catch (err) {
     console.error('Erreur création notification auto:', err.message);
