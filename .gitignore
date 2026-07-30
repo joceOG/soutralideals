@@ -1,6 +1,8 @@
 backend/.env
-backend/uploads/
+backend/.env copy
 backend/*.env
+backend/*env*copy*
+backend/secrets/
 
 # Logs
 logs

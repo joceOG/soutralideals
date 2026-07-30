@@ -566,7 +566,10 @@ export const getPrestationsPrestataire = async (req, res) => {
         }
 
         const filters = { prestataire: new mongoose.Types.ObjectId(prestataireId) };
-        if (statut) filters.statut = statut;
+        if (statut) {
+            const parts = String(statut).split(',').map((s) => s.trim()).filter(Boolean);
+            filters.statut = parts.length > 1 ? { $in: parts } : parts[0];
+        }
 
         const prestations = await prestationModel.find(filters)
             .populate('utilisateur', 'nom prenom email telephone')
