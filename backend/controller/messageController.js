@@ -197,6 +197,14 @@ export const sendMessage = async (req, res) => {
             .populate('expediteur', 'nom prenom photoProfil')
             .populate('destinataire', 'nom prenom photoProfil');
 
+        // Temps réel : même chemin que le relay socket (HTTP persist + emit)
+        try {
+            const { emitNewMessage } = await import('../utils/socketIo.js');
+            emitNewMessage(populatedMessage);
+        } catch (emitErr) {
+            console.warn('Emit WS après HTTP sendMessage:', emitErr.message);
+        }
+
         res.status(201).json(populatedMessage);
     } catch (err) {
         console.error('Erreur envoi message:', err.message);

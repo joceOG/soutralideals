@@ -79,6 +79,7 @@ export const enable2FA = async (req, res) => {
     // Générer le QR code
     const otpauthUrl = speakeasy.otpauthURL({
       secret: secret,
+      encoding: 'base32',
       label: `SOUTRALI DEALS (${utilisateurId})`,
       issuer: 'SOUTRALI DEALS'
     });

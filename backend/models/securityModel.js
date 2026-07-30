@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
+import speakeasy from 'speakeasy';
 
 const SecuritySchema = new mongoose.Schema({
   // 👤 Utilisateur propriétaire des paramètres de sécurité
@@ -348,10 +349,11 @@ SecuritySchema.virtual('isHighRisk').get(function() {
 
 // 🔄 MÉTHODES D'INSTANCE
 SecuritySchema.methods.generate2FASecret = function() {
-  const secret = crypto.randomBytes(20).toString('base64url');
-  this.twoFactorAuth.secret = secret;
+  // Secret TOTP compatible Authenticator (base32) — pas base64url
+  const generated = speakeasy.generateSecret({ length: 20 });
+  this.twoFactorAuth.secret = generated.base32;
   this.twoFactorAuth.backupCodes = this.generateBackupCodes();
-  return secret;
+  return generated.base32;
 };
 
 SecuritySchema.methods.generateBackupCodes = function() {

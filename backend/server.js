@@ -43,6 +43,7 @@ import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import refreshTokenRouter from './routes/refreshTokenRoutes.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
+import { setSocketIo } from './utils/socketIo.js';
 
 /** import connection file */
 import connect from './database/connex.js';
@@ -52,6 +53,7 @@ import logger, { httpLogger, authLogger, transactionLogger, userActionLogger } f
 import { cacheMiddleware, sessionCache } from './middleware/cache.js';
 import { simpleCache } from './middleware/simpleCache.js';
 import { smartCache, autoInvalidateCache } from './middleware/cacheInvalidation.js';
+import { isFcmConfigured } from './utils/fcmPush.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -100,6 +102,7 @@ const io = new Server(httpServer, {
     credentials: true
   }
 });
+setSocketIo(io);
 
 
 /** app middlewares */
@@ -696,6 +699,7 @@ connect().then(() => {
     httpServer.listen(port, '0.0.0.0', () => {
       console.log(`🚀 Server connected to http://localhost:${port}`);
       console.log(`🔌 WebSocket server ready for connections`);
+      isFcmConfigured();
     })
   } catch (error) {
     console.log("❌ Cannot connect to the server");

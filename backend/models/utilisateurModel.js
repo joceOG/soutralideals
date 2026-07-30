@@ -42,12 +42,26 @@ const UtilisateurSchema = new mongoose.Schema({
   },
   telephone: { 
     type: String,
-    unique: true
+    unique: true,
+    sparse: true,
   },
   telephoneVerified: { type: Boolean, default: false },
   genre: { type: String },
   note: { type: String },
   photoProfil: { type: String },
+
+  /** ID Google (OAuth) — login sans mot de passe */
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local',
+  },
 
   // Admin : accès dashboard (liste utilisateurs, etc.) — à n’attribuer qu’en base ou via script sécurisé
   role: {

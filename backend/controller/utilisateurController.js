@@ -2,12 +2,15 @@ import multer from 'multer';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
 import { assertOwnerOrAdmin } from '../utils/accessControl.js';
+import Utilisateur from '../models/utilisateurModel.js';
 import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
 import { assertPhoneVerificationToken, normalizePhone } from '../services/otpService.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
+import { verifyGoogleIdToken } from '../services/googleAuthService.js';
+import crypto from 'crypto';
 
 // Config Cloudinary depuis les variables d'environnement
 cloudinary.v2.config({
@@ -156,6 +159,85 @@ export const signIn = async (req, res) => {
   } catch (e) {
     console.error("❌ Erreur signIn:", e);
     res.status(500).json({ error: "Erreur interne du serveur" });
+  }
+};
+
+
+// ✅ CONNEXION / INSCRIPTION via Google (idToken)
+export const signInWithGoogle = async (req, res) => {
+  try {
+    const { idToken, role } = req.body || {};
+    if (!idToken) {
+      return res.status(400).json({ error: 'idToken Google requis' });
+    }
+
+    let profile;
+    try {
+      profile = await verifyGoogleIdToken(idToken);
+    } catch (err) {
+      return res.status(401).json({ error: err.message || 'Token Google invalide' });
+    }
+
+    if (!profile.email) {
+      return res.status(400).json({ error: 'Email Google manquant' });
+    }
+
+    let user = await Utilisateur.findOne({
+      $or: [{ googleId: profile.googleId }, { email: profile.email }],
+    });
+
+    if (!user) {
+      const roleMap = {
+        prestataire: 'Prestataire',
+        vendeur: 'Vendeur',
+        freelance: 'Freelance',
+        client: 'Client',
+      };
+      const requested = (role || 'client').toString().toLowerCase();
+      const finalRole = roleMap[requested] || 'Client';
+
+      user = new Utilisateur({
+        nom: profile.nom || 'Utilisateur',
+        prenom: profile.prenom || '',
+        email: profile.email,
+        password: crypto.randomBytes(32).toString('hex'),
+        googleId: profile.googleId,
+        authProvider: 'google',
+        photoProfil: profile.photoProfil || undefined,
+        role: finalRole,
+        telephoneVerified: false,
+      });
+      await user.save();
+      sendWelcomeEmail(profile.email, profile.prenom).catch(() => {});
+    } else {
+      let dirty = false;
+      if (!user.googleId) {
+        user.googleId = profile.googleId;
+        dirty = true;
+      }
+      if (user.authProvider !== 'google') {
+        user.authProvider = 'google';
+        dirty = true;
+      }
+      if (profile.photoProfil && !user.photoProfil) {
+        user.photoProfil = profile.photoProfil;
+        dirty = true;
+      }
+      if (dirty) await user.save();
+    }
+
+    const token = await user.generateAuthToken();
+    const refreshToken = await user.generateRefreshToken();
+
+    res.status(200).json({
+      message: 'Connexion Google réussie',
+      utilisateur: user.toJSON(),
+      token,
+      refreshToken,
+    });
+  } catch (e) {
+    console.error('❌ Erreur signInWithGoogle:', e);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 };
 
