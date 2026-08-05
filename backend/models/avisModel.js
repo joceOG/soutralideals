@@ -28,16 +28,16 @@ const AvisSchema = new mongoose.Schema({
     max: 5
   },
 
-  // 📝 Contenu de l'avis
+  // 📝 Contenu de l'avis (texte optionnel — seule la note est requise)
   titre: {
     type: String,
-    required: true,
+    required: false,
     maxlength: 100
   },
 
   commentaire: {
     type: String,
-    required: true,
+    required: false,
     maxlength: 1000
   },
 

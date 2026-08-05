@@ -14,11 +14,11 @@ const MessageSchema = new mongoose.Schema({
     required: true
   },
 
-  // 📝 Contenu du message
+  // 📝 Contenu du message (optionnel si pieceJointe présente)
   contenu: {
     type: String,
-    required: true,
-    maxlength: 2000
+    maxlength: 2000,
+    required: false,
   },
 
   // 📎 Pièces jointes
@@ -104,6 +104,12 @@ const MessageSchema = new mongoose.Schema({
   estSupprime: {
     type: Boolean,
     default: false
+  },
+
+  // ⏱️ Durée du fichier audio (en secondes)
+  dureeFichier: {
+    type: Number,
+    required: false,
   },
 
   // 📍 Géolocalisation (optionnelle)

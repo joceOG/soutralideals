@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { imageUpload } from '../utils/uploadMiddleware.js';
+import { mediaUpload } from '../utils/uploadMiddleware.js';
 import rateLimit from 'express-rate-limit';
 import auth from '../middleware/authMiddleware.js';
 import {
@@ -23,7 +23,7 @@ const messageLimiter = rateLimit({
 
 const messageRouter = Router();
 
-messageRouter.post('/message', auth, messageLimiter, imageUpload.single('pieceJointe'), sendMessage);
+messageRouter.post('/message', auth, messageLimiter, mediaUpload.single('pieceJointe'), sendMessage);
 messageRouter.get('/messages/conversations/:userId', auth, getUserConversations);
 messageRouter.get('/messages/conversation/:conversationId', auth, getConversationMessages);
 

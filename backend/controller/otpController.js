@@ -25,7 +25,17 @@ export const sendOtp = async (req, res) => {
       ...result,
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    const clientErrors = [
+      "Numéro de téléphone invalide",
+      "Veuillez patienter",
+      "Trop de tentatives",
+    ];
+    const isClientError = clientErrors.some((msg) =>
+      err.message?.startsWith(msg),
+    );
+    const status = isClientError ? 400 : 503;
+    console.error(`[OTP sendOtp] ${status} — ${err.message}`);
+    res.status(status).json({ error: err.message });
   }
 };
 

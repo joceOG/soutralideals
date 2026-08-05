@@ -17,6 +17,8 @@ utilisateurRouter.post('/register', upload.single('photoProfil'), validateUserRe
 utilisateurRouter.post('/login', validateUserLogin, handleValidationErrors, utilisateurController.signIn);
 utilisateurRouter.post('/login/google', utilisateurController.signInWithGoogle);
 utilisateurRouter.post('/logout', utilisateurController.logout);
+utilisateurRouter.post('/forgot-password', utilisateurController.forgotPassword);
+utilisateurRouter.post('/reset-password', utilisateurController.resetPassword);
 
 // --- TOKEN VALIDATION (vérifier que le token est encore valide) ---
 utilisateurRouter.get('/utilisateur/profile', auth, (req, res) => {

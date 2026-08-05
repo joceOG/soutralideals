@@ -130,13 +130,14 @@ export const sendMessage = async (req, res) => {
             typeMessage,
             referenceId,
             referenceType,
-            localisation
+            localisation,
+            dureeFichier,
         } = req.body;
 
-        // Validation des données requises
-        if (!expediteur || !destinataire || !contenu) {
+        // contenu obligatoire sauf si une pièce jointe est présente
+        if (!expediteur || !destinataire || (!contenu && !req.file)) {
             return res.status(400).json({ 
-                error: 'Expéditeur, destinataire et contenu requis' 
+                error: 'Expéditeur, destinataire et contenu (ou pièce jointe) requis' 
             });
         }
 
@@ -157,18 +158,19 @@ export const sendMessage = async (req, res) => {
         let typePieceJointe;
         
         if (req.file) {
+            // resource_type 'auto' permet les images ET les fichiers audio
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'messages',
+                resource_type: 'auto',
             });
             pieceJointe = result.secure_url;
             
-            // Déterminer le type de fichier
             if (req.file.mimetype.startsWith('image/')) {
                 typePieceJointe = 'IMAGE';
-            } else if (req.file.mimetype.startsWith('video/')) {
-                typePieceJointe = 'VIDEO';
             } else if (req.file.mimetype.startsWith('audio/')) {
                 typePieceJointe = 'AUDIO';
+            } else if (req.file.mimetype.startsWith('video/')) {
+                typePieceJointe = 'VIDEO';
             } else {
                 typePieceJointe = 'DOCUMENT';
             }
@@ -179,12 +181,13 @@ export const sendMessage = async (req, res) => {
         const newMessage = new messageModel({
             expediteur: new mongoose.Types.ObjectId(expediteur),
             destinataire: resolvedDestinataire,
-            contenu,
+            contenu: contenu || (typePieceJointe === 'AUDIO' ? '🎤 Message vocal' : '📷 Photo'),
             conversationId,
             typeMessage: typeMessage || 'NORMAL',
             referenceId: referenceId ? new mongoose.Types.ObjectId(referenceId) : undefined,
             referenceType,
             ...(pieceJointe && typePieceJointe ? { pieceJointe, typePieceJointe } : {}),
+            ...(dureeFichier ? { dureeFichier: Number(dureeFichier) } : {}),
             localisation,
             statut: 'ENVOYE'
         });

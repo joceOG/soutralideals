@@ -79,6 +79,14 @@ const prestataireSchema = new mongoose.Schema({
   motifRejet: { type: String },
 }, { timestamps: true });
 
+// 🔄 SYNCHRONISER verifier avec status automatiquement
+prestataireSchema.pre('save', function(next) {
+  if (this.isModified('status')) {
+    this.verifier = this.status === 'active';
+  }
+  next();
+});
+
 // 🆕 SYNCHRONISER finalizationStatus depuis les champs réels du document
 prestataireSchema.methods.syncFinalizationFromDocuments = function() {
   const fs = this.finalizationStatus;
@@ -97,23 +105,28 @@ prestataireSchema.methods.syncFinalizationFromDocuments = function() {
 prestataireSchema.methods.calculateFinalizationStatus = function() {
   const status = this.finalizationStatus;
   
-  // Vérifier les documents obligatoires
-  const requiredDocs = status.cniUploaded && status.selfieUploaded && status.locationSet;
+  // Seule la localisation est obligatoire pour déposer le profil
+  const canPublish = status.locationSet;
   
-  // Mettre à jour le statut
-  status.isComplete = requiredDocs;
+  // CNI + selfie = requis pour obtenir le badge "Vérifié" (verifier: true)
+  const hasIdentity = status.cniUploaded && status.selfieUploaded;
   
-  // Si tous les documents obligatoires sont fournis, passer en "pending"
-  if (requiredDocs && this.status === 'incomplete') {
+  status.isComplete = canPublish;
+  
+  // Passer en "pending" dès que la localisation est définie
+  if (canPublish && this.status === 'incomplete') {
     this.status = 'pending';
   }
   
   return {
     isComplete: status.isComplete,
+    canGetBadge: hasIdentity,
     requiredDocs: {
-      cni: status.cniUploaded,
-      selfie: status.selfieUploaded,
       location: status.locationSet
+    },
+    identityDocs: {
+      cni: status.cniUploaded,
+      selfie: status.selfieUploaded
     },
     optionalDocs: {
       certificates: status.certificatesUploaded,
