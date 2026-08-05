@@ -83,7 +83,11 @@ const UtilisateurSchema = new mongoose.Schema({
     token: { type: String, required: true },
     platform: { type: String, enum: ['android', 'ios', 'web', 'unknown'], default: 'unknown' },
     updatedAt: { type: Date, default: Date.now }
-  }]
+  }],
+
+  /** Reset mot de passe */
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 }, {
   timestamps: true
 });

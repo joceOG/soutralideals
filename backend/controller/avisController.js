@@ -66,9 +66,9 @@ export const createAvis = async (req, res) => {
       anonyme
     } = req.body;
 
-    if (!objetType || !objetId || !note || !titre || !commentaire) {
+    if (!objetType || !objetId || !note) {
       return res.status(400).json({ 
-        error: 'Champs obligatoires manquants' 
+        error: 'Champs obligatoires manquants (objetType, objetId, note)' 
       });
     }
 
@@ -95,8 +95,8 @@ export const createAvis = async (req, res) => {
       objetType,
       objetId,
       note,
-      titre,
-      commentaire,
+      ...(titre?.trim() ? { titre: titre.trim() } : {}),
+      ...(commentaire?.trim() ? { commentaire: commentaire.trim() } : {}),
       categories: categories || [],
       medias: medias || [],
       recommande: recommande !== undefined ? recommande : true,

@@ -8,7 +8,7 @@ import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
 import { assertPhoneVerificationToken, normalizePhone } from '../services/otpService.js';
-import { sendWelcomeEmail } from '../services/emailService.js';
+import { sendWelcomeEmail, sendResetPasswordEmail } from '../services/emailService.js';
 import { verifyGoogleIdToken } from '../services/googleAuthService.js';
 import crypto from 'crypto';
 
@@ -516,5 +516,60 @@ export const unregisterFcmToken = async (req, res) => {
   } catch (err) {
     console.error('Erreur unregisterFcmToken:', err.message);
     res.status(500).json({ error: err.message });
+  }
+};
+
+// ─── MOT DE PASSE OUBLIÉ ──────────────────────────────────────────────────────
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) return res.status(400).json({ error: 'Email requis' });
+
+    const user = await Utilisateur.findOne({ email: email.toLowerCase().trim() });
+
+    // Toujours répondre 200 pour ne pas révéler si l'email existe
+    if (!user) return res.status(200).json({ message: 'Si cet email existe, un lien a été envoyé.' });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
+    await user.save();
+
+    const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+    const resetUrl = `${appUrl}/reinitialiser-mot-de-passe?token=${token}`;
+
+    await sendResetPasswordEmail(user.email, user.prenom || user.nom, resetUrl);
+
+    return res.status(200).json({ message: 'Si cet email existe, un lien a été envoyé.' });
+  } catch (err) {
+    console.error('Erreur forgotPassword:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body || {};
+    if (!token || !password) return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });
+    if (password.length < 6) return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
+
+    const user = await Utilisateur.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+
+    if (!user) return res.status(400).json({ error: 'Lien invalide ou expiré. Faites une nouvelle demande.' });
+
+    user.password = password; // hashé par le pre-save hook
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    user.tokens = []; // invalider toutes les sessions actives
+    await user.save();
+
+    return res.status(200).json({ message: 'Mot de passe réinitialisé avec succès.' });
+  } catch (err) {
+    console.error('Erreur resetPassword:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 };
