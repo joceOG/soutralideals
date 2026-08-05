@@ -3,6 +3,7 @@ backend/.env copy
 backend/*.env
 backend/*env*copy*
 backend/secrets/
+backend/uploads/
 
 # Logs
 logs
@@ -143,3 +144,4 @@ dist
 .pnp.*
 
 
+config.bat
