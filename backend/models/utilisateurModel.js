@@ -40,10 +40,10 @@ const UtilisateurSchema = new mongoose.Schema({
       }
     }
   },
-  telephone: { 
+  telephone: {
     type: String,
-    unique: true,
-    sparse: true,
+    trim: true,
+    // unicité via index partiel ci-dessous (évite E11000 sur telephone: null)
   },
   telephoneVerified: { type: Boolean, default: false },
   genre: { type: String },
@@ -92,9 +92,25 @@ const UtilisateurSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Hash du mot de passe avant sauvegarde
+// Unicité téléphone seulement quand une vraie valeur est présente
+UtilisateurSchema.index(
+  { telephone: 1 },
+  {
+    unique: true,
+    name: 'telephone_partial_unique',
+    partialFilterExpression: {
+      telephone: { $exists: true, $type: 'string', $gt: '' },
+    },
+  },
+);
+
+// Hash du mot de passe avant sauvegarde + ne jamais stocker telephone null/vide
 UtilisateurSchema.pre("save", async function(next) {
   const user = this;
+  if (user.telephone == null || user.telephone === '') {
+    user.telephone = undefined;
+    if (user._doc) delete user._doc.telephone;
+  }
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 10);
   }
