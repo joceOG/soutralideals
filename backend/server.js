@@ -690,21 +690,29 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ PORT avec valeur par défaut
-const port = process.env.PORT || 3000;
+// ✅ PORT : Render injecte PORT automatiquement — ne pas forcer 3000 dans le dashboard
+const port = Number(process.env.PORT) || 3000;
 
-// ✅ DÉMARRAGE DU SERVEUR
-connect().then(() => {
-  try {
-    httpServer.listen(port, '0.0.0.0', () => {
-      console.log(`🚀 Server connected to http://localhost:${port}`);
-      console.log(`🔌 WebSocket server ready for connections`);
-      isFcmConfigured();
-    })
-  } catch (error) {
-    console.log("❌ Cannot connect to the server");
-  }
-})
-  .catch(error => {
-    console.log("❌ Invalid Database Connection");
+// Bind le port AVANT Mongo : sinon un hang Atlas = "no open ports" sur Render
+console.log(`[boot] NODE_ENV=${process.env.NODE_ENV || 'undefined'} PORT=${port}`);
+
+httpServer.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 Server listening on 0.0.0.0:${port}`);
+  console.log(`🔌 WebSocket server ready for connections`);
+  isFcmConfigured();
+});
+
+httpServer.on('error', (err) => {
+  console.error('❌ HTTP server error:', err);
+  process.exit(1);
+});
+
+connect()
+  .then(() => {
+    console.log('✅ Database ready');
   })
+  .catch((error) => {
+    console.error('❌ Invalid Database Connection:', error?.message || error);
+    // Ne pas exit : le healthcheck Render doit voir le port ouvert ;
+    // les routes DB échoueront jusqu'à correction Mongo/Atlas.
+  });
