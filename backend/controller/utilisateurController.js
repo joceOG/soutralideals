@@ -206,7 +206,10 @@ export const signInWithGoogle = async (req, res) => {
         photoProfil: profile.photoProfil || undefined,
         role: finalRole,
         telephoneVerified: false,
+        // pas de telephone : évite E11000 sur index unique (plusieurs null)
       });
+      // Garantir que le champ n'est pas persisté à null
+      user.telephone = undefined;
       await user.save();
       sendWelcomeEmail(profile.email, profile.prenom).catch(() => {});
     } else {
@@ -221,6 +224,10 @@ export const signInWithGoogle = async (req, res) => {
       }
       if (profile.photoProfil && !user.photoProfil) {
         user.photoProfil = profile.photoProfil;
+        dirty = true;
+      }
+      if (user.telephone == null || user.telephone === '') {
+        user.set('telephone', undefined);
         dirty = true;
       }
       if (dirty) await user.save();

@@ -58,6 +58,9 @@ import { isFcmConfigured } from './utils/fcmPush.js';
 const app = express();
 const httpServer = createServer(app);
 
+// Render / reverse proxies : requis pour express-rate-limit (X-Forwarded-For)
+app.set('trust proxy', 1);
+
 // Origines autorisées : on garde les origines locales par défaut
 // et on fusionne avec ALLOWED_ORIGINS si fourni.
 const defaultAllowedOrigins = [
