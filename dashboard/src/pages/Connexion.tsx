@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  CssBaseline,
   IconButton,
   InputAdornment,
   Paper,
@@ -57,7 +56,10 @@ const Connexion: React.FC = () => {
       });
 
       localStorage.setItem("token", response.data.token);
-      navigate("/", { replace: true });
+      // Différer la navigation hors du cycle de commit React (évite crash DOM).
+      window.setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 0);
     } catch (err: unknown) {
       if (typeof err === "object" && err !== null && "response" in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
@@ -78,8 +80,6 @@ const Connexion: React.FC = () => {
         bgcolor: "#f4f7f9",
       }}
     >
-      <CssBaseline />
-
       {/* Panneau branding — desktop */}
       <Box
         sx={{
