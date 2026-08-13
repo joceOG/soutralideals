@@ -305,6 +305,12 @@ export const updatePrestataire = async (req, res) => {
 
     if (isAdminUser && typeof verifier !== "undefined") {
       updates.verifier = verifier === "true" || verifier === true;
+      // Cocher « Vérifié » dans le dashboard = approbation réelle
+      if (updates.verifier === true && !status) {
+        updates.status = "active";
+        updates.dateValidation = new Date();
+        if (req.utilisateur?._id) updates.validePar = req.utilisateur._id;
+      }
     }
     if (isAdminUser && status) {
       updates.status = status;
@@ -470,7 +476,9 @@ export const deletePrestataire = async (req, res) => {
 // 🆕 OPTION C - Récupérer les prestataires en attente (toutes sources)
 export const getPendingPrestataires = async (req, res) => {
   try {
-    const prestataires = await prestataireModel.find({ status: "pending" })
+    const prestataires = await prestataireModel.find({
+      status: { $in: ["pending", "incomplete"] },
+    })
       .populate("utilisateur")
       .populate("recenseur", "nom prenom telephone")
       .populate({
@@ -480,7 +488,7 @@ export const getPendingPrestataires = async (req, res) => {
           populate: { path: "groupe" }
         }
       })
-      .sort({ dateRecensement: -1 });
+      .sort({ dateRecensement: -1, createdAt: -1 });
 
     res.status(200).json(prestataires);
   } catch (err) {
@@ -501,7 +509,7 @@ export const validatePrestataire = async (req, res) => {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
 
-    if (prestataire.status !== 'pending') {
+    if (prestataire.status !== 'pending' && prestataire.status !== 'incomplete') {
       return res.status(400).json({ error: "Prestataire déjà traité" });
     }
 
@@ -541,7 +549,7 @@ export const rejectPrestataire = async (req, res) => {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
 
-    if (prestataire.status !== 'pending') {
+    if (prestataire.status !== 'pending' && prestataire.status !== 'incomplete') {
       return res.status(400).json({ error: "Prestataire déjà traité" });
     }
 
