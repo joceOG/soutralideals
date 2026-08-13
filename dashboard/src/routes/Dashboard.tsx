@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
@@ -128,18 +127,12 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
 }) => {
   const isAuthPage = Boolean(useMatch({ path: '/connexion', end: true }));
 
-  if (isAuthPage) {
-    return (
-      <>
-        <CssBaseline />
-        <AppRouter />
-      </>
-    );
-  }
-
+  // Arbre DOM stable : AppRouter reste au même endroit (évite NotFoundError removeChild
+  // au passage connexion → dashboard).
   return (
-      <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
+      <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
+        {!isAuthPage && (
+          <>
         <AppBar position="absolute" open={open}>
           <Toolbar
             sx={{
@@ -350,23 +343,34 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
             </Box>
           </Box>
         </Drawer>
+          </>
+        )}
         <Box
           component="main"
           sx={{
             backgroundColor: (theme) =>
-              theme.palette.mode === 'light'
-                ? theme.palette.grey[100]
-                : theme.palette.grey[900],
+              isAuthPage
+                ? 'transparent'
+                : theme.palette.mode === 'light'
+                  ? theme.palette.grey[100]
+                  : theme.palette.grey[900],
             flexGrow: 1,
-            height: '100vh',
-            overflow: 'auto',
+            height: isAuthPage ? '100dvh' : '100vh',
+            overflow: isAuthPage ? 'hidden' : 'auto',
+            width: '100%',
           }}
         >
-          <Toolbar />
-          <Box sx={{ mt: 5, mb: 4, mr:4, ml:4 }}>
+          {!isAuthPage && <Toolbar />}
+          <Box
+            sx={
+              isAuthPage
+                ? { height: '100%', width: '100%' }
+                : { mt: 5, mb: 4, mr: 4, ml: 4 }
+            }
+          >
             <AppRouter />
           </Box>
-          <Copyright sx={{ pt: 4 }} />
+          {!isAuthPage && <Copyright sx={{ pt: 4 }} />}
         </Box>
       </Box>
   );
