@@ -31,6 +31,7 @@ utilisateurRouter.get('/utilisateur/:id/roles', auth, utilisateurController.getU
 utilisateurRouter.get('/utilisateur/:id', auth, utilisateurController.getUserById);
 utilisateurRouter.put('/utilisateur/:id', auth, upload.single('photoProfil'), utilisateurController.updateUserById);
 utilisateurRouter.patch('/utilisateur/password', auth, utilisateurController.changePassword);
+utilisateurRouter.post('/utilisateur/deactivate', auth, utilisateurController.deactivateAccount);
 utilisateurRouter.post('/utilisateur/fcm-token', auth, utilisateurController.registerFcmToken);
 utilisateurRouter.delete('/utilisateur/fcm-token', auth, utilisateurController.unregisterFcmToken);
 utilisateurRouter.delete('/utilisateur/:id', auth, utilisateurController.deleteUserById);

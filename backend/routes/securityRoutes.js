@@ -8,8 +8,13 @@ import {
   getLoginHistory,
   getActiveSessions,
   terminateSession,
+  terminateAllOtherSessions,
+  clearLoginHistory,
   getSecurityAlerts,
   markAlertAsRead,
+  markAllAlertsAsRead,
+  deleteSecurityAlert,
+  exportSecurityData,
   getTrustedDevices,
   removeTrustedDevice,
   updateSecuritySettings,
@@ -22,6 +27,7 @@ const securityRouter = Router();
 // ✅ ROUTES DE BASE — protégées
 securityRouter.get('/security/user/:utilisateurId', auth, getUserSecurity);
 securityRouter.get('/security/user/:utilisateurId/stats', auth, getSecurityStats);
+securityRouter.get('/security/user/:utilisateurId/export', auth, exportSecurityData);
 
 // ✅ ROUTES 2FA
 securityRouter.post('/security/user/:utilisateurId/2fa/enable', auth, enable2FA);
@@ -30,14 +36,18 @@ securityRouter.post('/security/user/:utilisateurId/2fa/disable', auth, disable2F
 
 // ✅ ROUTES SESSIONS
 securityRouter.get('/security/user/:utilisateurId/sessions', auth, getActiveSessions);
+securityRouter.delete('/security/user/:utilisateurId/sessions', auth, terminateAllOtherSessions);
 securityRouter.delete('/security/user/:utilisateurId/sessions/:sessionId', auth, terminateSession);
 
 // ✅ ROUTES HISTORIQUE
 securityRouter.get('/security/user/:utilisateurId/history', auth, getLoginHistory);
+securityRouter.delete('/security/user/:utilisateurId/history', auth, clearLoginHistory);
 
-// ✅ ROUTES ALERTES
+// ✅ ROUTES ALERTES (read-all avant :alertId)
 securityRouter.get('/security/user/:utilisateurId/alerts', auth, getSecurityAlerts);
+securityRouter.patch('/security/user/:utilisateurId/alerts/read-all', auth, markAllAlertsAsRead);
 securityRouter.patch('/security/user/:utilisateurId/alerts/:alertId/read', auth, markAlertAsRead);
+securityRouter.delete('/security/user/:utilisateurId/alerts/:alertId', auth, deleteSecurityAlert);
 
 // ✅ ROUTES APPAREILS
 securityRouter.get('/security/user/:utilisateurId/devices', auth, getTrustedDevices);

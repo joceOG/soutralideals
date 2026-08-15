@@ -26,9 +26,10 @@ export const addFavorite = async (req, res) => {
       alerteDisponibilite 
     } = req.body;
     
-    if (!objetType || !objetId || !titre) {
-      return res.status(400).json({ error: 'objetType, objetId et titre sont requis' });
+    if (!objetType || !objetId) {
+      return res.status(400).json({ error: 'objetType et objetId sont requis' });
     }
+    const resolvedTitre = (titre && String(titre).trim()) || String(objetType);
     
     // Vérifier si le favori existe déjà
     const existingFavorite = await Favorite.findOne({
@@ -49,7 +50,7 @@ export const addFavorite = async (req, res) => {
       utilisateur: userId,
       objetType,
       objetId,
-      titre,
+      titre: resolvedTitre,
       description,
       image,
       prix,

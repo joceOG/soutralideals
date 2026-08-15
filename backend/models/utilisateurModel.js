@@ -88,6 +88,10 @@ const UtilisateurSchema = new mongoose.Schema({
   /** Reset mot de passe */
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
+
+  /** Compte actif (false = désactivé par l’utilisateur) */
+  isActive: { type: Boolean, default: true },
+  deactivatedAt: { type: Date },
 }, {
   timestamps: true
 });

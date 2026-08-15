@@ -90,7 +90,16 @@ const UserPreferencesSchema = new mongoose.Schema({
       type: String,
       enum: ['fr', 'en', 'es', 'pt', 'ar'],
       default: 'fr'
-    }
+    },
+    /** Types d’événements (Espace Métiers / app) */
+    types: {
+      newMissions: { type: Boolean, default: true },
+      messages: { type: Boolean, default: true },
+      payments: { type: Boolean, default: true },
+      reviews: { type: Boolean, default: true },
+      promotions: { type: Boolean, default: false },
+      system: { type: Boolean, default: true },
+    },
   },
 
   // 📍 PRÉFÉRENCES DE LOCALISATION

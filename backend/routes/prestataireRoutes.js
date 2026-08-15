@@ -14,6 +14,8 @@ import {
   validatePrestataire,
   rejectPrestataire,
   getPendingPrestataires,
+  deactivatePrestataire,
+  reactivatePrestataire,
 } from "../controller/prestataireController.js";
 
 const prestataireRouter = Router();
@@ -51,6 +53,20 @@ prestataireRouter.put(
   requirePrestataireOwnerOrAdmin(),
   uploadFields,
   updatePrestataire,
+);
+
+prestataireRouter.post(
+  "/prestataire/:id/deactivate",
+  auth,
+  requirePrestataireOwnerOrAdmin(),
+  deactivatePrestataire,
+);
+
+prestataireRouter.post(
+  "/prestataire/:id/reactivate",
+  auth,
+  requirePrestataireOwnerOrAdmin(),
+  reactivatePrestataire,
 );
 
 export default prestataireRouter;
