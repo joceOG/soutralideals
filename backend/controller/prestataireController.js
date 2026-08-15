@@ -27,7 +27,8 @@ const uploadToCloudinary = async (filePath, folder) => {
 const PRESTATAIRE_OWNER_FIELDS = [
   'service', 'prixprestataire', 'localisation', 'specialite', 'anneeExperience',
   'description', 'rayonIntervention', 'zoneIntervention', 'localisationmaps',
-  'tarifHoraireMin', 'tarifHoraireMax', 'numeroCNI', 'numeroRCCM', 'numeroAssurance', 'clients',
+  'tarifHoraireMin', 'tarifHoraireMax', 'numeroCNI', 'numeroRCCM', 'numeroAssurance',
+  'clients', 'disponible', 'creneaux',
 ];
 
 const PRESTATAIRE_ADMIN_FIELDS = ['note', 'nbAvis', 'nbMission', 'revenus', 'verifier', 'status', 'utilisateur'];
@@ -256,6 +257,8 @@ export const updatePrestataire = async (req, res) => {
       revenus,
       clients,
       status,
+      disponible,
+      creneaux,
     } = body;
 
     const parseNumber = (value) => {
@@ -301,6 +304,19 @@ export const updatePrestataire = async (req, res) => {
       ...(isAdminUser && typeof parseNumber(body.nbAvis) !== "undefined" && { nbAvis: parseNumber(body.nbAvis) }),
       ...(isAdminUser && typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
       ...(clients && { clients: clients.map(id => new mongoose.Types.ObjectId(id)) }),
+      ...(typeof disponible !== 'undefined' && {
+        disponible: disponible === true || disponible === 'true',
+      }),
+      ...(Array.isArray(creneaux) && {
+        creneaux: creneaux
+          .filter((c) => c && typeof c.jour !== 'undefined' && c.heureDebut && c.heureFin)
+          .map((c) => ({
+            jour: Number(c.jour),
+            heureDebut: String(c.heureDebut),
+            heureFin: String(c.heureFin),
+            actif: c.actif !== false && c.actif !== 'false',
+          })),
+      }),
     };
 
     if (isAdminUser && typeof verifier !== "undefined") {
@@ -567,6 +583,69 @@ export const rejectPrestataire = async (req, res) => {
     });
   } catch (err) {
     console.error("Erreur rejet prestataire:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/** Self-service : suspendre son activité prestataire */
+export const deactivatePrestataire = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'ID invalide' });
+    }
+    const prestataire = await prestataireModel.findById(id);
+    if (!prestataire) {
+      return res.status(404).json({ error: 'Prestataire non trouvé' });
+    }
+    const ownerId = prestataire.utilisateur?.toString?.() || String(prestataire.utilisateur);
+    const requesterId = req.utilisateur?._id?.toString?.();
+    if (!isAdmin(req) && ownerId !== requesterId) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    prestataire.status = 'suspended';
+    prestataire.disponible = false;
+    await prestataire.save();
+    res.status(200).json({
+      message: 'Espace Métiers désactivé',
+      prestataire,
+    });
+  } catch (err) {
+    console.error('Erreur deactivatePrestataire:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/** Self-service : réactiver (repasse en pending si pas encore active) */
+export const reactivatePrestataire = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'ID invalide' });
+    }
+    const prestataire = await prestataireModel.findById(id);
+    if (!prestataire) {
+      return res.status(404).json({ error: 'Prestataire non trouvé' });
+    }
+    const ownerId = prestataire.utilisateur?.toString?.() || String(prestataire.utilisateur);
+    const requesterId = req.utilisateur?._id?.toString?.();
+    if (!isAdmin(req) && ownerId !== requesterId) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    if (prestataire.status === 'rejected') {
+      return res.status(400).json({
+        error: 'Profil rejeté — contactez le support pour une nouvelle validation',
+      });
+    }
+    prestataire.status = prestataire.verifier ? 'active' : 'pending';
+    prestataire.disponible = true;
+    await prestataire.save();
+    res.status(200).json({
+      message: 'Espace Métiers réactivé',
+      prestataire,
+    });
+  } catch (err) {
+    console.error('Erreur reactivatePrestataire:', err.message);
     res.status(500).json({ error: err.message });
   }
 };

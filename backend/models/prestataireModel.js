@@ -42,6 +42,22 @@ const prestataireSchema = new mongoose.Schema({
   revenus: { type: Number, default: 0 },
   clients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Utilisateur" }],
 
+  /** Disponible pour recevoir des missions (toggle Accueil prestataire) */
+  disponible: { type: Boolean, default: true },
+
+  /** Créneaux récurrents de disponibilité (planning) */
+  creneaux: [{
+    jour: {
+      type: Number, // 0=dimanche … 6=samedi
+      required: true,
+      min: 0,
+      max: 6,
+    },
+    heureDebut: { type: String, required: true }, // "08:00"
+    heureFin: { type: String, required: true },   // "18:00"
+    actif: { type: Boolean, default: true },
+  }],
+
   // 🆕 OPTION C - Traçabilité et validation
   source: { 
     type: String, 

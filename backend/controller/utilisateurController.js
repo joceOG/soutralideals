@@ -146,6 +146,12 @@ export const signIn = async (req, res) => {
       return res.status(400).json({ error: err.message });
     }
 
+    if (user.isActive === false) {
+      return res.status(403).json({
+        error: 'Compte désactivé. Contactez le support pour le réactiver.',
+      });
+    }
+
     // 🔹 Génération du token
     const token = await user.generateAuthToken();
     const refreshToken = await user.generateRefreshToken();
@@ -231,6 +237,12 @@ export const signInWithGoogle = async (req, res) => {
         dirty = true;
       }
       if (dirty) await user.save();
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({
+        error: 'Compte désactivé. Contactez le support pour le réactiver.',
+      });
     }
 
     const token = await user.generateAuthToken();
@@ -578,5 +590,27 @@ export const resetPassword = async (req, res) => {
   } catch (err) {
     console.error('Erreur resetPassword:', err.message);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+/** Désactiver son propre compte (soft) */
+export const deactivateAccount = async (req, res) => {
+  try {
+    const userId = req.utilisateur?._id?.toString();
+    if (!userId) return res.status(401).json({ error: 'Authentification requise' });
+
+    const user = await Utilisateur.findById(userId);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    user.isActive = false;
+    user.deactivatedAt = new Date();
+    user.tokens = [];
+    user.refreshTokens = [];
+    await user.save();
+
+    return res.status(200).json({ message: 'Compte désactivé' });
+  } catch (err) {
+    console.error('Erreur deactivateAccount:', err.message);
+    res.status(500).json({ error: err.message });
   }
 };

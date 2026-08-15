@@ -537,5 +537,172 @@ export const getAllSecurityStats = async (req, res) => {
   }
 };
 
+/** Terminer toutes les sessions sauf éventuellement la courante */
+export const terminateAllOtherSessions = async (req, res) => {
+  try {
+    const { utilisateurId } = req.params;
+    const keepSessionId = req.body?.keepSessionId || req.query?.keepSessionId;
 
+    if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+
+    const security = await Security.findOne({ utilisateur: utilisateurId });
+    if (!security) {
+      return res.status(404).json({ error: 'Sécurité non trouvée' });
+    }
+
+    let closed = 0;
+    security.activeSessions = (security.activeSessions || []).map((s) => {
+      const id = s._id?.toString?.() || s.id?.toString?.();
+      if (keepSessionId && id === String(keepSessionId)) return s;
+      if (s.isActive) {
+        closed += 1;
+        return { ...s.toObject?.() ?? s, isActive: false };
+      }
+      return s;
+    });
+    await security.save();
+
+    res.status(200).json({
+      message: 'Autres sessions terminées',
+      closed,
+    });
+  } catch (err) {
+    console.error('Erreur terminateAllOtherSessions:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/** Effacer l’historique de connexion */
+export const clearLoginHistory = async (req, res) => {
+  try {
+    const { utilisateurId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    const security = await Security.findOne({ utilisateur: utilisateurId });
+    if (!security) {
+      return res.status(404).json({ error: 'Sécurité non trouvée' });
+    }
+    security.loginHistory = [];
+    await security.save();
+    res.status(200).json({ message: 'Historique effacé' });
+  } catch (err) {
+    console.error('Erreur clearLoginHistory:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/** Marquer toutes les alertes comme lues */
+export const markAllAlertsAsRead = async (req, res) => {
+  try {
+    const { utilisateurId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    const security = await Security.findOne({ utilisateur: utilisateurId });
+    if (!security) {
+      return res.status(404).json({ error: 'Sécurité non trouvée' });
+    }
+    let updated = 0;
+    (security.securityAlerts || []).forEach((a) => {
+      if (!a.read) {
+        a.read = true;
+        updated += 1;
+      }
+    });
+    await security.save();
+    res.status(200).json({ message: 'Alertes marquées comme lues', updated });
+  } catch (err) {
+    console.error('Erreur markAllAlertsAsRead:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/** Supprimer une alerte de sécurité */
+export const deleteSecurityAlert = async (req, res) => {
+  try {
+    const { utilisateurId, alertId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    const security = await Security.findOne({ utilisateur: utilisateurId });
+    if (!security) {
+      return res.status(404).json({ error: 'Sécurité non trouvée' });
+    }
+    const before = security.securityAlerts?.length || 0;
+    security.securityAlerts = (security.securityAlerts || []).filter(
+      (a) => a._id?.toString() !== String(alertId),
+    );
+    if (security.securityAlerts.length === before) {
+      return res.status(404).json({ error: 'Alerte non trouvée' });
+    }
+    await security.save();
+    res.status(200).json({ message: 'Alerte supprimée' });
+  } catch (err) {
+    console.error('Erreur deleteSecurityAlert:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/** Export JSON des données de sécurité (sans secrets 2FA) */
+export const exportSecurityData = async (req, res) => {
+  try {
+    const { utilisateurId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
+    }
+    if (!checkSecurityOwnership(req, utilisateurId)) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    const security = await Security.findOne({ utilisateur: utilisateurId }).lean();
+    if (!security) {
+      return res.status(404).json({ error: 'Sécurité non trouvée' });
+    }
+    const exportPayload = {
+      exportedAt: new Date().toISOString(),
+      utilisateurId,
+      twoFactorEnabled: !!security.twoFactorAuth?.enabled,
+      activeSessions: (security.activeSessions || []).map((s) => ({
+        id: s._id,
+        deviceName: s.deviceName,
+        deviceType: s.deviceType,
+        ipAddress: s.ipAddress,
+        location: s.location,
+        isActive: s.isActive,
+        lastActivity: s.lastActivity,
+        createdAt: s.createdAt,
+      })),
+      loginHistory: security.loginHistory || [],
+      securityAlerts: (security.securityAlerts || []).map((a) => ({
+        id: a._id,
+        title: a.title,
+        message: a.message,
+        type: a.type,
+        read: a.read,
+        createdAt: a.createdAt,
+      })),
+      trustedDevices: security.trustedDevices || [],
+      securitySettings: security.securitySettings || {},
+      securityStats: security.securityStats || {},
+    };
+    res.status(200).json(exportPayload);
+  } catch (err) {
+    console.error('Erreur exportSecurityData:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
 
