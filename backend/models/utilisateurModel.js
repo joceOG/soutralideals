@@ -43,7 +43,12 @@ const UtilisateurSchema = new mongoose.Schema({
   telephone: {
     type: String,
     trim: true,
-    // unicité via index partiel ci-dessous (évite E11000 sur telephone: null)
+    // unicité vérifiée via index partiel (telephoneVerified=true uniquement)
+  },
+  /** STAB-12D — numéro saisi mais non prouvé OTP (pas d'identité de connexion). */
+  pendingTelephone: {
+    type: String,
+    trim: true,
   },
   telephoneVerified: { type: Boolean, default: false },
   genre: { type: String },
@@ -68,6 +73,15 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     enum: ["Admin", "Prestataire", "Vendeur", "Freelance", "Client"],
     required: true,
+  },
+
+  /**
+   * STAB-11b — Permission métier terrain (SDEALSIDENTIFICATION).
+   * Attribution / retrait réservés à l'admin. Pas un rôle RECENSEUR.
+   */
+  canCreateRecensement: {
+    type: Boolean,
+    default: false,
   },
 
   tokens: [{
@@ -96,13 +110,14 @@ const UtilisateurSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Unicité téléphone seulement quand une vraie valeur est présente
+// Unicité téléphone vérifié uniquement (pendingTelephone n'est pas identité canonique)
 UtilisateurSchema.index(
   { telephone: 1 },
   {
     unique: true,
-    name: 'telephone_partial_unique',
+    name: 'telephone_verified_unique',
     partialFilterExpression: {
+      telephoneVerified: true,
       telephone: { $exists: true, $type: 'string', $gt: '' },
     },
   },
@@ -114,6 +129,10 @@ UtilisateurSchema.pre("save", async function(next) {
   if (user.telephone == null || user.telephone === '') {
     user.telephone = undefined;
     if (user._doc) delete user._doc.telephone;
+  }
+  if (user.pendingTelephone == null || user.pendingTelephone === '') {
+    user.pendingTelephone = undefined;
+    if (user._doc) delete user._doc.pendingTelephone;
   }
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 10);
@@ -161,8 +180,11 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
   if (validator.isEmail(identifiant)) {
     user = await this.findOne({ email: identifiant.toLowerCase() });
   } else {
-    // Identifiant déjà normalisé E.164 par le controller quand possible
-    user = await this.findOne({ telephone: identifiant });
+    // STAB-12D — login téléphone uniquement si OTP prouvé
+    user = await this.findOne({
+      telephone: identifiant,
+      telephoneVerified: true,
+    });
   }
 
   if (!user) throw new Error('Identifiants incorrects');

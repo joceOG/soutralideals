@@ -1,9 +1,12 @@
 import commandeModel from '../models/commandeModel.js';
 import mongoose from 'mongoose';
 import { assertOwnerOrAdmin, assertAdmin, isAdmin, isOwnerOrAdmin } from '../utils/accessControl.js';
+import {
+  applyOrderStatusChange,
+  OrderStatusPolicyError,
+} from '../services/orderStatusService.js';
 
 const COMMANDE_UPDATE_WHITELIST = [
-  'statusCommande',
   'dateLivraison',
   'notesClient',
   'infoCommande',
@@ -25,7 +28,6 @@ async function loadCommandeOr404(id, res) {
 function assertCommandeAccess(req, res, commande) {
   const ownerId = commande.utilisateur?.toString();
   if (ownerId && isOwnerOrAdmin(req, ownerId)) return true;
-  // Fallback : infoCommande peut contenir l'email/téléphone du client
   if (!ownerId && isAdmin(req)) return true;
   res.status(403).json({ error: 'Accès refusé : commande d\'un autre utilisateur.' });
   return false;
@@ -53,16 +55,18 @@ export const createCommande = async (req, res) => {
             prixArticles,
             prixLivraison,
             prixTotal,
-            statusCommande,
-            dateLivraison
+            dateLivraison,
+            vendeur,
         } = req.body;
 
         if (!infoCommande || !articles || articles.length === 0) {
             return res.status(400).json({ error: 'Informations de commande et articles requis' });
         }
 
+        // STAB-11 : statut initial forcé serveur (ignorer status client)
         const newCommande = new commandeModel({
             utilisateur: req.utilisateur._id,
+            vendeur: vendeur || undefined,
             infoCommande,
             articles,
             paiementInfo,
@@ -70,7 +74,7 @@ export const createCommande = async (req, res) => {
             prixArticles: prixArticles || 0,
             prixLivraison: prixLivraison || 0,
             prixTotal: prixTotal || (prixArticles + prixLivraison),
-            statusCommande: statusCommande || 'En cours',
+            statusCommande: 'En cours',
             dateLivraison
         });
 
@@ -138,6 +142,30 @@ export const updateCommande = async (req, res) => {
     try {
         const commande = await loadCommandeOr404(req.params.id, res);
         if (!commande) return;
+
+        // STAB-11 : changement de statut via politique centralisée (même que Socket)
+        if (req.body.statusCommande !== undefined) {
+            try {
+                const updated = await applyOrderStatusChange({
+                    orderId: req.params.id,
+                    targetStatus: req.body.statusCommande,
+                    user: req.utilisateur,
+                });
+                // Autres champs non-statut éventuels
+                const other = pickAllowedUpdates(req.body, isAdmin(req));
+                if (Object.keys(other).length > 0) {
+                    Object.assign(updated, other);
+                    await updated.save();
+                }
+                return res.status(200).json(updated);
+            } catch (err) {
+                if (err instanceof OrderStatusPolicyError) {
+                    return res.status(err.statusCode || 400).json({ error: err.message });
+                }
+                throw err;
+            }
+        }
+
         if (!assertCommandeAccess(req, res, commande)) return;
 
         const updates = pickAllowedUpdates(req.body, isAdmin(req));

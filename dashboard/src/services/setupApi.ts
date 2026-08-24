@@ -2,6 +2,9 @@ import axios from "axios";
 
 let initialized = false;
 
+const USER_ID_KEY = "userId";
+const USER_ROLE_KEY = "userRole";
+
 export function getApiUrl() {
   return process.env.REACT_APP_API_URL || "http://localhost:3000/api";
 }
@@ -17,9 +20,29 @@ export function isAuthenticated(): boolean {
 
 export function clearSession() {
   localStorage.removeItem("token");
+  localStorage.removeItem(USER_ID_KEY);
+  localStorage.removeItem(USER_ROLE_KEY);
 }
 
-/** Vérifie que le JWT en localStorage est encore valide côté backend. */
+export function getCurrentUserId(): string | null {
+  return localStorage.getItem(USER_ID_KEY);
+}
+
+export function getCurrentUserRole(): string | null {
+  return localStorage.getItem(USER_ROLE_KEY);
+}
+
+export function isCurrentUserAdmin(): boolean {
+  return String(getCurrentUserRole() || "").toUpperCase() === "ADMIN";
+}
+
+export function persistSession(token: string, user?: { _id?: string; role?: string }) {
+  localStorage.setItem("token", token);
+  if (user?._id) localStorage.setItem(USER_ID_KEY, String(user._id));
+  if (user?.role) localStorage.setItem(USER_ROLE_KEY, String(user.role));
+}
+
+/** Session valide + rôle Admin (UX dashboard). Backend reste l'autorité. */
 export async function validateSession(): Promise<boolean> {
   const token = localStorage.getItem("token");
   if (!token) return false;
@@ -28,7 +51,22 @@ export async function validateSession(): Promise<boolean> {
     const res = await axios.get(`${getApiUrl()}/utilisateur/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return res.status === 200 && res.data?.valid === true;
+    if (res.status !== 200 || res.data?.valid !== true) {
+      clearSession();
+      return false;
+    }
+    if (res.data?.userId) {
+      localStorage.setItem(USER_ID_KEY, String(res.data.userId));
+    }
+    if (res.data?.role) {
+      localStorage.setItem(USER_ROLE_KEY, String(res.data.role));
+    }
+    // STAB-11 : dashboard réservé Admin (UX) — le backend refuse déjà les routes admin
+    if (String(res.data?.role || "").toUpperCase() !== "ADMIN") {
+      clearSession();
+      return false;
+    }
+    return true;
   } catch {
     clearSession();
     return false;

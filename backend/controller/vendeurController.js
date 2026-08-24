@@ -6,6 +6,8 @@ import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFil
 import { isAdmin, assertAdmin } from '../utils/accessControl.js';
 import { pickFields } from '../utils/pickFields.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
+import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
+import { uploadKycToCloudinary } from '../utils/kycAccess.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -29,6 +31,11 @@ const JSON_FIELDS = [
 // ✅ CRÉER UN NOUVEAU VENDEUR (sdealsapp standard)
 export const createVendeur = async (req, res) => {
     try {
+        const denied = assertRecensementAgent(req);
+        if (denied) {
+            return res.status(denied.status).json({ error: denied.error });
+        }
+
         const {
             utilisateur,
             // 🏪 Informations boutique
@@ -64,9 +71,10 @@ export const createVendeur = async (req, res) => {
         } = req.body;
 
         // ✅ VALIDATION OBLIGATOIRE
-        const ownerId = isAdmin(req) && utilisateur
-            ? utilisateur
-            : req.utilisateur._id.toString();
+        const ownerId =
+            (isAdmin(req) || isRecensementRequest(req)) && utilisateur
+                ? utilisateur
+                : req.utilisateur._id.toString();
 
         if (!shopName || !shopDescription || !businessType) {
             return res.status(400).json({ 
@@ -92,10 +100,11 @@ export const createVendeur = async (req, res) => {
         
         for (const field of docFields) {
             if (req.files?.[field]?.[0]) {
-                const result = await cloudinary.v2.uploader.upload(req.files[field][0].path, {
-                    folder: `vendeurs/verification`,
-                });
-                verificationDocs[field] = result.secure_url;
+                const { ref } = await uploadKycToCloudinary(
+                    req.files[field][0].path,
+                    `vendeurs/verification`,
+                );
+                verificationDocs[field] = ref;
                 fs.unlinkSync(req.files[field][0].path);
             }
         }
@@ -197,8 +206,17 @@ export const createVendeur = async (req, res) => {
                 reason: 'Inscription initiale'
             }],
             status: 'pending',
-            source: req.body.source || 'web',
+            source: 'web',
         });
+
+        const recensement = buildRecensementCreateFields(req, { defaultStatus: 'pending' });
+        if (recensement.source) newVendeur.source = recensement.source;
+        else newVendeur.source = req.body.source || 'web';
+        if (recensement.status) newVendeur.status = recensement.status;
+        if (recensement.recenseur) newVendeur.recenseur = recensement.recenseur;
+        if (recensement.dateRecensement) {
+            newVendeur.dateRecensement = recensement.dateRecensement;
+        }
 
         await newVendeur.save();
         
@@ -293,11 +311,16 @@ export const getVendeurById = async (req, res) => {
             return res.status(404).json({ error: "Vendeur non trouvé" });
         }
 
-        // Incrémenter les vues de profil
-        vendeur.profileViews += 1;
-        await vendeur.save();
+        // STAB-12C : incrément atomique sans revalidation complète (legacy enums)
+        await vendeurModel.updateOne(
+            { _id: id },
+            { $inc: { profileViews: 1 } },
+        );
 
-        res.status(200).json(vendeur);
+        const payload = vendeur.toObject ? vendeur.toObject() : vendeur;
+        payload.profileViews = (payload.profileViews || 0) + 1;
+
+        res.status(200).json(payload);
     } catch (err) {
         console.error("Erreur récupération vendeur:", err.message);
         res.status(500).json({ error: err.message });

@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
 import { pickFields } from '../utils/pickFields.js';
+import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
+import { uploadKycToCloudinary, redactKycDocument, canAccessKyc, resolveKycFieldsForAuthorizedViewer } from '../utils/kycAccess.js';
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -12,11 +14,16 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 🔹 Fonction utilitaire upload Cloudinary
-const uploadToCloudinary = async (filePath, folder) => {
+// 🔹 Upload Cloudinary — KYC = authenticated (pas d'URL publique)
+const uploadToCloudinary = async (filePath, folder, { kyc = false } = {}) => {
   try {
+    if (kyc) {
+      const { ref } = await uploadKycToCloudinary(filePath, folder);
+      fs.unlinkSync(filePath);
+      return { secure_url: ref, kyc: true };
+    }
     const result = await cloudinary.uploader.upload(filePath, { folder });
-    fs.unlinkSync(filePath); // supprimer le fichier local
+    fs.unlinkSync(filePath);
     return result;
   } catch (err) {
     console.error("Erreur upload Cloudinary:", err.message);
@@ -152,23 +159,35 @@ export const createPrestataire = async (req, res) => {
     // Upload fichiers simples
     let uploads = {};
     if (req.files?.cni1) {
-      uploads.cni1 = (await uploadToCloudinary(req.files.cni1[0].path, "prestataires/cni")).secure_url;
+      uploads.cni1 = (await uploadToCloudinary(req.files.cni1[0].path, "prestataires/cni", { kyc: true })).secure_url;
     }
     if (req.files?.cni2) {
-      uploads.cni2 = (await uploadToCloudinary(req.files.cni2[0].path, "prestataires/cni")).secure_url;
+      uploads.cni2 = (await uploadToCloudinary(req.files.cni2[0].path, "prestataires/cni", { kyc: true })).secure_url;
     }
     if (req.files?.selfie) {
-      uploads.selfie = (await uploadToCloudinary(req.files.selfie[0].path, "prestataires/selfies")).secure_url;
+      uploads.selfie = (await uploadToCloudinary(req.files.selfie[0].path, "prestataires/selfies", { kyc: true })).secure_url;
     }
     if (req.files?.attestationAssurance) {
-      uploads.attestationAssurance = (await uploadToCloudinary(req.files.attestationAssurance[0].path, "prestataires/assurance")).secure_url;
+      uploads.attestationAssurance = (await uploadToCloudinary(req.files.attestationAssurance[0].path, "prestataires/assurance", { kyc: true })).secure_url;
     }
 
-    // Création prestataire — status/verifier contrôlés côté serveur
+    // STAB-11b : permission agent avant création terrain
+    const denied = assertRecensementAgent(req);
+    if (denied) {
+      return res.status(denied.status).json({ error: denied.error });
+    }
+
+    // Création prestataire — status/verifier/recenseur contrôlés côté serveur (STAB-11)
     const isAdminUser = isAdmin(req);
-    const ownerId = isAdminUser && utilisateur
-      ? utilisateur
-      : req.utilisateur._id.toString();
+    const isTerrain = isRecensementRequest(req);
+    const ownerId =
+      (isAdminUser || isTerrain) && utilisateur
+        ? utilisateur
+        : req.utilisateur._id.toString();
+
+    const recensement = buildRecensementCreateFields(req, {
+      defaultStatus: 'incomplete',
+    });
 
     const newPrestataire = new prestataireModel({
       utilisateur: new mongoose.Types.ObjectId(ownerId),
@@ -177,7 +196,7 @@ export const createPrestataire = async (req, res) => {
       localisation,
       note: isAdminUser ? parseNumber(note, 0) : 0,
       verifier: isAdminUser && (verifier === "true" || verifier === true),
-      status: "incomplete",
+      status: recensement.status || "incomplete",
       specialite: specialiteArr,
       anneeExperience,
       description,
@@ -197,17 +216,10 @@ export const createPrestataire = async (req, res) => {
       ...uploads,
     });
 
-    // Traçabilité (source autorisée ; champs sensibles admin-only)
-    if (req.body.source) {
-      newPrestataire.source = Array.isArray(req.body.source)
-        ? req.body.source[0]
-        : req.body.source;
-    }
-    if (isAdminUser && req.body.recenseur && mongoose.Types.ObjectId.isValid(req.body.recenseur)) {
-      newPrestataire.recenseur = new mongoose.Types.ObjectId(req.body.recenseur);
-    }
-    if (isAdminUser && req.body.dateRecensement) {
-      newPrestataire.dateRecensement = new Date(req.body.dateRecensement);
+    if (recensement.source) newPrestataire.source = recensement.source;
+    if (recensement.recenseur) newPrestataire.recenseur = recensement.recenseur;
+    if (recensement.dateRecensement) {
+      newPrestataire.dateRecensement = recensement.dateRecensement;
     }
 
     newPrestataire.syncFinalizationFromDocuments();
@@ -434,7 +446,21 @@ export const getAllPrestataires = async (req, res) => {
       ? prestataires.filter(p => p.service !== null)
       : prestataires;
 
-    res.status(200).json(result);
+    // STAB-11b : jamais exposer URLs KYC en liste (même JWT)
+    const safe = result.map((p) => {
+      const plain = typeof p.toObject === 'function' ? p.toObject() : p;
+      const ownerId = plain.utilisateur?._id ?? plain.utilisateur;
+      const allowed = canAccessKyc({
+        req,
+        ownerUserId: ownerId,
+        recenseurId: plain.recenseur,
+      });
+      return allowed
+        ? resolveKycFieldsForAuthorizedViewer(plain)
+        : redactKycDocument(plain);
+    });
+
+    res.status(200).json(safe);
   } catch (err) {
     console.error('Erreur récupération prestataires:', err.message);
     res.status(500).json({ error: err.message });
@@ -470,7 +496,17 @@ export const getPrestataireById = async (req, res) => {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
 
-    res.status(200).json(prestataire);
+    const plain = prestataire.toObject();
+    const allowed = canAccessKyc({
+      req,
+      ownerUserId: prestataire.utilisateur?._id ?? prestataire.utilisateur,
+      recenseurId: prestataire.recenseur,
+    });
+    res.status(200).json(
+      allowed
+        ? resolveKycFieldsForAuthorizedViewer(plain)
+        : redactKycDocument(plain),
+    );
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
     res.status(500).json({ error: err.message });

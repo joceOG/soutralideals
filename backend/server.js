@@ -31,6 +31,7 @@ import favoriteRouter from './routes/favoriteRoutes.js';
 import mailRouter from './routes/mailRouter.js';
 import smsRouter from './routes/smsRoutes.js';
 import otpRouter from './routes/otpRoutes.js';
+import configRouter from './routes/configRoutes.js';
 import reportRouter from './routes/reportRoutes.js';
 import googleMapsRouter from './routes/googleMapsRoutes.js';
 import avisRouter from './routes/avisRoutes.js';
@@ -194,7 +195,18 @@ app.use(cors({
 }));
 app.options('*', cors());
 
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', async (req, res, next) => {
+  // STAB-11b : documents KYC locaux — JAMAIS via static, même avec JWT.
+  // Accès = endpoint API documents (owner / agent / admin) uniquement.
+  const { isSensitiveUploadPath } = await import('./utils/kycAccess.js');
+  if (isSensitiveUploadPath(req.path)) {
+    return res.status(403).json({
+      error:
+        'Document sensible : utilisez l’API documents authentifiée (propriétaire / agent / admin).',
+    });
+  }
+  return next();
+}, express.static('uploads'));
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -234,6 +246,7 @@ app.use('/api', promotionRouter);
 app.use('/api', favoriteRouter);
 app.use('/api', mailRouter);
 app.use('/api', otpRouter);
+app.use('/api', configRouter);
 app.use('/api', smsRouter);
 app.use('/api', reportRouter);
 app.use('/api/avis', avisLimiter);
@@ -588,7 +601,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 📦 MISE À JOUR STATUT COMMANDE
+  // 📦 MISE À JOUR STATUT COMMANDE (même politique que REST)
   socket.on('update-order-status', async (orderData) => {
     try {
       if (!socket.authenticated || !socket.userId) {
@@ -596,42 +609,45 @@ io.on('connection', (socket) => {
         return;
       }
 
-      const commandeModel = (await import('./models/commandeModel.js')).default;
-      const commande = await commandeModel.findById(orderData.orderId);
-      if (!commande) {
-        socket.emit('order-error', { error: 'Commande introuvable' });
+      const {
+        applyOrderStatusChange,
+        OrderStatusPolicyError,
+      } = await import('./services/orderStatusService.js');
+      const Utilisateur = (await import('./models/utilisateurModel.js')).default;
+
+      const user = await Utilisateur.findById(socket.userId).select('_id role');
+      if (!user) {
+        socket.emit('order-error', { error: 'Utilisateur introuvable' });
         return;
       }
 
-      const isOwner = commande.utilisateur?.toString() === socket.userId;
-      if (!isOwner) {
-        socket.emit('order-error', { error: 'Non autorisé' });
-        return;
+      const updated = await applyOrderStatusChange({
+        orderId: orderData.orderId,
+        targetStatus: orderData.status,
+        user,
+      });
+
+      const payload = {
+        orderId: orderData.orderId,
+        status: updated.statusCommande,
+        timestamp: new Date(),
+      };
+
+      const clientId =
+        updated.utilisateur?.toString() || orderData.clientId;
+      if (clientId) {
+        io.to(`user_${clientId}`).emit('order-status-updated', payload);
       }
-
-      console.log('📦 Mise à jour statut commande:', orderData);
-
-      await commandeModel.findByIdAndUpdate(orderData.orderId, {
-        statusCommande: orderData.status
-      });
-
-      // Notifier le client
-      io.to(`user_${orderData.clientId}`).emit('order-status-updated', {
-        orderId: orderData.orderId,
-        status: orderData.status,
-        timestamp: new Date()
-      });
-
-      // Diffuser à tous les participants de la commande
-      io.to(`order_${orderData.orderId}`).emit('order-update', {
-        orderId: orderData.orderId,
-        status: orderData.status,
-        timestamp: new Date()
-      });
-
+      io.to(`order_${orderData.orderId}`).emit('order-update', payload);
+      socket.emit('order-status-updated', payload);
     } catch (error) {
       console.error('❌ Erreur lors de la mise à jour de la commande:', error);
-      socket.emit('order-error', { error: 'Erreur lors de la mise à jour' });
+      const msg =
+        error?.name === 'OrderStatusPolicyError'
+          ? error.message
+          : 'Erreur lors de la mise à jour';
+      const code = error?.statusCode === 403 ? 'order-error' : 'order-error';
+      socket.emit(code, { error: msg });
     }
   });
 

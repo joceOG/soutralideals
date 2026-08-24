@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { imageUpload } from '../utils/uploadMiddleware.js';
-import auth, { optionalAuth } from '../middleware/authMiddleware.js';
+import auth, { optionalAuth, authAdmin } from '../middleware/authMiddleware.js';
 import {
     createPrestation,
     getAllPrestations,
@@ -15,8 +15,8 @@ import {
 
 const prestationRouter = Router();
 
-// ✅ ROUTES SPÉCIFIQUES avant les routes paramétriques
-prestationRouter.get('/prestations/stats', auth, getPrestationStats);
+// STAB-11 : stats globales admin only (ne touche pas la machine Prestation)
+prestationRouter.get('/prestations/stats', ...authAdmin, getPrestationStats);
 prestationRouter.get('/prestations/prestataire/:prestataireId', auth, getPrestationsPrestataire);
 prestationRouter.get('/prestations/utilisateur/:utilisateurId', auth, getPrestationsUtilisateur);
 

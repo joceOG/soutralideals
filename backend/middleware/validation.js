@@ -70,6 +70,7 @@ export const validateUserRegistration = [
     .withMessage('Code pays invalide'),
 
   body('telephone')
+    .optional({ nullable: true, checkFalsy: true })
     .custom((value, { req }) => {
       try {
         const country = req.body?.phoneCountry;

@@ -15,7 +15,7 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
-import { getApiUrl, validateSession } from "../services/setupApi";
+import { getApiUrl, validateSession, persistSession } from "../services/setupApi";
 
 const BRAND = {
   turquoise: "#009DB3",
@@ -55,7 +55,13 @@ const Connexion: React.FC = () => {
         password: password.trim(),
       });
 
-      localStorage.setItem("token", response.data.token);
+      const role = String(response.data?.utilisateur?.role || "").toUpperCase();
+      if (role !== "ADMIN") {
+        setError("Accès dashboard réservé aux administrateurs.");
+        return;
+      }
+
+      persistSession(response.data.token, response.data.utilisateur);
       // Différer la navigation hors du cycle de commit React (évite crash DOM).
       window.setTimeout(() => {
         navigate("/", { replace: true });

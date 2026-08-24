@@ -24,6 +24,7 @@ import {
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getCurrentUserId } from '../../services/setupApi';
 import Securite from './Securite';
 
 // ✅ INTERFACES TYPESCRIPT
@@ -170,15 +171,16 @@ const ParametresComponent: React.FC = () => {
   const fetchPreferences = async () => {
     setLoading(true);
     try {
-      // Utiliser un ID utilisateur par défaut pour la démonstration
-      const userId = '653a8411c76522006a111111';
+      // STAB-11 : session authentifiée (admin connecté = cible préférences)
+      const userId = getCurrentUserId();
+      if (!userId) throw new Error('Session introuvable');
       const response = await axios.get(`${apiUrl}/preferences/user/${userId}`);
       setPreferences(response.data.preferences);
     } catch (error) {
       console.error('Erreur lors du chargement des préférences:', error);
       // Créer des préférences par défaut en cas d'erreur
       const defaultPreferences: IUserPreferences = {
-        utilisateur: '653a8411c76522006a111111',
+        utilisateur: getCurrentUserId() || '',
         langue: 'fr',
         devise: 'FCFA',
         pays: 'CI',
@@ -266,7 +268,8 @@ const ParametresComponent: React.FC = () => {
     
     setSaving(true);
     try {
-      const userId = '653a8411c76522006a111111';
+      const userId = getCurrentUserId();
+      if (!userId) throw new Error('Session introuvable');
       await axios.put(`${apiUrl}/preferences/user/${userId}`, preferences);
       setSnackbarMessage('Préférences sauvegardées avec succès');
       setSnackbarOpen(true);
@@ -286,7 +289,8 @@ const ParametresComponent: React.FC = () => {
     if (!preferences) return;
     
     try {
-      const userId = '653a8411c76522006a111111';
+      const userId = getCurrentUserId();
+      if (!userId) throw new Error('Session introuvable');
       await axios.patch(`${apiUrl}/preferences/user/${userId}/reset`);
       await fetchPreferences();
       setSnackbarMessage('Préférences réinitialisées avec succès');

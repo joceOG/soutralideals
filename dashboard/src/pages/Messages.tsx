@@ -11,6 +11,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getCurrentUserId } from '../services/setupApi';
 
 // ✅ INTERFACES TYPESCRIPT
 interface IUtilisateur {
@@ -61,11 +62,15 @@ const MessagesComponent: React.FC = () => {
   const [stats, setStats] = useState<IMessageStats | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
-  // ID utilisateur actuel (à récupérer depuis le contexte d'auth)
-  const currentUserId = '507f1f77bcf86cd799439011'; // Exemple - à remplacer
+  // STAB-11 : identité = session authentifiée (plus d'ObjectId fictif)
+  const currentUserId = getCurrentUserId();
 
   // 🔹 CHARGEMENT DES CONVERSATIONS
   const fetchConversations = async () => {
+    if (!currentUserId) {
+      toast.error("Session admin introuvable");
+      return;
+    }
     try {
       const response = await axios.get(`${apiUrl}/messages/conversations/${currentUserId}`);
       setConversations(response.data.conversations || []);
