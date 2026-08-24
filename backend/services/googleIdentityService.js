@@ -2,6 +2,7 @@
  * STAB-12E — Résolution Google vs compte local (sans liaison silencieuse par email).
  */
 import Utilisateur from '../models/utilisateurModel.js';
+import { normalizeEmail } from '../utils/emailIdentity.js';
 
 export const GOOGLE_IDENTITY_STATUS = Object.freeze({
   KNOWN_GOOGLE: 'KNOWN_GOOGLE',
@@ -23,7 +24,10 @@ export async function resolveGoogleIdentity(profile, Model = Utilisateur) {
     return { status: GOOGLE_IDENTITY_STATUS.KNOWN_GOOGLE, user: byGoogleId };
   }
 
-  const byEmail = await Model.findOne({ email: profile.email });
+  const emailNorm = normalizeEmail(profile.email);
+  const byEmail = emailNorm
+    ? await Model.findOne({ email: emailNorm })
+    : null;
   if (!byEmail) {
     return { status: GOOGLE_IDENTITY_STATUS.NEW, user: null };
   }

@@ -19,6 +19,7 @@ import {
   resolveDeferredSignupPhone,
 } from '../services/phoneIdentityService.js';
 import { normalizeLoginIdentifiant, PhoneValidationError } from '../utils/phone.js';
+import { normalizeEmail } from '../utils/emailIdentity.js';
 import { sendWelcomeEmail, sendResetPasswordEmail } from '../services/emailService.js';
 import * as googleAuthService from '../services/googleAuthService.js';
 import {
@@ -79,7 +80,7 @@ export const signUp = async (req, res) => {
     let telephoneVerified = false;
 
     if (isDeferredSignup) {
-      const emailTrim = email ? String(email).trim().toLowerCase() : '';
+      const emailTrim = normalizeEmail(email);
       if (!emailTrim || !validator.isEmail(emailTrim)) {
         return res.status(400).json({ error: 'Email requis pour l\'inscription' });
       }
@@ -124,7 +125,7 @@ export const signUp = async (req, res) => {
     // Convertir le rôle en format backend
     const normalizedRole = roleMap[role.toLowerCase()];
 
-    const emailNorm = email ? String(email).trim().toLowerCase() : undefined;
+    const emailNorm = normalizeEmail(email);
 
     // Unicité email + téléphone vérifié uniquement (pending ne bloque pas)
     if (normalizedPhone) {
@@ -886,7 +887,10 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body || {};
     if (!email) return res.status(400).json({ error: 'Email requis' });
 
-    const user = await Utilisateur.findOne({ email: email.toLowerCase().trim() });
+    const emailNorm = normalizeEmail(email);
+    if (!emailNorm) return res.status(400).json({ error: 'Email requis' });
+
+    const user = await Utilisateur.findOne({ email: emailNorm });
 
     // Toujours répondre 200 pour ne pas révéler si l'email existe
     if (!user) return res.status(200).json({ message: 'Si cet email existe, un lien a été envoyé.' });
