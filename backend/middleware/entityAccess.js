@@ -1,6 +1,10 @@
 import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
+import {
+  isRecensementRequest,
+  userCanCreateRecensement,
+} from '../utils/recensementPolicy.js';
 
 export function isAdmin(req) {
   return req.utilisateur?.role?.toUpperCase() === 'ADMIN';
@@ -22,6 +26,16 @@ export function requireSelfOrAdmin(bodyField = 'utilisateur') {
   return (req, res, next) => {
     if (isAdmin(req)) return next();
     const targetId = req.body?.[bodyField];
+    if (targetId && isSelf(req, targetId)) return next();
+
+    // STAB-11b : recensement terrain — permission serveur, PAS le body source seul
+    if (isRecensementRequest(req)) {
+      if (userCanCreateRecensement(req.utilisateur)) return next();
+      return res.status(403).json({
+        error: 'Accès refusé : permission de recensement requise.',
+      });
+    }
+
     if (targetId && !isSelf(req, targetId)) {
       return res.status(403).json({ error: 'Accès refusé : profil utilisateur invalide.' });
     }

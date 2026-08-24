@@ -32,6 +32,7 @@ import {
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getCurrentUserId } from '../../services/setupApi';
 
 // ✅ INTERFACES TYPESCRIPT
 interface ISecurityData {
@@ -171,13 +172,19 @@ const SecuriteComponent: React.FC = () => {
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
 
-  const _currentUserId = '653a8411c76522006a111111'; // TODO: Remplacer par l'ID utilisateur réel
+  // STAB-11 : admin connecté (self). Pour consulter un autre user : passer targetUserId explicite.
+  const currentAdminId = getCurrentUserId();
+  const targetUserId = currentAdminId;
 
   // 🔹 CHARGEMENT DES DONNÉES DE SÉCURITÉ
   const fetchSecurityData = async () => {
+    if (!targetUserId) {
+      toast.error('Session admin introuvable');
+      return;
+    }
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/security/user/${_currentUserId}`);
+      const response = await axios.get(`${apiUrl}/security/user/${targetUserId}`);
       setSecurityData(response.data.security);
     } catch (error) {
       console.error('Erreur lors du chargement des données de sécurité:', error);
@@ -189,8 +196,9 @@ const SecuriteComponent: React.FC = () => {
 
   // 🔹 CHARGEMENT DES STATISTIQUES DE SÉCURITÉ
   const fetchSecurityStats = async () => {
+    if (!targetUserId) return;
     try {
-      const response = await axios.get(`${apiUrl}/security/user/${_currentUserId}/stats`);
+      const response = await axios.get(`${apiUrl}/security/user/${targetUserId}/stats`);
       // Mettre à jour les statistiques dans securityData
       if (securityData) {
         setSecurityData({
@@ -211,7 +219,7 @@ const SecuriteComponent: React.FC = () => {
   // 🔹 ACTIVER L'AUTHENTIFICATION À DEUX FACTEURS
   const handleEnable2FA = async () => {
     try {
-      const response = await axios.post(`${apiUrl}/security/user/${_currentUserId}/2fa/enable`);
+      const response = await axios.post(`${apiUrl}/security/user/${targetUserId}/2fa/enable`);
       setQrCodeUrl(response.data.qrCode);
       setBackupCodes(response.data.backupCodes.map((code: any) => code.code));
       setShow2FASetup(true);
@@ -225,7 +233,7 @@ const SecuriteComponent: React.FC = () => {
   // 🔹 VÉRIFIER LE CODE 2FA
   const handleVerify2FA = async () => {
     try {
-      const response = await axios.post(`${apiUrl}/security/user/${_currentUserId}/2fa/verify`, {
+      const response = await axios.post(`${apiUrl}/security/user/${targetUserId}/2fa/verify`, {
         token: twoFAToken
       });
       
@@ -247,7 +255,7 @@ const SecuriteComponent: React.FC = () => {
   const handleDisable2FA = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) {
       try {
-        await axios.post(`${apiUrl}/security/user/${_currentUserId}/2fa/disable`, {
+        await axios.post(`${apiUrl}/security/user/${targetUserId}/2fa/disable`, {
           password: "current_password" // TODO: Demander le mot de passe actuel
         });
         toast.success("Authentification à deux facteurs désactivée");
@@ -262,7 +270,7 @@ const SecuriteComponent: React.FC = () => {
   // 🔹 TERMINER UNE SESSION
   const handleTerminateSession = async (sessionId: string) => {
     try {
-      await axios.delete(`${apiUrl}/security/user/${_currentUserId}/sessions/${sessionId}`);
+      await axios.delete(`${apiUrl}/security/user/${targetUserId}/sessions/${sessionId}`);
       toast.success("Session terminée avec succès");
       fetchSecurityData(); // Recharger les données
     } catch (error) {
@@ -275,7 +283,7 @@ const SecuriteComponent: React.FC = () => {
   const handleRemoveTrustedDevice = async (deviceId: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet appareil de confiance ?")) {
       try {
-        await axios.delete(`${apiUrl}/security/user/${_currentUserId}/devices/${deviceId}`);
+        await axios.delete(`${apiUrl}/security/user/${targetUserId}/devices/${deviceId}`);
         toast.success("Appareil supprimé avec succès");
         fetchSecurityData(); // Recharger les données
       } catch (error) {
@@ -288,7 +296,7 @@ const SecuriteComponent: React.FC = () => {
   // 🔹 MARQUER UNE ALERTE COMME LUE
   const handleMarkAlertAsRead = async (alertId: string) => {
     try {
-      await axios.patch(`${apiUrl}/security/user/${_currentUserId}/alerts/${alertId}/read`);
+      await axios.patch(`${apiUrl}/security/user/${targetUserId}/alerts/${alertId}/read`);
       toast.success("Alerte marquée comme lue");
       fetchSecurityData(); // Recharger les données
     } catch (error) {
@@ -301,7 +309,7 @@ const SecuriteComponent: React.FC = () => {
   const handleUpdateSecuritySettings = async (settings: any) => {
     setSaving(true);
     try {
-      await axios.put(`${apiUrl}/security/user/${_currentUserId}/settings`, {
+      await axios.put(`${apiUrl}/security/user/${targetUserId}/settings`, {
         securitySettings: settings
       });
       setSnackbarMessage('Paramètres de sécurité mis à jour avec succès');

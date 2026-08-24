@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { isAdmin, isSelf } from '../middleware/entityAccess.js';
+import { resolveKycFieldsForAuthorizedViewer } from '../utils/kycAccess.js';
 
 // 🎯 CONFIGURATION MULTER POUR UPLOAD
 const storage = multer.diskStorage({
@@ -65,10 +66,16 @@ async function assertPrestataireAccess(req, prestataireId) {
   }
   if (isAdmin(req)) return { prestataire };
   const ownerId = prestataire.utilisateur?.toString();
-  if (!isSelf(req, ownerId)) {
-    return { error: { status: 403, message: 'Accès refusé : profil prestataire invalide.' } };
+  if (isSelf(req, ownerId)) return { prestataire };
+  // Agent terrain qui a recensé ce dossier
+  if (
+    prestataire.recenseur &&
+    isSelf(req, prestataire.recenseur) &&
+    req.utilisateur?.canCreateRecensement === true
+  ) {
+    return { prestataire };
   }
-  return { prestataire };
+  return { error: { status: 403, message: 'Accès refusé : profil prestataire invalide.' } };
 }
 
 // 🎯 UPLOAD D'UN DOCUMENT
@@ -202,7 +209,14 @@ export const getPrestataireDocuments = async (req, res) => {
     const prestataire = await prestataireModel.findById(id)
       .populate('utilisateur', 'nom prenom telephone email')
       .populate('service', 'nomservice')
-      .select('cni1 cni2 selfie diplomeCertificat attestationAssurance finalizationStatus status source');
+      .select('cni1 cni2 selfie diplomeCertificat attestationAssurance finalizationStatus status source recenseur');
+
+    const resolved = resolveKycFieldsForAuthorizedViewer({
+      cni1: prestataire.cni1,
+      cni2: prestataire.cni2,
+      selfie: prestataire.selfie,
+      attestationAssurance: prestataire.attestationAssurance,
+    });
 
     res.status(200).json({
       success: true,
@@ -213,11 +227,11 @@ export const getPrestataireDocuments = async (req, res) => {
         status: prestataire.status,
         source: prestataire.source,
         documents: {
-          cni1: prestataire.cni1,
-          cni2: prestataire.cni2,
-          selfie: prestataire.selfie,
+          cni1: resolved.cni1,
+          cni2: resolved.cni2,
+          selfie: resolved.selfie,
           certificates: prestataire.diplomeCertificat,
-          insurance: prestataire.attestationAssurance,
+          insurance: resolved.attestationAssurance,
         },
         finalizationStatus: prestataire.finalizationStatus
       }

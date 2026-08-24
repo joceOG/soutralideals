@@ -19,9 +19,12 @@ export default async function connect(){
       );
       const indexes = await col.indexes();
       const legacyTel = indexes.find(
-        (idx) => idx.name === 'telephone_1' || (
-          idx.key?.telephone === 1 && !idx.partialFilterExpression && idx.unique
-        ),
+        (idx) => idx.name === 'telephone_1' ||
+          idx.name === 'telephone_partial_unique' ||
+          (idx.key?.telephone === 1 &&
+            idx.unique &&
+            (!idx.partialFilterExpression ||
+              !idx.partialFilterExpression.telephoneVerified)),
       );
       if (legacyTel) {
         await col.dropIndex(legacyTel.name);

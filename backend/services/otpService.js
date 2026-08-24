@@ -7,6 +7,7 @@ import {
   normalizePhone as normalizePhoneE164,
   PhoneValidationError,
 } from "../utils/phone.js";
+import { isPhoneVerificationRequiredForSignup } from "./phoneVerificationPolicy.js";
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
@@ -178,9 +179,9 @@ export function assertPhoneVerificationToken(
   return normalized;
 }
 
-/** Flag d'autorité serveur — le mobile ne doit pas le contourner. */
+/** Flag d'autorité serveur — délègue à phoneVerificationPolicy (STAB-12D). */
 export function isOtpRequiredForSignup() {
-  return process.env.OTP_REQUIRED === "true";
+  return isPhoneVerificationRequiredForSignup();
 }
 
 export const OTP_POLICY = {

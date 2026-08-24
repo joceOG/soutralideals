@@ -6,6 +6,8 @@ import { applyProPublicFilter, canAccessProProfile } from "../utils/proPublicFil
 import { isAdmin, assertAdmin } from '../utils/accessControl.js';
 import { pickFields } from '../utils/pickFields.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
+import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
+import { uploadKycToCloudinary } from '../utils/kycAccess.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -24,6 +26,11 @@ const FREELANCE_JSON_FIELDS = ['skills', 'preferredCategories', 'portfolioItems'
 // ✅ Créer un freelance (Modèle sdealsapp)
 export const createFreelance = async (req, res) => {
   try {
+    const denied = assertRecensementAgent(req);
+    if (denied) {
+      return res.status(denied.status).json({ error: denied.error });
+    }
+
     const {
       utilisateur,
       name,
@@ -43,9 +50,10 @@ export const createFreelance = async (req, res) => {
       portfolioItems
     } = req.body;
 
-    const ownerId = isAdmin(req) && utilisateur
-      ? utilisateur
-      : req.utilisateur._id.toString();
+    const ownerId =
+      (isAdmin(req) || isRecensementRequest(req)) && utilisateur
+        ? utilisateur
+        : req.utilisateur._id.toString();
 
     // ✅ Upload de fichiers avec structure sdealsapp
     const uploads = {};
@@ -64,10 +72,11 @@ export const createFreelance = async (req, res) => {
     const verificationDocs = {};
     for (const field of ["cni1", "cni2", "selfie"]) {
       if (req.files?.[field]?.[0]) {
-        const result = await cloudinary.v2.uploader.upload(req.files[field][0].path, {
-          folder: "freelances/verification",
-        });
-        verificationDocs[field] = result.secure_url;
+        const { ref } = await uploadKycToCloudinary(
+          req.files[field][0].path,
+          "freelances/verification",
+        );
+        verificationDocs[field] = ref;
         fs.unlinkSync(req.files[field][0].path);
       }
     }
@@ -133,8 +142,12 @@ export const createFreelance = async (req, res) => {
       status: 'pending',
     });
 
-    if (req.body.source) {
-      newFreelance.source = req.body.source;
+    const recensement = buildRecensementCreateFields(req, { defaultStatus: 'pending' });
+    if (recensement.source) newFreelance.source = recensement.source;
+    if (recensement.status) newFreelance.status = recensement.status;
+    if (recensement.recenseur) newFreelance.recenseur = recensement.recenseur;
+    if (recensement.dateRecensement) {
+      newFreelance.dateRecensement = recensement.dateRecensement;
     }
 
     await newFreelance.save();
@@ -199,15 +212,16 @@ export const getAllFreelances = async (req, res) => {
 // ✅ Lire freelance par ID
 export const getFreelanceById = async (req, res) => {
   try {
-    const freelance = await freelanceModel.findById(req.params.id)
-      .populate("utilisateur")
-      .populate({
-        path: "service",
-        populate: {
-          path: "categorie",
-          populate: { path: "groupe" }
-        }
-      });
+    const { id } = req.params;
+
+    // STAB-12C : ObjectId invalide → 404 (pas CastError 500)
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: "Freelance non trouvé" });
+    }
+
+    // Le modèle Freelance n'a PAS de champ `service` (contrairement à Prestataire).
+    // populate('service') → StrictPopulateError → 500 systématique.
+    const freelance = await freelanceModel.findById(id).populate("utilisateur");
 
     if (!freelance) return res.status(404).json({ error: "Freelance non trouvé" });
 
@@ -218,7 +232,10 @@ export const getFreelanceById = async (req, res) => {
     res.status(200).json(freelance);
   } catch (err) {
     console.error("Erreur lecture freelance:", err.message);
-    res.status(500).json({ error: err.message });
+    if (err?.name === 'CastError' || err?.name === 'StrictPopulateError') {
+      return res.status(404).json({ error: "Freelance non trouvé" });
+    }
+    res.status(500).json({ error: "Impossible de charger ce profil" });
   }
 };
 

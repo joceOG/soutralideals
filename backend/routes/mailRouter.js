@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import auth from '../middleware/authMiddleware.js';
+import auth, { authAdmin } from '../middleware/authMiddleware.js';
 import { sendEmail } from '../api/nodemailer.js';
 
 const mailRouter = Router();
@@ -12,7 +12,8 @@ const newsletterLimiter = rateLimit({
   message: { error: 'Trop de tentatives, réessayez dans une heure.' },
 });
 
-mailRouter.post('/email', auth, sendEmail);
+// STAB-11 : envoi email générique réservé admin
+mailRouter.post('/email', ...authAdmin, sendEmail);
 
 // ✅ Newsletter publique (sans auth, avec rate limit)
 mailRouter.post('/newsletter/subscribe', newsletterLimiter, async (req, res) => {

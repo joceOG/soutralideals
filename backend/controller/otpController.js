@@ -3,6 +3,8 @@ import {
   verifyPhoneOtp,
   requireCanonicalPhone,
 } from "../services/otpService.js";
+import { getPhoneVerificationMode } from "../services/phoneVerificationPolicy.js";
+import { findVerifiedPhoneOwner } from "../services/phoneIdentityService.js";
 import Utilisateur from "../models/utilisateurModel.js";
 
 export const sendOtp = async (req, res) => {
@@ -21,9 +23,9 @@ export const sendOtp = async (req, res) => {
       });
     }
 
-    const existing = await Utilisateur.findOne({ telephone: normalized });
-    // Numéro déjà prouvé → bloquer. Non vérifié : autoriser OTP (Google / re-verify).
-    if (existing?.telephoneVerified === true) {
+    const verifiedOwner = await findVerifiedPhoneOwner(normalized);
+    // Numéro déjà prouvé par un autre compte → bloquer l'envoi OTP.
+    if (verifiedOwner) {
       return res.status(409).json({ error: "Ce numéro est déjà utilisé" });
     }
 
@@ -43,8 +45,13 @@ export const sendOtp = async (req, res) => {
       err.message?.startsWith(msg),
     );
     const status = isClientError ? 400 : 503;
+    const deferred = getPhoneVerificationMode() === 'deferred';
+    const errorMessage =
+      deferred && status === 503
+        ? "Impossible d'envoyer le SMS pour le moment. Vous pourrez vérifier votre numéro plus tard."
+        : err.message;
     console.error(`[OTP sendOtp] ${status} — ${err.message}`);
-    res.status(status).json({ error: err.message });
+    res.status(status).json({ error: errorMessage });
   }
 };
 
