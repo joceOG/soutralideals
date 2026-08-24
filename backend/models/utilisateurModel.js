@@ -159,8 +159,9 @@ UtilisateurSchema.methods.generateRefreshToken = async function() {
 UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
   let user = null;
   if (validator.isEmail(identifiant)) {
-    user = await this.findOne({ email: identifiant });
+    user = await this.findOne({ email: identifiant.toLowerCase() });
   } else {
+    // Identifiant déjà normalisé E.164 par le controller quand possible
     user = await this.findOne({ telephone: identifiant });
   }
 

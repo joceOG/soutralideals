@@ -16,6 +16,7 @@ const upload = multer({ storage });
 utilisateurRouter.post('/register', upload.single('photoProfil'), validateUserRegistration, handleValidationErrors, utilisateurController.signUp);
 utilisateurRouter.post('/login', validateUserLogin, handleValidationErrors, utilisateurController.signIn);
 utilisateurRouter.post('/login/google', utilisateurController.signInWithGoogle);
+utilisateurRouter.post('/login/google/complete', utilisateurController.completeGoogleSignIn);
 utilisateurRouter.post('/logout', utilisateurController.logout);
 utilisateurRouter.post('/forgot-password', utilisateurController.forgotPassword);
 utilisateurRouter.post('/reset-password', utilisateurController.resetPassword);

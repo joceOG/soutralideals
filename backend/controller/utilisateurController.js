@@ -7,9 +7,10 @@ import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
-import { assertPhoneVerificationToken, normalizePhone } from '../services/otpService.js';
+import { assertPhoneVerificationToken, requireCanonicalPhone, isOtpRequiredForSignup } from '../services/otpService.js';
+import { normalizeLoginIdentifiant, PhoneValidationError } from '../utils/phone.js';
 import { sendWelcomeEmail, sendResetPasswordEmail } from '../services/emailService.js';
-import { verifyGoogleIdToken } from '../services/googleAuthService.js';
+import * as googleAuthService from '../services/googleAuthService.js';
 import crypto from 'crypto';
 
 // Config Cloudinary depuis les variables d'environnement
@@ -26,28 +27,60 @@ const storage = multer.diskStorage({
 });
 export const upload = multer({ storage });
 
+function resolveSignupPhone(telephone, phoneCountry, phoneVerificationToken) {
+  if (!telephone) return null;
+  if (phoneVerificationToken) {
+    return assertPhoneVerificationToken(
+      phoneVerificationToken,
+      telephone,
+      phoneCountry || undefined,
+    );
+  }
+  return requireCanonicalPhone(telephone, phoneCountry || undefined);
+}
+
 // ✅ INSCRIPTION
 export const signUp = async (req, res) => {
   try {
-    const { nom, prenom, datedenaissance, email, password, telephone, genre, note, role, phoneVerificationToken } = req.body;
+    const {
+      nom,
+      prenom,
+      datedenaissance,
+      email,
+      password,
+      telephone,
+      phoneCountry,
+      genre,
+      note,
+      role,
+      phoneVerificationToken,
+    } = req.body;
 
-    const otpEnforced = process.env.OTP_REQUIRED === 'true';
-    let normalizedPhone = telephone ? normalizePhone(telephone) : null;
+    const otpEnforced = isOtpRequiredForSignup();
+    let normalizedPhone = null;
     let telephoneVerified = false;
 
     if (otpEnforced && !phoneVerificationToken) {
       return res.status(400).json({ error: 'Vérification du téléphone requise (code OTP)' });
     }
 
-    if (phoneVerificationToken) {
+    if (telephone) {
       try {
-        normalizedPhone = assertPhoneVerificationToken(phoneVerificationToken, telephone);
-        telephoneVerified = true;
+        normalizedPhone = resolveSignupPhone(
+          telephone,
+          phoneCountry,
+          phoneVerificationToken,
+        );
+        telephoneVerified = Boolean(phoneVerificationToken);
       } catch (otpErr) {
-        return res.status(400).json({ error: otpErr.message });
+        const msg =
+          otpErr instanceof PhoneValidationError ||
+          otpErr?.code === 'INVALID_PHONE'
+            ? 'Numéro de téléphone invalide pour le pays sélectionné.'
+            : otpErr.message ||
+              'Numéro de téléphone invalide pour le pays sélectionné.';
+        return res.status(400).json({ error: msg });
       }
-    } else if (normalizedPhone) {
-      normalizedPhone = normalizePhone(telephone);
     }
 
     // ✅ Accepter les rôles en minuscules et les convertir
@@ -66,16 +99,18 @@ export const signUp = async (req, res) => {
     // Convertir le rôle en format backend
     const normalizedRole = roleMap[role.toLowerCase()];
 
-    // Vérification unicité email/téléphone
+    // Vérification unicité email/téléphone (forme canonique uniquement)
     const conditions = [];
     if (email) conditions.push({ email });
-    if (telephone) conditions.push({ telephone: normalizedPhone || telephone });
+    if (normalizedPhone) conditions.push({ telephone: normalizedPhone });
     const existingUser = conditions.length > 0 ? await Utilisateur.findOne({ $or: conditions }) : null;
 
     if (existingUser) {
       let error = '';
       if (email && existingUser.email === email) error = 'Email déjà utilisé';
-      else if (telephone && existingUser.telephone === telephone) error = 'Numéro de téléphone déjà utilisé';
+      else if (normalizedPhone && existingUser.telephone === normalizedPhone) {
+        error = 'Numéro de téléphone déjà utilisé';
+      }
       return res.status(400).json({ error });
     }
 
@@ -94,7 +129,7 @@ export const signUp = async (req, res) => {
       datedenaissance,
       email,
       password,
-      telephone: normalizedPhone || telephone,
+      telephone: normalizedPhone || undefined,
       telephoneVerified: telephoneVerified,
       genre,
       note,
@@ -124,11 +159,17 @@ export const signUp = async (req, res) => {
 // ✅ CONNEXION
 export const signIn = async (req, res) => {
   try {
-    let { identifiant, password } = req.body;
+    let { identifiant, password, phoneCountry } = req.body;
 
     // 🔹 Sécurité : forcer en string + trim
     identifiant = identifiant ? String(identifiant).trim() : '';
     password = password ? String(password).trim() : '';
+
+    // STAB-07 : formes alternatives → même identité E.164
+    identifiant = normalizeLoginIdentifiant(
+      identifiant,
+      phoneCountry || undefined,
+    );
 
     // 🔹 Vérification des champs
     if (!identifiant) {
@@ -170,6 +211,27 @@ export const signIn = async (req, res) => {
 
 
 // ✅ CONNEXION / INSCRIPTION via Google (idToken)
+function normalizeClientRole(role) {
+  const roleMap = {
+    prestataire: 'Prestataire',
+    vendeur: 'Vendeur',
+    freelance: 'Freelance',
+    client: 'Client',
+  };
+  const requested = (role || 'client').toString().trim().toLowerCase();
+  return roleMap[requested] || 'Client';
+}
+
+function phoneVerificationRequiredPayload(profile) {
+  return {
+    error: 'Vérification du téléphone requise',
+    code: 'PHONE_VERIFICATION_REQUIRED',
+    email: profile.email || undefined,
+    message:
+      'Confirmez votre numéro de téléphone pour finaliser la connexion Google.',
+  };
+}
+
 export const signInWithGoogle = async (req, res) => {
   try {
     const { idToken, role } = req.body || {};
@@ -179,7 +241,7 @@ export const signInWithGoogle = async (req, res) => {
 
     let profile;
     try {
-      profile = await verifyGoogleIdToken(idToken);
+      profile = await googleAuthService.verifyGoogleIdToken(idToken);
     } catch (err) {
       return res.status(401).json({ error: err.message || 'Token Google invalide' });
     }
@@ -188,37 +250,20 @@ export const signInWithGoogle = async (req, res) => {
       return res.status(400).json({ error: 'Email Google manquant' });
     }
 
+    void role;
+
     let user = await Utilisateur.findOne({
       $or: [{ googleId: profile.googleId }, { email: profile.email }],
     });
 
-    if (!user) {
-      const roleMap = {
-        prestataire: 'Prestataire',
-        vendeur: 'Vendeur',
-        freelance: 'Freelance',
-        client: 'Client',
-      };
-      const requested = (role || 'client').toString().toLowerCase();
-      const finalRole = roleMap[requested] || 'Client';
-
-      user = new Utilisateur({
-        nom: profile.nom || 'Utilisateur',
-        prenom: profile.prenom || '',
-        email: profile.email,
-        password: crypto.randomBytes(32).toString('hex'),
-        googleId: profile.googleId,
-        authProvider: 'google',
-        photoProfil: profile.photoProfil || undefined,
-        role: finalRole,
-        telephoneVerified: false,
-        // pas de telephone : évite E11000 sur index unique (plusieurs null)
+    if (user?.isActive === false) {
+      return res.status(403).json({
+        error: 'Compte désactivé. Contactez le support pour le réactiver.',
       });
-      // Garantir que le champ n'est pas persisté à null
-      user.telephone = undefined;
-      await user.save();
-      sendWelcomeEmail(profile.email, profile.prenom).catch(() => {});
-    } else {
+    }
+
+    // Compte existant + téléphone déjà prouvé → session Soutrali complète
+    if (user && user.telephoneVerified === true && user.telephone) {
       let dirty = false;
       if (!user.googleId) {
         user.googleId = profile.googleId;
@@ -232,17 +277,118 @@ export const signInWithGoogle = async (req, res) => {
         user.photoProfil = profile.photoProfil;
         dirty = true;
       }
-      if (user.telephone == null || user.telephone === '') {
-        user.set('telephone', undefined);
-        dirty = true;
-      }
       if (dirty) await user.save();
+
+      const token = await user.generateAuthToken();
+      const refreshToken = await user.generateRefreshToken();
+      return res.status(200).json({
+        message: 'Connexion Google réussie',
+        utilisateur: user.toJSON(),
+        token,
+        refreshToken,
+      });
     }
 
-    if (user.isActive === false) {
+    // Nouveau Google ou téléphone non vérifié → PAS de session, PAS de création
+    return res.status(403).json(phoneVerificationRequiredPayload(profile));
+  } catch (e) {
+    console.error('❌ Erreur signInWithGoogle:', e);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
+  }
+};
+
+/**
+ * STAB-09 — Finalise Google après OTP téléphone (création ou upgrade contrôlé).
+ */
+export const completeGoogleSignIn = async (req, res) => {
+  try {
+    const {
+      idToken,
+      telephone,
+      phoneCountry,
+      phoneVerificationToken,
+      role,
+    } = req.body || {};
+
+    if (!idToken) {
+      return res.status(400).json({ error: 'idToken Google requis' });
+    }
+    if (!telephone || !phoneVerificationToken) {
+      return res.status(400).json({
+        error: 'Téléphone et vérification OTP requis',
+        code: 'PHONE_VERIFICATION_REQUIRED',
+      });
+    }
+
+    let profile;
+    try {
+      profile = await googleAuthService.verifyGoogleIdToken(idToken);
+    } catch (err) {
+      return res.status(401).json({ error: err.message || 'Token Google invalide' });
+    }
+    if (!profile.email) {
+      return res.status(400).json({ error: 'Email Google manquant' });
+    }
+
+    let normalizedPhone;
+    try {
+      normalizedPhone = assertPhoneVerificationToken(
+        phoneVerificationToken,
+        telephone,
+        phoneCountry || undefined,
+      );
+    } catch (otpErr) {
+      const msg =
+        otpErr instanceof PhoneValidationError ||
+        otpErr?.code === 'INVALID_PHONE'
+          ? 'Numéro de téléphone invalide pour le pays sélectionné.'
+          : otpErr.message || 'Vérification téléphone invalide';
+      return res.status(400).json({ error: msg });
+    }
+
+    const phoneOwner = await Utilisateur.findOne({ telephone: normalizedPhone });
+    let user = await Utilisateur.findOne({
+      $or: [{ googleId: profile.googleId }, { email: profile.email }],
+    });
+
+    if (phoneOwner && (!user || String(phoneOwner._id) !== String(user._id))) {
+      return res.status(409).json({
+        error: 'Ce numéro est déjà utilisé par un autre compte',
+      });
+    }
+
+    if (user?.isActive === false) {
       return res.status(403).json({
         error: 'Compte désactivé. Contactez le support pour le réactiver.',
       });
+    }
+
+    const finalRole = normalizeClientRole(role);
+
+    if (!user) {
+      user = new Utilisateur({
+        nom: profile.nom || 'Utilisateur',
+        prenom: profile.prenom || '',
+        email: profile.email,
+        password: crypto.randomBytes(32).toString('hex'),
+        googleId: profile.googleId,
+        authProvider: 'google',
+        photoProfil: profile.photoProfil || undefined,
+        role: finalRole,
+        telephone: normalizedPhone,
+        telephoneVerified: true,
+      });
+      await user.save();
+      sendWelcomeEmail(profile.email, profile.prenom).catch(() => {});
+    } else {
+      if (!user.googleId) user.googleId = profile.googleId;
+      user.authProvider = 'google';
+      if (profile.photoProfil && !user.photoProfil) {
+        user.photoProfil = profile.photoProfil;
+      }
+      user.telephone = normalizedPhone;
+      user.telephoneVerified = true;
+      await user.save();
     }
 
     const token = await user.generateAuthToken();
@@ -255,7 +401,10 @@ export const signInWithGoogle = async (req, res) => {
       refreshToken,
     });
   } catch (e) {
-    console.error('❌ Erreur signInWithGoogle:', e);
+    console.error('❌ Erreur completeGoogleSignIn:', e);
+    if (e?.code === 11000) {
+      return res.status(409).json({ error: 'Compte ou téléphone déjà utilisé' });
+    }
     res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 };
@@ -376,6 +525,27 @@ export const updateUserById = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
 
     // 6️⃣ Mettre à jour uniquement les champs autorisés
+    if (safeUpdates.telephone !== undefined) {
+      try {
+        const phoneCountry = req.body.phoneCountry;
+        safeUpdates.telephone = requireCanonicalPhone(
+          safeUpdates.telephone,
+          phoneCountry || undefined,
+        );
+        const clash = await Utilisateur.findOne({
+          telephone: safeUpdates.telephone,
+          _id: { $ne: user._id },
+        });
+        if (clash) {
+          return res.status(400).json({ error: 'Numéro de téléphone déjà utilisé' });
+        }
+      } catch {
+        return res.status(400).json({
+          error: 'Numéro de téléphone invalide pour le pays sélectionné.',
+        });
+      }
+    }
+
     Object.assign(user, safeUpdates);
 
     // 7️⃣ Sauvegarder l'utilisateur (pré-save pour hasher le mot de passe si modifié)

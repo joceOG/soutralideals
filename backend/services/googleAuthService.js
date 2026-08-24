@@ -2,6 +2,12 @@ import { OAuth2Client } from 'google-auth-library';
 
 let client = null;
 
+/** Hook tests uniquement (STAB-09) — ne pas utiliser en prod. */
+let verifyOverride = null;
+export function __setVerifyGoogleIdTokenForTests(fn) {
+  verifyOverride = typeof fn === 'function' ? fn : null;
+}
+
 function getClient() {
   if (client) return client;
   client = new OAuth2Client();
@@ -13,6 +19,9 @@ function getClient() {
  * Audiences acceptées : client Web + Android (env).
  */
 export async function verifyGoogleIdToken(idToken) {
+  if (verifyOverride) {
+    return verifyOverride(idToken);
+  }
   if (!idToken || typeof idToken !== 'string') {
     throw new Error('idToken Google manquant');
   }

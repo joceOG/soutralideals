@@ -1,24 +1,33 @@
 import {
   sendPhoneOtp,
   verifyPhoneOtp,
-  normalizePhone,
+  requireCanonicalPhone,
 } from "../services/otpService.js";
 import Utilisateur from "../models/utilisateurModel.js";
 
 export const sendOtp = async (req, res) => {
   try {
-    const { telephone } = req.body;
+    const { telephone, phoneCountry } = req.body;
     if (!telephone) {
       return res.status(400).json({ error: "Numéro de téléphone requis" });
     }
 
-    const normalized = normalizePhone(telephone);
+    let normalized;
+    try {
+      normalized = requireCanonicalPhone(telephone, phoneCountry || undefined);
+    } catch {
+      return res.status(400).json({
+        error: "Numéro de téléphone invalide pour le pays sélectionné.",
+      });
+    }
+
     const existing = await Utilisateur.findOne({ telephone: normalized });
-    if (existing) {
+    // Numéro déjà prouvé → bloquer. Non vérifié : autoriser OTP (Google / re-verify).
+    if (existing?.telephoneVerified === true) {
       return res.status(409).json({ error: "Ce numéro est déjà utilisé" });
     }
 
-    const result = await sendPhoneOtp(telephone);
+    const result = await sendPhoneOtp(telephone, phoneCountry || undefined);
     res.status(200).json({
       success: true,
       message: "Code envoyé par SMS",
@@ -41,12 +50,16 @@ export const sendOtp = async (req, res) => {
 
 export const verifyOtp = async (req, res) => {
   try {
-    const { telephone, code } = req.body;
+    const { telephone, code, phoneCountry } = req.body;
     if (!telephone || !code) {
       return res.status(400).json({ error: "Téléphone et code requis" });
     }
 
-    const result = await verifyPhoneOtp(telephone, code);
+    const result = await verifyPhoneOtp(
+      telephone,
+      code,
+      phoneCountry || undefined,
+    );
     res.status(200).json({
       success: true,
       message: "Téléphone vérifié",

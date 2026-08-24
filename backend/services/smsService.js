@@ -1,14 +1,27 @@
 import axios from "axios";
 
+function isProduction() {
+  return process.env.NODE_ENV === "production";
+}
+
+function smsUnavailableError() {
+  return new Error(
+    "Service SMS temporairement indisponible. Réessayez plus tard.",
+  );
+}
+
 /**
- * Envoie un SMS via Infobip, Twilio ou mode dev (console).
- * Les erreurs de provider sont loggées mais ne remontent pas comme erreur utilisateur
- * pour ne pas bloquer l'inscription en cas de panne SMS en production.
+ * Envoie un SMS via Infobip, puis Twilio.
+ * En production : aucun fallback console — échec provider = erreur réelle.
+ * Hors production : fallback console (dev) uniquement si aucun provider n'a réussi.
  */
 export async function sendSms(to, text) {
   const normalizedTo = to;
+  let lastProviderError = null;
+  let attemptedProvider = false;
 
   if (process.env.INFOBIP_API_KEY && process.env.INFOBIP_NUMBER) {
+    attemptedProvider = true;
     try {
       const response = await axios.post(
         "https://698528.api.infobip.com/sms/2/text/advanced",
@@ -33,14 +46,14 @@ export async function sendSms(to, text) {
       return { success: true, provider: "infobip", data: response.data };
     } catch (err) {
       const status = err?.response?.status;
-      const detail = err?.response?.data?.requestError?.serviceException?.text ?? err.message;
+      const detail =
+        err?.response?.data?.requestError?.serviceException?.text ??
+        err.message;
       console.error(`[SMS] Infobip error ${status}: ${detail}`);
-      // Erreur d'authentification ou quota → remonte pour informer l'admin
+      lastProviderError = err;
       if (status === 401 || status === 403) {
-        throw new Error("Service SMS temporairement indisponible. Réessayez plus tard.");
+        // Auth provider cassée : tenter Twilio si configuré, sinon erreur.
       }
-      // Autres erreurs Infobip → fallback dev
-      console.warn("[SMS] Fallback mode dev (Infobip indisponible)");
     }
   }
 
@@ -49,6 +62,7 @@ export async function sendSms(to, text) {
     process.env.TWILIO_AUTH_TOKEN &&
     process.env.TWILIO_NUMBER
   ) {
+    attemptedProvider = true;
     try {
       const twilio = (await import("twilio")).default;
       const client = twilio(
@@ -63,14 +77,22 @@ export async function sendSms(to, text) {
       return { success: true, provider: "twilio", messageId: message.sid };
     } catch (err) {
       console.error(`[SMS] Twilio error: ${err.message}`);
-      if (err.status === 401 || err.status === 403) {
-        throw new Error("Service SMS temporairement indisponible. Réessayez plus tard.");
-      }
-      console.warn("[SMS] Fallback mode dev (Twilio indisponible)");
+      lastProviderError = err;
     }
   }
 
-  // Mode dev : log le code dans la console backend (jamais exposé au client en prod)
+  if (isProduction()) {
+    console.error(
+      `[SMS] Production: aucun provider n'a délivré le SMS` +
+        (attemptedProvider ? " (échec Infobip/Twilio)" : " (aucune clé configurée)"),
+    );
+    throw smsUnavailableError();
+  }
+
+  // Hors prod uniquement — jamais en production
   console.log(`[DEV SMS] → ${normalizedTo}: ${text}`);
+  if (lastProviderError) {
+    console.warn("[SMS] Fallback mode dev (providers indisponibles)");
+  }
   return { success: true, provider: "dev", dev: true };
 }
