@@ -2,40 +2,62 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import phoneOtpModel from "../models/phoneOtpModel.js";
 import { sendSms } from "./smsService.js";
+import {
+  canonicalizePhone,
+  normalizePhone as normalizePhoneE164,
+  PhoneValidationError,
+} from "../utils/phone.js";
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
-export function normalizePhone(raw) {
-  if (!raw) return "";
-  let phone = String(raw).replace(/\s+/g, "").replace(/[^\d+]/g, "");
-  if (phone.startsWith("00")) phone = `+${phone.slice(2)}`;
-  if (phone.startsWith("0") && phone.length === 10) {
-    phone = `+225${phone.slice(1)}`;
-  }
-  if (/^\d{10}$/.test(phone)) {
-    phone = `+225${phone}`;
-  }
-  return phone;
+/**
+ * STAB-07 — Canonique E.164.
+ * @param {string} raw
+ * @param {string} [defaultCountry] ISO (ex: 'CI', 'TN') — requis si numéro national
+ * @returns {string} E.164 ou ""
+ */
+export function normalizePhone(raw, defaultCountry) {
+  return normalizePhoneE164(raw, defaultCountry);
 }
 
-/** Valide un numéro ivoirien (local 0545… ou international +225…). */
+/**
+ * Parse strict : throw PhoneValidationError si invalide.
+ * @param {string} raw
+ * @param {string} [defaultCountry]
+ */
+export function requireCanonicalPhone(raw, defaultCountry) {
+  return canonicalizePhone(raw, { defaultCountry }).e164;
+}
+
+export { PhoneValidationError };
+
+/** @deprecated Prefer canonicalizePhone — conservé pour appels CI explicites. */
 export function isValidCiPhone(raw) {
-  const normalized = normalizePhone(raw);
-  if (!normalized.startsWith("+225")) return false;
-  const local = normalized.slice(4);
-  return /^0[0-9]{9}$/.test(local) || /^[0-9]{8,9}$/.test(local);
+  try {
+    const e164 = canonicalizePhone(raw, {
+      defaultCountry: String(raw ?? '').trim().startsWith('+') ||
+        String(raw ?? '').trim().startsWith('00')
+        ? undefined
+        : 'CI',
+    }).e164;
+    return e164.startsWith('+225');
+  } catch {
+    return false;
+  }
 }
 
 function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-export async function sendPhoneOtp(telephone) {
-  const normalized = normalizePhone(telephone);
-  if (!normalized || normalized.length < 10) {
-    throw new Error("Numéro de téléphone invalide");
+export async function sendPhoneOtp(telephone, defaultCountry) {
+  let normalized;
+  try {
+    normalized = requireCanonicalPhone(telephone, defaultCountry);
+  } catch {
+    throw new Error("Numéro de téléphone invalide pour le pays sélectionné.");
   }
 
   const existing = await phoneOtpModel.findOne({ telephone: normalized });
@@ -78,8 +100,13 @@ export async function sendPhoneOtp(telephone) {
   };
 }
 
-export async function verifyPhoneOtp(telephone, code) {
-  const normalized = normalizePhone(telephone);
+export async function verifyPhoneOtp(telephone, code, defaultCountry) {
+  let normalized;
+  try {
+    normalized = requireCanonicalPhone(telephone, defaultCountry);
+  } catch {
+    throw new Error("Numéro de téléphone invalide pour le pays sélectionné.");
+  }
   const record = await phoneOtpModel.findOne({ telephone: normalized });
 
   if (!record) {
@@ -115,17 +142,50 @@ export async function verifyPhoneOtp(telephone, code) {
   return { telephone: normalized, phoneVerificationToken };
 }
 
-export function assertPhoneVerificationToken(token, telephone) {
+export function assertPhoneVerificationToken(
+  token,
+  telephone,
+  defaultCountry,
+) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("Configuration serveur incorrecte");
 
-  const decoded = jwt.verify(token, secret);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, secret);
+  } catch (err) {
+    if (err?.name === "TokenExpiredError") {
+      throw new Error("Token de vérification expiré");
+    }
+    throw new Error("Token de vérification invalide");
+  }
   if (decoded.type !== "phone_verification") {
     throw new Error("Token de vérification invalide");
   }
-  const normalized = normalizePhone(telephone);
+  let normalized;
+  try {
+    // Token JWT porte déjà l'E.164 ; le body peut être international ou national+pays
+    normalized = requireCanonicalPhone(
+      telephone,
+      defaultCountry || undefined,
+    );
+  } catch {
+    throw new Error("Numéro de téléphone invalide pour le pays sélectionné.");
+  }
   if (decoded.telephone !== normalized) {
     throw new Error("Le token ne correspond pas au numéro de téléphone");
   }
   return normalized;
 }
+
+/** Flag d'autorité serveur — le mobile ne doit pas le contourner. */
+export function isOtpRequiredForSignup() {
+  return process.env.OTP_REQUIRED === "true";
+}
+
+export const OTP_POLICY = {
+  ttlMs: OTP_TTL_MS,
+  resendCooldownMs: RESEND_COOLDOWN_MS,
+  maxAttempts: MAX_ATTEMPTS,
+  verificationTokenExpiresIn: "15m",
+};

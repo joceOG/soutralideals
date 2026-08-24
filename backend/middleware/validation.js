@@ -1,6 +1,10 @@
 import { body, param, query, validationResult } from 'express-validator';
 import logger from './logger.js';
-import { isValidCiPhone } from '../services/otpService.js';
+import {
+  canonicalizePhone,
+  isInternationalInput,
+  PhoneValidationError,
+} from '../utils/phone.js';
 
 // 🛡️ Middleware pour gérer les erreurs de validation
 export const handleValidationErrors = (req, res, next) => {
@@ -19,9 +23,17 @@ export const handleValidationErrors = (req, res, next) => {
       errors: errorMessages,
       ip: req.ip,
     });
+
+    // STAB-07 : message téléphone lisible (pas de regex / Exception)
+    const phoneMsg = errorMessages.find(
+      (e) =>
+        e.field === 'telephone' ||
+        (typeof e.message === 'string' &&
+          e.message.includes('téléphone invalide')),
+    );
     
     return res.status(400).json({
-      error: 'Données de validation invalides',
+      error: phoneMsg?.message || 'Données de validation invalides',
       details: errorMessages,
     });
   }
@@ -51,17 +63,33 @@ export const validateUserRegistration = [
     .normalizeEmail()
     .withMessage('Email invalide'),
 
+  body('phoneCountry')
+    .optional({ nullable: true, checkFalsy: true })
+    .isString()
+    .isLength({ min: 2, max: 2 })
+    .withMessage('Code pays invalide'),
+
   body('telephone')
-    .custom((value) => {
-      if (!isValidCiPhone(value)) {
-        throw new Error('Numéro de téléphone invalide');
+    .custom((value, { req }) => {
+      try {
+        const country = req.body?.phoneCountry;
+        if (!isInternationalInput(value) && !country) {
+          throw new PhoneValidationError();
+        }
+        canonicalizePhone(value, {
+          defaultCountry: isInternationalInput(value) ? undefined : country,
+        });
+        return true;
+      } catch {
+        throw new Error(
+          'Numéro de téléphone invalide pour le pays sélectionné.',
+        );
       }
-      return true;
     }),
 
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Le mot de passe doit contenir au moins 6 caractères'),
+    .withMessage('Le mot de passe doit contenir entre 6 caractères'),
 
   body('phoneVerificationToken')
     .optional()
@@ -78,6 +106,12 @@ export const validateUserLogin = [
   body('identifiant')
     .notEmpty()
     .withMessage('Email ou numéro de téléphone requis'),
+
+  body('phoneCountry')
+    .optional({ nullable: true, checkFalsy: true })
+    .isString()
+    .isLength({ min: 2, max: 2 })
+    .withMessage('Code pays invalide'),
 
   body('password')
     .notEmpty()
