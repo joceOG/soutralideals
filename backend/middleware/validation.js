@@ -51,6 +51,7 @@ export const validateUserRegistration = [
     .withMessage('Le nom ne peut contenir que des lettres'),
     
   body('prenom')
+    .optional({ nullable: true, checkFalsy: true })
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Le prénom doit contenir entre 2 et 50 caractères')

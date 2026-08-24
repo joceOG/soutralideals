@@ -3,6 +3,11 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import validator from "validator";
 import jwt from "jsonwebtoken";
+import {
+  normalizeEmail,
+  EMAIL_UNIQUE_PARTIAL_FILTER,
+  EMAIL_UNIQUE_INDEX_NAME,
+} from '../utils/emailIdentity.js';
 
 const UtilisateurSchema = new mongoose.Schema({
   nom: { 
@@ -18,16 +23,17 @@ const UtilisateurSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  email: {  
+  email: {
     type: String,
     trim: true,
     lowercase: true,
-    unique: true,
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error('Email invalide');
-      }
-    }
+    validate: {
+      validator(value) {
+        if (value == null || value === '') return true;
+        return validator.isEmail(value);
+      },
+      message: 'Email invalide',
+    },
   },
   password: { 
     type: String,
@@ -110,6 +116,16 @@ const UtilisateurSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// STAB-12F — unicité email uniquement si email réel/non vide (legacy null autorisés)
+UtilisateurSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    name: EMAIL_UNIQUE_INDEX_NAME,
+    partialFilterExpression: EMAIL_UNIQUE_PARTIAL_FILTER,
+  },
+);
+
 // Unicité téléphone vérifié uniquement (pendingTelephone n'est pas identité canonique)
 UtilisateurSchema.index(
   { telephone: 1 },
@@ -123,9 +139,16 @@ UtilisateurSchema.index(
   },
 );
 
-// Hash du mot de passe avant sauvegarde + ne jamais stocker telephone null/vide
+// Hash du mot de passe avant sauvegarde + ne jamais stocker telephone/email null/vide
 UtilisateurSchema.pre("save", async function(next) {
   const user = this;
+  const emailNorm = normalizeEmail(user.email);
+  if (emailNorm === undefined) {
+    user.email = undefined;
+    if (user._doc) delete user._doc.email;
+  } else {
+    user.email = emailNorm;
+  }
   if (user.telephone == null || user.telephone === '') {
     user.telephone = undefined;
     if (user._doc) delete user._doc.telephone;
@@ -178,7 +201,9 @@ UtilisateurSchema.methods.generateRefreshToken = async function() {
 UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
   let user = null;
   if (validator.isEmail(identifiant)) {
-    user = await this.findOne({ email: identifiant.toLowerCase() });
+    const emailNorm = normalizeEmail(identifiant);
+    if (!emailNorm) throw new Error('Identifiants incorrects');
+    user = await this.findOne({ email: emailNorm });
   } else {
     // STAB-12D — login téléphone uniquement si OTP prouvé
     user = await this.findOne({
