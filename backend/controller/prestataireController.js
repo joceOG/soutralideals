@@ -40,6 +40,24 @@ const PRESTATAIRE_OWNER_FIELDS = [
 
 const PRESTATAIRE_ADMIN_FIELDS = ['note', 'nbAvis', 'nbMission', 'revenus', 'verifier', 'status', 'utilisateur'];
 
+/**
+ * STAB-13B1 — Contrat unique CREATE/UPDATE pour listes multipart.
+ * Accepte : tableau, JSON string '["a","b"]', ou string simple.
+ */
+const parseStringArrayField = (v) => {
+  if (v == null || v === "") return [];
+  if (Array.isArray(v)) return v.map((x) => String(x));
+  if (typeof v === "string") {
+    try {
+      const p = JSON.parse(v);
+      return Array.isArray(p) ? p.map((x) => String(x)) : [String(p)];
+    } catch {
+      return [v];
+    }
+  }
+  return [String(v)];
+};
+
 // ✅ Créer un prestataire
 export const createPrestataire = async (req, res) => {
   try {
@@ -75,21 +93,7 @@ export const createPrestataire = async (req, res) => {
       return Number.isFinite(parsed) ? parsed : fallback;
     };
 
-    /** multipart/form-data : specialite, zoneIntervention, clients souvent en JSON string (dashboard + mobile). */
-    const parseStringArrayField = (v) => {
-      if (v == null || v === "") return [];
-      if (Array.isArray(v)) return v.map((x) => String(x));
-      if (typeof v === "string") {
-        try {
-          const p = JSON.parse(v);
-          return Array.isArray(p) ? p.map((x) => String(x)) : [String(p)];
-        } catch {
-          return [v];
-        }
-      }
-      return [String(v)];
-    };
-
+    /** multipart/form-data : specialite, zoneIntervention, clients → parseStringArrayField (module). */
     const specialiteArr = parseStringArrayField(specialite);
     const zoneInterventionArr = parseStringArrayField(zoneIntervention);
     const clientsRaw = parseStringArrayField(clients);
@@ -295,17 +299,28 @@ export const updatePrestataire = async (req, res) => {
       }
     }
 
+    // STAB-13B1 : même contrat CREATE/UPDATE (évite ["[\"Bâtiment…\"]"]).
+    const specialiteArr =
+      specialite != null && specialite !== ""
+        ? parseStringArrayField(specialite)
+        : null;
+    const zoneInterventionArr =
+      zoneIntervention != null && zoneIntervention !== ""
+        ? parseStringArrayField(zoneIntervention)
+        : null;
+
     const updates = {
       ...(isAdminUser && utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
       ...(service && { service: new mongoose.Types.ObjectId(service) }),
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
       ...(localisation && { localisation }),
       ...(isAdminUser && typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
-      ...(specialite && { specialite: Array.isArray(specialite) ? specialite : [specialite] }),
+      ...(specialiteArr && specialiteArr.length > 0 && { specialite: specialiteArr }),
       ...(anneeExperience && { anneeExperience }),
       ...(description && { description }),
       ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
-      ...(zoneIntervention && { zoneIntervention: Array.isArray(zoneIntervention) ? zoneIntervention : [zoneIntervention] }),
+      ...(zoneInterventionArr &&
+        zoneInterventionArr.length > 0 && { zoneIntervention: zoneInterventionArr }),
       ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
       ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
       ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
