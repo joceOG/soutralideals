@@ -1,27 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  Chip,
-  LinearProgress,
-  Alert
-} from '@mui/material';
-import {
-  TrendingUp,
-  LocationOn,
-  Business,
-  People,
-  Assessment,
-  Map
-} from '@mui/icons-material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Card, CardContent, Typography, Grid, FormControl, InputLabel, Select, MenuItem, Chip, LinearProgress, Alert } from '@mui/material';
+import { LocationOn, Business, People, Assessment } from '@mui/icons-material';
 import {
   BarChart,
   Bar,
@@ -35,7 +14,6 @@ import {
   Cell
 } from 'recharts';
 import GoogleMapComponent from './GoogleMapComponent';
-import { searchNearbyPlaces, calculateServiceArea } from '../../services/googleMapsService';
 
 // Types
 interface AnalyticsData {
@@ -80,11 +58,6 @@ const GeographicAnalytics: React.FC = () => {
 
   // ✅ COULEURS POUR LES GRAPHIQUES
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-  // ✅ CHARGEMENT DES DONNÉES ANALYTICS
-  useEffect(() => {
-    loadAnalyticsData();
-  }, []);
 
   const loadAnalyticsData = async () => {
     try {
@@ -167,6 +140,12 @@ const GeographicAnalytics: React.FC = () => {
       console.error('Erreur chargement zones:', err);
     }
   };
+
+  const loadAnalyticsDataRef = useRef(loadAnalyticsData);
+  loadAnalyticsDataRef.current = loadAnalyticsData;
+  useEffect(() => {
+    loadAnalyticsDataRef.current();
+  }, []);
 
   // ✅ PRÉPARATION DES DONNÉES POUR LA CARTE
   const mapMarkers = zonesCouverture.map(zone => ({

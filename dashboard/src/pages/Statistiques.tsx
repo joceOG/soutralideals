@@ -1,18 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box, Typography, Card, CardContent, Grid, Paper,
-  FormControl, InputLabel, Select, MenuItem, Button,
-  Tabs, Tab, Chip, LinearProgress, Alert
-} from '@mui/material';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell,
-  AreaChart, Area, Legend, ComposedChart
-} from 'recharts';
-import {
-  TrendingUp, People, AttachMoney, ShoppingCart,
-  Assessment, DateRange, Download, Refresh
-} from '@mui/icons-material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Card, CardContent, Grid, Paper, FormControl, InputLabel, Select, MenuItem, Button, Tabs, Tab, LinearProgress } from '@mui/material';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Line, PieChart, Pie, Cell, Legend, ComposedChart } from 'recharts';
+import { TrendingUp, People, AttachMoney, ShoppingCart, Assessment, Download, Refresh } from '@mui/icons-material';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -74,10 +63,6 @@ const Statistiques: React.FC = () => {
   const [statsGeographiques, setStatsGeographiques] = useState<IStatsGeographiques[]>([]);
 
   // ✅ CHARGEMENT DES DONNÉES
-  useEffect(() => {
-    loadAllStats();
-  }, [periode, dateDebut, dateFin]);
-
   const loadAllStats = async () => {
     try {
       setLoading(true);
@@ -144,6 +129,12 @@ const Statistiques: React.FC = () => {
       console.error('Erreur stats géographiques:', error);
     }
   };
+
+  const loadAllStatsRef = useRef(loadAllStats);
+  loadAllStatsRef.current = loadAllStats;
+  useEffect(() => {
+    loadAllStatsRef.current();
+  }, [periode, dateDebut, dateFin]);
 
   // ✅ RENDU DES CARTES STATISTIQUES
   const renderStatCard = (title: string, value: string, icon: React.ReactNode, color: string, evolution?: number) => (

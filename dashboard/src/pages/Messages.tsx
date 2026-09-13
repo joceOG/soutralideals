@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, Typography, Paper, TextField, IconButton,
   Avatar, List, ListItem, ListItemAvatar, ListItemText,
@@ -58,7 +58,7 @@ const MessagesComponent: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [stats, setStats] = useState<IMessageStats | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
@@ -109,9 +109,13 @@ const MessagesComponent: React.FC = () => {
     }
   };
 
+  const fetchConversationsRef = useRef(fetchConversations);
+  fetchConversationsRef.current = fetchConversations;
+  const fetchStatsRef = useRef(fetchStats);
+  fetchStatsRef.current = fetchStats;
   useEffect(() => {
-    fetchConversations();
-    fetchStats();
+    fetchConversationsRef.current();
+    fetchStatsRef.current();
     setLoading(false);
   }, []);
 
@@ -132,6 +136,7 @@ const MessagesComponent: React.FC = () => {
       // Déterminer le destinataire depuis la conversation sélectionnée
       const conversation = conversations.find(c => c._id === selectedConversation);
       if (!conversation) return;
+      if (!currentUserId) return;
 
       const destinataire = conversation.dernierMessage.expediteur._id === currentUserId 
         ? conversation.dernierMessage.destinataire._id 

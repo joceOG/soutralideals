@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box, Typography, Dialog, DialogActions, DialogContent,
-  DialogTitle, Button, TextField, InputAdornment,
-  IconButton, MenuItem, Chip, Card, CardContent,
-  Grid, FormControl, InputLabel, Select, Switch,
-  FormControlLabel, Alert, LinearProgress
-} from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, InputAdornment, IconButton, MenuItem, Chip, Card, CardContent, Grid, FormControl, InputLabel, Select, Switch, FormControlLabel, LinearProgress } from '@mui/material';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+
 import AddIcon from '@mui/icons-material/Add';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+
 import CampaignIcon from '@mui/icons-material/Campaign';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
@@ -77,11 +71,6 @@ const Promotions: React.FC = () => {
   });
 
   // ✅ CHARGEMENT DES DONNÉES
-  useEffect(() => {
-    loadPromotions();
-    loadStats();
-  }, []);
-
   const loadPromotions = async () => {
     try {
       setLoading(true);
@@ -103,6 +92,15 @@ const Promotions: React.FC = () => {
       console.error('Erreur chargement stats:', error);
     }
   };
+
+  const loadPromotionsRef = useRef(loadPromotions);
+  loadPromotionsRef.current = loadPromotions;
+  const loadStatsRef = useRef(loadStats);
+  loadStatsRef.current = loadStats;
+  useEffect(() => {
+    loadPromotionsRef.current();
+    loadStatsRef.current();
+  }, []);
 
   // ✅ GESTION DES PROMOTIONS
   const handleCreatePromotion = async () => {

@@ -183,7 +183,7 @@ const FreelanceComponent: React.FC = () => {
   const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-  const [services, setServices] = useState<IService[]>([]);
+  const [, setServices] = useState<IService[]>([]);
 
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
@@ -467,25 +467,7 @@ const FreelanceComponent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleImageClick = (url: string) => setZoomImage(url);
-
-  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie') => (rowData: IFreelanceData) => {
-    const imageUrl = rowData.verificationDocuments?.[field];
-    return imageUrl ? (
-      <img
-        src={imageUrl}
-        alt={field}
-        width={60}
-        height={60}
-        style={{ objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }}
-        onClick={() => handleImageClick(imageUrl)}
-      />
-    ) : <span style={{ color: '#888' }}>Aucune</span>;
-  };
-
   const rowIndexTemplate = (rowData: IFreelanceData, options: ColumnBodyOptions) => options.rowIndex + 1;
-
-  const utilisateurNameTemplate = (rowData: IFreelanceData) => `${rowData.utilisateur?.nom || ''} ${rowData.utilisateur?.prenom || ''}`;
 
   const actionTemplate = (rowData: IFreelanceData) => (
     <>
@@ -593,7 +575,6 @@ const FreelanceComponent: React.FC = () => {
               )
             }}
           />
-
 
           {/* Champs supplémentaires */}
           <TextField margin="normal" fullWidth label="Nom complet" name="name" value={formData.name} onChange={handleChange} required />

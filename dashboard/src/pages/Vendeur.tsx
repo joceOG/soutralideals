@@ -1,25 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Box, Typography, Dialog, DialogActions, DialogContent,
-  DialogTitle, Button, TextField, InputAdornment, IconButton,
-  MenuItem, Grid, Card, CardContent, Chip, Avatar, Tabs, Tab,
-  Stepper, Step, StepLabel, FormControlLabel, Checkbox,
-  Accordion, AccordionSummary, AccordionDetails
-} from '@mui/material';
+import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, InputAdornment, IconButton, MenuItem, Chip, Avatar, FormControlLabel, Checkbox} from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+
 import StarIcon from '@mui/icons-material/Star';
 import StorefrontIcon from '@mui/icons-material/Storefront';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+
 import VerifiedIcon from '@mui/icons-material/Verified';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import BusinessIcon from '@mui/icons-material/Business';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import PaymentIcon from '@mui/icons-material/Payment';
-import DescriptionIcon from '@mui/icons-material/Description';
+
 import axios from 'axios';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnBodyOptions } from 'primereact/column';
@@ -144,10 +134,8 @@ const VendeurComponent: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [filters, setFilters] = useState<DataTableFilterMeta>({ global: { value: null, matchMode: 'contains' } });
   const [modalOpen, setModalOpen] = useState(false);
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
+
   const [selectedVendeur, setSelectedVendeur] = useState<IVendeurData | null>(null);
-  const [activeStep, setActiveStep] = useState(0);
-  const [tabValue, setTabValue] = useState(0);
 
   // ✅ ÉTAT FORMULAIRE MODERNE (sdealsapp)
   const [formData, setFormData] = useState<IVendeurData>({
@@ -270,20 +258,6 @@ const VendeurComponent: React.FC = () => {
     'Mode', 'Électronique', 'Beauté', 'Maison', 'Informatique', 
     'Sports & Loisirs', 'Santé', 'Alimentation', 'Artisanat', 
     'Livres', 'Jouets', 'Animaux', 'Automobile'
-  ];
-  const shippingMethodOptions = ['Standard', 'Express', 'Same-Day', 'Pickup'];
-  const paymentMethodOptions = ['Mobile Money', 'Carte Bancaire', 'Virement', 'Espèces'];
-  const payoutFrequencyOptions = ['Hebdomadaire', 'Mensuelle'];
-  const contactMethodOptions = ['Email', 'Phone', 'WhatsApp'];
-  const accountStatusOptions = ['Active', 'Suspended', 'Pending', 'Banned'];
-  const subscriptionTypeOptions = ['Free', 'Premium', 'Pro'];
-  const verificationLevelOptions = ['Basic', 'Verified', 'Premium'];
-
-  const formSteps = [
-    'Informations de base',
-    'Boutique & Produits', 
-    'Livraison & Paiement',
-    'Vérification & Documents'
   ];
 
   // useCallback pour stabiliser la fonction et éviter warning react-hooks/exhaustive-deps
@@ -589,30 +563,9 @@ const VendeurComponent: React.FC = () => {
     }
   };
 
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-  };
-
-  const handleImageClick = (url: string) => {
-    setZoomImage(url);
-  };
-
-  const imageTemplate = (field: 'cni1' | 'cni2' | 'selfie' | 'businessLicense' | 'taxDocument') => (rowData: IVendeurData) => {
-    const imageUrl = rowData.verificationDocuments?.[field];
-    return imageUrl ? (
-      <img
-        src={imageUrl}
-        alt={field}
-        width={60}
-        height={60}
-        style={{ objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }}
-        onClick={() => handleImageClick(imageUrl)}
-      />
-    ) : (
-      <span style={{ color: '#888' }}>Aucune</span>
-    );
   };
 
   const rowIndexTemplate = (rowData: IVendeurData, options: ColumnBodyOptions) => options.rowIndex + 1;

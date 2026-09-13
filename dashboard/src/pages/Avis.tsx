@@ -1,20 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box, Typography, Dialog, DialogActions, DialogContent,
-  DialogTitle, Button, TextField, InputAdornment, IconButton,
-  MenuItem, Chip, Card, CardContent, Avatar, Badge, FormControlLabel,
-  Checkbox, Grid, Rating, Alert, Tabs, Tab, Paper, Divider
-} from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, InputAdornment, IconButton, MenuItem, Chip, Card, CardContent, Avatar, FormControlLabel, Checkbox, Grid, Rating, Paper, Divider } from '@mui/material';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import StarIcon from '@mui/icons-material/Star';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import ThumbDownIcon from '@mui/icons-material/ThumbDown';
-import ReplyIcon from '@mui/icons-material/Reply';
-import ReportIcon from '@mui/icons-material/Report';
+
 import FilterListIcon from '@mui/icons-material/FilterList';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
@@ -98,7 +89,6 @@ const AvisComponent: React.FC = () => {
   const [objetTypeFilter, setObjetTypeFilter] = useState<string>('');
   const [noteFilter, setNoteFilter] = useState<string>('');
   const [stats, setStats] = useState<IAvisStats | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
 
   const [formData, setFormData] = useState<Partial<IAvis>>({
     objetType: 'PRESTATAIRE',
@@ -174,12 +164,15 @@ const AvisComponent: React.FC = () => {
     }
   };
 
+  const fetchAvisRef = useRef(fetchAvis);
+  fetchAvisRef.current = fetchAvis;
+  const fetchStatsRef = useRef(fetchStats);
+  fetchStatsRef.current = fetchStats;
   useEffect(() => {
-    fetchAvis();
+    fetchAvisRef.current();
   }, [searchTerm, statutFilter, objetTypeFilter, noteFilter]);
-
   useEffect(() => {
-    fetchStats();
+    fetchStatsRef.current();
   }, [avis]);
 
   // 🔹 GESTION DES MODALES
@@ -679,6 +672,4 @@ const AvisComponent: React.FC = () => {
 };
 
 export default AvisComponent;
-
-
 

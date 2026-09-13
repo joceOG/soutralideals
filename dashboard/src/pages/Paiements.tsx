@@ -1,20 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box, Typography, Dialog, DialogActions, DialogContent,
-  DialogTitle, Button, TextField, InputAdornment,
-  IconButton, MenuItem, Chip, Card, CardContent,
-  Grid, FormControl, InputLabel, Select, Alert,
-  LinearProgress, Tabs, Tab, Badge
-} from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, InputAdornment, IconButton, MenuItem, Chip, Card, CardContent, Grid, FormControl, InputLabel, Select, LinearProgress, Tabs, Tab } from '@mui/material';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+
 import PaymentIcon from '@mui/icons-material/Payment';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -83,11 +76,6 @@ const Paiements: React.FC = () => {
   });
 
   // ✅ CHARGEMENT DES DONNÉES
-  useEffect(() => {
-    loadPaiements();
-    loadStats();
-  }, []);
-
   const loadPaiements = async () => {
     try {
       setLoading(true);
@@ -109,6 +97,15 @@ const Paiements: React.FC = () => {
       console.error('Erreur chargement stats:', error);
     }
   };
+
+  const loadPaiementsRef = useRef(loadPaiements);
+  loadPaiementsRef.current = loadPaiements;
+  const loadStatsRef = useRef(loadStats);
+  loadStatsRef.current = loadStats;
+  useEffect(() => {
+    loadPaiementsRef.current();
+    loadStatsRef.current();
+  }, []);
 
   // ✅ GESTION DES PAIEMENTS
   const handleCreatePaiement = async () => {

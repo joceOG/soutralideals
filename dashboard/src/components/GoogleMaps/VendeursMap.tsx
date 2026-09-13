@@ -1,44 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Chip,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper
-} from '@mui/material';
-import {
-  LocationOn,
-  Person,
-  Store,
-  Directions,
-  Search,
-  FilterList,
-  LocalShipping,
-  ShoppingCart,
-  TrendingUp
-} from '@mui/icons-material';
+import { Box, Card, CardContent, Typography, Grid, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Alert, CircularProgress } from '@mui/material';
+import { LocationOn, Store, Directions, Search, ShoppingCart } from '@mui/icons-material';
 import GoogleMapComponent from './GoogleMapComponent';
-import { geocodeAddress, calculateDistance, getDirections } from '../../services/googleMapsService';
+import { geocodeAddress} from '../../services/googleMapsService';
 
 // Types
 interface Vendeur {
@@ -87,7 +51,6 @@ const VendeursMap: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: 4.0483, lng: 9.7043 });
-  const [selectedCommande, setSelectedCommande] = useState<Commande | null>(null);
 
   // ✅ CHARGEMENT DES VENDEURS
   useEffect(() => {

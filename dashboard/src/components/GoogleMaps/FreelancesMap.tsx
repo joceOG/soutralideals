@@ -19,21 +19,9 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import {
-  LocationOn,
-  Person,
-  Work,
-  Directions,
-  Search,
-  FilterList,
-  Schedule,
-  Star,
-  TrendingUp,
-  CheckCircle,
-  Pending
-} from '@mui/icons-material';
+import { LocationOn, Work, Directions, Search, Schedule, CheckCircle, Pending } from '@mui/icons-material';
 import GoogleMapComponent from './GoogleMapComponent';
-import { geocodeAddress, calculateDistance, getDirections } from '../../services/googleMapsService';
+import { geocodeAddress} from '../../services/googleMapsService';
 
 // Types
 interface Freelance {
@@ -88,7 +76,6 @@ const FreelancesMap: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: 4.0483, lng: 9.7043 });
-  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   // ✅ CHARGEMENT DES FREELANCES
   useEffect(() => {

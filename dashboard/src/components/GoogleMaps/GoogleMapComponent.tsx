@@ -117,12 +117,15 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
     }
   }, [googleMapsLoaded, center, zoom, onMapClick, showControls, draggable]);
 
+  const mapMarkersRef = useRef(mapMarkers);
+  mapMarkersRef.current = mapMarkers;
+
   // ✅ GESTION DES MARQUEURS
   useEffect(() => {
     if (!map || !googleMapsLoaded) return;
 
     // Supprimer les anciens marqueurs
-    mapMarkers.forEach(marker => marker.setMap(null));
+    mapMarkersRef.current.forEach(marker => marker.setMap(null));
     setMapMarkers([]);
 
     // Créer les nouveaux marqueurs

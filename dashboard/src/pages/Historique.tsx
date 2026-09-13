@@ -1,54 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  IconButton,
-  Button,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Grid,
-  Avatar,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Tabs,
-  Tab,
-  Alert,
-  CircularProgress,
-  Divider,
-  Stack
-} from '@mui/material';
-import {
-  Search as SearchIcon,
-  FilterList as FilterIcon,
-  Delete as DeleteIcon,
-  Archive as ArchiveIcon,
-  Visibility as VisibilityIcon,
-  Refresh as RefreshIcon,
-  Download as DownloadIcon,
-  Timeline as TimelineIcon,
-  Category as CategoryIcon,
-  LocationOn as LocationIcon,
-  AccessTime as TimeIcon,
-  TrendingUp as TrendingUpIcon,
-  History as HistoryIcon,
-  Analytics as AnalyticsIcon
-} from '@mui/icons-material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, IconButton, Button, TextField, Select, MenuItem, FormControl, InputLabel, Grid, Avatar, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Stack } from '@mui/material';
+import { Search as SearchIcon, FilterList as FilterIcon, Delete as DeleteIcon, Archive as ArchiveIcon, Visibility as VisibilityIcon, Refresh as RefreshIcon, AccessTime as TimeIcon, History as HistoryIcon } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
@@ -134,7 +86,7 @@ const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 const HistoriqueComponent: React.FC = () => {
   const [historique, setHistorique] = useState<IHistorique[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [modalOpen, setModalOpen] = useState(false);
+
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedHistorique, setSelectedHistorique] = useState<IHistorique | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -142,7 +94,7 @@ const HistoriqueComponent: React.FC = () => {
   const [statutFilter, setStatutFilter] = useState<string>('');
   const [periodeFilter, setPeriodeFilter] = useState<string>('30');
   const [stats, setStats] = useState<IHistoriqueStats | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -220,9 +172,13 @@ const HistoriqueComponent: React.FC = () => {
     }
   };
 
+  const fetchHistoriqueRef = useRef(fetchHistorique);
+  fetchHistoriqueRef.current = fetchHistorique;
+  const fetchStatsRef = useRef(fetchStats);
+  fetchStatsRef.current = fetchStats;
   useEffect(() => {
-    fetchHistorique();
-    fetchStats();
+    fetchHistoriqueRef.current();
+    fetchStatsRef.current();
   }, [searchTerm, typeFilter, statutFilter, periodeFilter, pagination.page]);
 
   // 🔹 GESTION DES MODALES
@@ -786,6 +742,4 @@ const HistoriqueComponent: React.FC = () => {
 };
 
 export default HistoriqueComponent;
-
-
 

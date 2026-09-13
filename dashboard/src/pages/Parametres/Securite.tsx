@@ -1,34 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box, Typography, Paper, Card, CardContent, Grid, FormControl,
-  InputLabel, Select, MenuItem, Switch, FormControlLabel, Button,
-  TextField, Divider, Alert, Chip, Avatar, List, ListItem,
-  ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab,
-  CircularProgress, Snackbar, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Tooltip, Badge, LinearProgress
-} from '@mui/material';
-import {
-  Security as SecurityIcon,
-  TwoWheeler as TwoFAIcon,
-  Devices as DevicesIcon,
-  History as HistoryIcon,
-  Notifications as AlertIcon,
-  Shield as ShieldIcon,
-  Lock as LockIcon,
-  CheckCircle as CheckIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
-  Refresh as RefreshIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  QrCode as QrCodeIcon,
-  Smartphone as SmartphoneIcon,
-  Computer as ComputerIcon,
-  Tablet as TabletIcon,
-  Language as LanguageIcon
-} from '@mui/icons-material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Paper, Card, CardContent, Grid, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Button, TextField, Alert, Chip, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, CircularProgress, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, LinearProgress } from '@mui/material';
+import { Security as SecurityIcon, TwoWheeler as TwoFAIcon, Devices as DevicesIcon, History as HistoryIcon, Notifications as AlertIcon, Shield as ShieldIcon, Lock as LockIcon, CheckCircle as CheckIcon, Warning as WarningIcon, Error as ErrorIcon, Refresh as RefreshIcon, Delete as DeleteIcon, Smartphone as SmartphoneIcon, Computer as ComputerIcon, Tablet as TabletIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -211,9 +183,13 @@ const SecuriteComponent: React.FC = () => {
     }
   };
 
+  const fetchSecurityDataRef = useRef(fetchSecurityData);
+  fetchSecurityDataRef.current = fetchSecurityData;
+  const fetchSecurityStatsRef = useRef(fetchSecurityStats);
+  fetchSecurityStatsRef.current = fetchSecurityStats;
   useEffect(() => {
-    fetchSecurityData();
-    fetchSecurityStats();
+    fetchSecurityDataRef.current();
+    fetchSecurityStatsRef.current();
   }, []);
 
   // 🔹 ACTIVER L'AUTHENTIFICATION À DEUX FACTEURS

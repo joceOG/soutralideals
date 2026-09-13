@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -16,6 +15,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
 import { getApiUrl, validateSession, persistSession } from "../services/setupApi";
+import { getRouterBasename } from "../utils/routerBasename";
 
 const BRAND = {
   turquoise: "#009DB3",
@@ -23,21 +23,39 @@ const BRAND = {
   darkEmerald: "#007C34",
 };
 
+/** Recharge complète : évite NotFoundError removeChild (connexion ↔ shell dashboard). */
+function hardGoHome() {
+  const base = getRouterBasename();
+  window.location.replace(base ? `${base}/` : "/");
+}
+
 const Connexion: React.FC = () => {
   const apiUrl = getApiUrl();
-  const navigate = useNavigate();
 
   const [identifiant, setIdentifiant] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const redirectedRef = React.useRef(false);
 
   useEffect(() => {
+    let cancelled = false;
     validateSession().then((ok) => {
-      if (ok) navigate("/", { replace: true });
+      if (cancelled || redirectedRef.current || !ok) return;
+      redirectedRef.current = true;
+      hardGoHome();
     });
-  }, [navigate]);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const goHomeSafely = () => {
+    if (redirectedRef.current) return;
+    redirectedRef.current = true;
+    hardGoHome();
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,6 +67,7 @@ const Connexion: React.FC = () => {
     }
 
     setLoading(true);
+    let succeeded = false;
     try {
       const response = await axios.post(`${apiUrl}/login`, {
         identifiant: identifiant.trim(),
@@ -61,11 +80,15 @@ const Connexion: React.FC = () => {
         return;
       }
 
-      persistSession(response.data.token, response.data.utilisateur);
-      // Différer la navigation hors du cycle de commit React (évite crash DOM).
-      window.setTimeout(() => {
-        navigate("/", { replace: true });
-      }, 0);
+      const token = response.data?.token as string | undefined;
+      if (!token) {
+        setError("Réponse de connexion invalide (token manquant).");
+        return;
+      }
+
+      persistSession(token, response.data.utilisateur);
+      succeeded = true;
+      goHomeSafely();
     } catch (err: unknown) {
       if (typeof err === "object" && err !== null && "response" in err) {
         const axiosErr = err as { response?: { data?: { error?: string } } };
@@ -74,7 +97,9 @@ const Connexion: React.FC = () => {
         setError("Connexion impossible. Vérifiez que le backend est démarré.");
       }
     } finally {
-      setLoading(false);
+      if (!succeeded && !redirectedRef.current) {
+        setLoading(false);
+      }
     }
   };
 

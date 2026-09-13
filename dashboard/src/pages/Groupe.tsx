@@ -2,12 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 // Material UI
-import {
-  Box, Typography, Fab, Dialog, DialogTitle, DialogContent,
-  DialogActions, IconButton, TextField, Button, Alert, Snackbar,
-  InputAdornment, Chip, Divider, Tooltip, Zoom, Fade,
-  TablePagination, Card, Paper, InputBase
-} from '@mui/material';
+import { Box, Typography, Fab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, Button, Alert, Snackbar, Chip, Divider, Tooltip, Zoom, Fade, TablePagination, Card, Paper, InputBase } from '@mui/material';
 import {
   Table, TableBody, TableCell, tableCellClasses, TableContainer,
   TableHead, TableRow
@@ -27,7 +22,6 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 // Framer Motion
 import { motion, AnimatePresence, Variants, Transition } from 'framer-motion';
 
-
 // Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -44,27 +38,6 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     padding: '12px 16px',
     transition: 'all 0.2s ease-in-out',
   },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  position: 'relative',
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.03) : alpha(theme.palette.common.black, 0.02),
-  },
-  '&:last-child td, &:last-child th': {
-    border: 0,
-  },
-  '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.04),
-    boxShadow: theme.palette.mode === 'dark'
-      ? `inset 0 0 5px ${alpha(theme.palette.primary.main, 0.2)}`
-      : `inset 0 0 5px ${alpha(theme.palette.primary.main, 0.1)}`,
-    transform: 'translateY(-2px)',
-    '& .action-buttons': {
-      opacity: 1,
-    },
-  },
-  transition: 'all 0.3s ease',
 }));
 
 const SearchBox = styled(Paper)(({ theme }) => ({

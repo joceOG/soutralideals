@@ -102,8 +102,7 @@ const Categorie: React.FC = () => {
     groupe: { _id: '', nomgroupe: '' },
   });
   const [file, setFile] = useState<File | null>(null);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
   useEffect(() => {

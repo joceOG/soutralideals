@@ -12,9 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -142,10 +140,6 @@ const PrestationsComponent: React.FC = () => {
 
   const statutOptions = [
     'EN_ATTENTE', 'ACCEPTEE', 'REFUSEE', 'EN_COURS', 'TERMINEE', 'ANNULEE', 'LITIGE'
-  ];
-
-  const statutPaiementOptions = [
-    'ATTENTE', 'PAYE', 'REMBOURSE', 'ECHEC'
   ];
 
   const moyenPaiementOptions = [

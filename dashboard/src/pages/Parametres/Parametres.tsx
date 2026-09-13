@@ -1,26 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box, Typography, Paper, Card, CardContent, Grid, FormControl,
-  InputLabel, Select, MenuItem, Switch, FormControlLabel, Button,
-  TextField, Divider, Alert, Chip, Avatar, List, ListItem,
-  ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab,
-  CircularProgress, Snackbar
-} from '@mui/material';
-import {
-  Language as LanguageIcon,
-  AttachMoney as CurrencyIcon,
-  Public as CountryIcon,
-  Schedule as TimeIcon,
-  Palette as ThemeIcon,
-  Notifications as NotificationIcon,
-  Security as SecurityIcon,
-  Accessibility as AccessibilityIcon,
-  PhoneAndroid as MobileIcon,
-  Save as SaveIcon,
-  Refresh as RefreshIcon,
-  Settings as SettingsIcon
-} from '@mui/icons-material';
+import { Box, Typography, Paper, Card, CardContent, Grid, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Button, Alert, Tabs, Tab, CircularProgress, Snackbar } from '@mui/material';
+import { Language as LanguageIcon, AttachMoney as CurrencyIcon, Public as CountryIcon, Palette as ThemeIcon, Notifications as NotificationIcon, Security as SecurityIcon, Accessibility as AccessibilityIcon, Save as SaveIcon, Refresh as RefreshIcon, Settings as SettingsIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -153,12 +133,6 @@ const ParametresComponent: React.FC = () => {
   const timeFormatOptions = [
     { value: '12h', label: '12 heures (AM/PM)' },
     { value: '24h', label: '24 heures' }
-  ];
-
-  const monetaryFormatOptions = [
-    { value: '1,234.56', label: '1,234.56 (Anglais)' },
-    { value: '1 234,56', label: '1 234,56 (Français)' },
-    { value: '1.234,56', label: '1.234,56 (Allemand)' }
   ];
 
   const themeOptions = [

@@ -1,22 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Box, Typography, Dialog, DialogActions, DialogContent,
-  DialogTitle, Button, TextField, InputAdornment,
-  IconButton, MenuItem, Chip, Card, CardContent,
-  Avatar, Grid, CircularProgress, Select, FormControl, InputLabel,
-  Tabs, Tab, Badge, Tooltip, Switch, FormControlLabel
-} from '@mui/material';
+import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, InputAdornment, IconButton, MenuItem, Chip, Card, CardContent, Avatar, Grid, CircularProgress, Select, FormControl, InputLabel, Tooltip, Switch, FormControlLabel } from '@mui/material';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArchiveIcon from '@mui/icons-material/Archive';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
-import FilterListIcon from '@mui/icons-material/FilterList';
+
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -72,16 +62,16 @@ const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 const FavorisComponent: React.FC = () => {
   const [favorites, setFavorites] = useState<IFavorite[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [modalOpen, setModalOpen] = useState(false);
+
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedFavorite, setSelectedFavorite] = useState<IFavorite | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statutFilter, setStatutFilter] = useState<string>('');
   const [objetTypeFilter, setObjetTypeFilter] = useState<string>('');
-  const [categorieFilter, setCategorieFilter] = useState<string>('');
-  const [villeFilter, setVilleFilter] = useState<string>('');
+  const [categorieFilter] = useState<string>('');
+  const [villeFilter] = useState<string>('');
   const [stats, setStats] = useState<IFavoriteStats | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
+
   const [customLists, setCustomLists] = useState<string[]>([]);
   const [selectedList, setSelectedList] = useState<string>('');
 
@@ -491,6 +481,4 @@ const FavorisComponent: React.FC = () => {
 };
 
 export default FavorisComponent;
-
-
 
