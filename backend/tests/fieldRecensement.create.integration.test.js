@@ -610,6 +610,32 @@ describe('R1-03/04/05 + 3C-BIS — POST /api/v1/field-recensements', () => {
     }
   });
 
+  it('contrat: même clientMutationId + payload différent → 409 IDEMPOTENCY_KEY_REUSED', async () => {
+    const photo = miniJpeg();
+    const id = mut(241);
+    try {
+      const first = await postMultipart(
+        basePayload({ clientMutationId: id, operationMutationId: id }),
+        { token: agentToken, filePath: photo },
+      );
+      assert.equal(first.status, 201);
+      const reuse = await postMultipart(
+        basePayload({
+          clientMutationId: id,
+          operationMutationId: id,
+          person: { ...basePayload().person, nom: 'NomCorrige' },
+        }),
+        { token: agentToken, filePath: photo },
+      );
+      assert.equal(reuse.status, 409);
+      assert.equal(reuse.body.code, 'IDEMPOTENCY_KEY_REUSED');
+      const count = await FieldRecensement.countDocuments({ clientMutationId: id });
+      assert.equal(count, 1);
+    } finally {
+      if (fs.existsSync(photo)) fs.unlinkSync(photo);
+    }
+  });
+
   it('S25-26 hash stable ordre JSON + téléphone équivalent', async () => {
     const p1 = basePayload();
     const p2 = {

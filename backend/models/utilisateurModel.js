@@ -319,5 +319,10 @@ UtilisateurSchema.set('toObject', {
   },
 });
 
+UtilisateurSchema.index(
+  { 'refreshTokens.token': 1 },
+  { name: 'idx_refreshTokens_token', sparse: true },
+);
+
 const utilisateurModel = mongoose.model("Utilisateur", UtilisateurSchema);
 export default utilisateurModel;
