@@ -75,6 +75,16 @@ const BUSINESS_CLIENT_FORBIDDEN = new Set([
   'productTypeIds',
 ]);
 
+const LOCATION_KEYS_ALLOWED = new Set([
+  'adresse',
+  'commune',
+  'quartier',
+  'zonesIntervention',
+  'latitude',
+  'longitude',
+  'accuracyMeters',
+]);
+
 const MAX_BUSINESS_CATEGORY_IDS = 10;
 const MAX_PRODUCT_TYPE_LABELS = 20;
 const MAX_SKILLS = 30;
@@ -86,6 +96,31 @@ function err(field, code, message) {
 function hasPasswordKey(obj) {
   if (!obj || typeof obj !== 'object') return false;
   return [...PASSWORD_KEYS].some((k) => Object.prototype.hasOwnProperty.call(obj, k));
+}
+
+/** Alias UI terrain `ville` → contrat Mongo `commune`. */
+export function normalizeLocation(location) {
+  if (!location || typeof location !== 'object' || Array.isArray(location)) {
+    return location;
+  }
+  const loc = { ...location };
+  if (
+    (loc.commune == null || String(loc.commune).trim() === '') &&
+    loc.ville != null
+  ) {
+    loc.commune = loc.ville;
+  }
+  delete loc.ville;
+  return loc;
+}
+
+function validateLocationKeys(location, errors) {
+  if (!location || typeof location !== 'object') return;
+  for (const key of Object.keys(location)) {
+    if (!LOCATION_KEYS_ALLOWED.has(key)) {
+      errors.push(err(`location.${key}`, 'UNKNOWN_FIELD', `Clé location inconnue : ${key}.`));
+    }
+  }
 }
 
 function validateGps(location, errors) {
@@ -224,15 +259,20 @@ function validateBusinessVendeur(business, errors) {
   });
 }
 
-export function validateCreatePayload(raw) {
+export function validateCreatePayload(input) {
   const errors = [];
   const defaultCountry = 'CI';
 
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
     return {
       ok: false,
       errors: [err('payload', 'INVALID', 'Payload objet requis.')],
     };
+  }
+
+  const raw = { ...input };
+  if (raw.location && typeof raw.location === 'object' && !Array.isArray(raw.location)) {
+    raw.location = normalizeLocation(raw.location);
   }
 
   for (const key of Object.keys(raw)) {
@@ -278,6 +318,7 @@ export function validateCreatePayload(raw) {
   }
 
   validatePerson(raw.person, errors, defaultCountry);
+  validateLocationKeys(raw.location, errors);
   validateGps(raw.location, errors);
 
   const business = raw.business;

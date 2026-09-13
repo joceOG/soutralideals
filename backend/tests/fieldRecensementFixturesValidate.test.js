@@ -51,4 +51,20 @@ describe('field create wire fixtures → validateCreatePayload', () => {
       );
     });
   }
+
+  it('location.ville alias → commune', () => {
+    const payload = loadFixture('prestataire.valid.json');
+    payload.location = {
+      ...payload.location,
+      ville: 'Cocody',
+    };
+    delete payload.location.commune;
+    const result = validateCreatePayload(payload);
+    assert.equal(result.ok, true, JSON.stringify(result.errors, null, 2));
+    assert.equal(result.value.location.commune, 'Cocody');
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(result.value.location, 'ville'),
+      false,
+    );
+  });
 });
