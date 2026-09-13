@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "RECENSEMENT_NOT_FOUND",
+  "message": "Dossier introuvable.",
+  "retryable": false
+}

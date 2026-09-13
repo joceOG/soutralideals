@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "RECENSEMENT_PHOTO_INVALID",
+  "message": "Photo invalide ou format non accepté.",
+  "retryable": false
+}

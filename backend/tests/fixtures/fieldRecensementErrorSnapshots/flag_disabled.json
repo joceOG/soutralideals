@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "FIELD_RECENSEMENT_V1_DISABLED",
+  "message": "Le service de recensement est temporairement indisponible.",
+  "retryable": true
+}

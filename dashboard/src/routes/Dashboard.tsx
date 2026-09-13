@@ -127,12 +127,14 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
 }) => {
   const isAuthPage = Boolean(useMatch({ path: '/connexion', end: true }));
 
-  // Arbre DOM stable : AppRouter reste au même endroit (évite NotFoundError removeChild
-  // au passage connexion → dashboard).
+  // Arbre DOM stable : chrome toujours monté (masqué sur /connexion) pour éviter
+  // NotFoundError removeChild quand AppBar/Drawer apparaissent d'un coup.
   return (
       <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
-        {!isAuthPage && (
-          <>
+        <Box
+          sx={{ display: isAuthPage ? 'none' : 'contents' }}
+          aria-hidden={isAuthPage}
+        >
         <AppBar position="absolute" open={open}>
           <Toolbar
             sx={{
@@ -343,8 +345,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
             </Box>
           </Box>
         </Drawer>
-          </>
-        )}
+        </Box>
         <Box
           component="main"
           sx={{
@@ -360,7 +361,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
             width: '100%',
           }}
         >
-          {!isAuthPage && <Toolbar />}
+          <Toolbar sx={{ display: isAuthPage ? 'none' : undefined }} />
           <Box
             sx={
               isAuthPage
@@ -370,7 +371,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
           >
             <AppRouter />
           </Box>
-          {!isAuthPage && <Copyright sx={{ pt: 4 }} />}
+          <Copyright sx={{ pt: 4, display: isAuthPage ? 'none' : undefined }} />
         </Box>
       </Box>
   );

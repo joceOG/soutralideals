@@ -68,8 +68,23 @@ const FreelanceSchema = mongoose.Schema({
     // 🆕 OPTION C - Traçabilité et validation
     source: {
         type: String,
-        enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard'],
+        enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard', 'field_recensement_v1'],
         default: 'web'
+    },
+    fieldPublicationStatus: {
+        type: String,
+        enum: ['not_started', 'preparing', 'ready', 'published', 'failed', 'suspended'],
+        default: undefined,
+    },
+    fieldPublicationEpoch: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+    sourceFieldRecensementId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FieldRecensement',
+        default: undefined,
     },
     status: {
         type: String,
@@ -94,6 +109,10 @@ FreelanceSchema.index({
     bio: 'text',
     description: 'text'
 });
+FreelanceSchema.index(
+  { sourceFieldRecensementId: 1 },
+  { unique: true, sparse: true, name: 'uniq_freelance_source_field_recensement' },
+);
 
 const freelanceModel = mongoose.model('Freelance', FreelanceSchema);
 

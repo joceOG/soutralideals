@@ -4,7 +4,13 @@ import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
 import utilisateurModel from '../models/utilisateurModel.js';
 import prestataireModel from '../models/prestataireModel.js';
-import { buildFuzzyRegex, buildFuzzyFilter, removeAccents } from '../utils/searchNormalize.js';
+import { buildFuzzyRegex, removeAccents } from '../utils/searchNormalize.js';
+import {
+  applyFreelanceVendeurPublicMatch,
+  applyPrestatairePublicMatch,
+  findPublicVendeurIds,
+  isPrestatairePubliclyVisible,
+} from '../utils/proPublicFilter.js';
 
 export const globalSearch = async (req, res) => {
   try {
@@ -17,11 +23,49 @@ export const globalSearch = async (req, res) => {
     const limit = 8;
     const { contains: fuzzyContains, exact: exactRegex } = buildFuzzyRegex(query);
 
-    // Filtre prix optionnel
     const priceFilter = {};
     if (minPrice) priceFilter.$gte = Number(minPrice);
     if (maxPrice) priceFilter.$lte = Number(maxPrice);
     const hasPriceFilter = Object.keys(priceFilter).length > 0;
+
+    const publicVendeurIds = await findPublicVendeurIds(vendeurModel);
+
+    const freelancePublic = applyFreelanceVendeurPublicMatch({
+      $or: [
+        { name: exactRegex },
+        { name: fuzzyContains },
+        { job: exactRegex },
+        { job: fuzzyContains },
+        { skills: { $in: [fuzzyContains] } },
+      ],
+    });
+
+    const vendeurPublic = applyFreelanceVendeurPublicMatch({
+      $or: [
+        { shopName: exactRegex },
+        { shopName: fuzzyContains },
+        { shopDescription: fuzzyContains },
+      ],
+    });
+
+    const prestatairePublic = applyPrestatairePublicMatch({
+      $or: [
+        { description: fuzzyContains },
+        { specialite: { $in: [fuzzyContains] } },
+      ],
+    });
+
+    const articleFilter = {
+      $or: [
+        { nomArticle: exactRegex },
+        { nomArticle: fuzzyContains },
+        { tags: { $in: [exactRegex] } },
+        { tags: { $in: [fuzzyContains] } },
+        { description: fuzzyContains },
+      ],
+      vendeur: { $in: publicVendeurIds },
+      ...(hasPriceFilter && { prixArticle: priceFilter }),
+    };
 
     const [services, articles, freelances, vendeurs, prestatairesRaw] = await Promise.all([
       serviceModel.find({
@@ -36,54 +80,24 @@ export const globalSearch = async (req, res) => {
         .populate('categorie', 'nomcategorie')
         .limit(limit),
 
-      articleModel.find({
-        $or: [
-          { nomArticle: exactRegex },
-          { nomArticle: fuzzyContains },
-          { tags: { $in: [exactRegex] } },
-          { tags: { $in: [fuzzyContains] } },
-          { description: fuzzyContains },
-        ],
-        ...(hasPriceFilter && { prixArticle: priceFilter })
-      })
+      articleModel.find(articleFilter)
         .select('nomArticle prixArticle photoArticle description')
         .limit(limit),
 
-      freelanceModel.find({
-        $or: [
-          { name: exactRegex },
-          { name: fuzzyContains },
-          { job: exactRegex },
-          { job: fuzzyContains },
-          { skills: { $in: [fuzzyContains] } },
-        ]
-      })
+      freelanceModel.find(freelancePublic)
         .select('name job rating imagePath location ville hourlyRate')
         .limit(limit),
 
-      vendeurModel.find({
-        $or: [
-          { shopName: exactRegex },
-          { shopName: fuzzyContains },
-          { shopDescription: fuzzyContains },
-        ]
-      })
+      vendeurModel.find(vendeurPublic)
         .select('shopName rating shopLogo ville')
         .limit(limit),
 
-      // Chercher via le modèle prestataire directement (service + localisation)
-      prestataireModel.find({
-        $or: [
-          { description: fuzzyContains },
-          { specialite: { $in: [fuzzyContains] } },
-        ]
-      })
+      prestataireModel.find(prestatairePublic)
         .populate('utilisateur', 'nom prenom photoProfil')
         .populate('service', 'nomservice')
         .limit(limit),
     ]);
 
-    // Aussi chercher les utilisateurs prestataires par service via utilisateur
     const userPrestataires = await utilisateurModel.find({
       role: 'Prestataire',
       $or: [
@@ -96,12 +110,11 @@ export const globalSearch = async (req, res) => {
       .select('nom prenom photoProfil')
       .populate({
         path: 'prestataire',
-        select: 'localisation service ville',
+        select: 'localisation service ville status verifier',
         populate: { path: 'service', select: 'nomservice' }
       })
       .limit(limit);
 
-    // Formatter les prestataires
     const formattedPrestataires = [
       ...prestatairesRaw
         .filter(p => p.utilisateur)
@@ -114,21 +127,23 @@ export const globalSearch = async (req, res) => {
           rating: p.note ?? 0,
           type: 'Prestataire',
         })),
-      ...userPrestataires.map(user => {
-        const prest = Array.isArray(user.prestataire) ? user.prestataire[0] : user.prestataire;
-        return {
-          _id: user._id,
-          name: `${user.prenom ?? ''} ${user.nom ?? ''}`.trim(),
-          job: prest?.service?.nomservice || 'Prestataire',
-          imagePath: user.photoProfil,
-          ville: prest?.ville || prest?.localisation,
-          rating: 0,
-          type: 'Prestataire',
-        };
-      }),
+      ...userPrestataires
+        .map(user => {
+          const prest = Array.isArray(user.prestataire) ? user.prestataire[0] : user.prestataire;
+          if (!prest || !isPrestatairePubliclyVisible(prest)) return null;
+          return {
+            _id: user._id,
+            name: `${user.prenom ?? ''} ${user.nom ?? ''}`.trim(),
+            job: prest?.service?.nomservice || 'Prestataire',
+            imagePath: user.photoProfil,
+            ville: prest?.ville || prest?.localisation,
+            rating: 0,
+            type: 'Prestataire',
+          };
+        })
+        .filter(Boolean),
     ];
 
-    // Déduplication par _id
     const seenIds = new Set();
     const uniquePrestataires = formattedPrestataires.filter(p => {
       const id = String(p._id);
@@ -170,6 +185,7 @@ export const getSuggestions = async (req, res) => {
 
     const limit = 5;
     const { contains: fuzzyRegex, exact: exactRegex } = buildFuzzyRegex(query);
+    const publicVendeurIds = await findPublicVendeurIds(vendeurModel);
 
     const [services, articles, freelances, prestataires] = await Promise.all([
       serviceModel
@@ -178,17 +194,22 @@ export const getSuggestions = async (req, res) => {
         .limit(limit),
 
       articleModel
-        .find({ $or: [{ nomArticle: exactRegex }, { nomArticle: fuzzyRegex }] })
+        .find({
+          $or: [{ nomArticle: exactRegex }, { nomArticle: fuzzyRegex }],
+          vendeur: { $in: publicVendeurIds },
+        })
         .select('nomArticle')
         .limit(limit),
 
       freelanceModel
-        .find({ $or: [{ job: exactRegex }, { job: fuzzyRegex }] })
+        .find(applyFreelanceVendeurPublicMatch({
+          $or: [{ job: exactRegex }, { job: fuzzyRegex }],
+        }))
         .select('job')
         .limit(limit),
 
       prestataireModel
-        .find({})
+        .find(applyPrestatairePublicMatch({}))
         .populate({
           path: 'service',
           match: { $or: [{ nomservice: exactRegex }, { nomservice: fuzzyRegex }] },
@@ -198,7 +219,6 @@ export const getSuggestions = async (req, res) => {
         .limit(limit),
     ]);
 
-    // Collecter toutes les suggestions
     const raw = [
       ...services.map(s => s.nomservice),
       ...articles.map(a => a.nomArticle),
@@ -206,7 +226,6 @@ export const getSuggestions = async (req, res) => {
       ...prestataires.map(p => p.service?.nomservice).filter(Boolean),
     ];
 
-    // Dédupliquer + trier par pertinence (commence par query en premier)
     const normalized = removeAccents(query);
     const unique = [...new Set(raw.filter(Boolean))]
       .sort((a, b) => {

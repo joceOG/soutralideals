@@ -788,45 +788,76 @@ export const deleteUserById = async (req, res) => {
   }
 };
 
-// ✅ RÔLES UTILISATEUR AGRÉGÉS
+// ✅ RÔLES UTILISATEUR AGRÉGÉS (self-or-admin déjà appliqué sur la route)
 export const getUserRoles = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await Utilisateur.findById(id).lean();
-    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    const user = await Utilisateur.findById(id)
+      .select('nom prenom email telephone role')
+      .lean();
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        code: 'USER_NOT_FOUND',
+        error: 'Utilisateur non trouvé',
+      });
+    }
 
-    // Rôle de base
     const roles = new Set(['CLIENT']);
 
-    // Vérifier existence des documents liés
     const [prestataire, freelance, vendeur] = await Promise.all([
-      prestataireModel.findOne({ utilisateur: id }).lean(),
-      freelanceModel.findOne({ utilisateur: id }).lean(),
-      vendeurModel.findOne({ utilisateur: id }).lean(),
+      prestataireModel.findOne({ utilisateur: id }).select('_id verifier').lean(),
+      freelanceModel.findOne({ utilisateur: id }).select('_id accountStatus').lean(),
+      vendeurModel.findOne({ utilisateur: id }).select('_id verifier').lean(),
     ]);
 
     if (prestataire) roles.add('PRESTATAIRE');
     if (freelance) roles.add('FREELANCE');
     if (vendeur) roles.add('VENDEUR');
 
-    // L’admin est le rôle utilisateur (casse normalisée)
     if (String(user.role || '').toUpperCase() === 'ADMIN') roles.add('ADMIN');
 
-    // Statuts détaillés par rôle
+    // Détails minimaux — pas de KYC / URLs / secrets
     const details = {
-      prestataire: prestataire ? { id: prestataire._id, verifier: !!prestataire.verifier } : null,
-      freelance: freelance ? { id: freelance._id, accountStatus: freelance.accountStatus || 'Pending' } : null,
-      vendeur: vendeur ? { id: vendeur._id, verifier: !!vendeur.verifier } : null,
+      prestataire: prestataire
+        ? { id: prestataire._id, verifier: !!prestataire.verifier }
+        : null,
+      freelance: freelance
+        ? { id: freelance._id, accountStatus: freelance.accountStatus || 'Pending' }
+        : null,
+      vendeur: vendeur
+        ? { id: vendeur._id, verifier: !!vendeur.verifier }
+        : null,
     };
 
+    const viewerIsAdmin = String(req.utilisateur?.role || '').toUpperCase() === 'ADMIN';
+    const utilisateurPayload = {
+      _id: user._id,
+      nom: user.nom,
+      prenom: user.prenom,
+    };
+    // Contact : utile admin seulement ; self n’en a pas besoin via cette route
+    // (consommateurs mobile/web n’utilisent que roles + details).
+    if (viewerIsAdmin) {
+      utilisateurPayload.email = user.email ?? null;
+      utilisateurPayload.telephone = user.telephone ?? null;
+    }
+
     return res.status(200).json({
-      utilisateur: { _id: user._id, nom: user.nom, prenom: user.prenom, email: user.email, telephone: user.telephone },
+      utilisateur: utilisateurPayload,
       roles: Array.from(roles),
       details,
     });
   } catch (err) {
+    if (err?.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        code: 'USER_ID_INVALID',
+        message: 'Identifiant invalide.',
+      });
+    }
     console.error('Erreur getUserRoles:', err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Erreur serveur.' });
   }
 };
 
