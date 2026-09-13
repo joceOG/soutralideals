@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import prestataireModel from '../models/prestataireModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
@@ -13,6 +14,38 @@ export function isAdmin(req) {
 export function isSelf(req, userId) {
   if (!userId || !req.utilisateur?._id) return false;
   return req.utilisateur._id.toString() === userId.toString();
+}
+
+/** ObjectId Mongo strict (évite les faux positifs de ObjectId.isValid). */
+export function isStrictObjectId(value) {
+  if (value == null) return false;
+  const s = String(value);
+  if (!mongoose.Types.ObjectId.isValid(s)) return false;
+  return String(new mongoose.Types.ObjectId(s)) === s;
+}
+
+/**
+ * Autorise uniquement le propriétaire (paramètre de route) ou un Admin réel.
+ * À utiliser après `auth`. Ne révèle rien sur la cible en cas de refus.
+ */
+export function requireSelfOrAdminParam(paramName = 'id') {
+  return (req, res, next) => {
+    const targetId = req.params?.[paramName];
+    if (!isStrictObjectId(targetId)) {
+      return res.status(400).json({
+        success: false,
+        code: 'USER_ID_INVALID',
+        message: 'Identifiant invalide.',
+      });
+    }
+    if (isAdmin(req)) return next();
+    if (isSelf(req, targetId)) return next();
+    return res.status(403).json({
+      success: false,
+      code: 'USER_ACCESS_FORBIDDEN',
+      message: 'Accès non autorisé.',
+    });
+  };
 }
 
 async function loadOwnerId(Model, id, field = 'utilisateur') {

@@ -1,6 +1,7 @@
 /**
- * STAB-11b — Accès documents d'identité (KYC).
+ * STAB-11b / R0-06 — Accès documents d'identité (KYC).
  * Propriétaire / admin / agent recenseur du dossier — jamais « tout JWT ».
+ * CREATE et UPDATE doivent passer par uploadKycToCloudinary uniquement.
  */
 import { v2 as cloudinary } from 'cloudinary';
 import { isAdmin as isAdminReq } from './accessControl.js';
@@ -18,7 +19,14 @@ export const KYC_FIELD_NAMES = [
   'attestationAssurance',
 ];
 
-const VERIFICATION_DOC_KEYS = ['cni1', 'cni2', 'selfie', 'businessLicense', 'taxDocument'];
+/** Champs sous verificationDocuments (freelance / vendeur). */
+export const VERIFICATION_DOC_KEYS = [
+  'cni1',
+  'cni2',
+  'selfie',
+  'businessLicense',
+  'taxDocument',
+];
 
 /** Préfixe stocké pour assets Cloudinary authentifiés (non publics). */
 export const CLD_AUTH_PREFIX = 'cld:auth:';
@@ -38,12 +46,6 @@ export function isSensitiveUploadPath(urlPath) {
   );
 }
 
-/**
- * @param {object} opts
- * @param {object} opts.req
- * @param {string|null} opts.ownerUserId
- * @param {string|null} [opts.recenseurId]
- */
 export function canAccessKyc({ req, ownerUserId, recenseurId = null }) {
   if (!req?.utilisateur) return false;
   if (isAdminReq(req)) return true;
@@ -57,7 +59,7 @@ export function redactKycFromPlain(obj) {
   if (!obj || typeof obj !== 'object') return obj;
   const o = { ...obj };
   for (const f of KYC_FIELD_NAMES) {
-    if (o[f] !== undefined) o[f] = Boolean(o[f]); // présence sans URL
+    if (o[f] !== undefined) o[f] = Boolean(o[f]);
   }
   if (o.verificationDocuments && typeof o.verificationDocuments === 'object') {
     const vd = { ...o.verificationDocuments };
@@ -79,15 +81,30 @@ export function redactKycDocument(doc) {
 }
 
 /**
- * Upload Cloudinary en type authenticated (pas de lecture publique par URL).
- * Stocke une référence `cld:auth:<public_id>` plutôt qu'une URL ouverte.
+ * Upload Cloudinary en type authenticated.
+ * Retourne ref opaque cld:auth: — jamais secure_url publique ni URL signée.
  */
-export async function uploadKycToCloudinary(filePath, folder) {
-  const result = await cloudinary.uploader.upload(filePath, {
-    folder,
+export async function uploadKycToCloudinary(filePath, folder, options = {}) {
+  const {
+    publicId,
+    overwrite = false,
+    tags,
+    context,
+  } = options;
+  const uploadOpts = {
     type: 'authenticated',
     resource_type: 'image',
-  });
+    overwrite,
+  };
+  if (publicId) {
+    uploadOpts.public_id = publicId;
+  } else if (folder) {
+    uploadOpts.folder = folder;
+  }
+  // Tags/context uniquement si fournis (Field V1) — KYC legacy inchangé
+  if (Array.isArray(tags) && tags.length) uploadOpts.tags = tags;
+  if (typeof context === 'string' && context.trim()) uploadOpts.context = context;
+  const result = await cloudinary.uploader.upload(filePath, uploadOpts);
   return {
     ref: `${CLD_AUTH_PREFIX}${result.public_id}`,
     publicId: result.public_id,
@@ -95,15 +112,53 @@ export async function uploadKycToCloudinary(filePath, folder) {
 }
 
 /**
- * Génère une URL signée courte durée pour un ref cld:auth: ou un public_id.
+ * Remplacement KYC sans perte : upload d’abord.
+ * Suppression ancienne ref différée (pas avant succès Mongo).
  */
+export async function prepareKycReplacement(filePath, folder, previousRef = null) {
+  const { ref } = await uploadKycToCloudinary(filePath, folder);
+  return {
+    ref,
+    previousRef: typeof previousRef === 'string' ? previousRef : null,
+    destroyDeferred: true,
+  };
+}
+
+export function isInjectedKycValue(value) {
+  if (typeof value !== 'string' || !value.trim()) return false;
+  const v = value.trim();
+  if (/^https?:\/\//i.test(v)) return true;
+  if (v.startsWith(CLD_AUTH_PREFIX)) return true;
+  if (v.includes('res.cloudinary.com')) return true;
+  return false;
+}
+
+/** Retire du body les affectations KYC (seul multipart autorisé). */
+export function stripInjectedKycFromBody(body = {}) {
+  if (!body || typeof body !== 'object') return {};
+  const cleaned = { ...body };
+  for (const f of KYC_FIELD_NAMES) {
+    if (cleaned[f] !== undefined) delete cleaned[f];
+  }
+  for (const k of VERIFICATION_DOC_KEYS) {
+    const dotted = `verificationDocuments.${k}`;
+    if (cleaned[dotted] !== undefined) delete cleaned[dotted];
+  }
+  if (cleaned.verificationDocuments && typeof cleaned.verificationDocuments === 'object') {
+    const vd = { ...cleaned.verificationDocuments };
+    for (const k of VERIFICATION_DOC_KEYS) {
+      if (vd[k] !== undefined) delete vd[k];
+    }
+    cleaned.verificationDocuments = vd;
+  }
+  return cleaned;
+}
+
 export function signKycCloudinaryRef(refOrPublicId, { expiresInSec = 300 } = {}) {
   let publicId = String(refOrPublicId || '');
   if (publicId.startsWith(CLD_AUTH_PREFIX)) {
     publicId = publicId.slice(CLD_AUTH_PREFIX.length);
   } else if (publicId.startsWith('http')) {
-    // Ancienne URL publique Cloudinary — ne pas re-signer en ouvert ;
-    // on refuse de la « légitimer » : le client doit passer par redaction.
     return null;
   }
   if (!publicId) return null;
@@ -121,12 +176,15 @@ export function isCloudinaryAuthRef(value) {
   return typeof value === 'string' && value.startsWith(CLD_AUTH_PREFIX);
 }
 
-/**
- * Pour une réponse autorisée : remplace refs auth par URLs signées ;
- * pour anciennes URLs http publiques, les laisse uniquement si authorized
- * (appelant doit déjà avoir vérifié canAccessKyc) — mais on préfère
- * ne pas les renvoyer au catalogue public (redact).
- */
+/** Classifie une valeur stockée pour inventaire dry-run (sans exposer le contenu). */
+export function classifyKycStoredValue(value) {
+  if (value == null || value === '') return 'missing';
+  if (typeof value !== 'string') return 'malformed';
+  if (isCloudinaryAuthRef(value)) return 'authenticated_ref';
+  if (/^https?:\/\//i.test(value)) return 'legacy_http_url';
+  return 'malformed';
+}
+
 export function resolveKycFieldsForAuthorizedViewer(plain) {
   if (!plain) return plain;
   const o = { ...plain };
@@ -135,7 +193,6 @@ export function resolveKycFieldsForAuthorizedViewer(plain) {
       if (isCloudinaryAuthRef(o[f])) {
         o[f] = signKycCloudinaryRef(o[f]) || null;
       }
-      // anciennes URLs publiques : renvoyées seulement au viewer autorisé
     }
   }
   if (o.verificationDocuments && typeof o.verificationDocuments === 'object') {
@@ -148,4 +205,41 @@ export function resolveKycFieldsForAuthorizedViewer(plain) {
     o.verificationDocuments = vd;
   }
   return o;
+}
+
+/**
+ * Présentation API : redaction pour le public, URLs signées temporaires si autorisé.
+ * N’écrit jamais en base. Pose Cache-Control: no-store si KYC révélé.
+ */
+export function presentProDocForViewer(req, doc, res = null) {
+  if (!doc) return doc;
+  const plain = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+  const ownerId = plain.utilisateur?._id ?? plain.utilisateur;
+  const allowed = canAccessKyc({
+    req,
+    ownerUserId: ownerId,
+    recenseurId: plain.recenseur,
+  });
+  if (allowed) {
+    if (res && typeof res.setHeader === 'function') {
+      res.setHeader('Cache-Control', 'no-store');
+    }
+    return resolveKycFieldsForAuthorizedViewer(plain);
+  }
+  return redactKycFromPlain(plain);
+}
+
+/** Inventaire dry-run : compte les classes de refs sans exposer les valeurs. */
+export function countKycRefClasses(values) {
+  const counts = {
+    authenticated_ref: 0,
+    legacy_http_url: 0,
+    missing: 0,
+    malformed: 0,
+  };
+  for (const v of values) {
+    const cls = classifyKycStoredValue(v);
+    counts[cls] = (counts[cls] || 0) + 1;
+  }
+  return counts;
 }

@@ -7,7 +7,7 @@ import { isAdmin, assertAdmin } from '../utils/accessControl.js';
 import { pickFields } from '../utils/pickFields.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
-import { uploadKycToCloudinary } from '../utils/kycAccess.js';
+import { uploadKycToCloudinary, prepareKycReplacement, stripInjectedKycFromBody, presentProDocForViewer } from '../utils/kycAccess.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -279,7 +279,7 @@ export const getAllVendeurs = async (req, res) => {
         // ✅ S'assurer que l'encodage est UTF-8 au niveau de la réponse
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.status(200).json({
-            vendeurs,
+            vendeurs: vendeurs.map((v) => presentProDocForViewer(req, v, res)),
             totalPages: Math.ceil(total / limit),
             currentPage: parseInt(page),
             total
@@ -317,7 +317,7 @@ export const getVendeurById = async (req, res) => {
             { $inc: { profileViews: 1 } },
         );
 
-        const payload = vendeur.toObject ? vendeur.toObject() : vendeur;
+        const payload = presentProDocForViewer(req, vendeur, res);
         payload.profileViews = (payload.profileViews || 0) + 1;
 
         res.status(200).json(payload);
@@ -336,7 +336,7 @@ export const updateVendeur = async (req, res) => {
             return res.status(400).json({ error: 'ID vendeur invalide' });
         }
 
-        const updates = pickFields(req.body, VENDEUR_OWNER_FIELDS);
+        const updates = pickFields(stripInjectedKycFromBody(req.body), VENDEUR_OWNER_FIELDS);
 
         // ✅ UPLOAD NOUVEAU LOGO SI PRÉSENT
         if (req.files?.shopLogo?.[0]) {
@@ -347,16 +347,18 @@ export const updateVendeur = async (req, res) => {
             fs.unlinkSync(req.files.shopLogo[0].path);
         }
 
-        // ✅ UPLOAD NOUVEAUX DOCUMENTS
+        // ✅ UPLOAD NOUVEAUX DOCUMENTS KYC (authenticated → cld:auth:)
         const verificationUpdates = {};
         const docFields = ['cni1', 'cni2', 'selfie', 'businessLicense', 'taxDocument'];
         
         for (const field of docFields) {
             if (req.files?.[field]?.[0]) {
-                const result = await cloudinary.v2.uploader.upload(req.files[field][0].path, {
-                    folder: 'vendeurs/verification',
-                });
-                verificationUpdates[`verificationDocuments.${field}`] = result.secure_url;
+                const { ref } = await prepareKycReplacement(
+                    req.files[field][0].path,
+                    'vendeurs/verification',
+                    null,
+                );
+                verificationUpdates[`verificationDocuments.${field}`] = ref;
                 fs.unlinkSync(req.files[field][0].path);
             }
         }
@@ -493,7 +495,7 @@ export const getVendeursByCategory = async (req, res) => {
 
         const vendeurs = await vendeurModel.getVendeursByCategory(category);
         
-        res.status(200).json(vendeurs.slice(0, parseInt(limit)));
+        res.status(200).json(vendeurs.slice(0, parseInt(limit)).map((v) => presentProDocForViewer(req, v, res)));
     } catch (err) {
         console.error("Erreur récupération par catégorie:", err.message);
         res.status(500).json({ error: err.message });
@@ -526,7 +528,7 @@ export const searchVendeurs = async (req, res) => {
             .sort({ rating: -1, completedOrders: -1 });
 
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.status(200).json(vendeurs);
+        res.status(200).json(vendeurs.map((v) => presentProDocForViewer(req, v, res)));
     } catch (err) {
         console.error("Erreur recherche vendeurs:", err.message);
         res.status(500).json({ error: err.message });
@@ -541,20 +543,25 @@ export const getTopVendeurs = async (req, res) => {
         const topVendeurs = await vendeurModel.getTopRatedVendeurs(parseInt(limit));
         
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.status(200).json(topVendeurs);
+        res.status(200).json(topVendeurs.map((v) => presentProDocForViewer(req, v, res)));
     } catch (err) {
         console.error("Erreur récupération top vendeurs:", err.message);
         res.status(500).json({ error: err.message });
     }
 };
 
-// Obtenir statistiques vendeur
+// Obtenir statistiques vendeur (public uniquement si profil catalogue-visible)
 export const getVendeurStats = async (req, res) => {
     try {
         const { id } = req.params;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'ID vendeur invalide' });
+        }
+
+        const vendeur = await vendeurModel.findById(id).lean();
+        if (!vendeur || !canAccessProProfile(req, vendeur)) {
+            return res.status(404).json({ error: "Statistiques non trouvées" });
         }
 
         const stats = await vendeurModel.getVendeurStats(id);

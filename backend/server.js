@@ -43,6 +43,8 @@ import cartRouter from './routes/cartRoutes.js';
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
 import refreshTokenRouter from './routes/refreshTokenRoutes.js';
+import fieldRecensementV1Router from './routes/fieldRecensementV1Routes.js';
+import { getFieldRecensementV1Config } from './config/fieldRecensementV1Config.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
 import { setSocketIo } from './utils/socketIo.js';
 
@@ -260,6 +262,7 @@ app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
 app.use('/api', walletRouter);
 app.use('/api', refreshTokenRouter);
+app.use('/api/v1', fieldRecensementV1Router);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -718,6 +721,13 @@ console.log(`[boot] NODE_ENV=${process.env.NODE_ENV || 'undefined'} PORT=${port}
 httpServer.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Server listening on 0.0.0.0:${port}`);
   console.log(`🔌 WebSocket server ready for connections`);
+  const v1 = getFieldRecensementV1Config();
+  console.log(
+    `[boot] FIELD_RECENSEMENT_V1 enabled=${v1.enabled} minBuildAndroid=${v1.minBuildAndroid ?? 'none'}`,
+  );
+  if (v1.configError) {
+    console.log(`[boot] FIELD_RECENSEMENT_V1 configError=${v1.configError}`);
+  }
   isFcmConfigured();
 });
 

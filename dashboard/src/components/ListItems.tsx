@@ -25,6 +25,8 @@ import HistoryIcon from '@mui/icons-material/History';
 import ReportIcon from '@mui/icons-material/Report';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import PendingActionsIcon from '@mui/icons-material/PendingActions'; // ✅ Pour recensements pending
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import BadgeIcon from '@mui/icons-material/Badge';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -84,6 +86,11 @@ export const MainListItems = () => {
       title: "Utilisateurs", 
       path: "/utilisateur", 
       icon: <PeopleIcon /> 
+    },
+    {
+      title: "Agents recenseurs",
+      path: "/agents-recenseurs",
+      icon: <BadgeIcon />,
     },
     { 
       title: "Prestataires", 
@@ -172,6 +179,11 @@ export const MainListItems = () => {
       path: "/recensements-pending", 
       icon: <PendingActionsIcon />,
       badge: 0 // Sera dynamique avec API
+    },
+    {
+      title: "Recensements terrain",
+      path: "/recensements-terrain",
+      icon: <TravelExploreIcon />,
     },
     // ✅ ANALYTICS & CONFIGURATION
     { 

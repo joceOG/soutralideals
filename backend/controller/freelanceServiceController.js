@@ -4,6 +4,12 @@ import cloudinary from 'cloudinary';
 import freelanceServiceModel from '../models/freelanceServiceModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import serviceModel from '../models/serviceModel.js';
+import {
+  canAccessProProfile,
+  findPublicFreelanceIds,
+  FREELANCE_VENDEUR_PUBLIC_MATCH,
+  isProPubliclyVisible,
+} from '../utils/proPublicFilter.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -272,6 +278,9 @@ export const getFreelanceServiceById = async (req, res) => {
     if (!doc) {
       return res.status(404).json({ error: 'Offre introuvable' });
     }
+    if (!doc.freelance || !canAccessProProfile(req, doc.freelance)) {
+      return res.status(404).json({ error: 'Offre introuvable' });
+    }
     return res.status(200).json(doc);
   } catch (err) {
     console.error('getFreelanceServiceById:', err);
@@ -282,8 +291,16 @@ export const getFreelanceServiceById = async (req, res) => {
 /** GET /freelance-services?freelanceId= */
 export const listFreelanceServices = async (req, res) => {
   try {
-    const filter = {};
+    const publicFreelanceIds = await findPublicFreelanceIds(freelanceModel);
+    const filter = {
+      freelance: { $in: publicFreelanceIds },
+    };
     if (req.query.freelanceId && mongoose.Types.ObjectId.isValid(req.query.freelanceId)) {
+      const requested = String(req.query.freelanceId);
+      const allowed = publicFreelanceIds.some((id) => String(id) === requested);
+      if (!allowed) {
+        return res.status(200).json({ offers: [], count: 0 });
+      }
       filter.freelance = req.query.freelanceId;
     }
     if (req.query.isActive === 'true') filter.isActive = true;
@@ -315,16 +332,17 @@ export const getHomeFreelanceServices = async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit, 10) || 12, 50);
 
+    const publicFreelanceIds = await findPublicFreelanceIds(freelanceModel);
     const docs = await freelanceServiceModel
       .find({
         isActive: true,
         coverImage: { $nin: [null, ''] },
         startingPrice: { $gt: 0 },
+        freelance: { $in: publicFreelanceIds },
       })
       .populate({
         path: 'freelance',
-        // Pas d’exigence accountStatus ici : beaucoup de profils restent Pending avec status active.
-        match: { status: 'active' },
+        match: { ...FREELANCE_VENDEUR_PUBLIC_MATCH },
         populate: { path: 'utilisateur', select: 'nom prenom photoProfil' },
       })
       .populate({
@@ -336,7 +354,9 @@ export const getHomeFreelanceServices = async (req, res) => {
       .limit(limit * 2)
       .lean();
 
-    const filtered = docs.filter((o) => o.freelance != null);
+    const filtered = docs.filter(
+      (o) => o.freelance != null && isProPubliclyVisible(o.freelance),
+    );
 
     const shaped = filtered.slice(0, limit).map((o) => {
       const title =
@@ -392,8 +412,8 @@ export const listFreelanceServicesByFreelanceId = async (req, res) => {
       return res.status(400).json({ error: 'Identifiant freelance invalide' });
     }
 
-    const exists = await freelanceModel.findById(id).select('_id').lean();
-    if (!exists) {
+    const freelance = await freelanceModel.findById(id).lean();
+    if (!freelance || !canAccessProProfile(req, freelance)) {
       return res.status(404).json({ error: 'Freelance introuvable' });
     }
 

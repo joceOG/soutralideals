@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "AUTH_REQUIRED",
+  "message": "Authentification requise.",
+  "retryable": false
+}

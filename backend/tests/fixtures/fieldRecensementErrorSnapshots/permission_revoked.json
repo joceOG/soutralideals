@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "RECENSEUR_PERMISSION_REVOKED",
+  "message": "Permission de recensement révoquée ou absente.",
+  "retryable": false
+}

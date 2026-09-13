@@ -4,7 +4,12 @@ import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFi
 import { isAdmin } from "../middleware/entityAccess.js";
 import { pickFields } from '../utils/pickFields.js';
 import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
-import { uploadKycToCloudinary, redactKycDocument, canAccessKyc, resolveKycFieldsForAuthorizedViewer } from '../utils/kycAccess.js';
+import {
+  uploadKycToCloudinary,
+  prepareKycReplacement,
+  stripInjectedKycFromBody,
+  presentProDocForViewer,
+} from '../utils/kycAccess.js';
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -249,7 +254,7 @@ export const updatePrestataire = async (req, res) => {
     const allowedFields = isAdminUser
       ? [...PRESTATAIRE_OWNER_FIELDS, ...PRESTATAIRE_ADMIN_FIELDS]
       : PRESTATAIRE_OWNER_FIELDS;
-    const body = pickFields(req.body, allowedFields);
+    const body = pickFields(stripInjectedKycFromBody(req.body), allowedFields);
 
     const {
       utilisateur,
@@ -359,11 +364,21 @@ export const updatePrestataire = async (req, res) => {
       updates.status = status;
     }
 
-    // Upload fichiers simples
+    // Upload fichiers KYC (même politique CREATE : authenticated → cld:auth:)
+    // Remplacement : upload d’abord ; suppression ancienne ref différée (pas avant succès Mongo).
     for (const field of ["cni1", "cni2", "selfie", "attestationAssurance"]) {
       if (req.files?.[field]?.[0]) {
-        const result = await uploadToCloudinary(req.files[field][0].path, `prestataires/${field}`);
-        updates[field] = result.secure_url;
+        const { ref } = await prepareKycReplacement(
+          req.files[field][0].path,
+          `prestataires/${field}`,
+          null,
+        );
+        updates[field] = ref;
+        try {
+          fs.unlinkSync(req.files[field][0].path);
+        } catch {
+          /* temp local */
+        }
       }
     }
 
@@ -461,19 +476,8 @@ export const getAllPrestataires = async (req, res) => {
       ? prestataires.filter(p => p.service !== null)
       : prestataires;
 
-    // STAB-11b : jamais exposer URLs KYC en liste (même JWT)
-    const safe = result.map((p) => {
-      const plain = typeof p.toObject === 'function' ? p.toObject() : p;
-      const ownerId = plain.utilisateur?._id ?? plain.utilisateur;
-      const allowed = canAccessKyc({
-        req,
-        ownerUserId: ownerId,
-        recenseurId: plain.recenseur,
-      });
-      return allowed
-        ? resolveKycFieldsForAuthorizedViewer(plain)
-        : redactKycDocument(plain);
-    });
+    // STAB-11b / R0-06 : jamais exposer refs KYC brutes en liste
+    const safe = result.map((p) => presentProDocForViewer(req, p, res));
 
     res.status(200).json(safe);
   } catch (err) {
@@ -511,17 +515,7 @@ export const getPrestataireById = async (req, res) => {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
 
-    const plain = prestataire.toObject();
-    const allowed = canAccessKyc({
-      req,
-      ownerUserId: prestataire.utilisateur?._id ?? prestataire.utilisateur,
-      recenseurId: prestataire.recenseur,
-    });
-    res.status(200).json(
-      allowed
-        ? resolveKycFieldsForAuthorizedViewer(plain)
-        : redactKycDocument(plain),
-    );
+    res.status(200).json(presentProDocForViewer(req, prestataire, res));
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
     res.status(500).json({ error: err.message });

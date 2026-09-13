@@ -32,6 +32,8 @@ import Parametres from '../pages/Parametres/Parametres';
 import ImportPrestataires from '../pages/ImportPrestataires';
 // ✅ OPTION C - Page validation recensements SDEALSIDENTIFICATION
 import RecensementsPending from '../pages/RecensementsPending';
+import FieldRecensementsTerrain from '../pages/FieldRecensementsTerrain';
+import AgentsRecenseurs from '../pages/AgentsRecenseurs';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const withAuth = (element: React.ReactElement) => (
@@ -73,6 +75,8 @@ const AppRouter: React.FC = () => {
       <Route path="/historique" element={withAuth(<Historique />)} />
       <Route path="/parametres" element={withAuth(<Parametres />)} />
       <Route path="/recensements-pending" element={withAuth(<RecensementsPending />)} />
+      <Route path="/recensements-terrain" element={withAuth(<FieldRecensementsTerrain />)} />
+      <Route path="/agents-recenseurs" element={withAuth(<AgentsRecenseurs />)} />
       
       {/* Legacy redirect */}
       <Route path="/soutralideals" element={<Navigate to="/" replace />} />

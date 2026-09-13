@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "RECENSEMENT_ROUTE_NOT_FOUND",
+  "message": "Route de recensement introuvable.",
+  "retryable": false
+}

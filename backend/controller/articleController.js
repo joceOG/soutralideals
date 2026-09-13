@@ -6,6 +6,10 @@ import mongoose from 'mongoose';
 import { isAdmin } from '../utils/accessControl.js';
 import { pickFields } from '../utils/pickFields.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
+import {
+  findPublicVendeurIds,
+  isProPubliclyVisible,
+} from '../utils/proPublicFilter.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -13,13 +17,15 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ✅ Recherche d'articles
+// ✅ Recherche d'articles (vendeurs publics uniquement)
 export const searchArticles = async (req, res) => {
     try {
         const { query } = req.query;
         const limit = 20;
 
-        let searchCriteria = {};
+        let searchCriteria = {
+            vendeur: { $in: await findPublicVendeurIds(vendeurModel) },
+        };
 
         if (query) {
             const safeQuery = escapeRegex(query);
@@ -248,10 +254,11 @@ export const createArticle = async (req, res) => {
     }
 };
 
-// ✅ Récupère tous les articles
+// ✅ Récupère tous les articles (vendeurs publics uniquement)
 export const getAllArticles = async (req, res) => {
     try {
-        const articles = await articleModel.find()
+        const publicVendeurIds = await findPublicVendeurIds(vendeurModel);
+        const articles = await articleModel.find({ vendeur: { $in: publicVendeurIds } })
             .populate('categorie')
             .populate({
                 path: 'vendeur',
@@ -268,7 +275,7 @@ export const getAllArticles = async (req, res) => {
     }
 };
 
-// ✅ Récupère un article par ID
+// ✅ Récupère un article par ID (404 si vendeur non public)
 export const getArticleById = async (req, res) => {
     try {
         const article = await articleModel.findById(req.params.id)
@@ -282,6 +289,11 @@ export const getArticleById = async (req, res) => {
             });
 
         if (!article) {
+            return res.status(404).json({ error: 'Article non trouvé' });
+        }
+
+        const vendeurDoc = article.vendeur;
+        if (!vendeurDoc || !isProPubliclyVisible(vendeurDoc)) {
             return res.status(404).json({ error: 'Article non trouvé' });
         }
 

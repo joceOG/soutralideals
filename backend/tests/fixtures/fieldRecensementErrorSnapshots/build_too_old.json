@@ -1,0 +1,13 @@
+{
+  "success": false,
+  "code": "APP_VERSION_BLOCKED",
+  "message": "Cette version de SDEALSIDENTIFICATION doit être mise à jour.",
+  "retryable": false,
+  "details": {
+    "reason": "BUILD_TOO_OLD",
+    "currentBuildNumber": 8,
+    "minimumBuildNumber": 12,
+    "updateRequired": true,
+    "updateChannel": "internal"
+  }
+}

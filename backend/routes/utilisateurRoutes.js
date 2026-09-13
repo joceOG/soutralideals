@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
 import * as utilisateurController from '../controller/utilisateurController.js';
+import * as fieldAgentAdminController from '../controller/fieldAgentAdminController.js';
 import auth, { authRole } from '../middleware/authMiddleware.js';
+import { requireSelfOrAdminParam } from '../middleware/entityAccess.js';
 import { validateUserRegistration, validateUserLogin, handleValidationErrors } from '../middleware/validation.js';
 
 const utilisateurRouter = Router();
@@ -38,14 +40,46 @@ utilisateurRouter.get('/utilisateur/profile', auth, (req, res) => {
 
 // --- UTILISATEUR (protégé) ---
 utilisateurRouter.get('/utilisateur', auth, authRole(['Admin', 'ADMIN']), utilisateurController.getAllUsers);
-utilisateurRouter.get('/utilisateur/:id/roles', auth, utilisateurController.getUserRoles); // public pour récupération rôles après login
+
+// R3-05 — Agents recenseurs (avant /:id pour éviter le conflit de param)
+utilisateurRouter.get(
+  '/utilisateur/field-agents',
+  auth,
+  authRole(['Admin', 'ADMIN']),
+  fieldAgentAdminController.listFieldAgents,
+);
+utilisateurRouter.post(
+  '/utilisateur/field-agents',
+  auth,
+  authRole(['Admin', 'ADMIN']),
+  fieldAgentAdminController.createFieldAgent,
+);
+
+utilisateurRouter.get(
+  '/utilisateur/:id/roles',
+  auth,
+  requireSelfOrAdminParam('id'),
+  utilisateurController.getUserRoles,
+);
 utilisateurRouter.get('/utilisateur/:id', auth, utilisateurController.getUserById);
 utilisateurRouter.put('/utilisateur/:id', auth, upload.single('photoProfil'), utilisateurController.updateUserById);
 utilisateurRouter.patch(
   '/utilisateur/:id/can-create-recensement',
   auth,
   authRole(['Admin', 'ADMIN']),
-  utilisateurController.setCanCreateRecensement,
+  fieldAgentAdminController.setFieldAgentAuthorization,
+);
+utilisateurRouter.patch(
+  '/utilisateur/:id/field-agent-active',
+  auth,
+  authRole(['Admin', 'ADMIN']),
+  fieldAgentAdminController.setFieldAgentActive,
+);
+utilisateurRouter.patch(
+  '/utilisateur/:id/agent-password',
+  auth,
+  authRole(['Admin', 'ADMIN']),
+  fieldAgentAdminController.resetAgentPassword,
 );
 utilisateurRouter.patch('/utilisateur/password', auth, utilisateurController.changePassword);
 utilisateurRouter.post('/utilisateur/deactivate', auth, utilisateurController.deactivateAccount);

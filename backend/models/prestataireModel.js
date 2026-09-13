@@ -61,8 +61,25 @@ const prestataireSchema = new mongoose.Schema({
   // 🆕 OPTION C - Traçabilité et validation
   source: { 
     type: String, 
-    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard'],
+    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard', 'field_recensement_v1'],
     default: 'web' 
+  },
+  /** Miroir publication FieldRecensement V1 (garde-fou catalogue). */
+  fieldPublicationStatus: {
+    type: String,
+    enum: ['not_started', 'preparing', 'ready', 'published', 'failed', 'suspended'],
+    default: undefined,
+  },
+  /** Génération fencing alignée sur FieldRecensement.publicationFenceEpoch */
+  fieldPublicationEpoch: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  sourceFieldRecensementId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FieldRecensement',
+    default: undefined,
   },
   status: { 
     type: String, 
@@ -151,6 +168,11 @@ prestataireSchema.methods.calculateFinalizationStatus = function() {
     }
   };
 };
+
+prestataireSchema.index(
+  { sourceFieldRecensementId: 1 },
+  { unique: true, sparse: true, name: 'uniq_prestataire_source_field_recensement' },
+);
 
 const prestataireModel = mongoose.model("Prestataire", prestataireSchema);
 export default prestataireModel;

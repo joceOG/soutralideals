@@ -1,0 +1,52 @@
+/**
+ * R1-08A — Raisons admin centralisées (request-correction / reject / approve notes).
+ */
+export const ADMIN_REASON_CODES = Object.freeze([
+  'PHOTO_UNCLEAR',
+  'IDENTITY_INCOMPLETE',
+  'PHONE_INVALID',
+  'LOCATION_INCOMPLETE',
+  'BUSINESS_INCOMPLETE',
+  'SERVICE_WRONG',
+  'CATEGORY_WRONG',
+  'DUPLICATE_SUSPECTED',
+  'FRAUD_SUSPECTED',
+  'CONSENT_INVALID',
+  'DATA_INVALID',
+  'OTHER',
+]);
+
+export const REJECT_REASON_CODES = Object.freeze([
+  ...ADMIN_REASON_CODES,
+  'OUT_OF_SCOPE',
+  'AGENT_ERROR',
+]);
+
+export const SUSPEND_REASON_CODES = Object.freeze([
+  'POLICY_VIOLATION',
+  'FRAUD_SUSPECTED',
+  'QUALITY_ISSUE',
+  'LEGAL_REQUEST',
+  'USER_REQUEST',
+  'DATA_INVALID',
+  'OTHER',
+]);
+
+export const REACTIVATE_REASON_CODES = Object.freeze([
+  'ISSUE_RESOLVED',
+  'FALSE_POSITIVE',
+  'ADMIN_REVIEW_OK',
+  'OTHER',
+]);
+
+export const MAX_CORRECTION_MESSAGE_LEN = 1000;
+export const MAX_CORRECTION_FIELDS = 20;
+
+export default {
+  ADMIN_REASON_CODES,
+  REJECT_REASON_CODES,
+  SUSPEND_REASON_CODES,
+  REACTIVATE_REASON_CODES,
+  MAX_CORRECTION_MESSAGE_LEN,
+  MAX_CORRECTION_FIELDS,
+};

@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "ADMIN_REQUIRED",
+  "message": "Droits administrateur requis.",
+  "retryable": false
+}

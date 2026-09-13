@@ -5,6 +5,12 @@ backend/*env*copy*
 backend/secrets/
 backend/uploads/
 
+# Artifacts de build / binaires (ne jamais committer)
+dashboard/build/
+*.apk
+*.jks
+*.keystore
+
 # Logs
 logs
 *.log

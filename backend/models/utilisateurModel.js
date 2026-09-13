@@ -109,9 +109,49 @@ const UtilisateurSchema = new mongoose.Schema({
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
 
-  /** Compte actif (false = désactivé par l’utilisateur) */
+  /** Compte actif (false = désactivé / stub pending_claim) */
   isActive: { type: Boolean, default: true },
   deactivatedAt: { type: Date },
+
+  /**
+   * R3-05 — Historique minimal grant/revoke permission terrain.
+   * Pas un journal d’audit sécurité complet.
+   */
+  recensementPermissionLog: [
+    {
+      action: {
+        type: String,
+        enum: ['grant', 'revoke'],
+        required: true,
+      },
+      at: { type: Date, default: Date.now },
+      byAdminId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Utilisateur',
+      },
+      byAdminLabel: { type: String, trim: true },
+    },
+  ],
+
+  /**
+   * R1-09 — Activation compte recensement.
+   * pending_claim : stub non connectable jusqu’au claim OTP (R5-05).
+   */
+  activationStatus: {
+    type: String,
+    enum: ['active', 'pending_claim', 'claimed'],
+    default: 'active',
+  },
+  source: {
+    type: String,
+    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard', 'field_recensement_v1'],
+    default: 'web',
+  },
+  sourceFieldRecensementId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FieldRecensement',
+    default: undefined,
+  },
 }, {
   timestamps: true
 });
@@ -123,6 +163,14 @@ UtilisateurSchema.index(
     unique: true,
     name: EMAIL_UNIQUE_INDEX_NAME,
     partialFilterExpression: EMAIL_UNIQUE_PARTIAL_FILTER,
+  },
+);
+UtilisateurSchema.index(
+  { sourceFieldRecensementId: 1 },
+  {
+    unique: true,
+    sparse: true,
+    name: 'uniq_user_source_field_recensement',
   },
 );
 
@@ -216,6 +264,11 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error('Identifiants incorrects');
+
+  // R1-09 — stubs pending_claim / comptes désactivés : pas de login
+  if (user.isActive === false || user.activationStatus === 'pending_claim') {
+    throw new Error('Identifiants incorrects');
+  }
 
   return user;
 };

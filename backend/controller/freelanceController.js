@@ -7,7 +7,7 @@ import { isAdmin, assertAdmin } from '../utils/accessControl.js';
 import { pickFields } from '../utils/pickFields.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
-import { uploadKycToCloudinary } from '../utils/kycAccess.js';
+import { uploadKycToCloudinary, prepareKycReplacement, stripInjectedKycFromBody, presentProDocForViewer } from '../utils/kycAccess.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -193,7 +193,7 @@ export const getAllFreelances = async (req, res) => {
     const total = await freelanceModel.countDocuments(filter);
 
     res.status(200).json({
-      freelances,
+      freelances: freelances.map((f) => presentProDocForViewer(req, f, res)),
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
@@ -229,7 +229,7 @@ export const getFreelanceById = async (req, res) => {
       return res.status(404).json({ error: "Freelance non trouvé" });
     }
 
-    res.status(200).json(freelance);
+    res.status(200).json(presentProDocForViewer(req, freelance, res));
   } catch (err) {
     console.error("Erreur lecture freelance:", err.message);
     if (err?.name === 'CastError' || err?.name === 'StrictPopulateError') {
@@ -242,7 +242,7 @@ export const getFreelanceById = async (req, res) => {
 // ✅ Mettre à jour un freelance (Modèle sdealsapp)
 export const updateFreelance = async (req, res) => {
   try {
-    const body = pickFields(req.body, FREELANCE_OWNER_FIELDS);
+    const body = pickFields(stripInjectedKycFromBody(req.body), FREELANCE_OWNER_FIELDS);
 
     const updates = { lastActive: new Date() };
 
@@ -281,14 +281,16 @@ export const updateFreelance = async (req, res) => {
       fs.unlinkSync(req.files.profileImage[0].path);
     }
 
-    // ✅ Upload documents de vérification
+    // ✅ Upload documents de vérification (même pipeline CREATE : authenticated)
     const verificationUpdates = {};
     for (const field of ["cni1", "cni2", "selfie"]) {
       if (req.files?.[field]?.[0]) {
-        const result = await cloudinary.v2.uploader.upload(req.files[field][0].path, {
-          folder: "freelances/verification",
-        });
-        verificationUpdates[`verificationDocuments.${field}`] = result.secure_url;
+        const { ref } = await prepareKycReplacement(
+          req.files[field][0].path,
+          "freelances/verification",
+          null,
+        );
+        verificationUpdates[`verificationDocuments.${field}`] = ref;
         fs.unlinkSync(req.files[field][0].path);
       }
     }
@@ -381,7 +383,7 @@ export const getFreelancesByCategory = async (req, res) => {
     .sort(sortOptions)
     .limit(parseInt(limit));
 
-    res.status(200).json(freelances);
+    res.status(200).json(freelances.map((f) => presentProDocForViewer(req, f, res)));
   } catch (err) {
     console.error("Erreur récupération par catégorie:", err.message);
     res.status(500).json({ error: err.message });
@@ -440,7 +442,7 @@ export const searchFreelances = async (req, res) => {
     const total = await freelanceModel.countDocuments(searchCriteria);
 
     res.status(200).json({
-      freelances,
+      freelances: freelances.map((f) => presentProDocForViewer(req, f, res)),
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),

@@ -330,8 +330,23 @@ const VendeurSchema = new mongoose.Schema({
   // 🆕 OPTION C - Traçabilité et validation
   source: { 
     type: String, 
-    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard'],
+    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard', 'field_recensement_v1'],
     default: 'web' 
+  },
+  fieldPublicationStatus: {
+    type: String,
+    enum: ['not_started', 'preparing', 'ready', 'published', 'failed', 'suspended'],
+    default: undefined,
+  },
+  fieldPublicationEpoch: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  sourceFieldRecensementId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FieldRecensement',
+    default: undefined,
   },
   status: { 
     type: String, 
@@ -359,11 +374,18 @@ VendeurSchema.index({ businessCategories: 1, accountStatus: 1 });
 VendeurSchema.index({ rating: -1, isTopRated: -1 });
 VendeurSchema.index({ shopName: 'text', shopDescription: 'text' });
 VendeurSchema.index({ 'businessAddress.city': 1 });
+VendeurSchema.index(
+  { sourceFieldRecensementId: 1 },
+  { unique: true, sparse: true, name: 'uniq_vendeur_source_field_recensement' },
+);
 
 // 📊 MÉTHODES STATIQUES POUR STATISTIQUES
 VendeurSchema.statics.getTopRatedVendeurs = async function(limit = 10) {
+  // Catalogue public : status + accountStatus + isVerified (pas accountStatus seul)
   return await this.find({ 
+    status: 'active',
     accountStatus: 'Active',
+    'verificationDocuments.isVerified': true,
     rating: { $gte: 4 }
   })
   .sort({ rating: -1, completedOrders: -1 })
@@ -374,7 +396,9 @@ VendeurSchema.statics.getTopRatedVendeurs = async function(limit = 10) {
 VendeurSchema.statics.getVendeursByCategory = async function(category) {
   return await this.find({
     businessCategories: category,
-    accountStatus: 'Active'
+    status: 'active',
+    accountStatus: 'Active',
+    'verificationDocuments.isVerified': true,
   })
   .sort({ rating: -1 })
   .populate('utilisateur', 'nom prenom');

@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": "SERVER_TEMPORARY_ERROR",
+  "message": "Erreur temporaire du serveur.",
+  "retryable": true
+}
