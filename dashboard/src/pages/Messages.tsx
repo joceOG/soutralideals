@@ -125,6 +125,7 @@ const MessagesComponent: React.FC = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() && !file) return;
     if (!selectedConversation) return;
+    if (!currentUserId) return;
 
     try {
       const formData = new FormData();

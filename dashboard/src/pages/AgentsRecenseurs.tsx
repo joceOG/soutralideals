@@ -292,7 +292,7 @@ const AgentsRecenseurs: React.FC = () => {
         </Stack>
       </Paper>
 
-      <Paper variant="outlined">
+      <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
         <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Typography variant="body2" color="text.secondary">
             {loading ? 'Chargement…' : `${total} résultat(s)`}
@@ -345,8 +345,16 @@ const AgentsRecenseurs: React.FC = () => {
                     color={a.canCreateRecensement ? 'success' : 'warning'}
                   />
                 </TableCell>
-                <TableCell align="right">
-                  <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+                <TableCell align="right" sx={{ minWidth: 360, whiteSpace: 'nowrap' }}>
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => { setPwdAgent(a); setNewPwd(generateClientTempPassword()); }}
+                    >
+                      Mot de passe
+                    </Button>
                     {a.canCreateRecensement ? (
                       <Button
                         size="small"
@@ -390,13 +398,6 @@ const AgentsRecenseurs: React.FC = () => {
                       }
                     >
                       {a.isActive ? 'Désactiver' : 'Réactiver'}
-                    </Button>
-                    <Button
-                      size="small"
-                      color="secondary"
-                      onClick={() => { setPwdAgent(a); setNewPwd(generateClientTempPassword()); }}
-                    >
-                      MDP
                     </Button>
                     <Button size="small" onClick={() => setHistoryAgent(a)}>
                       Historique
