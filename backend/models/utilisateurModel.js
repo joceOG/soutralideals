@@ -113,6 +113,20 @@ const UtilisateurSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   deactivatedAt: { type: Date },
 
+  /** Suppression de compte (Play User Data) — soft-deactivate seul n’est pas suffisant */
+  deletionStatus: {
+    type: String,
+    enum: ['none', 'requested', 'completed'],
+    default: 'none',
+  },
+  deletionRequestedAt: { type: Date },
+  deletionCompletedAt: { type: Date },
+  deletionRequestId: { type: String },
+  deletionChannel: {
+    type: String,
+    enum: ['app', 'web', 'admin'],
+  },
+
   /**
    * R3-05 — Historique minimal grant/revoke permission terrain.
    * Pas un journal d’audit sécurité complet.
