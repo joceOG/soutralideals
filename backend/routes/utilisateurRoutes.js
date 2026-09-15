@@ -83,6 +83,15 @@ utilisateurRouter.patch(
 );
 utilisateurRouter.patch('/utilisateur/password', auth, utilisateurController.changePassword);
 utilisateurRouter.post('/utilisateur/deactivate', auth, utilisateurController.deactivateAccount);
+utilisateurRouter.post(
+  '/utilisateur/request-account-deletion',
+  auth,
+  utilisateurController.requestAccountDeletion,
+);
+utilisateurRouter.post(
+  '/utilisateur/public-deletion-request',
+  utilisateurController.publicAccountDeletionRequest,
+);
 utilisateurRouter.post('/utilisateur/fcm-token', auth, utilisateurController.registerFcmToken);
 utilisateurRouter.delete('/utilisateur/fcm-token', auth, utilisateurController.unregisterFcmToken);
 utilisateurRouter.delete('/utilisateur/:id', auth, utilisateurController.deleteUserById);

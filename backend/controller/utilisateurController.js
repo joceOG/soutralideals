@@ -773,18 +773,37 @@ export const setCanCreateRecensement = async (req, res) => {
 // ✅ SUPPRIMER UN UTILISATEUR
 export const deleteUserById = async (req, res) => {
   try {
-    // 🛡️ IDOR : seul l'utilisateur lui-même ou un admin peut supprimer
+    // 🛡️ IDOR : seul l'utilisateur lui-même (pas de hard-delete admin massif ici).
+    // Play / intégrité : anonymisation via accountDeletionService — jamais findByIdAndDelete.
     const requesterId = req.utilisateur?._id?.toString();
-    const targetId = req.params.id;
-    if (requesterId !== targetId && req.utilisateur?.role !== 'Admin') {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez supprimer que votre propre compte' });
+    const targetId = req.params.id?.toString();
+    if (!requesterId || requesterId !== targetId) {
+      return res.status(403).json({
+        error: 'Accès refusé : vous ne pouvez supprimer que votre propre compte',
+        code: 'ACCOUNT_DELETION_FORBIDDEN',
+      });
     }
 
-    const utilisateur = await Utilisateur.findByIdAndDelete(req.params.id);
-    if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+    const { requestAccountDeletionForActor } = await import(
+      '../services/accountDeletionService.js'
+    );
+    const result = await requestAccountDeletionForActor(req.utilisateur);
+    return res.status(200).json({
+      success: true,
+      code: result.alreadyApplied
+        ? 'ACCOUNT_DELETION_ALREADY_APPLIED'
+        : 'ACCOUNT_DELETION_COMPLETED',
+      message: result.alreadyApplied
+        ? 'La suppression de ce compte était déjà enregistrée.'
+        : 'Votre compte a été supprimé. Les données personnelles ont été anonymisées.',
+      data: { requestId: result.requestId, status: result.status },
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const status = err.status || 500;
+    return res.status(status).json({
+      error: err.message || 'Erreur suppression',
+      code: 'ACCOUNT_DELETION_FAILED',
+    });
   }
 };
 
@@ -969,7 +988,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-/** Désactiver son propre compte (soft) */
+/** Désactiver son propre compte (soft) — legacy ; préférer request-account-deletion */
 export const deactivateAccount = async (req, res) => {
   try {
     const userId = req.utilisateur?._id?.toString();
@@ -988,5 +1007,55 @@ export const deactivateAccount = async (req, res) => {
   } catch (err) {
     console.error('Erreur deactivateAccount:', err.message);
     res.status(500).json({ error: err.message });
+  }
+};
+
+/** Play — demande authentifiée de suppression (anonymisation + révocation). */
+export const requestAccountDeletion = async (req, res) => {
+  try {
+    const { requestAccountDeletionForActor } = await import(
+      '../services/accountDeletionService.js'
+    );
+    const result = await requestAccountDeletionForActor(req.utilisateur);
+    return res.status(200).json({
+      success: true,
+      code: result.alreadyApplied
+        ? 'ACCOUNT_DELETION_ALREADY_APPLIED'
+        : 'ACCOUNT_DELETION_COMPLETED',
+      message: result.alreadyApplied
+        ? 'La suppression de ce compte était déjà enregistrée.'
+        : 'Votre compte a été supprimé. Les données personnelles ont été anonymisées.',
+      data: {
+        requestId: result.requestId,
+        status: result.status,
+        retentionDaysHint: 0,
+      },
+    });
+  } catch (err) {
+    const status = err.status || 500;
+    return res.status(status).json({
+      error: err.message || 'Erreur suppression',
+      code: 'ACCOUNT_DELETION_FAILED',
+    });
+  }
+};
+
+/** Play — formulaire web public (ne révèle pas l’existence du compte). */
+export const publicAccountDeletionRequest = async (req, res) => {
+  try {
+    const { publicDeletionRequest } = await import(
+      '../services/accountDeletionService.js'
+    );
+    const result = await publicDeletionRequest({
+      email: req.body?.email,
+      confirmation: req.body?.confirmation,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    const status = err.status || 500;
+    return res.status(status).json({
+      error: err.message || 'Demande impossible',
+      code: 'ACCOUNT_DELETION_REQUEST_FAILED',
+    });
   }
 };
