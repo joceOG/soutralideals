@@ -36,7 +36,9 @@ Votre API SOUTRALI DEALS est entièrement documentée avec **Swagger/OpenAPI 3.0
 | Endpoint | Méthode | Description | Tags |
 |----------|---------|-------------|------|
 | `/api/article` | GET/POST | Gestion des articles | Articles |
-| `/api/commande` | GET/POST | Gestion des commandes | Commandes |
+| `/api/commande` | POST | Création commande sécurisée (Articles + JWT) | Commandes |
+
+> Contrat détaillé POST commande (migration Next/Flutter) : [`docs/api/COMMANDE_CREATE.md`](../../docs/api/COMMANDE_CREATE.md) — Swagger `backend/swagger/docs/commandes.yaml`.
 | `/api/categorie` | GET/POST | Gestion des catégories | Catégories |
 
 ### **💼 Services & Prestataires**

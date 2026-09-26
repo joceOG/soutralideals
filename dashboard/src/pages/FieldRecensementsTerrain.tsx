@@ -1,22 +1,23 @@
 /**
  * R3-01/R3-02 — File admin recensements terrain + actions de modération.
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import axios, { AxiosError, CancelTokenSource } from 'axios';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { Dropdown } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
-import { Calendar } from 'primereact/calendar';
-import { Tag } from 'primereact/tag';
-import { Toast } from 'primereact/toast';
-import { Skeleton } from 'primereact/skeleton';
-import { Card } from 'primereact/card';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type { AxiosError } from 'axios';
 import { Link } from 'react-router-dom';
-import { Box, Typography, Chip } from '@mui/material';
-import { clearSession, getApiUrl, isCurrentUserAdmin } from '../services/setupApi';
+import {
+  Box, Typography, Chip, Paper, Stack, TextField, MenuItem, Button,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Skeleton, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions,
+  IconButton, Tooltip,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import CloseIcon from '@mui/icons-material/Close';
+import TerrainIcon from '@mui/icons-material/Terrain';
+import { colors } from '../tokens/colors';
+import { apiClient, clearSession, isApiClientError, isCurrentUserAdmin } from '../services/setupApi';
 import FieldRecensementModerationPanel from '../components/FieldRecensementModerationPanel';
 
 type QueueItem = {
@@ -99,7 +100,7 @@ const TYPE_OPTIONS = [
 ];
 
 function mapApiError(err: unknown): UiError {
-  if (!axios.isAxiosError(err)) {
+  if (!isApiClientError(err)) {
     return { kind: 'network' };
   }
   const ax = err as AxiosError<{ code?: string; message?: string }>;
@@ -142,10 +143,28 @@ function errorMessage(e: UiError): string {
   }
 }
 
+const TH_SX = {
+  color: colors.textSecondary,
+  fontWeight: 600,
+  fontSize: '0.72rem',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.06em',
+  backgroundColor: colors.bgWarm,
+  borderBottom: `1px solid ${colors.border}`,
+  py: 1.5,
+  px: 2,
+};
+
 const FieldRecensementsTerrain: React.FC = () => {
-  const toast = useRef<Toast>(null);
   const reqSeq = useRef(0);
-  const cancelRef = useRef<CancelTokenSource | null>(null);
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+    open: false,
+    msg: '',
+    severity: 'info',
+  });
+  const notify = (msg: string, severity: 'success' | 'error' | 'info' | 'warning' = 'info') =>
+    setSnack({ open: true, msg, severity });
+  const cancelRef = useRef<AbortController | null>(null);
 
   const [items, setItems] = useState<QueueItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -167,8 +186,6 @@ const FieldRecensementsTerrain: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<DetailDto | null>(null);
   const [detailError, setDetailError] = useState<UiError>({ kind: 'none' });
-
-  const apiBase = useMemo(() => getApiUrl(), []);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedQ(search.trim()), 350);
@@ -199,9 +216,9 @@ const FieldRecensementsTerrain: React.FC = () => {
         return;
       }
 
-      cancelRef.current?.cancel('obsolete');
-      const source = axios.CancelToken.source();
-      cancelRef.current = source;
+      cancelRef.current?.abort();
+      const controller = new AbortController();
+      cancelRef.current = controller;
       const seq = ++reqSeq.current;
 
       if (mode === 'replace') {
@@ -214,15 +231,15 @@ const FieldRecensementsTerrain: React.FC = () => {
       try {
         const cursor = mode === 'append' ? nextCursor : null;
         const [listRes, statsRes] = await Promise.all([
-          axios.get(`${apiBase}/v1/field-recensements/admin/queue`, {
+          apiClient.get('/v1/field-recensements/admin/queue', {
             params: buildParams(cursor),
-            cancelToken: source.token,
+            signal: controller.signal,
           }),
           mode === 'replace'
-            ? axios.get(`${apiBase}/v1/field-recensements/admin/queue/stats`, {
-                params: buildParams(null),
-                cancelToken: source.token,
-              })
+            ? apiClient.get('/v1/field-recensements/admin/queue/stats', {
+              params: buildParams(null),
+              signal: controller.signal,
+            })
             : Promise.resolve(null),
         ]);
 
@@ -237,19 +254,14 @@ const FieldRecensementsTerrain: React.FC = () => {
         }
         setUiError({ kind: 'none' });
       } catch (err) {
-        if (axios.isCancel(err)) return;
+        if (isApiClientError(err) && (err.code === 'ERR_CANCELED' || err.name === 'CanceledError')) return;
         if (seq !== reqSeq.current) return;
         const mapped = mapApiError(err);
         setUiError(mapped);
         if (mapped.kind === 'auth') {
           clearSession();
         }
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: errorMessage(mapped),
-          life: 4000,
-        });
+        notify(errorMessage(mapped), 'error');
       } finally {
         if (seq === reqSeq.current) {
           setLoading(false);
@@ -257,7 +269,7 @@ const FieldRecensementsTerrain: React.FC = () => {
         }
       }
     },
-    [apiBase, buildParams, nextCursor],
+    [buildParams, nextCursor],
   );
 
   useEffect(() => {
@@ -265,7 +277,7 @@ const FieldRecensementsTerrain: React.FC = () => {
     setNextCursor(null);
     void loadQueue('replace');
     return () => {
-      cancelRef.current?.cancel('unmount');
+      cancelRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reviewStatus, professionalType, commune, quartier, debouncedQ, dateFrom, dateTo]);
@@ -287,7 +299,7 @@ const FieldRecensementsTerrain: React.FC = () => {
     setDetailError({ kind: 'none' });
     setDetailLoading(true);
     try {
-      const res = await axios.get(`${apiBase}/v1/field-recensements/${id}`);
+      const res = await apiClient.get(`/v1/field-recensements/${id}`);
       const payload = res.data?.data as DetailDto;
       if (payload && 'kyc' in (payload as object)) {
         delete (payload as { kyc?: unknown }).kyc;
@@ -302,63 +314,145 @@ const FieldRecensementsTerrain: React.FC = () => {
     }
   };
 
-  const refreshAfterModeration = async () => {
-    if (!detail?.id) {
-      await loadQueue('replace');
-      return;
-    }
-    const id = detail.id;
-    try {
-      const res = await axios.get(`${apiBase}/v1/field-recensements/${id}`);
-      const payload = res.data?.data as DetailDto;
-      if (payload && 'kyc' in (payload as object)) {
-        delete (payload as { kyc?: unknown }).kyc;
+  const applyModerationPatch = (patch?: {
+    id?: string;
+    revision?: number;
+    reviewStatus?: string;
+    publicationStatus?: string;
+  }) => {
+    if (!patch) return;
+    setDetail((prev) => {
+      if (!prev) return prev;
+      if (patch.id && patch.id !== prev.id) return prev;
+      return {
+        ...prev,
+        reviewStatus: patch.reviewStatus ?? prev.reviewStatus,
+        publicationStatus: patch.publicationStatus ?? prev.publicationStatus,
+        revision: typeof patch.revision === 'number' ? patch.revision : prev.revision,
+      };
+    });
+    const targetId = patch.id || detail?.id;
+    if (!targetId) return;
+    setItems((prev) =>
+      prev.map((it) =>
+        it.id === targetId
+          ? {
+            ...it,
+            reviewStatus: patch.reviewStatus ?? it.reviewStatus,
+            publicationStatus: patch.publicationStatus ?? it.publicationStatus,
+            revision: typeof patch.revision === 'number' ? patch.revision : it.revision,
+          }
+          : it,
+      ),
+    );
+  };
+
+  const refreshAfterModeration = async (patch?: {
+    id?: string;
+    revision?: number;
+    reviewStatus?: string;
+    publicationStatus?: string;
+  }) => {
+    applyModerationPatch(patch);
+    const id = patch?.id || detail?.id;
+    if (id) {
+      try {
+        const res = await apiClient.get(`/v1/field-recensements/${id}`);
+        const payload = res.data?.data as DetailDto;
+        if (payload && 'kyc' in (payload as object)) {
+          delete (payload as { kyc?: unknown }).kyc;
+        }
+        if (payload) {
+          setDetail(payload);
+          applyModerationPatch({
+            id: payload.id,
+            reviewStatus: payload.reviewStatus,
+            publicationStatus: payload.publicationStatus,
+            revision: payload.revision,
+          });
+        }
+      } catch {
+        /* la liste ci-dessous reste la source de vérité */
       }
-      setDetail(payload);
-    } catch {
-      throw new Error('DETAIL_REFRESH_FAILED');
     }
     await loadQueue('replace');
   };
 
-  const reviewTag = (status: string) => {
-    const map: Record<string, { severity: 'success' | 'info' | 'warning' | 'danger' | null; label: string }> = {
-      pending_review: { severity: 'warning', label: 'En revue' },
-      needs_correction: { severity: 'info', label: 'Correction' },
-      approved: { severity: 'success', label: 'Approuvé' },
-      rejected: { severity: 'danger', label: 'Rejeté' },
-      suspended: { severity: 'danger', label: 'Suspendu' },
+  const publicationLabel = (status: string) => {
+    const map: Record<string, string> = {
+      not_started: 'Non démarrée',
+      ready: 'Prête',
+      linking_user: 'Liaison compte',
+      creating_profile: 'Création profil',
+      linking_profile: 'Liaison profil',
+      published: 'Publié',
+      failed: 'Échouée',
+      suspended: 'Suspendue',
     };
-    const m = map[status] || { severity: null, label: status };
-    return <Tag value={m.label} severity={m.severity} />;
+    return map[status] || status;
+  };
+
+  const reviewChip = (status: string) => {
+    const map: Record<string, { label: string; bg: string; color: string }> = {
+      pending_review: { label: 'En revue', bg: alpha(colors.warning, 0.12), color: '#B45309' },
+      needs_correction: { label: 'Correction', bg: alpha(colors.info, 0.1), color: colors.info },
+      approved: { label: 'Approuvé', bg: alpha(colors.success, 0.1), color: colors.success },
+      rejected: { label: 'Rejeté', bg: alpha(colors.error, 0.08), color: colors.error },
+      suspended: { label: 'Suspendu', bg: alpha(colors.error, 0.08), color: colors.error },
+    };
+    const m = map[status] || { label: status, bg: colors.bgWarm, color: colors.textMuted };
+    return (
+      <Chip
+        label={m.label}
+        size="small"
+        sx={{ fontSize: '0.72rem', fontWeight: 600, bgcolor: m.bg, color: m.color }}
+      />
+    );
+  };
+
+  const statChipSx = (key: string) => {
+    if (key === 'Publiés') return { bgcolor: alpha(colors.success, 0.1), color: colors.success, borderColor: alpha(colors.success, 0.25) };
+    if (key === 'En revue' || key === 'Attention') return { bgcolor: alpha(colors.warning, 0.1), color: '#B45309', borderColor: alpha(colors.warning, 0.25) };
+    if (key === 'Rejetés' || key === 'Suspendus' || key === 'Pub. échouée') return { bgcolor: alpha(colors.error, 0.06), color: colors.error, borderColor: alpha(colors.error, 0.2) };
+    if (key === 'Total') return { bgcolor: alpha(colors.forestGreen, 0.08), color: colors.forestGreen, borderColor: alpha(colors.forestGreen, 0.2) };
+    return { bgcolor: colors.bgCard, color: colors.textSecondary, borderColor: colors.border };
   };
 
   const countChips = counts
     ? [
-        { label: 'Total', value: counts.total },
-        { label: 'En revue', value: counts.pending_review },
-        { label: 'Correction', value: counts.needs_correction },
-        { label: 'À publier', value: counts.approved_awaiting_publication },
-        { label: 'Publiés', value: counts.published },
-        { label: 'Rejetés', value: counts.rejected },
-        { label: 'Suspendus', value: counts.suspended },
-        { label: 'Pub. échouée', value: counts.publication_failed },
-        { label: 'Attention', value: counts.attention_required },
-      ]
+      { label: 'Total', value: counts.total },
+      { label: 'En revue', value: counts.pending_review },
+      { label: 'Correction', value: counts.needs_correction },
+      { label: 'À publier', value: counts.approved_awaiting_publication },
+      { label: 'Publiés', value: counts.published },
+      { label: 'Rejetés', value: counts.rejected },
+      { label: 'Suspendus', value: counts.suspended },
+      { label: 'Pub. échouée', value: counts.publication_failed },
+      { label: 'Attention', value: counts.attention_required },
+    ]
     : [];
 
   return (
-    <div className="field-recensements-terrain" style={{ padding: '1.5rem' }}>
-      <Toast ref={toast} />
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1}>
-        <div>
-          <Typography variant="h5" component="h1">
-            Recensements terrain
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Consultation administrateur (V1) — décisions métier dans une prochaine étape.
-          </Typography>
-        </div>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      {/* En-tête — titre unique dans la topbar */}
+      <Stack direction="row" alignItems="flex-start" justifyContent="space-between" mb={2.5} flexWrap="wrap" gap={2}>
+        <Stack direction="row" alignItems="center" gap={1.5}>
+          <Box sx={{
+            width: 40, height: 40, borderRadius: 2,
+            backgroundColor: alpha(colors.forestGreen, 0.1),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <TerrainIcon sx={{ color: colors.forestGreen, fontSize: 22 }} />
+          </Box>
+          <Box>
+            <Typography variant="body2" fontWeight={500} color={colors.textSecondary}>
+              Consultation administrateur (V1) — décisions métier dans une prochaine étape.
+            </Typography>
+            <Typography variant="caption" color={colors.textMuted}>
+              {loading && !counts ? 'Chargement…' : counts ? `${counts.total} dossier${counts.total > 1 ? 's' : ''}` : '—'}
+            </Typography>
+          </Box>
+        </Stack>
         <Chip
           component={Link}
           to="/recensements-pending"
@@ -366,249 +460,313 @@ const FieldRecensementsTerrain: React.FC = () => {
           label="Legacy : recensements en attente"
           size="small"
           variant="outlined"
+          sx={{ borderColor: colors.border, color: colors.textSecondary }}
         />
-      </Box>
+      </Stack>
 
-      <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+      {/* Compteurs */}
+      <Stack direction="row" flexWrap="wrap" gap={1} mb={2.5}>
         {loading && !counts
           ? Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} width="6rem" height="2rem" borderRadius="1rem" />
-            ))
-          : countChips.map((c) => (
-              <Chip key={c.label} label={`${c.label} : ${c.value}`} size="small" />
-            ))}
-      </Box>
+            <Skeleton key={i} variant="rounded" width={96} height={28} />
+          ))
+          : countChips.map((c) => {
+            const sx = statChipSx(c.label);
+            return (
+              <Chip
+                key={c.label}
+                label={`${c.label} : ${c.value}`}
+                size="small"
+                variant="outlined"
+                sx={{ fontSize: '0.72rem', fontWeight: 600, ...sx }}
+              />
+            );
+          })}
+      </Stack>
 
-      <Card className="mb-3">
-        <Box display="flex" flexWrap="wrap" gap={1.5} alignItems="flex-end">
-          <div>
-            <label htmlFor="fr-review">Statut revue</label>
-            <Dropdown
-              inputId="fr-review"
-              value={reviewStatus}
-              options={REVIEW_OPTIONS}
-              onChange={(e) => setReviewStatus(e.value)}
-              style={{ minWidth: '10rem' }}
-            />
-          </div>
-          <div>
-            <label htmlFor="fr-type">Type</label>
-            <Dropdown
-              inputId="fr-type"
-              value={professionalType}
-              options={TYPE_OPTIONS}
-              onChange={(e) => setProfessionalType(e.value)}
-              style={{ minWidth: '10rem' }}
-            />
-          </div>
-          <div>
-            <label htmlFor="fr-commune">Commune</label>
-            <InputText
-              id="fr-commune"
-              value={commune}
-              onChange={(e) => setCommune(e.target.value)}
-              aria-label="Filtrer par commune"
-            />
-          </div>
-          <div>
-            <label htmlFor="fr-quartier">Quartier</label>
-            <InputText
-              id="fr-quartier"
-              value={quartier}
-              onChange={(e) => setQuartier(e.target.value)}
-              aria-label="Filtrer par quartier"
-            />
-          </div>
-          <div>
-            <label htmlFor="fr-search">Recherche</label>
-            <InputText
-              id="fr-search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Nom ou téléphone"
-              aria-label="Recherche nom ou téléphone"
-            />
-          </div>
-          <div>
-            <label htmlFor="fr-from">Du</label>
-            <Calendar
-              inputId="fr-from"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.value as Date | null)}
-              showIcon
-              dateFormat="dd/mm/yy"
-            />
-          </div>
-          <div>
-            <label htmlFor="fr-to">Au</label>
-            <Calendar
-              inputId="fr-to"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.value as Date | null)}
-              showIcon
-              dateFormat="dd/mm/yy"
-            />
-          </div>
+      {/* Filtres */}
+      <Paper
+        elevation={0}
+        sx={{ border: `1px solid ${colors.border}`, borderRadius: 2, p: 2, mb: 2.5, backgroundColor: colors.bgCard }}
+      >
+        <Stack direction="row" flexWrap="wrap" gap={2} alignItems="flex-end">
+          <TextField
+            select
+            size="small"
+            label="Statut revue"
+            value={reviewStatus}
+            onChange={(e) => setReviewStatus(e.target.value)}
+            sx={{ minWidth: 150 }}
+          >
+            {REVIEW_OPTIONS.map((o) => (
+              <MenuItem key={o.value || 'all'} value={o.value}>{o.label}</MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            size="small"
+            label="Type"
+            value={professionalType}
+            onChange={(e) => setProfessionalType(e.target.value)}
+            sx={{ minWidth: 140 }}
+          >
+            {TYPE_OPTIONS.map((o) => (
+              <MenuItem key={o.value || 'all'} value={o.value}>{o.label}</MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            size="small"
+            label="Commune"
+            value={commune}
+            onChange={(e) => setCommune(e.target.value)}
+            sx={{ minWidth: 140 }}
+          />
+          <TextField
+            size="small"
+            label="Quartier"
+            value={quartier}
+            onChange={(e) => setQuartier(e.target.value)}
+            sx={{ minWidth: 140 }}
+          />
+          <TextField
+            size="small"
+            label="Recherche"
+            placeholder="Nom ou téléphone"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ minWidth: 200, flexGrow: 1 }}
+          />
+          <TextField
+            size="small"
+            label="Du"
+            type="date"
+            value={dateFrom ? dateFrom.toISOString().slice(0, 10) : ''}
+            onChange={(e) => setDateFrom(e.target.value ? new Date(`${e.target.value}T12:00:00`) : null)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ width: 155 }}
+          />
+          <TextField
+            size="small"
+            label="Au"
+            type="date"
+            value={dateTo ? dateTo.toISOString().slice(0, 10) : ''}
+            onChange={(e) => setDateTo(e.target.value ? new Date(`${e.target.value}T12:00:00`) : null)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ width: 155 }}
+          />
           <Button
-            type="button"
-            label="Réinitialiser"
-            icon="pi pi-filter-slash"
-            className="p-button-outlined"
+            variant="outlined"
+            startIcon={<FilterAltOffIcon />}
             onClick={resetFilters}
-          />
+            sx={{
+              height: 40,
+              borderColor: colors.border,
+              color: colors.textSecondary,
+              '&:hover': { borderColor: colors.primary, color: colors.primary },
+            }}
+          >
+            Réinitialiser
+          </Button>
           <Button
-            type="button"
-            label="Actualiser"
-            icon="pi pi-refresh"
+            variant="contained"
+            startIcon={<RefreshIcon />}
             onClick={() => void loadQueue('replace')}
+            disabled={loading}
             aria-label="Actualiser la liste"
-          />
-        </Box>
-      </Card>
+            sx={{ height: 40, px: 2.5, bgcolor: colors.primary, '&:hover': { bgcolor: colors.primary700 } }}
+          >
+            Actualiser
+          </Button>
+        </Stack>
+      </Paper>
 
       {uiError.kind !== 'none' && (
-        <Box mb={2} role="alert">
-          <Typography color="error">{errorMessage(uiError)}</Typography>
-        </Box>
+        <Alert severity="error" sx={{ mb: 2 }} role="alert">
+          {errorMessage(uiError)}
+        </Alert>
       )}
 
-      {loading ? (
-        <Skeleton width="100%" height="16rem" />
-      ) : (
-        <DataTable
-          value={items}
-          emptyMessage="Aucun recensement pour ces filtres."
-          paginator={false}
-          stripedRows
-          responsiveLayout="scroll"
-          size="small"
-        >
-          <Column
-            header="Personne"
-            body={(row: QueueItem) => (
-              <span>
-                {row.personLabel || row.displayLabel || '—'}
-                <br />
-                <small>{row.telephoneMasked || ''}</small>
-              </span>
-            )}
-          />
-          <Column field="professionalType" header="Type" />
-          <Column
-            header="Localisation"
-            body={(row: QueueItem) =>
-              [row.commune, row.quartier].filter(Boolean).join(' · ') || '—'
-            }
-          />
-          <Column
-            header="Recenseur"
-            body={(row: QueueItem) =>
-              row.recenseur?.id ? `${row.recenseur.id.slice(0, 6)}…` : '—'
-            }
-          />
-          <Column
-            header="Revue"
-            body={(row: QueueItem) => reviewTag(row.reviewStatus)}
-          />
-          <Column field="publicationStatus" header="Publication" />
-          <Column
-            header="Date"
-            body={(row: QueueItem) =>
-              row.createdAt ? new Date(row.createdAt).toLocaleString('fr-FR') : '—'
-            }
-          />
-          <Column
-            header="Correction"
-            body={(row: QueueItem) => (row.hasCorrection ? 'Oui' : 'Non')}
-          />
-          <Column
-            header="Action"
-            body={(row: QueueItem) => (
-              <Button
-                type="button"
-                label="Voir"
-                icon="pi pi-eye"
-                className="p-button-text"
-                onClick={() => void openDetail(row.id)}
-                aria-label={`Voir le dossier ${row.personLabel || row.id}`}
-              />
-            )}
-          />
-        </DataTable>
-      )}
+      <Paper elevation={0} sx={{ border: `1px solid ${colors.border}`, borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                {['Personne', 'Type', 'Localisation', 'Recenseur', 'Revue', 'Publication', 'Date', 'Correction', 'Action'].map((h) => (
+                  <TableCell key={h} sx={TH_SX}>{h}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 9 }).map((__, j) => (
+                      <TableCell key={j}><Skeleton variant="text" /></TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : items.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center" sx={{ py: 6, color: colors.textMuted }}>
+                    Aucun recensement pour ces filtres.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                items.map((row) => (
+                  <TableRow key={row.id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={500}>
+                        {row.personLabel || row.displayLabel || '—'}
+                      </Typography>
+                      {row.telephoneMasked ? (
+                        <Typography variant="caption" color={colors.textMuted}>{row.telephoneMasked}</Typography>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>{row.professionalType}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color={colors.textSecondary}>
+                        {[row.commune, row.quartier].filter(Boolean).join(' · ') || '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: colors.textMuted }}>
+                        {row.recenseur?.id ? `${row.recenseur.id.slice(0, 6)}…` : '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{reviewChip(row.reviewStatus)}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{publicationLabel(row.publicationStatus)}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color={colors.textSecondary}>
+                        {row.createdAt ? new Date(row.createdAt).toLocaleString('fr-FR') : '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={row.hasCorrection ? 'Oui' : 'Non'}
+                        size="small"
+                        sx={{
+                          fontSize: '0.72rem',
+                          bgcolor: row.hasCorrection ? alpha(colors.warning, 0.1) : colors.bgWarm,
+                          color: row.hasCorrection ? '#B45309' : colors.textMuted,
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="Voir le dossier">
+                        <IconButton
+                          size="small"
+                          onClick={() => void openDetail(row.id)}
+                          aria-label={`Voir le dossier ${row.personLabel || row.id}`}
+                          sx={{ color: colors.primary }}
+                        >
+                          <VisibilityIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
-      <Box mt={2} display="flex" gap={1}>
+      <Box mt={2}>
         <Button
-          type="button"
-          label={loadingMore ? 'Chargement…' : 'Page suivante'}
+          variant="outlined"
           disabled={!nextCursor || loadingMore || loading}
           onClick={() => void loadQueue('append')}
-        />
+          sx={{ borderColor: colors.border, color: colors.textSecondary, '&:hover': { borderColor: colors.primary, color: colors.primary } }}
+        >
+          {loadingMore ? 'Chargement…' : 'Page suivante'}
+        </Button>
       </Box>
 
-      <Dialog
-        header="Détail recensement"
-        visible={detailOpen}
-        style={{ width: 'min(640px, 95vw)' }}
-        onHide={() => setDetailOpen(false)}
-        dismissableMask
-      >
-        {detailLoading && <Skeleton width="100%" height="8rem" />}
-        {!detailLoading && detailError.kind !== 'none' && (
-          <Typography color="error">{errorMessage(detailError)}</Typography>
-        )}
-        {!detailLoading && detail && (
-          <div>
-            <p>
-              <strong>Type :</strong> {detail.professionalType}
-            </p>
-            <p>
-              <strong>Revue :</strong> {detail.reviewStatus} —{' '}
-              <strong>Publication :</strong> {detail.publicationStatus}
-            </p>
-            <p>
-              <strong>Personne :</strong>{' '}
-              {[detail.person?.prenoms, detail.person?.nom].filter(Boolean).join(' ')}
-              {detail.person?.telephone ? ` · ${detail.person.telephone}` : ''}
-            </p>
-            <p>
-              <strong>Photo :</strong>{' '}
-              {detail.profilePhoto?.present
-                ? `présente (${detail.profilePhoto.status})`
-                : 'absente'}
-            </p>
-            {detail.correction ? (
-              <p>
-                <strong>Correction :</strong> {JSON.stringify(detail.correction)}
-              </p>
-            ) : null}
-            <p>
-              <strong>Recenseur :</strong> {detail.recenseurId || '—'}
-            </p>
-            {isCurrentUserAdmin() && (
-              <FieldRecensementModerationPanel
-                detail={{
-                  id: detail.id,
-                  professionalType: detail.professionalType,
-                  reviewStatus: detail.reviewStatus,
-                  publicationStatus: detail.publicationStatus,
-                  revision: detail.revision,
-                }}
-                onRefreshRequired={refreshAfterModeration}
-                onToast={(severity, summary, detailMsg) =>
-                  toast.current?.show({
-                    severity,
-                    summary,
-                    detail: detailMsg,
-                    life: 4500,
-                  })
-                }
-              />
-            )}
-          </div>
-        )}
+      <Dialog open={detailOpen} onClose={() => setDetailOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ borderBottom: `1px solid ${colors.border}`, pb: 1.5 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography fontWeight={700} color={colors.textPrimary}>Détail recensement</Typography>
+            <IconButton size="small" onClick={() => setDetailOpen(false)} aria-label="Fermer">
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 2 }}>
+          {detailLoading && (
+            <Stack gap={1}>
+              <Skeleton variant="text" />
+              <Skeleton variant="text" width="80%" />
+              <Skeleton variant="rectangular" height={80} />
+            </Stack>
+          )}
+          {!detailLoading && detailError.kind !== 'none' && (
+            <Alert severity="error">{errorMessage(detailError)}</Alert>
+          )}
+          {!detailLoading && detail && (
+            <Stack gap={1.5}>
+              <Typography variant="body2"><strong>Type :</strong> {detail.professionalType}</Typography>
+              <Typography variant="body2">
+                <strong>Revue :</strong> {detail.reviewStatus} — <strong>Publication :</strong>{' '}
+                {publicationLabel(detail.publicationStatus)}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Personne :</strong>{' '}
+                {[detail.person?.prenoms, detail.person?.nom].filter(Boolean).join(' ')}
+                {detail.person?.telephone ? ` · ${detail.person.telephone}` : ''}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Photo :</strong>{' '}
+                {detail.profilePhoto?.present
+                  ? `présente (${detail.profilePhoto.status})`
+                  : 'absente'}
+              </Typography>
+              {detail.correction ? (
+                <Typography variant="body2" component="pre" sx={{ fontSize: '0.75rem', whiteSpace: 'pre-wrap' }}>
+                  <strong>Correction :</strong> {JSON.stringify(detail.correction)}
+                </Typography>
+              ) : null}
+              <Typography variant="body2"><strong>Recenseur :</strong> {detail.recenseurId || '—'}</Typography>
+              {isCurrentUserAdmin() && (
+                <Box sx={{ mt: 1, pt: 2, borderTop: `1px solid ${colors.border}` }}>
+                  <FieldRecensementModerationPanel
+                    detail={{
+                      id: detail.id,
+                      professionalType: detail.professionalType,
+                      reviewStatus: detail.reviewStatus,
+                      publicationStatus: detail.publicationStatus,
+                      revision: detail.revision,
+                    }}
+                    onRefreshRequired={refreshAfterModeration}
+                    onToast={(severity, summary, detailMsg) => {
+                      const sev = severity === 'warn' ? 'warning' : severity === 'error' ? 'error' : severity === 'success' ? 'success' : 'info';
+                      notify(`${summary}${detailMsg ? ` — ${detailMsg}` : ''}`, sev);
+                    }}
+                  />
+                </Box>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 2, py: 1.5, borderTop: `1px solid ${colors.border}` }}>
+          <Button onClick={() => setDetailOpen(false)} color="inherit">Fermer</Button>
+        </DialogActions>
       </Dialog>
-    </div>
+
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={4500}
+        onClose={() => setSnack((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={snack.severity} variant="filled" onClose={() => setSnack((s) => ({ ...s, open: false }))}>
+          {snack.msg}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

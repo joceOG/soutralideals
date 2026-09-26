@@ -2,14 +2,20 @@
  * R3-02 — Panneau d’actions de modération (détail admin).
  */
 import React, { useMemo, useRef, useState } from 'react';
-import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { MultiSelect } from 'primereact/multiselect';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Box, Typography } from '@mui/material';
-import axios from 'axios';
+import { Box, Typography, Button, Stack } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckIcon from '@mui/icons-material/Check';
+import ReplayIcon from '@mui/icons-material/Replay';
+import BlockIcon from '@mui/icons-material/Block';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { colors } from '../tokens/colors';
+import { AdminConfirmDialog } from './admin/AdminConfirmDialog';
 import {
   ADMIN_REASON_CODES,
   CORRECTION_FIELDS_BY_TYPE,
@@ -38,7 +44,12 @@ export type ModerationDetail = {
 type Props = {
   detail: ModerationDetail;
   disabled?: boolean;
-  onRefreshRequired: () => Promise<void>;
+  onRefreshRequired: (patch?: {
+    id?: string;
+    revision?: number;
+    reviewStatus?: string;
+    publicationStatus?: string;
+  }) => Promise<void>;
   onToast: (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string) => void;
 };
 
@@ -59,6 +70,10 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
   const [reasonCode, setReasonCode] = useState('OTHER');
   const [message, setMessage] = useState('');
   const [fields, setFields] = useState<string[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [confirmSeverity, setConfirmSeverity] = useState<'info' | 'warning' | 'danger'>('warning');
 
   const actions = useMemo(
     () =>
@@ -108,7 +123,7 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
     }
 
     setBusy(true);
-    const source = axios.CancelToken.source();
+    const controller = new AbortController();
     try {
       const outcome = await postModerationAction(
         detail.id,
@@ -118,7 +133,7 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
           expectedRevision: detail.revision,
           ...bodyExtra,
         },
-        source.token,
+        controller.signal,
       );
 
       endSession(outcome);
@@ -146,12 +161,12 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
           userMessageForOutcome(outcome),
         );
         try {
-          await onRefreshRequired();
+          await onRefreshRequired('data' in outcome ? outcome.data : undefined);
         } catch {
           onToast(
             'warn',
             'Actualisation',
-            'Action enregistrée. Impossible d’actualiser les données pour le moment.',
+            'Action enregistrée. Cliquez sur Actualiser pour voir le nouveau statut.',
           );
         }
       } else {
@@ -169,94 +184,115 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
     }
   };
 
-  const confirmThen = (messageText: string, action: () => void) => {
-    confirmDialog({
-      message: messageText,
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Confirmer',
-      rejectLabel: 'Annuler',
-      accept: action,
-    });
+  const confirmThen = (messageText: string, action: () => void, severity: 'info' | 'warning' | 'danger' = 'warning') => {
+    setConfirmMessage(messageText);
+    setConfirmAction(() => action);
+    setConfirmSeverity(severity);
+    setConfirmOpen(true);
   };
 
   const locked = disabled || busy;
 
+  const btnSx = { height: 36, textTransform: 'none' as const, fontWeight: 600 };
+
   return (
     <Box mt={2}>
-      <ConfirmDialog />
-      <Typography variant="subtitle1" gutterBottom>
+      <AdminConfirmDialog
+        open={confirmOpen}
+        title="Confirmation"
+        message={confirmMessage}
+        severity={confirmSeverity}
+        loading={busy}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          confirmAction?.();
+        }}
+      />
+      <Typography variant="subtitle2" fontWeight={600} color={colors.textPrimary} gutterBottom>
         Actions de modération
       </Typography>
-      <Typography variant="caption" display="block" mb={1}>
+      <Typography variant="caption" display="block" mb={1.5} color={colors.textMuted}>
         Révision courante : {detail.revision}
       </Typography>
-      <Box display="flex" flexWrap="wrap" gap={1}>
+      <Stack direction="row" flexWrap="wrap" gap={1}>
         {actions.includes('requestCorrection') && (
           <Button
-            type="button"
-            label="Demander une correction"
-            icon="pi pi-pencil"
-            className="p-button-outlined"
+            variant="outlined"
+            size="small"
+            startIcon={<EditIcon />}
             disabled={locked}
+            sx={{ ...btnSx, borderColor: colors.border, color: colors.textSecondary, '&:hover': { borderColor: colors.primary, color: colors.primary } }}
             onClick={() => {
               setReasonCode('PHOTO_UNCLEAR');
               setMessage('');
               setFields([]);
               setCorrectionOpen(true);
             }}
-          />
+          >
+            Demander une correction
+          </Button>
         )}
         {actions.includes('reject') && (
           <Button
-            type="button"
-            label="Rejeter"
-            icon="pi pi-times"
-            className="p-button-danger p-button-outlined"
+            variant="outlined"
+            size="small"
+            color="error"
+            startIcon={<CloseIcon />}
             disabled={locked}
+            sx={btnSx}
             onClick={() => {
               setReasonCode('OUT_OF_SCOPE');
               setMessage('');
               setRejectOpen(true);
             }}
-          />
+          >
+            Rejeter
+          </Button>
         )}
         {actions.includes('approve') && (
           <Button
-            type="button"
-            label="Approuver et publier"
-            icon="pi pi-check"
+            variant="contained"
+            size="small"
+            startIcon={<CheckIcon />}
             disabled={locked}
+            sx={{ ...btnSx, bgcolor: colors.primary, '&:hover': { bgcolor: colors.primary700 } }}
             onClick={() =>
               confirmThen(
                 'L’approbation déclenche la publication. Le statut « publié » n’apparaîtra qu’après réponse du serveur.',
                 () => void runAction('approve', { reasonCode: 'OTHER' }),
+                'info',
               )
             }
-          />
+          >
+            Approuver et publier
+          </Button>
         )}
         {actions.includes('publish') && (
           <Button
-            type="button"
-            label="Reprendre la publication"
-            icon="pi pi-replay"
-            className="p-button-outlined"
+            variant="outlined"
+            size="small"
+            startIcon={<ReplayIcon />}
             disabled={locked}
+            sx={{ ...btnSx, borderColor: alpha(colors.primary, 0.4), color: colors.primary }}
             onClick={() =>
               confirmThen(
                 'Relancer la publication pour ce dossier approuvé ?',
                 () => void runAction('publish'),
               )
             }
-          />
+          >
+            Reprendre la publication
+          </Button>
         )}
         {actions.includes('suspend') && (
           <Button
-            type="button"
-            label="Suspendre"
-            icon="pi pi-ban"
-            className="p-button-warning"
+            variant="contained"
+            size="small"
+            color="warning"
+            startIcon={<BlockIcon />}
             disabled={locked}
+            sx={btnSx}
             onClick={() =>
               confirmThen(
                 'Le profil deviendra invisible publiquement. Confirmer la suspension ?',
@@ -264,16 +300,20 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
                   void runAction('suspend', {
                     reasonCode: 'POLICY_VIOLATION',
                   }),
+                'warning',
               )
             }
-          />
+          >
+            Suspendre
+          </Button>
         )}
         {actions.includes('reactivate') && (
           <Button
-            type="button"
-            label="Réactiver"
-            icon="pi pi-refresh"
+            variant="contained"
+            size="small"
+            startIcon={<RefreshIcon />}
             disabled={locked}
+            sx={{ ...btnSx, bgcolor: colors.emerald, '&:hover': { bgcolor: colors.primary700 } }}
             onClick={() =>
               confirmThen(
                 'Le profil reste masqué jusqu’à la republication complète. Confirmer ?',
@@ -283,14 +323,16 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
                   }),
               )
             }
-          />
+          >
+            Réactiver
+          </Button>
         )}
         {actions.length === 0 && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color={colors.textSecondary}>
             Aucune action disponible pour cet état.
           </Typography>
         )}
-      </Box>
+      </Stack>
 
       <Dialog
         header="Demande de correction"
@@ -298,17 +340,12 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
         style={{ width: 'min(520px, 95vw)' }}
         onHide={() => setCorrectionOpen(false)}
         footer={
-          <div>
+          <Stack direction="row" justifyContent="flex-end" gap={1} px={1} py={1}>
+            <Button color="inherit" onClick={() => setCorrectionOpen(false)} disabled={busy}>
+              Annuler
+            </Button>
             <Button
-              type="button"
-              label="Annuler"
-              className="p-button-text"
-              onClick={() => setCorrectionOpen(false)}
-              disabled={busy}
-            />
-            <Button
-              type="button"
-              label="Envoyer"
+              variant="contained"
               disabled={
                 busy ||
                 !reasonCode ||
@@ -316,6 +353,7 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
                 fields.length > MAX_CORRECTION_FIELDS ||
                 message.length > MAX_CORRECTION_MESSAGE_LEN
               }
+              sx={{ bgcolor: colors.primary, '&:hover': { bgcolor: colors.primary700 } }}
               onClick={() => {
                 setCorrectionOpen(false);
                 void runAction('requestCorrection', {
@@ -324,8 +362,10 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
                   fields,
                 });
               }}
-            />
-          </div>
+            >
+              Envoyer
+            </Button>
+          </Stack>
         }
       >
         <label htmlFor="corr-reason">Motif</label>
@@ -367,18 +407,13 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
         style={{ width: 'min(480px, 95vw)' }}
         onHide={() => setRejectOpen(false)}
         footer={
-          <div>
+          <Stack direction="row" justifyContent="flex-end" gap={1} px={1} py={1}>
+            <Button color="inherit" onClick={() => setRejectOpen(false)} disabled={busy}>
+              Annuler
+            </Button>
             <Button
-              type="button"
-              label="Annuler"
-              className="p-button-text"
-              onClick={() => setRejectOpen(false)}
-              disabled={busy}
-            />
-            <Button
-              type="button"
-              label="Confirmer le rejet"
-              className="p-button-danger"
+              variant="contained"
+              color="error"
               disabled={busy || !reasonCode}
               onClick={() => {
                 setRejectOpen(false);
@@ -387,8 +422,10 @@ export const FieldRecensementModerationPanel: React.FC<Props> = ({
                   message: message.trim() || undefined,
                 });
               }}
-            />
-          </div>
+            >
+              Confirmer le rejet
+            </Button>
+          </Stack>
         }
       >
         <Typography variant="body2" mb={1}>

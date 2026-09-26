@@ -6,18 +6,21 @@ import {
   Grid, FormControl, InputLabel, Select, Alert,
   LinearProgress, Tabs, Tab, Badge
 } from '@mui/material';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
+import {
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TablePagination, Paper, Skeleton, Snackbar, Stack, Tooltip,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PaymentIcon from '@mui/icons-material/Payment';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { apiClient } from '../services/setupApi';
+import { colors } from '../tokens/colors';
 
 // ✅ INTERFACES TYPESCRIPT
 interface IPaiement {
@@ -57,30 +60,26 @@ interface IStatsPaiements {
   }>;
 }
 
+const TH_SX = {
+  color: colors.textSecondary, fontWeight: 600, fontSize: '0.72rem',
+  textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+  backgroundColor: colors.bgWarm, borderBottom: `1px solid ${colors.border}`,
+  py: 1.5, px: 2,
+};
+
 const Paiements: React.FC = () => {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-  const [paiements, setPaiements] = useState<IPaiement[]>([]);
+    const [paiements, setPaiements] = useState<IPaiement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editingPaiement, setEditingPaiement] = useState<IPaiement | null>(null);
+  const [tablePage, setTablePage] = useState(0);
+  const [tableRowsPerPage, setTableRowsPerPage] = useState(10);
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success' | 'error' }>({ open: false, msg: '', severity: 'success' });
+  const notify = (msg: string, severity: 'success' | 'error' = 'success') => setSnack({ open: true, msg, severity });
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('TOUS');
   const [filterMethode, setFilterMethode] = useState('TOUS');
   const [stats, setStats] = useState<IStatsPaiements | null>(null);
   const [activeTab, setActiveTab] = useState(0);
-
-  // ✅ ÉTAT DU FORMULAIRE
-  const [formData, setFormData] = useState<Partial<IPaiement>>({
-    payeur: '',
-    beneficiaire: '',
-    typeObjet: 'COMMANDE',
-    objetId: '',
-    montantOriginal: 0,
-    devise: 'XAF',
-    methodePaiement: 'MOBILE_MONEY_MTN',
-    description: '',
-    fournisseurPaiement: 'MTN_MOMO'
-  });
+  const [moduleUnavailable, setModuleUnavailable] = useState(false);
 
   // ✅ CHARGEMENT DES DONNÉES
   useEffect(() => {
@@ -91,11 +90,19 @@ const Paiements: React.FC = () => {
   const loadPaiements = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${apiUrl}/paiements`);
-      setPaiements(response.data.paiements || response.data);
-    } catch (error) {
-      console.error('Erreur chargement paiements:', error);
-      toast.error('Erreur lors du chargement des paiements');
+      setModuleUnavailable(false);
+      const response = await apiClient.get(`/paiements`);
+      const rows = response.data.paiements ?? response.data;
+      setPaiements(Array.isArray(rows) ? rows : []);
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        setModuleUnavailable(true);
+        setPaiements([]);
+      } else {
+        console.error('Erreur chargement paiements:', error);
+        notify('Erreur lors du chargement des paiements', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -103,113 +110,27 @@ const Paiements: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/paiements/stats`);
+      const response = await apiClient.get(`/paiements/stats`);
       setStats(response.data);
-    } catch (error) {
-      console.error('Erreur chargement stats:', error);
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        setModuleUnavailable(true);
+        setStats(null);
+      } else {
+        console.error('Erreur chargement stats:', error);
+      }
     }
-  };
-
-  // ✅ GESTION DES PAIEMENTS
-  const handleCreatePaiement = async () => {
-    try {
-      await axios.post(`${apiUrl}/paiement`, formData);
-      toast.success('Paiement créé avec succès');
-      setOpenDialog(false);
-      resetForm();
-      loadPaiements();
-      loadStats();
-    } catch (error) {
-      console.error('Erreur création paiement:', error);
-      toast.error('Erreur lors de la création');
-    }
-  };
-
-  const handleUpdatePaiement = async () => {
-    if (!editingPaiement?._id) return;
-    
-    try {
-      await axios.put(`${apiUrl}/paiement/${editingPaiement._id}`, formData);
-      toast.success('Paiement mis à jour');
-      setOpenDialog(false);
-      resetForm();
-      loadPaiements();
-    } catch (error) {
-      console.error('Erreur mise à jour:', error);
-      toast.error('Erreur lors de la mise à jour');
-    }
-  };
-
-  const handleDeletePaiement = async (id: string) => {
-    if (!window.confirm('Supprimer ce paiement ?')) return;
-    
-    try {
-      await axios.delete(`${apiUrl}/paiement/${id}`);
-      toast.success('Paiement supprimé');
-      loadPaiements();
-      loadStats();
-    } catch (error) {
-      console.error('Erreur suppression:', error);
-      toast.error('Erreur lors de la suppression');
-    }
-  };
-
-  const handleEditPaiement = (paiement: IPaiement) => {
-    setEditingPaiement(paiement);
-    setFormData(paiement);
-    setOpenDialog(true);
-  };
-
-  const handleChangeStatut = async (id: string, nouveauStatut: string) => {
-    try {
-      await axios.patch(`${apiUrl}/paiement/${id}/statut`, { statut: nouveauStatut });
-      toast.success('Statut mis à jour');
-      loadPaiements();
-    } catch (error) {
-      console.error('Erreur changement statut:', error);
-      toast.error('Erreur lors du changement de statut');
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      payeur: '',
-      beneficiaire: '',
-      typeObjet: 'COMMANDE',
-      objetId: '',
-      montantOriginal: 0,
-      devise: 'XAF',
-      methodePaiement: 'MOBILE_MONEY_MTN',
-      description: '',
-      fournisseurPaiement: 'MTN_MOMO'
-    });
-    setEditingPaiement(null);
   };
 
   // ✅ FILTRAGE ET RECHERCHE
   const filteredPaiements = paiements.filter(paiement => {
     const matchesSearch = paiement.numeroTransaction.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         paiement.description.toLowerCase().includes(searchTerm.toLowerCase());
+      paiement.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'TOUS' || paiement.statut === filterStatus;
     const matchesMethode = filterMethode === 'TOUS' || paiement.methodePaiement === filterMethode;
     return matchesSearch && matchesStatus && matchesMethode;
   });
-
-  // ✅ RENDU DES COLONNES
-  const renderStatus = (statut: string) => {
-    const colors = {
-      'INITIE': 'default',
-      'EN_ATTENTE': 'warning',
-      'EN_COURS': 'info',
-      'VALIDE': 'success',
-      'ECHEC': 'error',
-      'ANNULE': 'default',
-      'REMBOURSE': 'info',
-      'LITIGE': 'error'
-    } as const;
-    
-    return <Chip label={statut} color={colors[statut as keyof typeof colors]} size="small" />;
-  };
 
   const renderMontant = (montant: number, devise: string) => {
     return `${montant.toLocaleString()} ${devise}`;
@@ -227,57 +148,44 @@ const Paiements: React.FC = () => {
       'ESPECES': 'Espèces',
       'WALLET_PLATEFORME': 'Wallet Plateforme'
     };
-    
+
     return methodes[methode as keyof typeof methodes] || methode;
   };
 
-  const renderActions = (rowData: IPaiement) => (
-    <Box>
-      <IconButton onClick={() => handleEditPaiement(rowData)} size="small">
-        <EditIcon />
-      </IconButton>
-      <IconButton onClick={() => handleDeletePaiement(rowData._id!)} size="small">
-        <DeleteIcon />
-      </IconButton>
-    </Box>
-  );
-
-  const renderStatutActions = (rowData: IPaiement) => (
-    <Box sx={{ display: 'flex', gap: 1 }}>
-      {rowData.statut === 'EN_ATTENTE' && (
-        <Button
-          size="small"
-          variant="contained"
-          color="success"
-          onClick={() => handleChangeStatut(rowData._id!, 'VALIDE')}
-        >
-          Valider
-        </Button>
-      )}
-      {rowData.statut === 'VALIDE' && (
-        <Button
-          size="small"
-          variant="contained"
-          color="error"
-          onClick={() => handleChangeStatut(rowData._id!, 'REMBOURSE')}
-        >
-          Rembourser
-        </Button>
-      )}
-    </Box>
-  );
-
   return (
     <Box sx={{ p: 3 }}>
-      <ToastContainer />
-      
-      {/* ✅ EN-TÊTE AVEC STATISTIQUES */}
+      {/* En-tête */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
+        <Stack direction="row" alignItems="center" gap={1.5}>
+          <Box sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: alpha(colors.info, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <PaymentIcon sx={{ color: colors.info, fontSize: 22 }} />
+          </Box>
+          <Box>
+            <Typography variant="body2" fontWeight={500} color={colors.textSecondary}>
+              Suivez toutes les transactions financières de la plateforme.
+            </Typography>
+            <Typography variant="caption" color={colors.textMuted}>
+              {loading ? '…' : `${filteredPaiements.length} paiement${filteredPaiements.length > 1 ? 's' : ''}`}
+            </Typography>
+          </Box>
+        </Stack>
+        <Button variant="outlined" disabled sx={{ borderRadius: 2, px: 2.5 }}>
+          Consultation seule
+        </Button>
+      </Stack>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PaymentIcon /> Gestion des Paiements
-        </Typography>
-        
-        {stats && (
+        {moduleUnavailable && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Module Paiements non encore connecté au backend (routes indisponibles). Aucune donnée fictive n&apos;est affichée.
+          </Alert>
+        )}
+        {!moduleUnavailable && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Consultation admin en lecture seule — aucune création, remboursement ou mutation financière depuis le dashboard.
+          </Alert>
+        )}
+
+        {stats && !moduleUnavailable && (
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} sm={6} md={2.4}>
               <Card sx={{ bgcolor: 'primary.main', color: 'white' }}>
@@ -348,7 +256,7 @@ const Paiements: React.FC = () => {
           }}
           sx={{ minWidth: 250 }}
         />
-        
+
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Statut</InputLabel>
           <Select
@@ -386,185 +294,69 @@ const Paiements: React.FC = () => {
         </FormControl>
       </Box>
 
-      {/* ✅ TABLEAU DES PAIEMENTS */}
-      {loading ? (
-        <LinearProgress />
-      ) : (
-        <DataTable
-          value={filteredPaiements}
-          paginator
-          rows={10}
-          rowsPerPageOptions={[5, 10, 25]}
-          emptyMessage="Aucun paiement trouvé"
-        >
-          <Column field="numeroTransaction" header="N° Transaction" sortable />
-          <Column 
-            field="payeur" 
-            header="Payeur" 
-            body={(rowData) => rowData.payeur || 'N/A'}
-          />
-          <Column 
-            field="montantNet" 
-            header="Montant" 
-            body={(rowData) => renderMontant(rowData.montantNet, rowData.devise)}
-            sortable 
-          />
-          <Column 
-            field="methodePaiement" 
-            header="Méthode" 
-            body={(rowData) => renderMethodePaiement(rowData.methodePaiement)}
-          />
-          <Column 
-            field="statut" 
-            header="Statut" 
-            body={(rowData) => renderStatus(rowData.statut)}
-          />
-          <Column field="dateInitiation" header="Date" sortable />
-          <Column 
-            field="commissionPlateforme" 
-            header="Commission" 
-            body={(rowData) => renderMontant(rowData.commissionPlateforme, 'XAF')}
-            sortable 
-          />
-          <Column header="Actions" body={renderActions} />
-          <Column header="Gestion" body={renderStatutActions} />
-        </DataTable>
-      )}
+      {/* Tableau des paiements */}
+      {(() => {
+        const statutColor = (s: string) => {
+          if (s === 'VALIDE') return { bg: alpha(colors.success, 0.1), color: colors.success };
+          if (s === 'ECHEC' || s === 'ANNULE') return { bg: alpha(colors.error, 0.08), color: colors.error };
+          if (s === 'EN_COURS' || s === 'EN_ATTENTE') return { bg: alpha(colors.warning, 0.1), color: '#B45309' };
+          if (s === 'REMBOURSE') return { bg: alpha(colors.info, 0.1), color: colors.info };
+          return { bg: colors.bgWarm, color: colors.textMuted };
+        };
+        const paged = filteredPaiements.slice(tablePage * tableRowsPerPage, (tablePage + 1) * tableRowsPerPage);
+        return (
+          <Paper elevation={0} sx={{ border: `1px solid ${colors.border}`, borderRadius: 3, overflow: 'hidden' }}>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={TH_SX}>N° Transaction</TableCell>
+                    <TableCell sx={TH_SX}>Payeur</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 120 }}>Montant</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 130 }}>Méthode</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 120 }}>Statut</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 110 }}>Date</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 110 }}>Commission</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i}>{[1,2,3,4,5,6,7].map(j => <TableCell key={j}><Skeleton variant="text" /></TableCell>)}</TableRow>
+                    ))
+                  ) : paged.length === 0 ? (
+                    <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6, color: colors.textMuted }}>Aucun paiement trouvé</TableCell></TableRow>
+                  ) : paged.map(p => {
+                    const sc = statutColor(p.statut ?? '');
+                    return (
+                      <TableRow key={p._id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                        <TableCell><Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: colors.textMuted }}>{p.numeroTransaction || '—'}</Typography></TableCell>
+                        <TableCell><Typography variant="body2">{p.payeur || '—'}</Typography></TableCell>
+                        <TableCell><Typography variant="body2" fontWeight={600}>{renderMontant(p.montantNet, p.devise)}</Typography></TableCell>
+                        <TableCell><Typography variant="body2" color={colors.textSecondary}>{renderMethodePaiement(p.methodePaiement)}</Typography></TableCell>
+                        <TableCell><Chip label={p.statut || '—'} size="small" sx={{ fontSize: '0.72rem', bgcolor: sc.bg, color: sc.color, fontWeight: 600 }} /></TableCell>
+                        <TableCell><Typography variant="body2" color={colors.textSecondary}>{p.dateInitiation ? new Date(p.dateInitiation).toLocaleDateString('fr-FR') : '—'}</Typography></TableCell>
+                        <TableCell><Typography variant="body2" color={colors.textSecondary}>{renderMontant(p.commissionPlateforme, 'XAF')}</Typography></TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              component="div" count={filteredPaiements.length} page={tablePage} rowsPerPage={tableRowsPerPage}
+              onPageChange={(_, pg) => setTablePage(pg)} onRowsPerPageChange={e => { setTableRowsPerPage(+e.target.value); setTablePage(0); }}
+              rowsPerPageOptions={[5, 10, 25]} labelRowsPerPage="Par page :"
+              labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+              sx={{ borderTop: `1px solid ${colors.border}` }}
+            />
+          </Paper>
+        );
+      })()}
 
-      {/* ✅ DIALOG CRÉATION/ÉDITION */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingPaiement ? 'Modifier le Paiement' : 'Nouveau Paiement'}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Payeur (ID Utilisateur)"
-                value={formData.payeur}
-                onChange={(e) => setFormData({...formData, payeur: e.target.value})}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Bénéficiaire (ID Utilisateur)"
-                value={formData.beneficiaire}
-                onChange={(e) => setFormData({...formData, beneficiaire: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Type d'objet</InputLabel>
-                <Select
-                  value={formData.typeObjet}
-                  onChange={(e) => setFormData({...formData, typeObjet: e.target.value as any})}
-                  label="Type d'objet"
-                >
-                  <MenuItem value="COMMANDE">Commande</MenuItem>
-                  <MenuItem value="PRESTATION">Prestation</MenuItem>
-                  <MenuItem value="ABONNEMENT">Abonnement</MenuItem>
-                  <MenuItem value="COMMISSION">Commission</MenuItem>
-                  <MenuItem value="REMBOURSEMENT">Remboursement</MenuItem>
-                  <MenuItem value="AUTRE">Autre</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="ID de l'objet"
-                value={formData.objetId}
-                onChange={(e) => setFormData({...formData, objetId: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Montant"
-                type="number"
-                value={formData.montantOriginal}
-                onChange={(e) => setFormData({...formData, montantOriginal: Number(e.target.value)})}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Devise</InputLabel>
-                <Select
-                  value={formData.devise}
-                  onChange={(e) => setFormData({...formData, devise: e.target.value as any})}
-                  label="Devise"
-                >
-                  <MenuItem value="XAF">Franc CFA</MenuItem>
-                  <MenuItem value="EUR">Euro</MenuItem>
-                  <MenuItem value="USD">Dollar</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Méthode de paiement</InputLabel>
-                <Select
-                  value={formData.methodePaiement}
-                  onChange={(e) => setFormData({...formData, methodePaiement: e.target.value})}
-                  label="Méthode de paiement"
-                >
-                  <MenuItem value="MOBILE_MONEY_MTN">MTN Mobile Money</MenuItem>
-                  <MenuItem value="MOBILE_MONEY_ORANGE">Orange Money</MenuItem>
-                  <MenuItem value="MOBILE_MONEY_MOOV">Moov Money</MenuItem>
-                  <MenuItem value="CARTE_VISA">Visa</MenuItem>
-                  <MenuItem value="CARTE_MASTERCARD">Mastercard</MenuItem>
-                  <MenuItem value="PAYPAL">PayPal</MenuItem>
-                  <MenuItem value="VIREMENT_BANCAIRE">Virement</MenuItem>
-                  <MenuItem value="ESPECES">Espèces</MenuItem>
-                  <MenuItem value="WALLET_PLATEFORME">Wallet Plateforme</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Fournisseur</InputLabel>
-                <Select
-                  value={formData.fournisseurPaiement}
-                  onChange={(e) => setFormData({...formData, fournisseurPaiement: e.target.value})}
-                  label="Fournisseur"
-                >
-                  <MenuItem value="MTN_MOMO">MTN Mobile Money</MenuItem>
-                  <MenuItem value="ORANGE_MONEY">Orange Money</MenuItem>
-                  <MenuItem value="STRIPE">Stripe</MenuItem>
-                  <MenuItem value="PAYPAL">PayPal</MenuItem>
-                  <MenuItem value="FLUTTERWAVE">Flutterwave</MenuItem>
-                  <MenuItem value="PAYSTACK">Paystack</MenuItem>
-                  <MenuItem value="INTERNE">Interne</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                multiline
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                required
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Annuler</Button>
-          <Button 
-            onClick={editingPaiement ? handleUpdatePaiement : handleCreatePaiement}
-            variant="contained"
-          >
-            {editingPaiement ? 'Mettre à jour' : 'Créer'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack(s => ({ ...s, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity={snack.severity} variant="filled" onClose={() => setSnack(s => ({ ...s, open: false }))}>{snack.msg}</Alert>
+      </Snackbar>
     </Box>
   );
 };

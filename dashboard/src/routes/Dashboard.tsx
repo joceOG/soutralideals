@@ -1,381 +1,58 @@
+// @refresh reset
+/**
+ * Dashboard.tsx — Shell admin Soutrali 2026 (routeur + auth gate).
+ */
 import * as React from 'react';
-import { styled } from '@mui/material/styles';
-import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
-import Link from '@mui/material/Link';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import { List, Avatar, Tooltip, Zoom } from '@mui/material';
-import { mainListItems } from '../components/ListItems';
-import { BrowserRouter as Router, useMatch } from 'react-router-dom';
+import { colors } from '../tokens/colors';
+import { AdminNavigationProvider } from '../context/AdminNavigationContext';
+import { AdminDashboardLayout } from '../components/AdminDashboardLayout';
+import { resolveAdminPageMeta } from '../config/adminNavigation';
+import {
+  BrowserRouter as Router,
+  useMatch,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import AppRouter from './AppRouter';
-import { alpha } from '@mui/material/styles';
 import { getRouterBasename } from '../utils/routerBasename';
 
 const routerBasename = getRouterBasename();
 
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
-const drawerWidth: number = 240;
-
-interface AppBarProps extends MuiAppBarProps {
-  open?: boolean;
-}
-
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
-}));
-
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    '& .MuiDrawer-paper': {
-      position: 'relative',
-      whiteSpace: 'nowrap',
-      width: drawerWidth,
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      boxSizing: 'border-box',
-      backgroundColor: theme.palette.mode === 'light' ? '#f8f9fa' : '#1e1e2f',
-      borderRight: `1px solid ${theme.palette.mode === 'light' ? '#e0e0e0' : '#2d2d3f'}`,
-      boxShadow: theme.palette.mode === 'light' 
-        ? '2px 0 10px rgba(0,0,0,0.03)' 
-        : '2px 0 10px rgba(0,0,0,0.2)',
-      ...(!open && {
-        overflowX: 'hidden',
-        transition: theme.transitions.create('width', {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        [theme.breakpoints.up('sm')]: {
-          width: theme.spacing(9),
-        },
-      }),
-    },
-  }),
-);
-
-interface DashboardProps {
-  toggleThemeMode: () => void;  
-  themeMode: 'light' | 'dark';  
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ toggleThemeMode, themeMode }) => {
+const Dashboard: React.FC = () => {
   const [open, setOpen] = React.useState(true);
-  const toggleDrawer = () => {
-    setOpen(!open);
-  };
-
   return (
     <Router basename={routerBasename}>
-      <DashboardShell
-        open={open}
-        toggleDrawer={toggleDrawer}
-        toggleThemeMode={toggleThemeMode}
-        themeMode={themeMode}
-      />
+      <AdminNavigationProvider>
+        <DashboardShell open={open} setOpen={setOpen} />
+      </AdminNavigationProvider>
     </Router>
   );
 };
 
-interface DashboardShellProps extends DashboardProps {
-  open: boolean;
-  toggleDrawer: () => void;
-}
-
-const DashboardShell: React.FC<DashboardShellProps> = ({
-  open,
-  toggleDrawer,
-  toggleThemeMode,
-  themeMode,
-}) => {
+function DashboardShell({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
   const isAuthPage = Boolean(useMatch({ path: '/connexion', end: true }));
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pageMeta = resolveAdminPageMeta(location.pathname);
 
-  // Arbre DOM stable : chrome toujours monté (masqué sur /connexion) pour éviter
-  // NotFoundError removeChild quand AppBar/Drawer apparaissent d'un coup.
-  return (
-      <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
-        <Box
-          sx={{ display: isAuthPage ? 'none' : 'contents' }}
-          aria-hidden={isAuthPage}
-        >
-        <AppBar position="absolute" open={open}>
-          <Toolbar
-            sx={{
-              pr: '24px', 
-            }}
-          >
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={toggleDrawer}
-              sx={{
-                marginRight: '36px',
-                ...(open && { display: 'none' }),
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-              <Typography
-                component="h1"
-                variant="h5"
-                color="inherit"
-                noWrap
-                sx={{ 
-                  fontWeight: 700,
-                  backgroundImage: themeMode === 'light' ? 
-                    'linear-gradient(90deg, #FFFFFF 0%, #F0F0F0 100%)' : 
-                    'linear-gradient(90deg, #FFFFFF 30%, #B0B0B0 100%)',
-                  backgroundClip: 'text',
-                  textFillColor: 'transparent',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  mr: 2
-                }}
-              >
-                SOUTRALI DEALS
-              </Typography>
-            </Box>
-            
-            <Tooltip 
-              title={themeMode === 'light' ? "Passer en mode sombre" : "Passer en mode clair"}
-              TransitionComponent={Zoom}
-              arrow
-            >
-              <IconButton 
-                onClick={toggleThemeMode} 
-                color="inherit"
-                sx={{
-                  mr: 2,
-                  transition: 'all 0.3s',
-                  '&:hover': {
-                    transform: 'rotate(30deg)'
-                  }
-                }}
-              >
-                {themeMode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
-              </IconButton>
-            </Tooltip>
-            
-            <Tooltip title="Notifications" TransitionComponent={Zoom} arrow>
-              <IconButton color="inherit">
-                <Badge 
-                  badgeContent={4} 
-                  color="secondary"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      animation: 'pulse 2s infinite',
-                      '@keyframes pulse': {
-                        '0%': { transform: 'scale(1)' },
-                        '50%': { transform: 'scale(1.1)' },
-                        '100%': { transform: 'scale(1)' },
-                      }
-                    }
-                  }}
-                >
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-            
-            <Tooltip title="Profil utilisateur" TransitionComponent={Zoom} arrow>
-              <Avatar 
-                sx={{ 
-                  cursor: 'pointer',
-                  ml: 1, 
-                  bgcolor: alpha('#fff', 0.15),
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.1)',
-                    boxShadow: '0 0 8px rgba(255,255,255,0.5)'
-                  }
-                }}
-              >
-                SD
-              </Avatar>
-            </Tooltip>
-          </Toolbar>
-        </AppBar>
-        <Drawer variant="permanent" open={open}>
-          <Toolbar
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              px: [1],
-            }}
-          >
-            <IconButton onClick={toggleDrawer}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </Toolbar>
-          <Divider />
-
-          <Box
-            sx={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              py: 2
-            }}
-          >
-            <List 
-              component="nav"
-              sx={{
-                py: 1,
-                px: 1.5,
-                flexGrow: 1,
-                overflowY: 'auto', // ✅ SCROLL VERTICAL
-                overflowX: 'hidden',
-                maxHeight: 'calc(100vh - 140px)', // ✅ HAUTEUR MAXIMALE ADAPTATIVE
-                '&::-webkit-scrollbar': { // ✅ STYLE SCROLLBAR CUSTOM
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: 'transparent',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: themeMode === 'light' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.3)',
-                  borderRadius: '3px',
-                  '&:hover': {
-                    background: themeMode === 'light' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.5)',
-                  }
-                },
-                '& .MuiListItemButton-root': {
-                  my: 1,  // Espacement aéré entre les éléments (augmenté de 0.5 à 1)
-                  mx: 1,
-                  borderRadius: 2,
-                  transition: 'all 0.2s',
-                  
-                  // Effet de hover amélioré
-                  '&:hover': {
-                    backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.08)' : 'rgba(0, 157, 179, 0.15)',
-                    transform: 'translateX(4px)'
-                  },
-                  
-                  // Mise en évidence renforcée de l'élément actif
-                  '&.Mui-selected': {
-                    backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.12)' : 'rgba(0, 157, 179, 0.2)',
-                    '&:hover': {
-                      backgroundColor: themeMode === 'light' ? 'rgba(0, 157, 179, 0.18)' : 'rgba(0, 157, 179, 0.25)',
-                    },
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      left: 0,
-                      top: '20%',  // Bordure plus grande (25% → 20%)
-                      height: '60%', // Bordure plus grande (50% → 60%)
-                      width: 4,     // Bordure plus épaisse (3px → 4px)
-                      backgroundColor: themeMode === 'light' ? '#009DB3' : '#33B5CC',
-                      borderTopRightRadius: 4,
-                      borderBottomRightRadius: 4
-                    }
-                  }
-                },
-                
-                // Icônes plus grandes et expressives
-                '& .MuiListItemIcon-root': {
-                  minWidth: 44,  // Légèrement plus grand (40 → 44)
-                  color: themeMode === 'light' ? '#009DB3' : '#33B5CC',
-                  '& .MuiSvgIcon-root': {
-                    fontSize: '1.4rem'  // Icônes plus grandes
-                  }
-                },
-                
-                // Meilleure lisibilité des textes
-                '& .MuiListItemText-primary': {
-                  fontSize: '1rem',  // 16px minimum
-                  letterSpacing: '0.01em',
-                  '.Mui-selected &': {
-                    fontWeight: 600  // Texte en gras si actif
-                  }
-                },
-              }}
-            >
-              {mainListItems}
-            </List>
-            
-            <Box sx={{ flexGrow: 1 }} />
-            
-            <Box sx={{ 
-              p: 2, 
-              opacity: 0.6,
-              textAlign: 'center',
-              fontSize: '0.75rem'
-            }}>
-              Version 1.0.0
-            </Box>
-          </Box>
-        </Drawer>
-        </Box>
-        <Box
-          component="main"
-          sx={{
-            backgroundColor: (theme) =>
-              isAuthPage
-                ? 'transparent'
-                : theme.palette.mode === 'light'
-                  ? theme.palette.grey[100]
-                  : theme.palette.grey[900],
-            flexGrow: 1,
-            height: isAuthPage ? '100dvh' : '100vh',
-            overflow: isAuthPage ? 'hidden' : 'auto',
-            width: '100%',
-          }}
-        >
-          <Toolbar sx={{ display: isAuthPage ? 'none' : undefined }} />
-          <Box
-            sx={
-              isAuthPage
-                ? { height: '100%', width: '100%' }
-                : { mt: 5, mb: 4, mr: 4, ml: 4 }
-            }
-          >
-            <AppRouter />
-          </Box>
-          <Copyright sx={{ pt: 4, display: isAuthPage ? 'none' : undefined }} />
-        </Box>
+  if (isAuthPage) {
+    return (
+      <Box sx={{ minHeight: '100dvh', backgroundColor: colors.bgWarm }}>
+        <AppRouter />
       </Box>
-  );
-};
+    );
+  }
 
+  return (
+    <AdminDashboardLayout
+      open={open}
+      setOpen={setOpen}
+      pageTitle={pageMeta.title}
+      pageDescription={pageMeta.description}
+      navigate={navigate}
+    />
+  );
+}
 
 export default Dashboard;

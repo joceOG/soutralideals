@@ -1,377 +1,457 @@
-import React, { useState } from 'react';
+/**
+ * Utilisateur.tsx — Administration des comptes (DASH-8D)
+ */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Box, Typography, Dialog, DialogActions, DialogContent,
-  DialogTitle, Button, TextField, InputAdornment,
+  Box,
+  Typography,
+  Button,
+  TextField,
+  InputAdornment,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
   IconButton,
+  Tooltip,
+  Chip,
+  Avatar,
+  Stack,
+  Snackbar,
+  Alert,
+  Skeleton,
+  TablePagination,
+  FormControl,
   InputLabel,
   Select,
-  MenuItem
 } from '@mui/material';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import SearchIcon from '@mui/icons-material/Search';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { alpha } from '@mui/material/styles';
+import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
+import PeopleIcon from '@mui/icons-material/People';
+import PersonIcon from '@mui/icons-material/Person';
+import { colors } from '../tokens/colors';
+import { getCurrentUserId } from '../services/setupApi';
+import {
+  fetchUtilisateurs,
+  createUtilisateurAdmin,
+  updateUtilisateur,
+  deleteUtilisateurAdmin,
+  mapUtilisateurApiError,
+  UtilisateurListItem,
+  UtilisateurFormValues,
+} from '../services/utilisateurService';
+import { UtilisateurFormDialog } from '../components/utilisateur/UtilisateurFormDialog';
+import { AdminConfirmDialog } from '../components/admin/AdminConfirmDialog';
 
-interface IUtilisateur {
-  _id?: string;
-  nom: string;
-  prenom: string;
-  datedenaissance: string;
-  email: string;
-  password?: string;   // ✅ uniformisé
-  telephone: string;
-  genre: string;
-  note?: number;
-  photoProfil?: string;
-  role: "Admin" | "Client" | "Prestataire" | "Vendeur" | "Freelance";
-}
+const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
+  Admin: { bg: alpha(colors.forestGreen, 0.12), color: colors.forestGreen },
+  Client: { bg: alpha(colors.primary, 0.1), color: colors.primary },
+  Prestataire: { bg: alpha(colors.info, 0.1), color: colors.info },
+  Vendeur: { bg: alpha(colors.warning, 0.12), color: '#B45309' },
+  Freelance: { bg: alpha(colors.secondary500, 0.1), color: colors.secondary500 },
+};
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
-function authHeaders() {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-/** L’API renvoie soit un tableau, soit { utilisateurs, total, page, totalPages }. */
-function normalizeUtilisateursPayload(data: unknown): IUtilisateur[] {
-  if (Array.isArray(data)) return data as IUtilisateur[];
-  if (data && typeof data === 'object' && Array.isArray((data as { utilisateurs?: unknown }).utilisateurs)) {
-    return (data as { utilisateurs: IUtilisateur[] }).utilisateurs;
-  }
-  return [];
-}
+const TH_SX = {
+  color: colors.textSecondary,
+  fontWeight: 600,
+  fontSize: '0.72rem',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.06em',
+  backgroundColor: colors.bgWarm,
+  borderBottom: `1px solid ${colors.border}`,
+  py: 1.5,
+  px: 2,
+};
 
 const UtilisateurComponent: React.FC = () => {
-  const [utilisateurs, setUtilisateurs] = useState<IUtilisateur[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [filters] = useState<any>({
-    global: { value: null, matchMode: 'contains' }
-  });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUtilisateur, setSelectedUtilisateur] = useState<IUtilisateur | null>(null);
-const [formData, setFormData] = useState<IUtilisateur>({
-  nom: '',
-  prenom: '',
-  datedenaissance: '',
-  email: '',
-  password: '',
-  telephone: '',
-  genre: '',
-  note: undefined,
-  photoProfil: '',
-  role: "Client", // valeur par défaut
-});
-  const [file, setFile] = useState<File | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [items, setItems] = useState<UtilisateurListItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
 
-  // 🔹 Chargement des utilisateurs
-  const fetchUtilisateurs = async () => {
+  const [search, setSearch] = useState('');
+  const [filterRole, setFilterRole] = useState('');
+  const [filterActive, setFilterActive] = useState<'true' | 'false' | ''>('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<UtilisateurListItem | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState<UtilisateurListItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success' | 'error' }>({
+    open: false,
+    msg: '',
+    severity: 'success',
+  });
+  const notify = (msg: string, severity: 'success' | 'error' = 'success') =>
+    setSnack({ open: true, msg, severity });
+
+  const abortRef = useRef<AbortController | null>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentAdminId = getCurrentUserId();
+
+  const loadList = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
+    setListError(null);
     try {
-      const response = await axios.get(`${apiUrl}/utilisateur`, {
-        params: { page: 1, limit: 100 },
-        headers: authHeaders(),
+      const result = await fetchUtilisateurs({
+        page: page + 1,
+        limit: rowsPerPage,
+        search,
+        role: filterRole || undefined,
+        isActive: filterActive,
+        signal: controller.signal,
       });
-      setUtilisateurs(normalizeUtilisateursPayload(response.data));
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        const msg = (error.response?.data as { error?: string })?.error;
-        if (status === 403) {
-          toast.error(
-            msg ||
-              "Accès refusé : connectez-vous avec un compte administrateur (rôle Admin)."
-          );
-        } else if (status === 401) {
-          toast.error(msg || "Session invalide ou expirée. Reconnectez-vous.");
-        } else {
-          toast.error(msg || "Erreur lors du chargement des utilisateurs");
-        }
+      setItems(result.items);
+      setTotal(result.total);
+    } catch (e) {
+      const mapped = mapUtilisateurApiError(e);
+      if ((e as { code?: string }).code === 'ERR_CANCELED') return;
+      setListError(mapped.message);
+      setItems([]);
+      setTotal(0);
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }, [page, rowsPerPage, search, filterRole, filterActive]);
+
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => loadList(), 300);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, [loadList]);
+
+  const openAdd = () => {
+    setEditTarget(null);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (u: UtilisateurListItem) => {
+    setEditTarget(u);
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setSaving(false);
+  };
+
+  const handleFormSubmit = async (formData: FormData, _values: UtilisateurFormValues) => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (editTarget?._id) {
+        await updateUtilisateur(editTarget._id, formData);
+        notify('Utilisateur mis à jour');
       } else {
-        toast.error("Erreur lors du chargement des utilisateurs");
+        await createUtilisateurAdmin(formData);
+        notify('Utilisateur créé');
+      }
+      closeDialog();
+      loadList();
+    } catch (e) {
+      notify(mapUtilisateurApiError(e).message, 'error');
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget?._id || deleteLoading) return;
+    setDeleteLoading(true);
+    try {
+      await deleteUtilisateurAdmin(deleteTarget._id);
+      notify('Utilisateur supprimé');
+      setDeleteTarget(null);
+      loadList();
+    } catch (e) {
+      const mapped = mapUtilisateurApiError(e);
+      if (mapped.code === 'USER_HAS_DEPENDENCIES' && mapped.dependencies) {
+        const parts = Object.entries(mapped.dependencies)
+          .filter(([, n]) => n > 0)
+          .map(([k, n]) => `${k}: ${n}`);
+        notify(`${mapped.message} (${parts.join(', ')})`, 'error');
+      } else {
+        notify(mapped.message, 'error');
       }
     } finally {
-      setLoading(false);
+      setDeleteLoading(false);
     }
   };
 
-  React.useEffect(() => {
-    fetchUtilisateurs();
-  }, []);
-
-  const handleOpen = (utilisateur: IUtilisateur | null = null) => {
-    setSelectedUtilisateur(utilisateur);
-    if (utilisateur) {
-      setFormData(utilisateur);
-      setFile(null);
-    } else {
-      setFormData({
-        nom: '',
-        prenom: '',
-        datedenaissance: '',
-        email: '',
-        password: '',   // ✅ uniformisé
-        telephone: '',
-        genre: '',
-        note: undefined,
-        photoProfil: '',
-         role: "Client",
-      });
-      setFile(null);
-    }
-    setModalOpen(true);
-  };
-
-  const handleClose = () => {
-    setSelectedUtilisateur(null);
-    setFile(null);
-    setModalOpen(false);
-  };
-
-  const handleDelete = async (utilisateur: IUtilisateur) => {
-    if (!utilisateur._id) return;
-    if (window.confirm(`Supprimer l'utilisateur ${utilisateur.nom} ${utilisateur.prenom} ?`)) {
-      try {
-        await axios.delete(`${apiUrl}/utilisateur/${utilisateur._id}`, {
-          headers: authHeaders(),
-        });
-        toast.success("Utilisateur supprimé");
-        fetchUtilisateurs();
-      } catch {
-        toast.error("Erreur lors de la suppression");
-      }
-    }
-  };
-
-  const handleSave = async () => {
+  const formatDate = (iso?: string) => {
+    if (!iso) return '—';
     try {
-      const isUpdate = !!selectedUtilisateur?._id;
-      const url = isUpdate ? `${apiUrl}/utilisateur/${selectedUtilisateur?._id}` : `${apiUrl}/register`;
-      const method = isUpdate ? 'put' : 'post';
-
-      const data = new FormData();
-      for (const [key, value] of Object.entries(formData)) {
-        if (key === 'password' && !value) continue; // ✅ uniformisé
-        if (value !== undefined && value !== null) {
-          data.append(key, value.toString());
-        }
-      }
-      if (file) {
-        data.append('photoProfil', file);
-      }
-
-      await axios({
-        method,
-        url,
-        data,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          ...authHeaders(),
-        },
-      });
-
-      toast.success(isUpdate ? "Utilisateur mis à jour" : "Utilisateur ajouté");
-      fetchUtilisateurs();
-      handleClose();
-    } catch (error) {
-      toast.error("Erreur lors de la sauvegarde");
-      console.error(error);
+      return new Date(iso).toLocaleDateString('fr-FR');
+    } catch {
+      return '—';
     }
-  };
-
-  const filteredUtilisateurs = (Array.isArray(utilisateurs) ? utilisateurs : []).filter(u =>
-    `${u.nom} ${u.prenom}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-    (u.telephone?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  );
-
-  const actionBodyTemplate = (rowData: IUtilisateur) => (
-    <Box>
-      <IconButton color="primary" onClick={() => handleOpen(rowData)}>
-        <EditIcon />
-      </IconButton>
-      <IconButton color="error" onClick={() => handleDelete(rowData)}>
-        <DeleteIcon />
-      </IconButton>
-    </Box>
-  );
-
-  const photoBodyTemplate = (rowData: IUtilisateur) =>
-    rowData.photoProfil ? (
-      <img
-        src={rowData.photoProfil}
-        alt={`${rowData.nom} ${rowData.prenom}`}
-        style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover' }}
-      />
-    ) : (
-      <span style={{ color: '#999' }}>Aucune</span>
-    );
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? (value === '' ? undefined : Number(value)) : value
-    }));
   };
 
   return (
-    <Box m={2}>
-      <ToastContainer />
-      <Typography variant="h4" gutterBottom>Gestion des Utilisateurs</Typography>
-
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <TextField
-          variant="outlined"
-          size="small"
-          placeholder="Recherche..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
-          }}
-          sx={{ width: 300 }}
-        />
-        <Button variant="contained" onClick={() => handleOpen(null)}>Ajouter Utilisateur</Button>
-      </Box>
-
-      <DataTable
-        value={filteredUtilisateurs || []}
-        paginator
-        rows={10}
-        loading={loading}
-        dataKey="_id"
-        emptyMessage="Aucun utilisateur trouvé"
-        filters={filters}
-        globalFilterFields={['nom', 'prenom', 'email', 'telephone']}
-      >
-        <Column field="_id" header="Identifiant" sortable />
-        <Column field="nom" header="Nom" sortable />
-        <Column field="prenom" header="Prénom" sortable />
-        <Column field="role" header="Rôle" sortable />
-        <Column field="datedenaissance" header="Date de naissance" sortable />
-        <Column field="email" header="Email" sortable />
-        <Column field="telephone" header="Téléphone" sortable />
-        <Column field="genre" header="Genre" sortable />
-        <Column field="note" header="Note" sortable />
-        <Column header="Photo" body={photoBodyTemplate} />
-        <Column header="Actions" body={actionBodyTemplate} />
-      </DataTable>
-
-      <Dialog open={modalOpen} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedUtilisateur?._id ? "Modifier Utilisateur" : "Ajouter Utilisateur"}</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Nom"
-            name="nom"
-            fullWidth
-            value={formData.nom}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            label="Prénom"
-            name="prenom"
-            fullWidth
-            value={formData.prenom}
-            onChange={handleChange}
-          />
-            <InputLabel id="role-label">Rôle</InputLabel>
-            <Select
-              labelId="role-label"
-              name="role"
-              value={formData.role}
-              onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as IUtilisateur['role'] }))}
-              fullWidth
-            >
-              <MenuItem value="Admin">Admin</MenuItem>
-              <MenuItem value="Client">Client</MenuItem>
-              <MenuItem value="Prestataire">Prestataire</MenuItem>
-              <MenuItem value="Vendeur">Vendeur</MenuItem>
-              <MenuItem value="Freelance">Freelance</MenuItem>
-            </Select>
-          <TextField
-            margin="dense"
-            label="Date de naissance"
-            type="date"
-            name="datedenaissance"
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            value={formData.datedenaissance}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            label="Email"
-            name="email"
-            type="email"
-            fullWidth
-            value={formData.email}
-            onChange={handleChange}
-          />
-          {!selectedUtilisateur?._id && (
-            <TextField
-              margin="dense"
-              label="Mot de passe"
-              name="password"   // ✅ uniformisé
-              type="password"
-              fullWidth
-              value={formData.password || ''}
-              onChange={handleChange}
-            />
-          )}
-          <TextField
-            margin="dense"
-            label="Téléphone"
-            name="telephone"
-            fullWidth
-            value={formData.telephone}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            label="Genre"
-            name="genre"
-            fullWidth
-            value={formData.genre}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            label="Note"
-            name="note"
-            type="number"
-            fullWidth
-            value={formData.note ?? ''}
-            onChange={handleChange}
-          />
-
-          <Box mt={2}>
-            <InputLabel htmlFor="utilisateur-photo-profil" sx={{ mb: 0.5 }}>
-              Photo de profil
-            </InputLabel>
-            <input
-              id="utilisateur-photo-profil"
-              type="file"
-              accept="image/*"
-              aria-label="Choisir une photo de profil"
-              onChange={e => setFile(e.target.files?.[0] ?? null)}
-            />
+    <Box sx={{ p: 3 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3} flexWrap="wrap" gap={2}>
+        <Stack direction="row" alignItems="center" gap={1.5}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              backgroundColor: alpha(colors.primary, 0.1),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <PeopleIcon sx={{ color: colors.primary, fontSize: 22 }} />
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Annuler</Button>
-          <Button variant="contained" onClick={handleSave}>
-            {selectedUtilisateur?._id ? "Enregistrer" : "Ajouter"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <Box>
+            <Typography variant="body2" fontWeight={500} color={colors.textSecondary}>
+              Comptes, rôles et statuts — distincts des profils professionnels.
+            </Typography>
+            <Typography variant="caption" color={colors.textMuted}>
+              {loading ? '…' : `${total} utilisateur${total > 1 ? 's' : ''}`}
+            </Typography>
+          </Box>
+        </Stack>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} sx={{ borderRadius: 2, px: 2.5 }}>
+          Ajouter un utilisateur
+        </Button>
+      </Stack>
+
+      {listError ? (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+          {listError}
+        </Alert>
+      ) : null}
+
+      <Stack direction={{ xs: 'column', md: 'row' }} gap={1.5} mb={2.5} flexWrap="wrap">
+        <TextField
+          size="small"
+          placeholder="Rechercher nom, email, téléphone…"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(0);
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: colors.textMuted, fontSize: 18 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: { xs: '100%', sm: 320 } }}
+        />
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Rôle</InputLabel>
+          <Select
+            label="Rôle"
+            value={filterRole}
+            onChange={(e) => {
+              setFilterRole(e.target.value);
+              setPage(0);
+            }}
+          >
+            <MenuItem value="">Tous</MenuItem>
+            {['Admin', 'Client', 'Prestataire', 'Vendeur', 'Freelance'].map((r) => (
+              <MenuItem key={r} value={r}>
+                {r}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Statut</InputLabel>
+          <Select
+            label="Statut"
+            value={filterActive}
+            onChange={(e) => {
+              setFilterActive(e.target.value as '' | 'true' | 'false');
+              setPage(0);
+            }}
+          >
+            <MenuItem value="">Tous</MenuItem>
+            <MenuItem value="true">Actifs</MenuItem>
+            <MenuItem value="false">Désactivés</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+
+      <Paper elevation={0} sx={{ border: `1px solid ${colors.border}`, borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={TH_SX}>Utilisateur</TableCell>
+                <TableCell sx={TH_SX}>Rôle</TableCell>
+                <TableCell sx={TH_SX}>Statut</TableCell>
+                <TableCell sx={TH_SX}>Contact</TableCell>
+                <TableCell sx={TH_SX}>Inscription</TableCell>
+                <TableCell sx={{ ...TH_SX, width: 100 }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {[1, 2, 3, 4, 5, 6].map((j) => (
+                      <TableCell key={j}>
+                        <Skeleton variant="text" width="75%" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : items.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center" sx={{ py: 6, color: colors.textMuted }}>
+                    Aucun utilisateur trouvé
+                  </TableCell>
+                </TableRow>
+              ) : (
+                items.map((u) => {
+                  const initials = `${(u.prenom[0] ?? '').toUpperCase()}${(u.nom[0] ?? '').toUpperCase()}`;
+                  const roleStyle = ROLE_COLORS[u.role] ?? ROLE_COLORS.Client;
+                  const isSelf = currentAdminId === u._id;
+                  return (
+                    <TableRow key={u._id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" gap={1.5}>
+                          {u.photoProfil ? (
+                            <Avatar src={u.photoProfil} sx={{ width: 32, height: 32 }} />
+                          ) : (
+                            <Avatar
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                fontSize: 12,
+                                bgcolor: alpha(colors.primary, 0.12),
+                                color: colors.primary,
+                              }}
+                            >
+                              {initials || <PersonIcon sx={{ fontSize: 16 }} />}
+                            </Avatar>
+                          )}
+                          <Typography variant="body2" fontWeight={500}>
+                            {u.prenom} {u.nom}
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={u.role}
+                          size="small"
+                          sx={{
+                            backgroundColor: roleStyle.bg,
+                            color: roleStyle.color,
+                            fontWeight: 600,
+                            fontSize: '0.72rem',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={u.isActive !== false ? 'Actif' : 'Désactivé'}
+                          size="small"
+                          color={u.isActive !== false ? 'success' : 'default'}
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color={colors.textSecondary}>
+                          {u.email || u.telephone || '—'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color={colors.textMuted}>
+                          {formatDate(u.createdAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" gap={0.5}>
+                          <Tooltip title="Modifier" arrow>
+                            <IconButton size="small" onClick={() => openEdit(u)} sx={{ color: colors.primary }}>
+                              <EditIcon sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={isSelf ? 'Suppression de votre propre compte non disponible ici' : 'Supprimer'} arrow>
+                            <span>
+                              <IconButton
+                                size="small"
+                                disabled={isSelf}
+                                onClick={() => setDeleteTarget(u)}
+                                sx={{ color: colors.error }}
+                              >
+                                <DeleteIcon sx={{ fontSize: 17 }} />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={total}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={(_, p) => setPage(p)}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(+e.target.value);
+            setPage(0);
+          }}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          labelRowsPerPage="Par page :"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+          sx={{ borderTop: `1px solid ${colors.border}` }}
+        />
+      </Paper>
+
+      <UtilisateurFormDialog
+        open={dialogOpen}
+        editTarget={editTarget}
+        saving={saving}
+        onClose={closeDialog}
+        onSubmit={handleFormSubmit}
+      />
+
+      <AdminConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Supprimer l’utilisateur"
+        message={`Supprimer définitivement ${deleteTarget?.prenom} ${deleteTarget?.nom} ? Cette action est impossible si des commandes ou profils sont liés.`}
+        severity="danger"
+        confirmLabel="Supprimer"
+        loading={deleteLoading}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+      />
+
+      <Snackbar open={snack.open} autoHideDuration={4000} onClose={() => setSnack((s) => ({ ...s, open: false }))}>
+        <Alert severity={snack.severity} variant="filled">
+          {snack.msg}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

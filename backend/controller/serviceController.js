@@ -5,6 +5,10 @@ import { escapeRegex } from "../utils/escapeRegex.js";
 import multer from "multer";
 import cloudinary from "cloudinary";
 import fs from "fs";
+import {
+    validateServicePayload,
+    sendControllerError,
+} from "../utils/catalogValidation.js";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -87,23 +91,26 @@ export const createService = async (req, res) => {
     try {
         const { nomservice, categorie, prixmoyen, imageservice, tags } = req.body;
 
+        const validation = await validateServicePayload({ nomservice, categorie });
+        if (validation.error) {
+            return res.status(validation.status).json({ error: validation.error });
+        }
+
         let finalImageUrl = null;
 
         if (req.file) {
-            // Upload d'un fichier
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: "services",
             });
             finalImageUrl = result.secure_url;
             fs.unlinkSync(req.file.path);
         } else if (imageservice) {
-            // Utiliser l'URL fournie
             finalImageUrl = imageservice;
         }
         const newServiceData = {
-            nomservice,
+            nomservice: String(nomservice).trim(),
             categorie,
-            tags: parseTags(tags) // ✅ Ajout des tags
+            tags: parseTags(tags),
         };
         if (finalImageUrl) newServiceData.imageservice = finalImageUrl;
         if (typeof prixmoyen !== "undefined" && prixmoyen !== null && prixmoyen !== "") {
@@ -111,15 +118,11 @@ export const createService = async (req, res) => {
         }
 
         const newService = new Service(newServiceData);
-
-        console.log('💾 Tentative de sauvegarde du service:', newService);
         const savedService = await newService.save();
-        console.log('✅ Service sauvegardé avec succès:', savedService._id);
 
         res.status(201).json(savedService);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return sendControllerError(res, err, 'createService:');
     }
 };
 
@@ -215,8 +218,13 @@ export const createServiceDirect = async (req, res) => {
     try {
         const { nomservice, categorie, prixmoyen, imageservice } = req.body;
 
+        const validation = await validateServicePayload({ nomservice, categorie });
+        if (validation.error) {
+            return res.status(validation.status).json({ error: validation.error });
+        }
+
         const newServiceData = {
-            nomservice,
+            nomservice: String(nomservice).trim(),
             categorie,
         };
         if (imageservice) newServiceData.imageservice = imageservice;
@@ -225,15 +233,11 @@ export const createServiceDirect = async (req, res) => {
         }
 
         const newService = new Service(newServiceData);
-
-        console.log('💾 Tentative de sauvegarde du service:', newService);
         const savedService = await newService.save();
-        console.log('✅ Service sauvegardé avec succès:', savedService._id);
 
         res.status(201).json(savedService);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        return sendControllerError(res, err, 'createServiceDirect:');
     }
 };
 

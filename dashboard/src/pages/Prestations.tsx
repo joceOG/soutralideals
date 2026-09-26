@@ -5,19 +5,21 @@ import {
   IconButton, MenuItem, Chip, Card, CardContent,
   Grid, Avatar
 } from '@mui/material';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
+import {
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TablePagination, Paper, Skeleton, Snackbar, Alert, Stack, Tooltip,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import HandymanIcon from '@mui/icons-material/Handyman';
+import { apiClient } from '../services/setupApi';
+import { colors } from '../tokens/colors';
 
 // ✅ INTERFACES TYPESCRIPT
 interface IUtilisateur {
@@ -88,7 +90,6 @@ interface IPrestationStats {
   revenueTotal: number;
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 function formatMoneyFcfa(value: unknown): string {
   const n = Number(value);
@@ -96,10 +97,6 @@ function formatMoneyFcfa(value: unknown): string {
   return '0';
 }
 
-function authHeaders() {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 function normalizePrestationsPayload(data: unknown): IPrestation[] {
   if (!data || typeof data !== 'object') return [];
@@ -110,9 +107,20 @@ function normalizePrestationsPayload(data: unknown): IPrestation[] {
   return [];
 }
 
+const TH_SX = {
+  color: colors.textSecondary, fontWeight: 600, fontSize: '0.72rem',
+  textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+  backgroundColor: colors.bgWarm, borderBottom: `1px solid ${colors.border}`,
+  py: 1.5, px: 2,
+};
+
 const PrestationsComponent: React.FC = () => {
   const [prestations, setPrestations] = useState<IPrestation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [tablePage, setTablePage] = useState(0);
+  const [tableRowsPerPage, setTableRowsPerPage] = useState(10);
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success' | 'error' }>({ open: false, msg: '', severity: 'success' });
+  const notify = (msg: string, severity: 'success' | 'error' = 'success') => setSnack({ open: true, msg, severity });
   const [modalOpen, setModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [statutModalOpen, setStatutModalOpen] = useState(false);
@@ -156,13 +164,12 @@ const PrestationsComponent: React.FC = () => {
   const fetchPrestations = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/prestations`, {
+      const response = await apiClient.get('/prestations', {
         params: { page: 1, limit: 500 },
-        headers: authHeaders(),
       });
       setPrestations(normalizePrestationsPayload(response.data));
     } catch (error) {
-      toast.error("Erreur lors du chargement des prestations");
+      notify("Erreur lors du chargement des prestations", 'error');
       console.error(error);
     } finally {
       setLoading(false);
@@ -172,9 +179,7 @@ const PrestationsComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/prestations/stats`, {
-        headers: authHeaders(),
-      });
+      const response = await apiClient.get('/prestations/stats');
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -233,15 +238,13 @@ const PrestationsComponent: React.FC = () => {
   const handleChangerStatut = async () => {
     if (!selectedPrestation?._id) return;
     try {
-      await axios.patch(`${apiUrl}/prestation/${selectedPrestation._id}/statut`, statutData, {
-        headers: authHeaders(),
-      });
-      toast.success("Statut mis à jour");
+      await apiClient.patch(`/prestation/${selectedPrestation._id}/statut`, statutData);
+      notify("Statut mis à jour");
       fetchPrestations();
       fetchStats();
       handleClose();
     } catch (error) {
-      toast.error("Erreur lors du changement de statut");
+      notify("Erreur lors du changement de statut", 'error');
       console.error(error);
     }
   };
@@ -251,14 +254,12 @@ const PrestationsComponent: React.FC = () => {
     if (!prestation._id) return;
     if (window.confirm(`Supprimer la prestation ${prestation._id} ?`)) {
       try {
-        await axios.delete(`${apiUrl}/prestation/${prestation._id}`, {
-          headers: authHeaders(),
-        });
-        toast.success("Prestation supprimée");
+        await apiClient.delete(`/prestation/${prestation._id}`);
+        notify("Prestation supprimée");
         fetchPrestations();
         fetchStats();
       } catch {
-        toast.error("Erreur lors de la suppression");
+        notify("Erreur lors de la suppression", 'error');
       }
     }
   };
@@ -267,25 +268,20 @@ const PrestationsComponent: React.FC = () => {
   const handleSave = async () => {
     try {
       const isUpdate = !!selectedPrestation?._id;
-      const url = isUpdate ? `${apiUrl}/prestation/${selectedPrestation?._id}` : `${apiUrl}/prestation`;
-      const method = isUpdate ? 'put' : 'post';
+      const path = isUpdate ? `/prestation/${selectedPrestation?._id}` : '/prestation';
 
-      await axios({
-        method,
-        url,
-        data: formData,
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders(),
-        },
-      });
+      if (isUpdate) {
+        await apiClient.put(path, formData);
+      } else {
+        await apiClient.post(path, formData);
+      }
 
-      toast.success(isUpdate ? "Prestation mise à jour" : "Prestation créée");
+      notify(isUpdate ? "Prestation mise à jour" : "Prestation créée");
       fetchPrestations();
       fetchStats();
       handleClose();
     } catch (error) {
-      toast.error("Erreur lors de la sauvegarde");
+      notify("Erreur lors de la sauvegarde", 'error');
       console.error(error);
     }
   };
@@ -360,8 +356,8 @@ const PrestationsComponent: React.FC = () => {
 
     const st = rowData.statut ?? '—';
     return (
-      <Chip 
-        label={st} 
+      <Chip
+        label={st}
         color={getStatutColor(st) as 'success' | 'error' | 'info' | 'primary' | 'warning' | 'default'}
         size="small"
       />
@@ -413,15 +409,29 @@ const PrestationsComponent: React.FC = () => {
   };
 
   return (
-    <Box m={2}>
-      <ToastContainer />
-      
-      {/* 📊 HEADER AVEC STATISTIQUES */}
+    <Box sx={{ p: 3 }}>
+
+      {/* En-tête */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
+        <Stack direction="row" alignItems="center" gap={1.5}>
+          <Box sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: alpha(colors.primary600, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <HandymanIcon sx={{ color: colors.primary600, fontSize: 22 }} />
+          </Box>
+          <Box>
+            <Typography variant="body2" fontWeight={500} color={colors.textSecondary}>
+              Suivez les prestations entre clients et professionnels.
+            </Typography>
+            <Typography variant="caption" color={colors.textMuted}>
+              {loading ? '…' : `${(filteredPrestations || []).length} prestation${(filteredPrestations || []).length > 1 ? 's' : ''}`}
+            </Typography>
+          </Box>
+        </Stack>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpen(null)} sx={{ borderRadius: 2, px: 2.5 }}>
+          Nouvelle prestation
+        </Button>
+      </Stack>
       <Box mb={3}>
-        <Typography variant="h4" gutterBottom>
-          Gestion des Prestations
-        </Typography>
-        
+
         {stats && (
           <Grid container spacing={2} mb={2}>
             <Grid item xs={12} sm={6} md={3}>
@@ -436,7 +446,7 @@ const PrestationsComponent: React.FC = () => {
                 </CardContent>
               </Card>
             </Grid>
-            
+
             <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent sx={{ p: 2 }}>
@@ -482,7 +492,7 @@ const PrestationsComponent: React.FC = () => {
             }}
             sx={{ width: 300 }}
           />
-          
+
           <TextField
             select
             variant="outlined"
@@ -507,58 +517,84 @@ const PrestationsComponent: React.FC = () => {
             sx={{ width: 150 }}
           />
         </Box>
-        
-        <Button variant="contained" onClick={() => handleOpen(null)}>
-          Nouvelle Prestation
-        </Button>
+
       </Box>
 
-      {/* 📊 TABLEAU PRINCIPAL */}
-      <DataTable
-        value={filteredPrestations || []}
-        paginator
-        rows={15}
-        loading={loading}
-        dataKey="_id"
-        emptyMessage="Aucune prestation trouvée"
-      >
-        <Column 
-          header="Client" 
-          body={clientBodyTemplate}
-          style={{ width: '200px' }}
-        />
-        <Column 
-          header="Prestataire" 
-          body={prestataireBodyTemplate}
-          style={{ width: '200px' }}
-        />
-        <Column 
-          header="Service" 
-          body={serviceBodyTemplate}
-          style={{ width: '200px' }}
-        />
-        <Column 
-          header="Date & Heure" 
-          body={dateBodyTemplate}
-          style={{ width: '120px' }}
-        />
-        <Column field="ville" header="Ville" sortable style={{ width: '100px' }} />
-        <Column 
-          header="Statut" 
-          body={statutBodyTemplate} 
-          sortable 
-          sortField="statut"
-          style={{ width: '120px' }}
-        />
-        <Column 
-          header="Montant" 
-          body={montantBodyTemplate} 
-          sortable 
-          sortField="montantTotal"
-          style={{ width: '100px' }}
-        />
-        <Column header="Actions" body={actionBodyTemplate} style={{ width: '150px' }} />
-      </DataTable>
+      {/* Tableau */}
+      {(() => {
+        const statutColor = (s: string) => {
+          if (s === 'TERMINEE') return { bg: alpha(colors.success, 0.1), color: colors.success };
+          if (s === 'ANNULEE') return { bg: alpha(colors.error, 0.08), color: colors.error };
+          if (s === 'EN_COURS') return { bg: alpha(colors.info, 0.1), color: colors.info };
+          if (s === 'EN_ATTENTE') return { bg: alpha(colors.warning, 0.1), color: '#B45309' };
+          return { bg: colors.bgWarm, color: colors.textMuted };
+        };
+        const paged = (filteredPrestations || []).slice(tablePage * tableRowsPerPage, (tablePage + 1) * tableRowsPerPage);
+        return (
+          <Paper elevation={0} sx={{ border: `1px solid ${colors.border}`, borderRadius: 3, overflow: 'hidden' }}>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={TH_SX}>Client</TableCell>
+                    <TableCell sx={TH_SX}>Prestataire</TableCell>
+                    <TableCell sx={TH_SX}>Service</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 120 }}>Date</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 90 }}>Ville</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 120 }}>Statut</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 110 }}>Montant</TableCell>
+                    <TableCell sx={{ ...TH_SX, width: 120 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i}>{[1, 2, 3, 4, 5, 6, 7, 8].map(j => <TableCell key={j}><Skeleton variant="text" /></TableCell>)}</TableRow>
+                    ))
+                  ) : paged.length === 0 ? (
+                    <TableRow><TableCell colSpan={8} align="center" sx={{ py: 6, color: colors.textMuted }}>Aucune prestation trouvée</TableCell></TableRow>
+                  ) : paged.map(p => {
+                    const sc = statutColor(p.statut ?? '');
+                    const clientNom = p.utilisateur ? `${p.utilisateur.prenom ?? ''} ${p.utilisateur.nom ?? ''}`.trim() : '—';
+                    const prestataireNom = p.prestataire?.utilisateur ? `${p.prestataire.utilisateur.prenom ?? ''} ${p.prestataire.utilisateur.nom ?? ''}`.trim() : '—';
+                    return (
+                      <TableRow key={p._id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                        <TableCell>
+                          <Stack direction="row" alignItems="center" gap={1}>
+                            {p.utilisateur?.photoProfil ? <Avatar src={p.utilisateur.photoProfil} sx={{ width: 28, height: 28 }} /> : <Avatar sx={{ width: 28, height: 28, fontSize: '0.7rem', bgcolor: alpha(colors.primary, 0.12), color: colors.primary }}>{clientNom[0]}</Avatar>}
+                            <Typography variant="body2">{clientNom}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell><Typography variant="body2">{prestataireNom}</Typography></TableCell>
+                        <TableCell><Typography variant="body2" color={colors.textSecondary}>{p.service?.nomservice || '—'}</Typography></TableCell>
+                        <TableCell><Typography variant="body2" color={colors.textSecondary}>{p.datePrestation ? new Date(p.datePrestation).toLocaleDateString('fr-FR') : '—'}</Typography></TableCell>
+                        <TableCell><Typography variant="body2" color={colors.textSecondary}>{p.ville || '—'}</Typography></TableCell>
+                        <TableCell><Chip label={p.statut || '—'} size="small" sx={{ fontSize: '0.72rem', bgcolor: sc.bg, color: sc.color, fontWeight: 600 }} /></TableCell>
+                        <TableCell><Typography variant="body2" fontWeight={600}>{formatMoneyFcfa(p.montantTotal)} F</Typography></TableCell>
+                        <TableCell>
+                          <Stack direction="row" gap={0.5}>
+                            <Tooltip title="Détail"><IconButton size="small" onClick={() => handleDetail(p)} sx={{ color: colors.info }}><VisibilityIcon sx={{ fontSize: 17 }} /></IconButton></Tooltip>
+                            <Tooltip title="Modifier statut"><IconButton size="small" onClick={() => handleStatutModal(p)} sx={{ color: '#B45309' }}><PlayArrowIcon sx={{ fontSize: 17 }} /></IconButton></Tooltip>
+                            <Tooltip title="Modifier"><IconButton size="small" onClick={() => handleOpen(p)} sx={{ color: colors.primary }}><EditIcon sx={{ fontSize: 17 }} /></IconButton></Tooltip>
+                            <Tooltip title="Supprimer"><IconButton size="small" onClick={() => handleDelete(p)} sx={{ color: colors.error }}><DeleteIcon sx={{ fontSize: 17 }} /></IconButton></Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              component="div" count={(filteredPrestations || []).length} page={tablePage} rowsPerPage={tableRowsPerPage}
+              onPageChange={(_, pg) => setTablePage(pg)} onRowsPerPageChange={e => { setTableRowsPerPage(+e.target.value); setTablePage(0); }}
+              rowsPerPageOptions={[5, 10, 25]} labelRowsPerPage="Par page :"
+              labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+              sx={{ borderTop: `1px solid ${colors.border}` }}
+            />
+          </Paper>
+        );
+      })()}
 
       {/* 📝 MODAL CRÉATION/ÉDITION */}
       <Dialog open={modalOpen} onClose={handleClose} maxWidth="md" fullWidth>
@@ -578,7 +614,7 @@ const PrestationsComponent: React.FC = () => {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Heure de Début"
@@ -708,7 +744,7 @@ const PrestationsComponent: React.FC = () => {
                 <Typography color="textSecondary">{selectedPrestation.utilisateur?.email ?? '—'}</Typography>
                 <Typography color="textSecondary">{selectedPrestation.utilisateur?.telephone ?? '—'}</Typography>
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <Typography variant="h6" gutterBottom>Prestataire</Typography>
                 <Typography>
@@ -774,7 +810,7 @@ const PrestationsComponent: React.FC = () => {
                 <MenuItem key={option} value={option}>{option}</MenuItem>
               ))}
             </TextField>
-            
+
             <TextField
               label="Commentaire (optionnel)"
               value={statutData.commentaire}
@@ -792,6 +828,9 @@ const PrestationsComponent: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack(s => ({ ...s, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity={snack.severity} variant="filled" onClose={() => setSnack(s => ({ ...s, open: false }))}>{snack.msg}</Alert>
+      </Snackbar>
     </Box>
   );
 };

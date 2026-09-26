@@ -80,6 +80,13 @@ export const FIELD_RECENSEMENT_API_CODES = Object.freeze({
     category: 'success',
     clientAction: 'archiver localement',
   },
+  RECENSEMENT_APPROVED: {
+    httpStatus: 200,
+    retryable: false,
+    defaultMessage: 'Dossier approuvé.',
+    category: 'success',
+    clientAction: 'rafraîchir détail admin',
+  },
   RECENSEMENT_PUBLISHED: {
     httpStatus: 200,
     retryable: false,
@@ -283,6 +290,20 @@ export const FIELD_RECENSEMENT_API_CODES = Object.freeze({
     category: 'conflict',
     clientAction: 'corriger le dossier ou revoir le match',
   },
+  PROFESSIONAL_PROFILE_ALREADY_EXISTS: {
+    httpStatus: 409,
+    retryable: false,
+    defaultMessage: 'Un profil professionnel de ce type existe déjà pour cet utilisateur.',
+    category: 'conflict',
+    clientAction: 'revue admin ou autre type de profil',
+  },
+  PROFESSIONAL_PROFILE_CONFLICT: {
+    httpStatus: 409,
+    retryable: false,
+    defaultMessage: 'Plusieurs profils du même type nécessitent une régularisation.',
+    category: 'conflict',
+    clientAction: 'audit doublons puis régularisation manuelle',
+  },
   RECENSEMENT_REACTIVATION_BLOCKED: {
     httpStatus: 409,
     retryable: false,
@@ -388,6 +409,7 @@ export const FIELD_RECENSEMENT_CODE_ALIASES = Object.freeze({
   FIELD_DATA_EDIT_FORBIDDEN: 'RECENSEMENT_FORBIDDEN',
   RECENSEMENT_CONFLICT_CORRECTION: 'RECENSEMENT_REVISION_CONFLICT',
   RECENSEMENT_PUBLICATION_FAILED: 'RECENSEMENT_PUBLICATION_TEMPORARY_FAILURE',
+  RECENSEMENT_APPROVED_PENDING_PUBLICATION: 'RECENSEMENT_PUBLICATION_PROCESSING',
   RECENSEMENT_SUSPENSION_FAILED: 'RECENSEMENT_SUSPENSION_TEMPORARY_FAILURE',
   RECENSEMENT_REACTIVATION_FAILED: 'RECENSEMENT_REACTIVATION_TEMPORARY_FAILURE',
   INTERNAL_ERROR: 'SERVER_TEMPORARY_ERROR',

@@ -4,12 +4,28 @@ import cloudinary from 'cloudinary';
 import freelanceServiceModel from '../models/freelanceServiceModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import serviceModel from '../models/serviceModel.js';
+import { isAdmin } from '../utils/accessControl.js';
 import {
   canAccessProProfile,
   findPublicFreelanceIds,
   FREELANCE_VENDEUR_PUBLIC_MATCH,
   isProPubliclyVisible,
 } from '../utils/proPublicFilter.js';
+import {
+  authorizeFreelanceServiceExercise,
+  FreelanceAuthorizationError,
+} from '../services/freelanceAuthorizationService.js';
+
+function sendFreelanceAuthError(res, err) {
+  if (err instanceof FreelanceAuthorizationError) {
+    return res.status(err.httpStatus).json({
+      success: false,
+      code: err.code,
+      message: err.message,
+    });
+  }
+  return null;
+}
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -87,6 +103,9 @@ async function uploadCoverToCloudinary(filePath) {
 export const createFreelanceService = async (req, res) => {
   const tmpPath = req.file?.path;
   try {
+    if (!req.utilisateur?._id) {
+      return res.status(401).json({ success: false, code: 'AUTH_REQUIRED', message: 'Authentification requise.' });
+    }
     const {
       freelanceId,
       serviceId,
@@ -101,6 +120,20 @@ export const createFreelanceService = async (req, res) => {
     if (!fCheck.ok) {
       unlinkSafe(tmpPath);
       return res.status(fCheck.status).json({ error: fCheck.error });
+    }
+
+    try {
+      await authorizeFreelanceServiceExercise({
+        utilisateur: req.utilisateur,
+        freelance: fCheck.freelance,
+        operation: 'create',
+        isAdmin: isAdmin(req),
+      });
+    } catch (authErr) {
+      unlinkSafe(tmpPath);
+      const sent = sendFreelanceAuthError(res, authErr);
+      if (sent) return sent;
+      throw authErr;
     }
 
     const sCheck = await assertCatalogServiceInFreelanceGroup(serviceId);
@@ -173,10 +206,28 @@ export const createFreelanceService = async (req, res) => {
 export const updateFreelanceService = async (req, res) => {
   const tmpPath = req.file?.path;
   try {
-    const offer = await freelanceServiceModel.findById(req.params.id);
+    if (!req.utilisateur?._id) {
+      unlinkSafe(tmpPath);
+      return res.status(401).json({ success: false, code: 'AUTH_REQUIRED', message: 'Authentification requise.' });
+    }
+    const offer = await freelanceServiceModel.findById(req.params.id).populate('freelance');
     if (!offer) {
       unlinkSafe(tmpPath);
       return res.status(404).json({ error: 'Offre introuvable' });
+    }
+
+    try {
+      await authorizeFreelanceServiceExercise({
+        utilisateur: req.utilisateur,
+        freelance: offer.freelance,
+        operation: 'update',
+        isAdmin: isAdmin(req),
+      });
+    } catch (authErr) {
+      unlinkSafe(tmpPath);
+      const sent = sendFreelanceAuthError(res, authErr);
+      if (sent) return sent;
+      throw authErr;
     }
 
     const { serviceId, freelanceId } = req.body;
@@ -437,11 +488,27 @@ export const listFreelanceServicesByFreelanceId = async (req, res) => {
 /** DELETE /freelance-services/:id */
 export const deleteFreelanceService = async (req, res) => {
   try {
-    const doc = await freelanceServiceModel.findByIdAndDelete(req.params.id);
-    if (!doc) {
+    if (!req.utilisateur?._id) {
+      return res.status(401).json({ success: false, code: 'AUTH_REQUIRED', message: 'Authentification requise.' });
+    }
+    const offer = await freelanceServiceModel.findById(req.params.id).populate('freelance');
+    if (!offer) {
       return res.status(404).json({ error: 'Offre introuvable' });
     }
-    return res.status(200).json({ message: 'Offre supprimée', id: doc._id });
+    try {
+      await authorizeFreelanceServiceExercise({
+        utilisateur: req.utilisateur,
+        freelance: offer.freelance,
+        operation: 'delete',
+        isAdmin: isAdmin(req),
+      });
+    } catch (authErr) {
+      const sent = sendFreelanceAuthError(res, authErr);
+      if (sent) return sent;
+      throw authErr;
+    }
+    await freelanceServiceModel.findByIdAndDelete(req.params.id);
+    return res.status(200).json({ message: 'Offre supprimée', id: offer._id });
   } catch (err) {
     console.error('deleteFreelanceService:', err);
     return res.status(500).json({ error: err.message });

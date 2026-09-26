@@ -302,11 +302,13 @@ async function continuePublicationAfterApprove({
       operationMutationId: `publish-after-approve:${operationMutationId}`,
       ownerKey: `approve-pub:${actorUser._id}:${id}`,
     });
+    const fresh = (await FieldRecensement.findById(id)) || fallbackDoc;
     return {
       kind: pub.kind,
       code: pub.code,
       status: pub.status,
       data: {
+        ...adminDto(fresh),
         ...pub.data,
         publicationPending: pub.kind !== 'published' && pub.kind !== 'already',
       },

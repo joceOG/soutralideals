@@ -7,7 +7,25 @@ import { isAdmin, assertAdmin } from '../utils/accessControl.js';
 import { pickFields } from '../utils/pickFields.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
-import { uploadKycToCloudinary, prepareKycReplacement, stripInjectedKycFromBody, presentProDocForViewer } from '../utils/kycAccess.js';
+import { uploadKycToCloudinary, prepareKycReplacement, stripInjectedKycFromBody, presentProDocForViewer, redactKycFromPlain, CLD_AUTH_PREFIX } from '../utils/kycAccess.js';
+import { validateFreelanceCreateBody, parseJsonArrayField, mongooseValidationTo400 } from '../utils/freelanceValidation.js';
+import { presentFreelancePendingListItem } from '../utils/freelancePendingPresenter.js';
+import Utilisateur from '../models/utilisateurModel.js';
+import {
+  authorizeFreelanceProfileUpdate,
+  FreelanceAuthorizationError,
+} from '../services/freelanceAuthorizationService.js';
+
+function sendFreelanceProfileAuthError(res, err) {
+  if (err instanceof FreelanceAuthorizationError) {
+    return res.status(err.httpStatus).json({
+      success: false,
+      code: err.code,
+      message: err.message,
+    });
+  }
+  return null;
+}
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -23,6 +41,23 @@ const FREELANCE_OWNER_FIELDS = [
 
 const FREELANCE_JSON_FIELDS = ['skills', 'preferredCategories', 'portfolioItems'];
 
+const FREELANCE_ADMIN_FIELDS = ['isTopRated', 'isFeatured', 'accountStatus', 'status', 'isVerified'];
+
+async function destroyKycRef(ref) {
+  if (typeof ref !== 'string' || !ref.startsWith(CLD_AUTH_PREFIX)) return;
+  const publicId = ref.slice(CLD_AUTH_PREFIX.length);
+  try {
+    await cloudinary.v2.uploader.destroy(publicId, { type: 'authenticated', invalidate: true });
+  } catch {
+    /* best-effort */
+  }
+}
+
+function mapFreelanceListItem(doc) {
+  const plain = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+  return redactKycFromPlain(plain);
+}
+
 // ✅ Créer un freelance (Modèle sdealsapp)
 export const createFreelance = async (req, res) => {
   try {
@@ -31,14 +66,26 @@ export const createFreelance = async (req, res) => {
       return res.status(denied.status).json({ error: denied.error });
     }
 
+    const pre = validateFreelanceCreateBody({
+      body: req.body,
+      isAdminUser: isAdmin(req),
+      requesterId: req.utilisateur._id.toString(),
+    });
+    if (!pre.ok) {
+      return res.status(400).json({ error: pre.errors.join(' ; ') });
+    }
+
+    if (isAdmin(req)) {
+      const exists = await Utilisateur.exists({ _id: pre.ownerId });
+      if (!exists) return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const dup = await freelanceModel.findOne({ utilisateur: pre.ownerId }).select('_id');
+    if (dup) {
+      return res.status(409).json({ error: 'Un profil freelance existe déjà pour cet utilisateur' });
+    }
+
     const {
-      utilisateur,
-      name,
-      job,
-      category,
-      hourlyRate,
-      description,
-      location,
       phoneNumber,
       experienceLevel,
       availabilityStatus,
@@ -47,47 +94,46 @@ export const createFreelance = async (req, res) => {
       preferredCategories,
       minimumProjectBudget,
       maxProjectsPerMonth,
-      portfolioItems
+      portfolioItems,
+      description,
     } = req.body;
 
     const ownerId =
-      (isAdmin(req) || isRecensementRequest(req)) && utilisateur
-        ? utilisateur
-        : req.utilisateur._id.toString();
+      isAdmin(req) && req.body.utilisateur
+        ? req.body.utilisateur
+        : isRecensementRequest(req) && req.body.utilisateur
+          ? req.body.utilisateur
+          : req.utilisateur._id.toString();
 
-    // ✅ Upload de fichiers avec structure sdealsapp
-    const uploads = {};
-    let imagePath = "";
-    
-    // Upload photo principale (équivalent imagePath)
+    let imagePath = '';
+    const verificationDocs = {};
+    const newKycRefs = [];
+
     if (req.files?.profileImage?.[0]) {
       const result = await cloudinary.v2.uploader.upload(req.files.profileImage[0].path, {
-        folder: "freelances/profiles",
+        folder: 'freelances/profiles',
       });
       imagePath = result.secure_url;
       fs.unlinkSync(req.files.profileImage[0].path);
     }
-    
-    // Upload documents de vérification
-    const verificationDocs = {};
-    for (const field of ["cni1", "cni2", "selfie"]) {
+
+    for (const field of ['cni1', 'cni2', 'selfie']) {
       if (req.files?.[field]?.[0]) {
         const { ref } = await uploadKycToCloudinary(
           req.files[field][0].path,
-          "freelances/verification",
+          'freelances/verification',
         );
         verificationDocs[field] = ref;
+        newKycRefs.push(ref);
         fs.unlinkSync(req.files[field][0].path);
       }
     }
 
-    // ✅ Création freelance avec modèle sdealsapp
     const newFreelance = new freelanceModel({
-      // Champs de base
       utilisateur: new mongoose.Types.ObjectId(ownerId),
-      name,
-      job,
-      category,
+      name: pre.name,
+      job: pre.job,
+      category: pre.category,
       imagePath,
       
       // Système de performance
@@ -99,9 +145,9 @@ export const createFreelance = async (req, res) => {
       responseTime: 24,
       
       // Compétences et tarification  
-      skills: skills ? (Array.isArray(skills) ? skills : JSON.parse(skills)) : [],
-      hourlyRate: parseFloat(hourlyRate),
-      description,
+      skills: parseJsonArrayField(skills),
+      hourlyRate: pre.hourlyRate,
+      description: description || '',
       
       // Informations professionnelles
       experienceLevel: experienceLevel || 'Débutant',
@@ -109,11 +155,11 @@ export const createFreelance = async (req, res) => {
       workingHours: workingHours || 'Temps partiel',
       
       // Contact et localisation
-      location,
+      location: pre.location,
       phoneNumber,
       
       // Portfolio
-      portfolioItems: portfolioItems ? JSON.parse(portfolioItems) : [],
+      portfolioItems: portfolioItems ? parseJsonArrayField(portfolioItems) : [],
       
       // Documents de vérification
       verificationDocuments: {
@@ -127,7 +173,9 @@ export const createFreelance = async (req, res) => {
       clientSatisfaction: 0,
       
       // Préférences
-      preferredCategories: preferredCategories ? JSON.parse(preferredCategories) : [category],
+      preferredCategories: preferredCategories
+        ? parseJsonArrayField(preferredCategories)
+        : [pre.category],
       minimumProjectBudget: parseFloat(minimumProjectBudget) || 0,
       maxProjectsPerMonth: parseInt(maxProjectsPerMonth) || 10,
       
@@ -150,16 +198,24 @@ export const createFreelance = async (req, res) => {
       newFreelance.dateRecensement = recensement.dateRecensement;
     }
 
-    await newFreelance.save();
-    
-    // ✅ Populer les références pour la réponse
+    try {
+      await newFreelance.save();
+    } catch (saveErr) {
+      for (const ref of newKycRefs) await destroyKycRef(ref);
+      const mapped = mongooseValidationTo400(saveErr);
+      if (mapped) return res.status(mapped.status).json({ error: mapped.error });
+      throw saveErr;
+    }
+
     const populatedFreelance = await freelanceModel.findById(newFreelance._id)
       .populate("utilisateur");
     
-    res.status(201).json(populatedFreelance);
+    res.status(201).json(presentProDocForViewer(req, populatedFreelance, res));
   } catch (err) {
+    const mapped = mongooseValidationTo400(err);
+    if (mapped) return res.status(mapped.status).json({ error: mapped.error });
     console.error("Erreur création freelance:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Erreur interne' });
   }
 };
 
@@ -193,7 +249,7 @@ export const getAllFreelances = async (req, res) => {
     const total = await freelanceModel.countDocuments(filter);
 
     res.status(200).json({
-      freelances: freelances.map((f) => presentProDocForViewer(req, f, res)),
+      freelances: freelances.map((f) => mapFreelanceListItem(f)),
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
@@ -242,14 +298,36 @@ export const getFreelanceById = async (req, res) => {
 // ✅ Mettre à jour un freelance (Modèle sdealsapp)
 export const updateFreelance = async (req, res) => {
   try {
-    const body = pickFields(stripInjectedKycFromBody(req.body), FREELANCE_OWNER_FIELDS);
+    const existing = await freelanceModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Freelance non trouvé" });
+
+    const strippedBody = stripInjectedKycFromBody(req.body);
+    try {
+      await authorizeFreelanceProfileUpdate({
+        utilisateur: req.utilisateur,
+        freelance: existing,
+        payload: strippedBody,
+        isAdmin: isAdmin(req),
+      });
+    } catch (authErr) {
+      const sent = sendFreelanceProfileAuthError(res, authErr);
+      if (sent) return sent;
+      throw authErr;
+    }
+
+    const allowed = isAdmin(req)
+      ? [...FREELANCE_OWNER_FIELDS, ...FREELANCE_ADMIN_FIELDS]
+      : FREELANCE_OWNER_FIELDS;
+    const body = pickFields(strippedBody, allowed);
 
     const updates = { lastActive: new Date() };
 
     if (body.name) updates.name = body.name;
     if (body.job) updates.job = body.job;
     if (body.category) updates.category = body.category;
-    if (body.hourlyRate) updates.hourlyRate = parseFloat(body.hourlyRate);
+    if (body.hourlyRate !== undefined && body.hourlyRate !== '') {
+      updates.hourlyRate = parseFloat(body.hourlyRate);
+    }
     if (body.description) updates.description = body.description;
     if (body.location) updates.location = body.location;
     if (body.phoneNumber) updates.phoneNumber = body.phoneNumber;
@@ -257,19 +335,30 @@ export const updateFreelance = async (req, res) => {
     if (body.availabilityStatus) updates.availabilityStatus = body.availabilityStatus;
     if (body.workingHours) updates.workingHours = body.workingHours;
     if (body.skills) {
-      updates.skills = Array.isArray(body.skills) ? body.skills : JSON.parse(body.skills);
+      updates.skills = parseJsonArrayField(body.skills);
     }
     if (body.preferredCategories) {
-      updates.preferredCategories = typeof body.preferredCategories === 'string'
-        ? JSON.parse(body.preferredCategories)
-        : body.preferredCategories;
+      updates.preferredCategories = parseJsonArrayField(body.preferredCategories);
     }
     if (body.minimumProjectBudget) updates.minimumProjectBudget = parseFloat(body.minimumProjectBudget);
     if (body.maxProjectsPerMonth) updates.maxProjectsPerMonth = parseInt(body.maxProjectsPerMonth, 10);
     if (body.portfolioItems) {
-      updates.portfolioItems = typeof body.portfolioItems === 'string'
-        ? JSON.parse(body.portfolioItems)
-        : body.portfolioItems;
+      updates.portfolioItems = parseJsonArrayField(body.portfolioItems);
+    }
+
+    if (isAdmin(req)) {
+      if (typeof body.isTopRated !== 'undefined') {
+        updates.isTopRated = body.isTopRated === true || body.isTopRated === 'true';
+      }
+      if (typeof body.isFeatured !== 'undefined') {
+        updates.isFeatured = body.isFeatured === true || body.isFeatured === 'true';
+      }
+      if (body.accountStatus) updates.accountStatus = body.accountStatus;
+      if (body.status) updates.status = body.status;
+      if (typeof body.isVerified !== 'undefined') {
+        updates['verificationDocuments.isVerified'] =
+          body.isVerified === true || body.isVerified === 'true';
+      }
     }
 
     // ✅ Upload photo principale
@@ -304,10 +393,12 @@ export const updateFreelance = async (req, res) => {
 
     if (!freelance) return res.status(404).json({ error: "Freelance non trouvé" });
 
-    res.status(200).json(freelance);
+    res.status(200).json(presentProDocForViewer(req, freelance, res));
   } catch (err) {
+    const mapped = mongooseValidationTo400(err);
+    if (mapped) return res.status(mapped.status).json({ error: mapped.error });
     console.error("Erreur mise à jour freelance:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Erreur interne' });
   }
 };
 
@@ -383,7 +474,7 @@ export const getFreelancesByCategory = async (req, res) => {
     .sort(sortOptions)
     .limit(parseInt(limit));
 
-    res.status(200).json(freelances.map((f) => presentProDocForViewer(req, f, res)));
+    res.status(200).json(freelances.map((f) => mapFreelanceListItem(f)));
   } catch (err) {
     console.error("Erreur récupération par catégorie:", err.message);
     res.status(500).json({ error: err.message });
@@ -442,7 +533,7 @@ export const searchFreelances = async (req, res) => {
     const total = await freelanceModel.countDocuments(searchCriteria);
 
     res.status(200).json({
-      freelances: freelances.map((f) => presentProDocForViewer(req, f, res)),
+      freelances: freelances.map((f) => mapFreelanceListItem(f)),
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
@@ -479,7 +570,9 @@ export const getPendingFreelances = async (req, res) => {
       .populate("recenseur", "nom prenom telephone")
       .sort({ dateRecensement: -1 });
 
-    res.status(200).json(freelances);
+    const safe = freelances.map((p) => presentFreelancePendingListItem(p));
+
+    res.status(200).json(safe);
   } catch (err) {
     console.error("Erreur récupération freelances pending:", err.message);
     res.status(500).json({ error: err.message });

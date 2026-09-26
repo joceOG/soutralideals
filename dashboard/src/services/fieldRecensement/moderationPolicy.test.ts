@@ -3,7 +3,7 @@ import {
   getVisibleModerationActions,
 } from './moderationPolicy';
 import { ModerationActionSession } from './moderationSession';
-import { mapModerationResponse } from './moderationOutcome';
+import { mapModerationResponse, userMessageForOutcome } from './moderationOutcome';
 
 describe('moderationPolicy', () => {
   it('pending_review → correction, rejet, approbation', () => {
@@ -140,5 +140,24 @@ describe('mapModerationResponse', () => {
       }).kind,
     ).toBe('temporary');
     expect(mapModerationResponse(403, { code: 'ADMIN_REQUIRED' }).kind).toBe('forbidden');
+  });
+
+  it('message succès reflète approved / published', () => {
+    expect(
+      userMessageForOutcome({
+        kind: 'success',
+        httpStatus: 200,
+        code: 'RECENSEMENT_PUBLISHED',
+        data: { reviewStatus: 'approved', publicationStatus: 'published' },
+      }),
+    ).toMatch(/publié/i);
+    expect(
+      userMessageForOutcome({
+        kind: 'processing',
+        httpStatus: 202,
+        code: 'RECENSEMENT_PUBLICATION_PROCESSING',
+        data: { reviewStatus: 'approved', publicationStatus: 'not_started' },
+      }),
+    ).toMatch(/approuvé/i);
   });
 });

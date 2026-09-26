@@ -2,15 +2,49 @@ import commandeModel from '../models/commandeModel.js';
 import mongoose from 'mongoose';
 import { assertOwnerOrAdmin, assertAdmin, isAdmin, isOwnerOrAdmin } from '../utils/accessControl.js';
 import {
+  authorizeCommandeOperation,
+  pickCommandeUpdates,
+  CommandeAuthorizationError,
+  assertNoImmutableCommandeFieldsInPayload,
+  resolveCommandeActor,
+} from '../services/commandeAuthorizationService.js';
+import {
   applyOrderStatusChange,
   OrderStatusPolicyError,
 } from '../services/orderStatusService.js';
+import {
+  createOrderFromClientPayload,
+  formatPublicCommandeResponse,
+  OrderCreationError,
+} from '../services/commandeCreationService.js';
+
+function sendOrderCreationError(res, err) {
+  if (err instanceof OrderCreationError) {
+    return res.status(err.httpStatus).json({
+      success: false,
+      code: err.code,
+      message: err.message,
+    });
+  }
+  return null;
+}
 
 const COMMANDE_UPDATE_WHITELIST = [
   'dateLivraison',
   'notesClient',
   'infoCommande',
 ];
+
+function sendCommandeAuthError(res, err) {
+  if (err instanceof CommandeAuthorizationError) {
+    return res.status(err.httpStatus).json({
+      success: false,
+      code: err.code,
+      message: err.message,
+    });
+  }
+  return null;
+}
 
 async function loadCommandeOr404(id, res) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -25,11 +59,14 @@ async function loadCommandeOr404(id, res) {
   return commande;
 }
 
-function assertCommandeAccess(req, res, commande) {
-  const ownerId = commande.utilisateur?.toString();
-  if (ownerId && isOwnerOrAdmin(req, ownerId)) return true;
-  if (!ownerId && isAdmin(req)) return true;
-  res.status(403).json({ error: 'Accès refusé : commande d\'un autre utilisateur.' });
+async function assertCommandeAccess(req, res, commande) {
+  const actor = await resolveCommandeActor(req.utilisateur, commande);
+  if (actor === 'admin' || actor === 'client' || actor === 'vendeur') return true;
+  res.status(403).json({
+    success: false,
+    code: 'RESOURCE_ACCESS_FORBIDDEN',
+    message: 'Accès refusé à cette commande.',
+  });
   return false;
 }
 
@@ -44,45 +81,26 @@ function pickAllowedUpdates(body, isAdminUser) {
   return updates;
 }
 
-// ✅ CRÉER UNE NOUVELLE COMMANDE
+// ✅ CRÉER UNE NOVELLE COMMANDE (DASH-8E.3B.1 — dérivation serveur)
 export const createCommande = async (req, res) => {
     try {
-        const {
-            infoCommande,
-            articles,
-            paiementInfo,
-            datePaie,
-            prixArticles,
-            prixLivraison,
-            prixTotal,
-            dateLivraison,
-            vendeur,
-        } = req.body;
-
-        if (!infoCommande || !articles || articles.length === 0) {
-            return res.status(400).json({ error: 'Informations de commande et articles requis' });
+        if (!req.utilisateur?._id) {
+            return res.status(401).json({ success: false, code: 'UNAUTHORIZED', message: 'Authentification requise.' });
         }
 
-        // STAB-11 : statut initial forcé serveur (ignorer status client)
-        const newCommande = new commandeModel({
-            utilisateur: req.utilisateur._id,
-            vendeur: vendeur || undefined,
-            infoCommande,
-            articles,
-            paiementInfo,
-            datePaie,
-            prixArticles: prixArticles || 0,
-            prixLivraison: prixLivraison || 0,
-            prixTotal: prixTotal || (prixArticles + prixLivraison),
-            statusCommande: 'En cours',
-            dateLivraison
+        const commande = await createOrderFromClientPayload({
+            utilisateurId: req.utilisateur._id,
+            body: req.body,
         });
 
-        await newCommande.save();
-        res.status(201).json(newCommande);
+        res.status(201).json(formatPublicCommandeResponse(commande));
     } catch (err) {
+        const sent = sendOrderCreationError(res, err);
+        if (sent) return sent;
+        const sentAuth = sendCommandeAuthError(res, err);
+        if (sentAuth) return sentAuth;
         console.error('Erreur création commande:', err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, code: 'SERVER_ERROR', message: 'Erreur serveur.' });
     }
 };
 
@@ -143,7 +161,8 @@ export const updateCommande = async (req, res) => {
         const commande = await loadCommandeOr404(req.params.id, res);
         if (!commande) return;
 
-        // STAB-11 : changement de statut via politique centralisée (même que Socket)
+        assertNoImmutableCommandeFieldsInPayload(req.body);
+
         if (req.body.statusCommande !== undefined) {
             try {
                 const updated = await applyOrderStatusChange({
@@ -151,33 +170,55 @@ export const updateCommande = async (req, res) => {
                     targetStatus: req.body.statusCommande,
                     user: req.utilisateur,
                 });
-                // Autres champs non-statut éventuels
-                const other = pickAllowedUpdates(req.body, isAdmin(req));
+                const auth = await authorizeCommandeOperation({
+                  utilisateur: req.utilisateur,
+                  commande: updated,
+                  operation: 'updateFields',
+                  payload: req.body,
+                });
+                const other = pickCommandeUpdates(req.body, auth.allowedFields);
                 if (Object.keys(other).length > 0) {
                     Object.assign(updated, other);
+                    updated.dateModification = new Date();
                     await updated.save();
                 }
                 return res.status(200).json(updated);
             } catch (err) {
                 if (err instanceof OrderStatusPolicyError) {
-                    return res.status(err.statusCode || 400).json({ error: err.message });
+                    return res.status(err.statusCode || 400).json({
+                      success: false,
+                      code: err.code || 'INVALID_COMMANDE_STATUS_TRANSITION',
+                      message: err.message,
+                    });
                 }
+                const sent = sendCommandeAuthError(res, err);
+                if (sent) return sent;
                 throw err;
             }
         }
 
-        if (!assertCommandeAccess(req, res, commande)) return;
+        try {
+          const auth = await authorizeCommandeOperation({
+            utilisateur: req.utilisateur,
+            commande,
+            operation: 'updateFields',
+            payload: req.body,
+          });
+          const updates = pickCommandeUpdates(req.body, auth.allowedFields);
+          updates.dateModification = new Date();
 
-        const updates = pickAllowedUpdates(req.body, isAdmin(req));
-        updates.dateModification = new Date();
-
-        const updated = await commandeModel.findByIdAndUpdate(
+          const updated = await commandeModel.findByIdAndUpdate(
             req.params.id,
             updates,
-            { new: true, runValidators: true }
-        );
+            { new: true, runValidators: true },
+          );
 
-        res.status(200).json(updated);
+          return res.status(200).json(updated);
+        } catch (err) {
+          const sent = sendCommandeAuthError(res, err);
+          if (sent) return sent;
+          throw err;
+        }
     } catch (err) {
         console.error('Erreur mise à jour commande:', err.message);
         res.status(500).json({ error: err.message });

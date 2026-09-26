@@ -66,6 +66,7 @@ const SKIP_CACHE_PATH_PREFIXES = [
   '/api/favorites',
   '/api/wallet',
   '/api/maps',
+  '/api/admin',
 ];
 
 function shouldSkipCacheForGet(req) {

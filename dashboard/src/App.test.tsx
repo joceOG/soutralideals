@@ -2,8 +2,15 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+jest.mock('./routes/Dashboard', () => ({
+  __esModule: true,
+  default: function MockDashboard() {
+    return <div data-testid="dashboard-shell">Soutrali Dashboard</div>;
+  },
+}));
+
+test('monte App avec le thème et le shell dashboard', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByTestId('dashboard-shell')).toBeInTheDocument();
+  expect(screen.getByText(/Soutrali Dashboard/i)).toBeInTheDocument();
 });

@@ -7,7 +7,17 @@ import { isAdmin, assertAdmin } from '../utils/accessControl.js';
 import { pickFields } from '../utils/pickFields.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
-import { uploadKycToCloudinary, prepareKycReplacement, stripInjectedKycFromBody, presentProDocForViewer } from '../utils/kycAccess.js';
+import { uploadKycToCloudinary, prepareKycReplacement, stripInjectedKycFromBody, presentProDocForViewer, redactKycFromPlain, CLD_AUTH_PREFIX } from '../utils/kycAccess.js';
+import {
+  validateVendeurCreateBody,
+  parseJsonArrayField,
+  parseJsonObjectField,
+  mongooseValidationTo400,
+} from '../utils/vendeurValidation.js';
+import { presentVendeurPendingListItem } from '../utils/vendeurPendingPresenter.js';
+import { cleanupMulterFiles } from '../middleware/vendeurMultipartGate.js';
+import Utilisateur from '../models/utilisateurModel.js';
+import articleModel from '../models/articleModel.js';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -28,182 +38,192 @@ const JSON_FIELDS = [
   'paymentMethods', 'businessAddress', 'socialMedia', 'tags',
 ];
 
+const VENDEUR_ADMIN_FIELDS = [
+  'isTopRated', 'isFeatured', 'accountStatus', 'status', 'isVerified',
+  'verificationLevel', 'identityVerified', 'businessVerified',
+];
+
+async function destroyKycRef(ref) {
+  if (typeof ref !== 'string' || !ref.startsWith(CLD_AUTH_PREFIX)) return;
+  const publicId = ref.slice(CLD_AUTH_PREFIX.length);
+  try {
+    await cloudinary.v2.uploader.destroy(publicId, { type: 'authenticated', invalidate: true });
+  } catch {
+    /* best-effort */
+  }
+}
+
+function mapVendeurListItem(doc) {
+  const plain = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+  return redactKycFromPlain(plain);
+}
+
+async function attachArticleCounts(vendeurDocs) {
+  const ids = vendeurDocs.map((v) => v._id);
+  if (!ids.length) return [];
+  const agg = await articleModel.aggregate([
+    { $match: { vendeur: { $in: ids } } },
+    { $group: { _id: '$vendeur', articleCount: { $sum: 1 } } },
+  ]);
+  const countMap = Object.fromEntries(agg.map((r) => [String(r._id), r.articleCount]));
+  return vendeurDocs.map((v) => {
+    const row = mapVendeurListItem(v);
+    row.articleCount = countMap[String(v._id)] ?? 0;
+    return row;
+  });
+}
+
 // ✅ CRÉER UN NOUVEAU VENDEUR (sdealsapp standard)
 export const createVendeur = async (req, res) => {
     try {
         const denied = assertRecensementAgent(req);
         if (denied) {
+            cleanupMulterFiles(req.files);
             return res.status(denied.status).json({ error: denied.error });
         }
 
+        const pre = validateVendeurCreateBody({
+            body: req.body,
+            isAdminUser: isAdmin(req),
+            requesterId: req.utilisateur._id.toString(),
+        });
+        if (!pre.ok) {
+            cleanupMulterFiles(req.files);
+            return res.status(400).json({ error: pre.errors.join(' ; ') });
+        }
+
+        if (isAdmin(req)) {
+            const exists = await Utilisateur.exists({ _id: pre.ownerId });
+            if (!exists) {
+                cleanupMulterFiles(req.files);
+                return res.status(404).json({ error: 'Utilisateur introuvable' });
+            }
+        }
+
+        const dup = await vendeurModel.findOne({ utilisateur: pre.ownerId }).select('_id');
+        if (dup) {
+            cleanupMulterFiles(req.files);
+            return res.status(409).json({ error: 'Un profil vendeur existe déjà pour cet utilisateur' });
+        }
+
         const {
-            utilisateur,
-            // 🏪 Informations boutique
-            shopName,
-            shopDescription,
-            businessType,
-            businessCategories,
-            // 🚚 Livraison
             deliveryZones,
             shippingMethods,
-            // 💳 Paiements
             paymentMethods,
-            commissionRate,
-            payoutFrequency,
-            // 🏢 Informations légales
             businessRegistrationNumber,
             businessAddress,
             businessPhone,
             businessEmail,
-            // 📊 Politiques
             returnPolicy,
             warrantyInfo,
             minimumOrderAmount,
             maxOrdersPerDay,
-            // 🌐 Réseaux sociaux
             socialMedia,
             preferredContactMethod,
             tags,
             notes,
-            // Backwards compatibility
             localisation,
-            zonedelivraison
         } = req.body;
 
-        // ✅ VALIDATION OBLIGATOIRE
         const ownerId =
-            (isAdmin(req) || isRecensementRequest(req)) && utilisateur
-                ? utilisateur
-                : req.utilisateur._id.toString();
+            isAdmin(req) && req.body.utilisateur
+                ? req.body.utilisateur
+                : isRecensementRequest(req) && req.body.utilisateur
+                    ? req.body.utilisateur
+                    : req.utilisateur._id.toString();
 
-        if (!shopName || !shopDescription || !businessType) {
-            return res.status(400).json({ 
-                error: 'Nom boutique, description et type business requis' 
-            });
-        }
+        let shopLogoUrl = '';
+        const verificationDocs = {};
+        const newKycRefs = [];
 
-        // ✅ UPLOAD FICHIERS CLOUDINARY
-        const uploads = {};
-        
-        // Upload logo boutique
         if (req.files?.shopLogo?.[0]) {
             const result = await cloudinary.v2.uploader.upload(req.files.shopLogo[0].path, {
                 folder: 'vendeurs/logos',
             });
-            uploads.shopLogo = result.secure_url;
+            shopLogoUrl = result.secure_url;
             fs.unlinkSync(req.files.shopLogo[0].path);
         }
 
-        // Upload documents de vérification
-        const verificationDocs = {};
-        const docFields = ['cni1', 'cni2', 'selfie', 'businessLicense', 'taxDocument'];
-        
-        for (const field of docFields) {
+        for (const field of ['cni1', 'cni2', 'selfie', 'businessLicense', 'taxDocument']) {
             if (req.files?.[field]?.[0]) {
                 const { ref } = await uploadKycToCloudinary(
                     req.files[field][0].path,
-                    `vendeurs/verification`,
+                    'vendeurs/verification',
                 );
                 verificationDocs[field] = ref;
+                newKycRefs.push(ref);
                 fs.unlinkSync(req.files[field][0].path);
             }
         }
 
-        // ✅ CRÉER VENDEUR AVEC MODÈLE MODERNE
+        const parsedAddress = parseJsonObjectField(businessAddress);
+        const addr = parsedAddress || {
+            city: localisation || '',
+            country: "Côte d'Ivoire",
+        };
+
         const newVendeur = new vendeurModel({
-            // Référence utilisateur (forcée pour les non-admins)
             utilisateur: new mongoose.Types.ObjectId(ownerId),
-            
-            // 🏪 Informations boutique
-            shopName,
-            shopDescription,
-            shopLogo: uploads.shopLogo,
-            businessType,
-            businessCategories: businessCategories ? JSON.parse(businessCategories) : [],
-            
-            // ⭐ Système de notation (initialisé)
+            shopName: pre.shopName,
+            shopDescription: pre.shopDescription,
+            shopLogo: shopLogoUrl || undefined,
+            businessType: pre.businessType,
+            businessCategories: pre.businessCategories,
             rating: 0,
             completedOrders: 0,
             isTopRated: false,
             isFeatured: false,
             isNew: true,
             responseTime: 24,
-            
-            // 💰 Statistiques business (initialisées)
             totalEarnings: 0,
             totalSales: 0,
             currentOrders: 0,
             customerSatisfaction: 0,
             returnRate: 0,
-            
-            // 🚚 Livraison & logistique
-            deliveryZones: deliveryZones ? JSON.parse(deliveryZones) : [localisation || businessAddress?.city || ''],
-            shippingMethods: shippingMethods ? JSON.parse(shippingMethods) : ['Standard'],
-            deliveryTimes: {
-                standard: '3-5 jours',
-                express: '1-2 jours'
-            },
-            
-            // 💳 Paiements
-            paymentMethods: paymentMethods ? JSON.parse(paymentMethods) : ['Mobile Money'],
-            commissionRate: parseFloat(commissionRate) || 5,
-            payoutFrequency: payoutFrequency || 'Mensuelle',
-            
-            // 📦 Produits (initialisés)
-            productCategories: businessCategories ? JSON.parse(businessCategories) : [],
+            deliveryZones: parseJsonArrayField(deliveryZones).length
+                ? parseJsonArrayField(deliveryZones)
+                : [addr.city || ''].filter(Boolean),
+            shippingMethods: parseJsonArrayField(shippingMethods).length
+                ? parseJsonArrayField(shippingMethods)
+                : ['Standard'],
+            deliveryTimes: { standard: '3-5 jours', express: '1-2 jours' },
+            paymentMethods: parseJsonArrayField(paymentMethods).length
+                ? parseJsonArrayField(paymentMethods)
+                : ['Mobile Money'],
+            commissionRate: 5,
+            payoutFrequency: 'Mensuelle',
+            productCategories: pre.businessCategories,
             totalProducts: 0,
             activeProducts: 0,
             averageProductPrice: 0,
-            
-            // 🏢 Informations légales
             businessRegistrationNumber,
-            businessAddress: businessAddress ? JSON.parse(businessAddress) : {
-                city: localisation || '',
-                country: 'Cameroun'
-            },
+            businessAddress: addr,
             businessPhone,
             businessEmail,
-            
-            // 📊 Politiques
             returnPolicy: returnPolicy || 'Retour accepté sous 14 jours',
             warrantyInfo,
             minimumOrderAmount: parseFloat(minimumOrderAmount) || 0,
-            maxOrdersPerDay: parseInt(maxOrdersPerDay) || 50,
-            
-            // 🔐 Vérification
+            maxOrdersPerDay: parseInt(maxOrdersPerDay, 10) || 50,
             verificationLevel: 'Basic',
-            verificationDocuments: {
-                ...verificationDocs,
-                isVerified: false
-            },
+            verificationDocuments: { ...verificationDocs, isVerified: false },
             identityVerified: false,
             businessVerified: false,
-            
-            // 📈 Activité
             lastActive: new Date(),
             joinedDate: new Date(),
             profileViews: 0,
             conversionRate: 0,
-            
-            // ⚙️ Statut compte
             accountStatus: 'Pending',
             subscriptionType: 'Free',
             premiumFeatures: [],
-            
-            // 🌐 Réseaux sociaux
-            socialMedia: socialMedia ? JSON.parse(socialMedia) : {},
+            socialMedia: parseJsonObjectField(socialMedia) || {},
             promotionalOffers: [],
             preferredContactMethod: preferredContactMethod || 'Email',
-            
-            // 🏷️ Métadonnées
-            tags: tags ? JSON.parse(tags) : [],
+            tags: parseJsonArrayField(tags),
             notes,
-            
-            // 🔄 Historique
             statusHistory: [{
                 status: 'Pending',
                 date: new Date(),
-                reason: 'Inscription initiale'
+                reason: 'Inscription initiale',
             }],
             status: 'pending',
             source: 'web',
@@ -214,20 +234,26 @@ export const createVendeur = async (req, res) => {
         else newVendeur.source = req.body.source || 'web';
         if (recensement.status) newVendeur.status = recensement.status;
         if (recensement.recenseur) newVendeur.recenseur = recensement.recenseur;
-        if (recensement.dateRecensement) {
-            newVendeur.dateRecensement = recensement.dateRecensement;
+        if (recensement.dateRecensement) newVendeur.dateRecensement = recensement.dateRecensement;
+
+        try {
+            await newVendeur.save();
+        } catch (saveErr) {
+            for (const ref of newKycRefs) await destroyKycRef(ref);
+            const mapped = mongooseValidationTo400(saveErr);
+            if (mapped) return res.status(mapped.status).json({ error: mapped.error });
+            throw saveErr;
         }
 
-        await newVendeur.save();
-        
-        // ✅ POPULER POUR LA RÉPONSE
         const populatedVendeur = await vendeurModel.findById(newVendeur._id)
             .populate('utilisateur', 'nom prenom email telephone photoProfil');
-        
-        res.status(201).json(populatedVendeur);
+
+        res.status(201).json(presentProDocForViewer(req, populatedVendeur, res));
     } catch (err) {
+        const mapped = mongooseValidationTo400(err);
+        if (mapped) return res.status(mapped.status).json({ error: mapped.error });
         console.error("Erreur création vendeur:", err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erreur interne' });
     }
 };
 
@@ -276,10 +302,13 @@ export const getAllVendeurs = async (req, res) => {
 
         const total = await vendeurModel.countDocuments(filters);
 
-        // ✅ S'assurer que l'encodage est UTF-8 au niveau de la réponse
+        const listPayload = isAdmin(req)
+            ? await attachArticleCounts(vendeurs)
+            : vendeurs.map((v) => mapVendeurListItem(v));
+
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.status(200).json({
-            vendeurs: vendeurs.map((v) => presentProDocForViewer(req, v, res)),
+            vendeurs: listPayload,
             totalPages: Math.ceil(total / limit),
             currentPage: parseInt(page),
             total
@@ -332,13 +361,11 @@ export const updateVendeur = async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID vendeur invalide' });
-        }
+        const allowed = isAdmin(req)
+            ? [...VENDEUR_OWNER_FIELDS, ...VENDEUR_ADMIN_FIELDS]
+            : VENDEUR_OWNER_FIELDS;
+        const updates = pickFields(stripInjectedKycFromBody(req.body), allowed);
 
-        const updates = pickFields(stripInjectedKycFromBody(req.body), VENDEUR_OWNER_FIELDS);
-
-        // ✅ UPLOAD NOUVEAU LOGO SI PRÉSENT
         if (req.files?.shopLogo?.[0]) {
             const result = await cloudinary.v2.uploader.upload(req.files.shopLogo[0].path, {
                 folder: 'vendeurs/logos',
@@ -347,10 +374,9 @@ export const updateVendeur = async (req, res) => {
             fs.unlinkSync(req.files.shopLogo[0].path);
         }
 
-        // ✅ UPLOAD NOUVEAUX DOCUMENTS KYC (authenticated → cld:auth:)
         const verificationUpdates = {};
         const docFields = ['cni1', 'cni2', 'selfie', 'businessLicense', 'taxDocument'];
-        
+
         for (const field of docFields) {
             if (req.files?.[field]?.[0]) {
                 const { ref } = await prepareKycReplacement(
@@ -363,7 +389,6 @@ export const updateVendeur = async (req, res) => {
             }
         }
 
-        // Traitement des champs JSON
         JSON_FIELDS.forEach(field => {
             if (updates[field] && typeof updates[field] === 'string') {
                 try {
@@ -381,7 +406,28 @@ export const updateVendeur = async (req, res) => {
             updates.maxOrdersPerDay = parseInt(updates.maxOrdersPerDay, 10) || 50;
         }
 
-        // Fusionner les updates de vérification
+        if (isAdmin(req)) {
+            if (typeof updates.isTopRated !== 'undefined') {
+                updates.isTopRated = updates.isTopRated === true || updates.isTopRated === 'true';
+            }
+            if (typeof updates.isFeatured !== 'undefined') {
+                updates.isFeatured = updates.isFeatured === true || updates.isFeatured === 'true';
+            }
+            if (typeof updates.isVerified !== 'undefined') {
+                updates['verificationDocuments.isVerified'] =
+                    updates.isVerified === true || updates.isVerified === 'true';
+                delete updates.isVerified;
+            }
+            if (typeof updates.identityVerified !== 'undefined') {
+                updates.identityVerified =
+                    updates.identityVerified === true || updates.identityVerified === 'true';
+            }
+            if (typeof updates.businessVerified !== 'undefined') {
+                updates.businessVerified =
+                    updates.businessVerified === true || updates.businessVerified === 'true';
+            }
+        }
+
         Object.assign(updates, verificationUpdates);
         updates.lastActive = new Date();
 
@@ -394,10 +440,12 @@ export const updateVendeur = async (req, res) => {
             return res.status(404).json({ error: "Vendeur non trouvé" });
         }
 
-        res.status(200).json(vendeur);
+        res.status(200).json(presentProDocForViewer(req, vendeur, res));
     } catch (err) {
+        const mapped = mongooseValidationTo400(err);
+        if (mapped) return res.status(mapped.status).json({ error: mapped.error });
         console.error("Erreur mise à jour vendeur:", err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erreur interne' });
     }
 };
 
@@ -495,7 +543,7 @@ export const getVendeursByCategory = async (req, res) => {
 
         const vendeurs = await vendeurModel.getVendeursByCategory(category);
         
-        res.status(200).json(vendeurs.slice(0, parseInt(limit)).map((v) => presentProDocForViewer(req, v, res)));
+        res.status(200).json(vendeurs.slice(0, parseInt(limit)).map((v) => mapVendeurListItem(v)));
     } catch (err) {
         console.error("Erreur récupération par catégorie:", err.message);
         res.status(500).json({ error: err.message });
@@ -528,7 +576,7 @@ export const searchVendeurs = async (req, res) => {
             .sort({ rating: -1, completedOrders: -1 });
 
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.status(200).json(vendeurs.map((v) => presentProDocForViewer(req, v, res)));
+        res.status(200).json(vendeurs.map((v) => mapVendeurListItem(v)));
     } catch (err) {
         console.error("Erreur recherche vendeurs:", err.message);
         res.status(500).json({ error: err.message });
@@ -543,7 +591,7 @@ export const getTopVendeurs = async (req, res) => {
         const topVendeurs = await vendeurModel.getTopRatedVendeurs(parseInt(limit));
         
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.status(200).json(topVendeurs.map((v) => presentProDocForViewer(req, v, res)));
+        res.status(200).json(topVendeurs.map((v) => mapVendeurListItem(v)));
     } catch (err) {
         console.error("Erreur récupération top vendeurs:", err.message);
         res.status(500).json({ error: err.message });
@@ -617,10 +665,11 @@ export const getPendingVendeurs = async (req, res) => {
             .populate("recenseur", "nom prenom telephone")
             .sort({ dateRecensement: -1 });
 
-        res.status(200).json(vendeurs);
+        const safe = vendeurs.map((p) => presentVendeurPendingListItem(p));
+        res.status(200).json(safe);
     } catch (err) {
         console.error("Erreur récupération vendeurs pending:", err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erreur interne' });
     }
 };
 

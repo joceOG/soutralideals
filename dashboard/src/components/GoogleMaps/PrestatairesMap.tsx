@@ -29,7 +29,7 @@ import {
 } from '@mui/icons-material';
 import GoogleMapComponent from './GoogleMapComponent';
 import { geocodeAddress, calculateDistance, searchNearbyPlaces } from '../../services/googleMapsService';
-import axios from 'axios';
+import { apiClient } from '../../services/setupApi';
 
 // Types
 interface Prestataire {
@@ -69,8 +69,6 @@ const PrestatairesMap: React.FC = () => {
   const [serviceArea, setServiceArea] = useState<ServiceArea | null>(null);
   
   // Configuration API
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
   // ✅ CHARGEMENT DES PRESTATAIRES
   useEffect(() => {
     loadPrestataires();
@@ -85,7 +83,7 @@ const PrestatairesMap: React.FC = () => {
       let apiPrestataires: Prestataire[] = [];
       try {
         console.log('🔄 Chargement des prestataires depuis l\'API...');
-        const response = await axios.get(`${apiUrl}/prestataire`);
+        const response = await apiClient.get('/prestataire');
         
         if (Array.isArray(response.data)) {
           // Transformer les données de l'API vers le format attendu

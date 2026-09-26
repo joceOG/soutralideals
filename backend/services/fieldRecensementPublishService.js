@@ -20,6 +20,10 @@ import {
   promoteAuthenticatedToPublic,
   buildDeterministicProfilePublicId,
 } from '../utils/fieldRecensementMediaAdapter.js';
+import {
+  loadProfileSampleForUser,
+  resolveProfileAttachDecision,
+} from './professionalProfileIntegrityService.js';
 
 const LEASE_MS = Number(process.env.FIELD_PUBLISH_LEASE_MS || 60_000);
 const SOURCE_V1 = 'field_recensement_v1';
@@ -273,13 +277,8 @@ async function resolveOrCreateUser(doc, match, actorId, operationMutationId) {
     return { user: u, created: false };
   }
 
-  // Créer stub pending_claim
+  // Créer stub pending_claim (compte technique Client — activité = profil pro)
   const secret = crypto.randomBytes(32).toString('base64url');
-  const roleMap = {
-    prestataire: 'Prestataire',
-    freelance: 'Freelance',
-    vendeur: 'Vendeur',
-  };
   let user;
   try {
     user = await Utilisateur.create({
@@ -288,7 +287,7 @@ async function resolveOrCreateUser(doc, match, actorId, operationMutationId) {
       telephone: doc.person.telephone,
       telephoneVerified: false,
       password: secret,
-      role: roleMap[doc.professionalType] || 'Client',
+      role: 'Client',
       isActive: false,
       activationStatus: 'pending_claim',
       source: SOURCE_V1,
@@ -369,26 +368,23 @@ async function createOrGetProfile(doc, user, validated, operationMutationId, act
     return { profile: existing, created: false };
   }
 
-  // Profil déjà lié sur un autre user du même type ?
-  const Model =
-    doc.professionalType === 'prestataire'
-      ? prestataireModel
-      : doc.professionalType === 'freelance'
-        ? freelanceModel
-        : vendeurModel;
-  const other = await Model.findOne({ utilisateur: user._id });
-  if (other) {
-    if (
-      other.source === SOURCE_V1 &&
-      String(other.sourceFieldRecensementId) === String(doc._id)
-    ) {
-      return { profile: other, created: false };
-    }
-    throw apiError(
-      409,
-      'RECENSEMENT_PUBLICATION_BLOCKED',
-      'Profil existant incompatible — revue humaine.',
-    );
+  const sample = await loadProfileSampleForUser(user._id, doc.professionalType);
+  const decision = resolveProfileAttachDecision(sample, {
+    sourceFieldRecensementId: doc._id,
+    source: SOURCE_V1,
+  });
+  if (decision.action === 'idempotent') {
+    const Model =
+      doc.professionalType === 'prestataire'
+        ? prestataireModel
+        : doc.professionalType === 'freelance'
+          ? freelanceModel
+          : vendeurModel;
+    const profile = await Model.findById(decision.profileId);
+    return { profile, created: false };
+  }
+  if (decision.action === 'reject') {
+    throw apiError(decision.httpStatus, decision.code, decision.message);
   }
 
   let profile;

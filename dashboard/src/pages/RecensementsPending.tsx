@@ -1,621 +1,650 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Card } from 'primereact/card';
-import { Badge } from 'primereact/badge';
-import { Toast } from 'primereact/toast';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { TabView, TabPanel } from 'primereact/tabview';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import {
+  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, TablePagination, Tabs, Tab, Chip, Button,
+  IconButton, TextField, Skeleton, Divider, CircularProgress, Tooltip,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+} from '@mui/material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import BlockIcon from '@mui/icons-material/Block';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CoPresentIcon from '@mui/icons-material/CoPresent';
+import WorkIcon from '@mui/icons-material/Work';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import { apiClient } from '../services/setupApi';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-interface Utilisateur {
-  _id: string;
+import { AdminPageHeader, AdminStatusChip, AdminEmptyState, AdminErrorState, AdminConfirmDialog } from '../components/admin';
+import { safeDate, formatPrice, maskPhone } from '../components/admin/utils';
+import { colors } from '../tokens/colors';
+import { alpha } from '@mui/material/styles';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface IUtilisateur {
+  _id?: string;
   nom: string;
   prenom?: string;
-  telephone: string;
+  telephone?: string;
   email?: string;
 }
 
-interface Recenseur {
-  _id: string;
+interface IRecenseur {
+  _id?: string;
   nom: string;
   prenom?: string;
-  telephone: string;
 }
 
-interface Service {
+interface IPendingPrestataire {
   _id: string;
-  nomservice: string;
+  identite?: { nom: string; prenom?: string; telephone?: string };
+  utilisateur?: IUtilisateur;
+  service?: { _id?: string; nom?: string; nomservice?: string };
+  localisation?: string;
+  prixprestataire?: number;
+  source?: string;
+  status?: string;
+  recenseur?: IRecenseur;
+  dateRecensement?: string;
+  createdAt?: string;
+  kyc?: {
+    cniRectoPresent?: boolean;
+    cniVersoPresent?: boolean;
+    selfiePresent?: boolean;
+    assurancePresent?: boolean;
+    legacyDocumentDetected?: boolean;
+  };
 }
 
-interface Prestataire {
-  _id: string;
-  utilisateur: Utilisateur;
-  service: Service;
-  localisation: string;
-  prixprestataire: number;
-  description: string;
-  recenseur: Recenseur;
-  dateRecensement: string;
-  source: string;
-  status: string;
+function prestataireDisplayName(row: IPendingPrestataire): string {
+  const fromIdentite = `${row.identite?.prenom ?? ''} ${row.identite?.nom ?? ''}`.trim();
+  if (fromIdentite) return fromIdentite;
+  return `${row.utilisateur?.prenom ?? ''} ${row.utilisateur?.nom ?? ''}`.trim() || '—';
 }
 
-interface Freelance {
-  _id: string;
-  utilisateur: Utilisateur;
-  name: string;
-  job: string;
-  location: string;
-  hourlyRate: number;
-  description: string;
-  recenseur: Recenseur;
-  dateRecensement: string;
-  source: string;
-  status: string;
+function prestatairePhone(row: IPendingPrestataire): string {
+  return row.identite?.telephone ?? row.utilisateur?.telephone;
 }
 
-interface Vendeur {
-  _id: string;
-  utilisateur: Utilisateur;
-  shopName: string;
-  businessType: string;
-  shopDescription: string;
-  recenseur: Recenseur;
-  dateRecensement: string;
-  source: string;
-  status: string;
+function prestataireServiceName(row: IPendingPrestataire): string {
+  return row.service?.nom ?? row.service?.nomservice ?? '—';
 }
+
+function kycPendingLabel(kyc?: IPendingPrestataire['kyc']): string {
+  if (!kyc) return '—';
+  const n = [
+    kyc.cniRectoPresent,
+    kyc.cniVersoPresent,
+    kyc.selfiePresent,
+  ].filter(Boolean).length;
+  if (n === 3) return 'Complets';
+  if (n === 0) return 'Aucun';
+  return 'Partiels';
+}
+
+interface IPendingFreelance {
+  _id: string;
+  identite?: { nom?: string; prenom?: string; telephone?: string };
+  utilisateur?: IUtilisateur;
+  name?: string;
+  job?: string;
+  location?: string;
+  hourlyRate?: number;
+  kyc?: {
+    cniRectoPresent?: boolean;
+    cniVersoPresent?: boolean;
+    selfiePresent?: boolean;
+    legacyDocumentDetected?: boolean;
+  };
+  source?: string;
+  status?: string;
+  recenseur?: IRecenseur;
+  dateRecensement?: string;
+  createdAt?: string;
+}
+
+interface IPendingVendeur {
+  _id: string;
+  identite?: { nom?: string; prenom?: string; telephone?: string };
+  boutique?: { shopName?: string; businessType?: string };
+  utilisateur?: IUtilisateur;
+  shopName?: string;
+  businessType?: string;
+  source?: string;
+  status?: string;
+  recenseur?: IRecenseur;
+  dateRecensement?: string;
+  createdAt?: string;
+}
+
+type TabIndex = 0 | 1 | 2;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Date d'un recensement : préférer dateRecensement, puis createdAt */
+function recensementDate(row: { dateRecensement?: string; createdAt?: string }): string {
+  return safeDate(row.dateRecensement || row.createdAt);
+}
+
+function recenseurName(r?: IRecenseur | null): string {
+  if (!r) return '—';
+  return `${r.prenom ?? ''} ${r.nom ?? ''}`.trim() || '—';
+}
+
+const SOURCE_LABELS: Record<string, string> = {
+  sdealsidentification: 'Identification',
+  web: 'Web',
+  sdealsmobile: 'Mobile',
+  dashboard: 'Dashboard',
+};
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 
 export const RecensementsPending: React.FC = () => {
-  const [prestataires, setPrestataires] = useState<Prestataire[]>([]);
-  const [freelances, setFreelances] = useState<Freelance[]>([]);
-  const [vendeurs, setVendeurs] = useState<Vendeur[]>([]);
+  const [tabIndex, setTabIndex] = useState<TabIndex>(0);
+  const [prestataires, setPrestataires] = useState<IPendingPrestataire[]>([]);
+  const [freelances, setFreelances] = useState<IPendingFreelance[]>([]);
+  const [vendeurs, setVendeurs] = useState<IPendingVendeur[]>([]);
   const [loading, setLoading] = useState(false);
-  const [rejectDialogVisible, setRejectDialogVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null);
-  const [motifRejet, setMotifRejet] = useState('');
-  const toast = React.useRef<Toast>(null);
-  const [docsDialogVisible, setDocsDialogVisible] = useState(false);
-  const [docsLoading, setDocsLoading] = useState(false);
-  const [selectedDocs, setSelectedDocs] = useState<{
-    cni1?: string;
-    cni2?: string;
-    selfie?: string;
-  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-  const apiBase = apiUrl.replace(/\/api\/?$/, '');
+  // Pagination par onglet
+  const [pages, setPages] = useState<[number, number, number]>([0, 0, 0]);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const authHeaders = () => {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+  // Actions en cours
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const resolveDocUrl = (url?: string) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    return `${apiBase}${url.startsWith('/') ? url : `/${url}`}`;
-  };
+  // Dialogue rejet
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState<{ type: string; id: string; name: string } | null>(null);
+  const [rejectMotif, setRejectMotif] = useState('');
+  const [rejectLoading, setRejectLoading] = useState(false);
+
+  // Dialogue confirm validation
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<{ type: string; id: string; name: string } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const abortRef = useRef<AbortController | null>(null);
+
+  const loadPending = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const ts = Date.now();
+      const [pr, fr, ve] = await Promise.all([
+        apiClient.get(`/prestataire/pending/list?t=${ts}`, { signal: controller.signal }),
+        apiClient.get(`/freelance/pending/list?t=${ts}`, { signal: controller.signal }),
+        apiClient.get(`/vendeur/pending/list?t=${ts}`, { signal: controller.signal }),
+      ]);
+
+      if (!controller.signal.aborted) {
+        setPrestataires(Array.isArray(pr.data) ? pr.data : []);
+        setFreelances(Array.isArray(fr.data) ? fr.data : []);
+        setVendeurs(Array.isArray(ve.data) ? ve.data : []);
+      }
+    } catch (err: any) {
+      if (err?.code === 'ERR_CANCELED' || controller.signal.aborted) return;
+      console.error(err);
+      setError('Impossible de charger les recensements en attente.');
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadPending();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => abortRef.current?.abort();
+  }, [loadPending]);
 
-  const loadPending = async () => {
-    setLoading(true);
+  // ─── Validation ─────────────────────────────────────────────────────────────
+
+  const openConfirmValidate = (type: string, id: string, name: string) => {
+    setConfirmTarget({ type, id, name });
+    setConfirmOpen(true);
+  };
+
+  const doValidate = async () => {
+    if (!confirmTarget) return;
+    setConfirmLoading(true);
     try {
-      // Ajouter timestamp pour éviter le cache 304
-      const timestamp = Date.now();
-      const headers = authHeaders();
-      const [prestRes, freelRes, vendRes] = await Promise.all([
-        axios.get(`${apiUrl}/prestataire/pending/list?t=${timestamp}`, { headers }),
-        axios.get(`${apiUrl}/freelance/pending/list?t=${timestamp}`, { headers }),
-        axios.get(`${apiUrl}/vendeur/pending/list?t=${timestamp}`, { headers }),
-      ]);
-
-      setPrestataires(prestRes.data);
-      setFreelances(freelRes.data);
-      setVendeurs(vendRes.data);
-
-      console.log('✅ Recensements chargés:', {
-        prestataires: prestRes.data.length,
-        freelances: freelRes.data.length,
-        vendeurs: vendRes.data.length,
-      });
-    } catch (error) {
-      console.error('❌ Erreur chargement pending:', error);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: 'Impossible de charger les recensements en attente',
-        life: 3000,
-      });
+      await apiClient.put(`/${confirmTarget.type}/${confirmTarget.id}/validate`, {});
+      toast.success(`${confirmTarget.name} validé avec succès.`);
+      setConfirmOpen(false);
+      setConfirmTarget(null);
+      await loadPending();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la validation.');
+    } finally {
+      setConfirmLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleValidate = (type: string, id: string, name: string) => {
-    confirmDialog({
-      message: `Voulez-vous valider ce ${type} (${name}) ?`,
-      header: 'Confirmation de validation',
-      icon: 'pi pi-check-circle',
-      acceptLabel: 'Valider',
-      rejectLabel: 'Annuler',
-      accept: async () => {
-        try {
-          await axios.put(`${apiUrl}/${type}/${id}/validate`, {}, { headers: authHeaders() });
-          
-          toast.current?.show({
-            severity: 'success',
-            summary: 'Validé',
-            detail: `${name} a été validé avec succès`,
-            life: 3000,
-          });
+  // ─── Rejet ──────────────────────────────────────────────────────────────────
 
-          loadPending(); // Recharger la liste
-        } catch (error) {
-          console.error('❌ Erreur validation:', error);
-          toast.current?.show({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: 'Erreur lors de la validation',
-            life: 3000,
-          });
-        }
-      },
-    });
+  const openReject = (type: string, id: string, name: string) => {
+    setRejectTarget({ type, id, name });
+    setRejectMotif('');
+    setRejectOpen(true);
   };
 
-  const handleReject = async () => {
-    if (!selectedItem || !motifRejet.trim()) {
-      toast.current?.show({
-        severity: 'warn',
-        summary: 'Attention',
-        detail: 'Veuillez entrer un motif de rejet',
-        life: 3000,
-      });
+  const doReject = async () => {
+    if (!rejectTarget || !rejectMotif.trim()) {
+      toast.warn('Un motif de rejet est requis.');
       return;
     }
-
+    setRejectLoading(true);
     try {
-      await axios.put(
-        `${apiUrl}/${selectedItem.type}/${selectedItem.id}/reject`,
-        { motif: motifRejet },
-        { headers: authHeaders() },
+      await apiClient.put(
+        `/${rejectTarget.type}/${rejectTarget.id}/reject`,
+        { motif: rejectMotif },
       );
-
-      toast.current?.show({
-        severity: 'info',
-        summary: 'Rejeté',
-        detail: 'Le recensement a été rejeté',
-        life: 3000,
-      });
-
-      setRejectDialogVisible(false);
-      setMotifRejet('');
-      setSelectedItem(null);
-      loadPending();
-    } catch (error) {
-      console.error('❌ Erreur rejet:', error);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: 'Erreur lors du rejet',
-        life: 3000,
-      });
+      toast.success('Recensement rejeté.');
+      setRejectOpen(false);
+      setRejectTarget(null);
+      await loadPending();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors du rejet.');
+    } finally {
+      setRejectLoading(false);
     }
   };
 
-  const openRejectDialog = (type: string, id: string) => {
-    setSelectedItem({ type, id });
-    setRejectDialogVisible(true);
-  };
+  // ─── Actions ligne ────────────────────────────────────────────────────────
 
-  const viewDocuments = async (prestataireId: string) => {
-    setDocsLoading(true);
-    setDocsDialogVisible(true);
-    setSelectedDocs(null);
-    try {
-      const res = await axios.get(`${apiUrl}/prestataire/${prestataireId}/documents`, {
-        headers: authHeaders(),
-      });
-      const docs = res.data?.prestataire?.documents ?? {};
-      setSelectedDocs({
-        cni1: docs.cni1,
-        cni2: docs.cni2,
-        selfie: docs.selfie,
-      });
-    } catch (error) {
-      console.error('❌ Erreur chargement documents:', error);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: 'Impossible de charger les documents',
-        life: 3000,
-      });
-      setDocsDialogVisible(false);
-    }
-    setDocsLoading(false);
-  };
-
-  const actionsTemplate = (rowData: any, type: string, nameField: string) => (
-    <div style={{ display: 'flex', gap: '0.5rem' }}>
-      {type === 'prestataire' && (
-        <Button
-          icon="pi pi-eye"
-          className="p-button-info p-button-sm"
-          tooltip="Voir documents"
-          onClick={() => viewDocuments(rowData._id)}
-        />
-      )}
-      <Button
-        icon="pi pi-check"
-        className="p-button-success p-button-sm"
-        tooltip="Valider"
-        onClick={() => handleValidate(type, rowData._id, rowData[nameField] || 'N/A')}
-      />
-      <Button
-        icon="pi pi-times"
-        className="p-button-danger p-button-sm"
-        tooltip="Rejeter"
-        onClick={() => openRejectDialog(type, rowData._id)}
-      />
-    </div>
+  const ActionsCell: React.FC<{ type: string; id: string; name: string }> = ({ type, id, name }) => (
+    <Box sx={{ display: 'flex', gap: 0.75, justifyContent: 'flex-end' }}>
+      <Tooltip title="Valider">
+        <span>
+          <Button
+            size="small"
+            variant="outlined"
+            color="success"
+            startIcon={<CheckCircleOutlineIcon />}
+            disabled={!!actionLoading}
+            onClick={() => openConfirmValidate(type, id, name)}
+            sx={{ minWidth: 0, px: 1.5 }}
+          >
+            Valider
+          </Button>
+        </span>
+      </Tooltip>
+      <Tooltip title="Rejeter">
+        <span>
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            startIcon={<BlockIcon />}
+            disabled={!!actionLoading}
+            onClick={() => openReject(type, id, name)}
+            sx={{ minWidth: 0, px: 1.5 }}
+          >
+            Rejeter
+          </Button>
+        </span>
+      </Tooltip>
+    </Box>
   );
 
-  const dateTemplate = (rowData: any) => {
-    return new Date(rowData.dateRecensement).toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  // ─── Tables ───────────────────────────────────────────────────────────────
 
-  const recenseurTemplate = (rowData: any) => {
-    if (!rowData.recenseur) return 'N/A';
-    return `${rowData.recenseur.prenom || ''} ${rowData.recenseur.nom || ''}`.trim();
-  };
-
-  const telephoneTemplate = (rowData: any) => {
-    return rowData.utilisateur?.telephone || 'N/A';
-  };
-
-  const sourceTemplate = (rowData: any) => {
-    const sourceColors: { [key: string]: string } = {
-      sdealsidentification: 'info',
-      web: 'success',
-      sdealsmobile: 'warning',
-      dashboard: 'secondary',
-    };
+  const renderPrestataires = () => {
+    const p = pages[0];
+    const paged = prestataires.slice(p * rowsPerPage, (p + 1) * rowsPerPage);
     return (
-      <Badge 
-        value={rowData.source} 
-        severity={sourceColors[rowData.source] as any || 'info'}
-      />
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ '& th': { fontWeight: 600, backgroundColor: 'grey.50', whiteSpace: 'nowrap' } }}>
+              <TableCell>Prestataire</TableCell>
+              <TableCell>Téléphone</TableCell>
+              <TableCell>Service</TableCell>
+              <TableCell>Localisation</TableCell>
+              <TableCell>Tarif</TableCell>
+              <TableCell>KYC</TableCell>
+              <TableCell>Recenseur</TableCell>
+              <TableCell>Source</TableCell>
+              <TableCell>Date soumission</TableCell>
+              <TableCell>Statut</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading
+              ? renderSkeleton(11)
+              : paged.length === 0
+                ? <TableRow><TableCell colSpan={11} sx={{ py: 0 }}><AdminEmptyState title="Aucun prestataire en attente" /></TableCell></TableRow>
+                : paged.map(row => (
+                  <TableRow key={row._id} hover>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {prestataireDisplayName(row)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell><Typography variant="body2">{maskPhone(prestatairePhone(row))}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{prestataireServiceName(row)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{row.localisation ?? '—'}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{formatPrice(row.prixprestataire)}</Typography></TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={kycPendingLabel(row.kyc)}
+                        color={kycPendingLabel(row.kyc) === 'Complets' ? 'success' : kycPendingLabel(row.kyc) === 'Partiels' ? 'warning' : 'default'}
+                      />
+                      {row.kyc?.legacyDocumentDetected ? (
+                        <Typography variant="caption" color="warning.main" display="block">
+                          Legacy à sécuriser
+                        </Typography>
+                      ) : null}
+                    </TableCell>
+                    <TableCell><Typography variant="body2">{recenseurName(row.recenseur)}</Typography></TableCell>
+                    <TableCell>
+                      <Chip
+                        label={SOURCE_LABELS[row.source ?? ''] ?? (row.source || '—')}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {recensementDate(row)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell><AdminStatusChip status={row.status ?? 'pending'} /></TableCell>
+                    <TableCell align="right">
+                      <ActionsCell
+                        type="prestataire"
+                        id={row._id}
+                        name={prestataireDisplayName(row) === '—' ? row._id : prestataireDisplayName(row)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+            }
+          </TableBody>
+        </Table>
+        <TablePagination
+          component="div"
+          count={prestataires.length}
+          page={p}
+          onPageChange={(_, np) => setPages(prev => [np, prev[1], prev[2]])}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={e => setRowsPerPage(+e.target.value)}
+          labelRowsPerPage="Lignes :"
+        />
+      </TableContainer>
     );
   };
 
-  const prixTemplate = (rowData: any) => {
-    const prix = rowData.prixprestataire || rowData.hourlyRate || 0;
-    return `${prix.toLocaleString('fr-FR')} FCFA`;
+  const renderFreelances = () => {
+    const p = pages[1];
+    const paged = freelances.slice(p * rowsPerPage, (p + 1) * rowsPerPage);
+    return (
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ '& th': { fontWeight: 600, backgroundColor: 'grey.50', whiteSpace: 'nowrap' } }}>
+              <TableCell>Nom</TableCell>
+              <TableCell>Téléphone</TableCell>
+              <TableCell>Métier</TableCell>
+              <TableCell>Localisation</TableCell>
+              <TableCell>Tarif horaire</TableCell>
+              <TableCell>Recenseur</TableCell>
+              <TableCell>Source</TableCell>
+              <TableCell>Date soumission</TableCell>
+              <TableCell>Statut</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading
+              ? renderSkeleton(10)
+              : paged.length === 0
+                ? <TableRow><TableCell colSpan={10} sx={{ py: 0 }}><AdminEmptyState title="Aucun freelance en attente" /></TableCell></TableRow>
+                : paged.map(row => (
+                  <TableRow key={row._id} hover>
+                    <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{row.name || '—'}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{maskPhone(row.identite?.telephone ?? row.utilisateur?.telephone)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{row.job ?? '—'}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{row.location ?? '—'}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{formatPrice(row.hourlyRate)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{recenseurName(row.recenseur)}</Typography></TableCell>
+                    <TableCell>
+                      <Chip label={SOURCE_LABELS[row.source ?? ''] ?? (row.source || '—')} size="small" variant="outlined" />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {recensementDate(row)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell><AdminStatusChip status={row.status ?? 'pending'} /></TableCell>
+                    <TableCell align="right">
+                      <ActionsCell type="freelance" id={row._id} name={row.name || row._id} />
+                    </TableCell>
+                  </TableRow>
+                ))
+            }
+          </TableBody>
+        </Table>
+        <TablePagination
+          component="div"
+          count={freelances.length}
+          page={p}
+          onPageChange={(_, np) => setPages(prev => [prev[0], np, prev[2]])}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={e => setRowsPerPage(+e.target.value)}
+          labelRowsPerPage="Lignes :"
+        />
+      </TableContainer>
+    );
   };
 
+  const renderVendeurs = () => {
+    const p = pages[2];
+    const paged = vendeurs.slice(p * rowsPerPage, (p + 1) * rowsPerPage);
+    return (
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ '& th': { fontWeight: 600, backgroundColor: 'grey.50', whiteSpace: 'nowrap' } }}>
+              <TableCell>Boutique</TableCell>
+              <TableCell>Téléphone</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Recenseur</TableCell>
+              <TableCell>Source</TableCell>
+              <TableCell>Date soumission</TableCell>
+              <TableCell>Statut</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading
+              ? renderSkeleton(8)
+              : paged.length === 0
+                ? <TableRow><TableCell colSpan={8} sx={{ py: 0 }}><AdminEmptyState title="Aucun vendeur en attente" /></TableCell></TableRow>
+                : paged.map(row => (
+                  <TableRow key={row._id} hover>
+                    <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{row.boutique?.shopName ?? row.shopName ?? '—'}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{maskPhone(row.identite?.telephone ?? row.utilisateur?.telephone)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{row.boutique?.businessType ?? row.businessType ?? '—'}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{recenseurName(row.recenseur)}</Typography></TableCell>
+                    <TableCell>
+                      <Chip label={SOURCE_LABELS[row.source ?? ''] ?? (row.source || '—')} size="small" variant="outlined" />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {recensementDate(row)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell><AdminStatusChip status={row.status ?? 'pending'} /></TableCell>
+                    <TableCell align="right">
+                      <ActionsCell type="vendeur" id={row._id} name={(row.boutique?.shopName ?? row.shopName) || row._id} />
+                    </TableCell>
+                  </TableRow>
+                ))
+            }
+          </TableBody>
+        </Table>
+        <TablePagination
+          component="div"
+          count={vendeurs.length}
+          page={p}
+          onPageChange={(_, np) => setPages(prev => [prev[0], prev[1], np])}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={e => setRowsPerPage(+e.target.value)}
+          labelRowsPerPage="Lignes :"
+        />
+      </TableContainer>
+    );
+  };
+
+  const totalPending = prestataires.length + freelances.length + vendeurs.length;
+
+  if (error && totalPending === 0 && !loading) {
+    return (
+      <Box>
+        <AdminPageHeader title="Recensements en attente" />
+        <AdminErrorState message={error} onRetry={loadPending} />
+      </Box>
+    );
+  }
+
   return (
-    <div className="recensements-pending" style={{ padding: '2rem' }}>
-      <Toast ref={toast} />
-      <ConfirmDialog />
+    <Box>
+      <AdminPageHeader
+        title="Recensements en attente"
+        subtitle="Validez ou rejetez les recensements soumis par les agents terrain."
+        count={loading ? undefined : totalPending}
+        countLoading={loading}
+        onRefresh={loadPending}
+        refreshing={loading}
+      />
 
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>
-          📋 Recensements en attente de validation
-        </h1>
-        <p style={{ color: '#666' }}>
-          Validez ou rejetez les recensements effectués par les recenseurs terrain
-        </p>
-      </div>
-
-      <TabView>
-        {/* TAB PRESTATAIRES */}
-        <TabPanel 
-          header={
-            <span>
-              👷 Prestataires{' '}
-              <Badge value={prestataires.length} severity="info" />
-            </span>
-          }
-        >
-          <Card>
-            <DataTable 
-              value={prestataires} 
-              loading={loading}
-              paginator
-              rows={10}
-              emptyMessage="Aucun prestataire en attente"
-              responsiveLayout="scroll"
-            >
-              <Column 
-                field="utilisateur.nom" 
-                header="Nom" 
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                header="Téléphone"
-                body={telephoneTemplate}
-                style={{ minWidth: '130px' }}
-              />
-              <Column 
-                field="service.nomservice" 
-                header="Service" 
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                field="localisation" 
-                header="Localisation" 
-                sortable
-                style={{ minWidth: '200px' }}
-              />
-              <Column 
-                header="Prix"
-                body={prixTemplate}
-                sortable
-                style={{ minWidth: '120px' }}
-              />
-              <Column 
-                header="Recenseur"
-                body={recenseurTemplate}
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                header="Source"
-                body={sourceTemplate}
-                style={{ minWidth: '130px' }}
-              />
-              <Column 
-                header="Date"
-                body={dateTemplate}
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column
-                header="Actions"
-                body={(rowData) => actionsTemplate(rowData, 'prestataire', 'utilisateur.nom')}
-                style={{ minWidth: '120px' }}
-              />
-            </DataTable>
-          </Card>
-        </TabPanel>
-
-        {/* TAB FREELANCES */}
-        <TabPanel 
-          header={
-            <span>
-              💼 Freelances{' '}
-              <Badge value={freelances.length} severity="success" />
-            </span>
-          }
-        >
-          <Card>
-            <DataTable 
-              value={freelances} 
-              loading={loading}
-              paginator
-              rows={10}
-              emptyMessage="Aucun freelance en attente"
-              responsiveLayout="scroll"
-            >
-              <Column 
-                field="name" 
-                header="Nom" 
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                header="Téléphone"
-                body={telephoneTemplate}
-                style={{ minWidth: '130px' }}
-              />
-              <Column 
-                field="job" 
-                header="Métier" 
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                field="location" 
-                header="Localisation" 
-                sortable
-                style={{ minWidth: '200px' }}
-              />
-              <Column 
-                header="Tarif horaire"
-                body={prixTemplate}
-                sortable
-                style={{ minWidth: '120px' }}
-              />
-              <Column 
-                header="Recenseur"
-                body={recenseurTemplate}
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                header="Source"
-                body={sourceTemplate}
-                style={{ minWidth: '130px' }}
-              />
-              <Column 
-                header="Date"
-                body={dateTemplate}
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column
-                header="Actions"
-                body={(rowData) => actionsTemplate(rowData, 'freelance', 'name')}
-                style={{ minWidth: '120px' }}
-              />
-            </DataTable>
-          </Card>
-        </TabPanel>
-
-        {/* TAB VENDEURS */}
-        <TabPanel 
-          header={
-            <span>
-              🏪 Vendeurs{' '}
-              <Badge value={vendeurs.length} severity="warning" />
-            </span>
-          }
-        >
-          <Card>
-            <DataTable 
-              value={vendeurs} 
-              loading={loading}
-              paginator
-              rows={10}
-              emptyMessage="Aucun vendeur en attente"
-              responsiveLayout="scroll"
-            >
-              <Column 
-                field="shopName" 
-                header="Boutique" 
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                header="Téléphone"
-                body={telephoneTemplate}
-                style={{ minWidth: '130px' }}
-              />
-              <Column 
-                field="businessType" 
-                header="Type" 
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                field="shopDescription" 
-                header="Description" 
-                style={{ minWidth: '250px' }}
-              />
-              <Column 
-                header="Recenseur"
-                body={recenseurTemplate}
-                style={{ minWidth: '150px' }}
-              />
-              <Column 
-                header="Source"
-                body={sourceTemplate}
-                style={{ minWidth: '130px' }}
-              />
-              <Column 
-                header="Date"
-                body={dateTemplate}
-                sortable
-                style={{ minWidth: '150px' }}
-              />
-              <Column
-                header="Actions"
-                body={(rowData) => actionsTemplate(rowData, 'vendeur', 'shopName')}
-                style={{ minWidth: '120px' }}
-              />
-            </DataTable>
-          </Card>
-        </TabPanel>
-      </TabView>
-
-      {/* Dialog Rejet */}
-      <Dialog
-        visible={rejectDialogVisible}
-        header="Motif du rejet"
-        modal
-        style={{ width: '500px' }}
-        onHide={() => {
-          setRejectDialogVisible(false);
-          setMotifRejet('');
-          setSelectedItem(null);
-        }}
-        footer={
-          <div>
-            <Button
-              label="Annuler"
-              icon="pi pi-times"
-              onClick={() => {
-                setRejectDialogVisible(false);
-                setMotifRejet('');
-                setSelectedItem(null);
-              }}
-              className="p-button-text"
-            />
-            <Button
-              label="Rejeter"
-              icon="pi pi-check"
-              onClick={handleReject}
-              className="p-button-danger"
-              disabled={!motifRejet.trim()}
-            />
-          </div>
-        }
+      {/* Onglets */}
+      <Tabs
+        value={tabIndex}
+        onChange={(_, v) => setTabIndex(v as TabIndex)}
+        sx={{ mb: 2, borderBottom: '1px solid', borderColor: 'divider' }}
       >
-        <div style={{ marginTop: '1rem' }}>
-          <label htmlFor="motif" style={{ display: 'block', marginBottom: '0.5rem' }}>
-            Veuillez indiquer la raison du rejet :
-          </label>
-          <InputTextarea
-            id="motif"
-            value={motifRejet}
-            onChange={(e) => setMotifRejet(e.target.value)}
-            rows={5}
-            cols={50}
-            placeholder="Ex: Informations incomplètes, photo non conforme, doublon, etc."
-            style={{ width: '100%' }}
+        <Tab
+          icon={<CoPresentIcon fontSize="small" />}
+          iconPosition="start"
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              Prestataires
+              <Chip label={loading ? '…' : prestataires.length} size="small" variant="outlined" />
+            </Box>
+          }
+          value={0}
+          sx={{ textTransform: 'none', fontWeight: 500, minHeight: 48 }}
+        />
+        <Tab
+          icon={<WorkIcon fontSize="small" />}
+          iconPosition="start"
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              Freelances
+              <Chip label={loading ? '…' : freelances.length} size="small" variant="outlined" />
+            </Box>
+          }
+          value={1}
+          sx={{ textTransform: 'none', fontWeight: 500, minHeight: 48 }}
+        />
+        <Tab
+          icon={<StorefrontIcon fontSize="small" />}
+          iconPosition="start"
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              Vendeurs
+              <Chip label={loading ? '…' : vendeurs.length} size="small" variant="outlined" />
+            </Box>
+          }
+          value={2}
+          sx={{ textTransform: 'none', fontWeight: 500, minHeight: 48 }}
+        />
+      </Tabs>
+
+      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+        {tabIndex === 0 && renderPrestataires()}
+        {tabIndex === 1 && renderFreelances()}
+        {tabIndex === 2 && renderVendeurs()}
+      </Paper>
+
+      {/* Dialogue confirmation validation */}
+      <AdminConfirmDialog
+        open={confirmOpen}
+        title="Confirmer la validation"
+        message={`Valider le recensement de ${confirmTarget?.name ?? '…'} ?`}
+        confirmLabel="Valider"
+        severity="info"
+        loading={confirmLoading}
+        onConfirm={doValidate}
+        onCancel={() => { setConfirmOpen(false); setConfirmTarget(null); }}
+      />
+
+      {/* Dialogue rejet avec motif */}
+      <Dialog open={rejectOpen} onClose={rejectLoading ? undefined : () => setRejectOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Rejeter le recensement</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Indiquez le motif du rejet pour {rejectTarget?.name ?? '…'}.
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="Motif du rejet"
+            placeholder="Ex : Informations incomplètes, photo non conforme, doublon…"
+            value={rejectMotif}
+            onChange={e => setRejectMotif(e.target.value)}
+            disabled={rejectLoading}
+            inputProps={{ 'aria-label': 'Motif du rejet' }}
           />
-        </div>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => { setRejectOpen(false); setRejectMotif(''); setRejectTarget(null); }}
+            disabled={rejectLoading}
+            color="inherit"
+          >
+            Annuler
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={doReject}
+            disabled={rejectLoading || !rejectMotif.trim()}
+            startIcon={rejectLoading ? <CircularProgress size={16} color="inherit" /> : <BlockIcon />}
+          >
+            {rejectLoading ? 'En cours…' : 'Rejeter'}
+          </Button>
+        </DialogActions>
       </Dialog>
-
-      <Dialog
-        visible={docsDialogVisible}
-        header="Documents d'identité"
-        modal
-        style={{ width: '720px' }}
-        onHide={() => {
-          setDocsDialogVisible(false);
-          setSelectedDocs(null);
-        }}
-      >
-        {docsLoading ? (
-          <p>Chargement...</p>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-            {(['cni1', 'cni2', 'selfie'] as const).map((key) => (
-              <div key={key}>
-                <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
-                  {key === 'cni1' ? 'CNI Recto' : key === 'cni2' ? 'CNI Verso' : 'Selfie'}
-                </p>
-                {selectedDocs?.[key] ? (
-                  <img
-                    src={resolveDocUrl(selectedDocs[key])}
-                    alt={key}
-                    style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd' }}
-                  />
-                ) : (
-                  <p style={{ color: '#999' }}>Non fourni</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </Dialog>
-    </div>
+    </Box>
   );
 };
+
+// ─── Skeleton partagé ────────────────────────────────────────────────────────
+
+function renderSkeleton(cols: number) {
+  return Array.from({ length: 5 }).map((_, i) => (
+    <TableRow key={i}>
+      {Array.from({ length: cols }).map((_, j) => (
+        <TableCell key={j}><Skeleton variant="text" /></TableCell>
+      ))}
+    </TableRow>
+  ));
+}
 
 export default RecensementsPending;

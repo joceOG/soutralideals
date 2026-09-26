@@ -224,7 +224,26 @@ export function presentProDocForViewer(req, doc, res = null) {
     if (res && typeof res.setHeader === 'function') {
       res.setHeader('Cache-Control', 'no-store');
     }
-    return resolveKycFieldsForAuthorizedViewer(plain);
+    const o = resolveKycFieldsForAuthorizedViewer(plain);
+    o.kycLegacy = o.kycLegacy || {};
+    for (const f of KYC_FIELD_NAMES) {
+      const raw = plain[f];
+      if (typeof raw === 'string' && /^https?:\/\//i.test(raw)) {
+        o.kycLegacy[f] = { available: false, reason: 'LEGACY_MIGRATION_REQUIRED' };
+        o[f] = null;
+      }
+    }
+    if (o.verificationDocuments && typeof o.verificationDocuments === 'object') {
+      const vdPlain = plain.verificationDocuments || {};
+      for (const k of ['cni1', 'cni2', 'selfie']) {
+        const raw = vdPlain[k];
+        if (typeof raw === 'string' && /^https?:\/\//i.test(raw)) {
+          o.kycLegacy[k] = { available: false, reason: 'LEGACY_MIGRATION_REQUIRED' };
+          o.verificationDocuments[k] = null;
+        }
+      }
+    }
+    return o;
   }
   return redactKycFromPlain(plain);
 }

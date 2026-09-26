@@ -1,15 +1,4 @@
-// Service pour les appels API Google Maps
-// REACT_APP_API_URL est souvent défini avec /api.
-// Ici on normalise vers l'origine pour éviter /api/api/maps.
-const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '');
-
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem('token');
-  const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  return headers;
-}
+import { apiClient } from './setupApi';
 
 export interface Coordinates {
   lat: number;
@@ -75,165 +64,125 @@ export interface ServiceArea {
   error?: string;
 }
 
-// ✅ GÉOCODAGE - Convertir adresse en coordonnées
 export const geocodeAddress = async (address: string): Promise<GeocodeResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/maps/geocode`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ address }),
-    });
-
-    const result = await response.json();
-    return result;
+    const response = await apiClient.post<GeocodeResult>('/maps/geocode', { address });
+    return response.data;
   } catch (error) {
     console.error('Erreur géocodage:', error);
     return {
       success: false,
-      error: 'Erreur lors du géocodage'
+      error: 'Erreur lors du géocodage',
     };
   }
 };
 
-// ✅ GÉOCODAGE INVERSE - Convertir coordonnées en adresse
 export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/maps/reverse-geocode`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ lat, lng }),
-    });
-
-    const result = await response.json();
-    return result;
+    const response = await apiClient.post<GeocodeResult>('/maps/reverse-geocode', { lat, lng });
+    return response.data;
   } catch (error) {
     console.error('Erreur géocodage inverse:', error);
     return {
       success: false,
-      error: 'Erreur lors du géocodage inverse'
+      error: 'Erreur lors du géocodage inverse',
     };
   }
 };
 
-// ✅ CALCUL DE DISTANCE
 export const calculateDistance = async (
   origin: string,
   destination: string,
-  mode: 'driving' | 'walking' | 'bicycling' | 'transit' = 'driving'
+  mode: 'driving' | 'walking' | 'bicycling' | 'transit' = 'driving',
 ): Promise<DistanceResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/maps/distance`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ origin, destination, mode }),
-    });
-
-    const result = await response.json();
-    return result;
+    const response = await apiClient.post<DistanceResult>('/maps/distance', { origin, destination, mode });
+    return response.data;
   } catch (error) {
     console.error('Erreur calcul distance:', error);
     return {
       success: false,
-      error: 'Erreur lors du calcul de distance'
+      error: 'Erreur lors du calcul de distance',
     };
   }
 };
 
-// ✅ RECHERCHE DE LIEUX PROCHES
 export const searchNearbyPlaces = async (
   lat: number,
   lng: number,
   radius: number = 5000,
   type: string = 'establishment',
-  keyword: string = ''
+  keyword: string = '',
 ): Promise<{ success: boolean; places?: NearbyPlace[]; error?: string }> => {
   try {
-    const params = new URLSearchParams({
-      lat: lat.toString(),
-      lng: lng.toString(),
-      radius: radius.toString(),
-      type,
-      keyword,
-    });
-
-    const response = await fetch(`${API_BASE_URL}/api/maps/nearby?${params}`, {
-      headers: authHeaders(),
-    });
-    const result = await response.json();
-    return result;
+    const response = await apiClient.get<{ success: boolean; places?: NearbyPlace[]; error?: string }>(
+      '/maps/nearby',
+      {
+        params: {
+          lat: lat.toString(),
+          lng: lng.toString(),
+          radius: radius.toString(),
+          type,
+          keyword,
+        },
+      },
+    );
+    return response.data;
   } catch (error) {
     console.error('Erreur recherche lieux:', error);
     return {
       success: false,
-      error: 'Erreur lors de la recherche de lieux'
+      error: 'Erreur lors de la recherche de lieux',
     };
   }
 };
 
-// ✅ DIRECTIONS
 export const getDirections = async (
   origin: string,
   destination: string,
-  mode: 'driving' | 'walking' | 'bicycling' | 'transit' = 'driving'
+  mode: 'driving' | 'walking' | 'bicycling' | 'transit' = 'driving',
 ): Promise<DirectionsResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/maps/directions`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ origin, destination, mode }),
-    });
-
-    const result = await response.json();
-    return result;
+    const response = await apiClient.post<DirectionsResult>('/maps/directions', { origin, destination, mode });
+    return response.data;
   } catch (error) {
     console.error('Erreur directions:', error);
     return {
       success: false,
-      error: 'Erreur lors du calcul de l\'itinéraire'
+      error: 'Erreur lors du calcul de l\'itinéraire',
     };
   }
 };
 
-// ✅ VALIDATION D'ADRESSE
 export const validateAddress = async (address: string): Promise<GeocodeResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/maps/validate-address`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ address }),
-    });
-
-    const result = await response.json();
-    return result;
+    const response = await apiClient.post<GeocodeResult>('/maps/validate-address', { address });
+    return response.data;
   } catch (error) {
     console.error('Erreur validation adresse:', error);
     return {
       success: false,
-      error: 'Erreur lors de la validation de l\'adresse'
+      error: 'Erreur lors de la validation de l\'adresse',
     };
   }
 };
 
-// ✅ CALCUL DE ZONE DE COUVERTURE
 export const calculateServiceArea = async (
   lat: number,
   lng: number,
-  radius: number
+  radius: number,
 ): Promise<ServiceArea> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/maps/service-area`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ lat, lng, radius }),
+    const response = await apiClient.post<ServiceArea>('/maps/service-area', {
+      center: { lat, lng },
+      radiusKm: radius,
     });
-
-    const result = await response.json();
-    return result;
+    return response.data;
   } catch (error) {
     console.error('Erreur calcul zone:', error);
     return {
       success: false,
-      error: 'Erreur lors du calcul de la zone de couverture'
+      error: 'Erreur lors du calcul de la zone de couverture',
     };
   }
 };

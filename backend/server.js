@@ -42,8 +42,11 @@ import importRouter from './routes/importRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 import searchRouter from './routes/searchRoutes.js';
 import walletRouter from './routes/walletRoutes.js';
+import paiementRouter from './routes/paiementRoutes.js';
 import refreshTokenRouter from './routes/refreshTokenRoutes.js';
 import fieldRecensementV1Router from './routes/fieldRecensementV1Routes.js';
+import adminRouter from './routes/adminRoutes.js';
+import statistiquesRouter from './routes/statistiquesRoutes.js';
 import { getFieldRecensementV1Config } from './config/fieldRecensementV1Config.js';
 import { authenticateSocketUser } from './utils/socketAuth.js';
 import { setSocketIo } from './utils/socketIo.js';
@@ -261,8 +264,11 @@ app.use('/api', importRouter);
 app.use('/api/maps', googleMapsRouter);
 app.use('/api', cartRouter);
 app.use('/api', walletRouter);
+app.use('/api', paiementRouter);
 app.use('/api', refreshTokenRouter);
 app.use('/api/v1', fieldRecensementV1Router);
+app.use('/api', adminRouter);
+app.use('/api', statistiquesRouter);
 
 // ✅ ROUTE SWAGGER UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

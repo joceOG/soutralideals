@@ -16,7 +16,7 @@ import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import ReplyIcon from '@mui/icons-material/Reply';
 import ReportIcon from '@mui/icons-material/Report';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import axios from 'axios';
+import { apiClient } from '../services/setupApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -85,8 +85,6 @@ interface IAvisStats {
   avisEnAttente: number;
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
 const AvisComponent: React.FC = () => {
   const [avis, setAvis] = useState<IAvis[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -147,7 +145,7 @@ const AvisComponent: React.FC = () => {
       if (objetTypeFilter) params.append('objetType', objetTypeFilter);
       if (noteFilter) params.append('note', noteFilter);
 
-      const response = await axios.get(`${apiUrl}/avis?${params.toString()}`);
+      const response = await apiClient.get(`/avis?${params.toString()}`);
       setAvis(response.data.avis || response.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des avis");
@@ -220,7 +218,7 @@ const AvisComponent: React.FC = () => {
     if (!avis._id) return;
     if (window.confirm(`Supprimer l'avis "${avis.titre}" ?`)) {
       try {
-        await axios.delete(`${apiUrl}/avis/${avis._id}`);
+        await apiClient.delete(`/avis/${avis._id}`);
         toast.success("Avis supprimé");
         fetchAvis();
       } catch {
@@ -232,14 +230,13 @@ const AvisComponent: React.FC = () => {
   const handleSave = async () => {
     try {
       const isUpdate = !!selectedAvis?._id;
-      const url = isUpdate ? `${apiUrl}/avis/${selectedAvis?._id}` : `${apiUrl}/avis`;
-      const method = isUpdate ? 'put' : 'post';
+      const path = isUpdate ? `/avis/${selectedAvis?._id}` : '/avis';
 
-      await axios({
-        method,
-        url,
-        data: formData
-      });
+      if (isUpdate) {
+        await apiClient.put(path, formData);
+      } else {
+        await apiClient.post(path, formData);
+      }
 
       toast.success(isUpdate ? "Avis mis à jour" : "Avis créé");
       fetchAvis();
@@ -252,7 +249,7 @@ const AvisComponent: React.FC = () => {
 
   const handleModerate = async (avis: IAvis, newStatut: string) => {
     try {
-      await axios.put(`${apiUrl}/avis/${avis._id}`, { statut: newStatut });
+      await apiClient.put(`/avis/${avis._id}`, { statut: newStatut });
       toast.success(`Avis ${newStatut.toLowerCase()}`);
       fetchAvis();
     } catch {
@@ -621,24 +618,24 @@ const AvisComponent: React.FC = () => {
                   </Typography>
                 </Box>
               </Box>
-              
+
               <Divider sx={{ my: 2 }} />
-              
+
               <Typography variant="h6" gutterBottom>
                 {selectedAvis.titre}
               </Typography>
-              
+
               <Box display="flex" alignItems="center" mb={2}>
                 <Rating value={selectedAvis.note} readOnly />
                 <Typography variant="body2" sx={{ ml: 1 }}>
                   {selectedAvis.note}/5
                 </Typography>
               </Box>
-              
+
               <Typography variant="body1" paragraph>
                 {selectedAvis.commentaire}
               </Typography>
-              
+
               {selectedAvis.reponse && (
                 <Box mt={2} p={2} bgcolor="grey.100" borderRadius={1}>
                   <Typography variant="subtitle2" gutterBottom>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Paper, Card, CardContent, Grid, FormControl,
   InputLabel, Select, MenuItem, Switch, FormControlLabel, Button,
@@ -29,7 +29,12 @@ import {
   Tablet as TabletIcon,
   Language as LanguageIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import { apiClient } from '../../services/setupApi';
+import {
+  loadSecurityPageData,
+  securityStatsErrorMessage,
+  isAbortError,
+} from '../../services/securityService';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getCurrentUserId } from '../../services/setupApi';
@@ -157,8 +162,6 @@ interface ISecurityData {
   };
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
 const SecuriteComponent: React.FC = () => {
   const [securityData, setSecurityData] = useState<ISecurityData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -171,55 +174,44 @@ const SecuriteComponent: React.FC = () => {
   const [twoFAToken, setTwoFAToken] = useState('');
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [securityProfileUninitialized, setSecurityProfileUninitialized] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // STAB-11 : admin connecté (self). Pour consulter un autre user : passer targetUserId explicite.
   const currentAdminId = getCurrentUserId();
   const targetUserId = currentAdminId;
 
-  // 🔹 CHARGEMENT DES DONNÉES DE SÉCURITÉ
-  const fetchSecurityData = async () => {
+  const loadSecurityPage = useCallback(async (signal?: AbortSignal) => {
     if (!targetUserId) {
-      toast.error('Session admin introuvable');
+      setLoadError('Session introuvable');
+      setLoading(false);
       return;
     }
     setLoading(true);
+    setLoadError(null);
     try {
-      const response = await axios.get(`${apiUrl}/security/user/${targetUserId}`);
-      setSecurityData(response.data.security);
+      const result = await loadSecurityPageData(targetUserId, signal);
+      setSecurityProfileUninitialized(result.uninitialized);
+      setSecurityData(result.profile as ISecurityData);
     } catch (error) {
-      console.error('Erreur lors du chargement des données de sécurité:', error);
-      toast.error("Erreur lors du chargement des données de sécurité");
+      if (signal?.aborted || isAbortError(error)) return;
+      setSecurityData(null);
+      setLoadError(securityStatsErrorMessage(error));
     } finally {
       setLoading(false);
     }
-  };
-
-  // 🔹 CHARGEMENT DES STATISTIQUES DE SÉCURITÉ
-  const fetchSecurityStats = async () => {
-    if (!targetUserId) return;
-    try {
-      const response = await axios.get(`${apiUrl}/security/user/${targetUserId}/stats`);
-      // Mettre à jour les statistiques dans securityData
-      if (securityData) {
-        setSecurityData({
-          ...securityData,
-          securityStats: response.data.stats
-        });
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des statistiques:', error);
-    }
-  };
+  }, [targetUserId]);
 
   useEffect(() => {
-    fetchSecurityData();
-    fetchSecurityStats();
-  }, []);
+    const controller = new AbortController();
+    loadSecurityPage(controller.signal);
+    return () => controller.abort();
+  }, [loadSecurityPage]);
 
   // 🔹 ACTIVER L'AUTHENTIFICATION À DEUX FACTEURS
   const handleEnable2FA = async () => {
     try {
-      const response = await axios.post(`${apiUrl}/security/user/${targetUserId}/2fa/enable`);
+      const response = await apiClient.post(`/security/user/${targetUserId}/2fa/enable`);
       setQrCodeUrl(response.data.qrCode);
       setBackupCodes(response.data.backupCodes.map((code: any) => code.code));
       setShow2FASetup(true);
@@ -233,7 +225,7 @@ const SecuriteComponent: React.FC = () => {
   // 🔹 VÉRIFIER LE CODE 2FA
   const handleVerify2FA = async () => {
     try {
-      const response = await axios.post(`${apiUrl}/security/user/${targetUserId}/2fa/verify`, {
+      const response = await apiClient.post(`/security/user/${targetUserId}/2fa/verify`, {
         token: twoFAToken
       });
       
@@ -241,7 +233,7 @@ const SecuriteComponent: React.FC = () => {
         setShow2FASetup(false);
         setShowBackupCodes(true);
         toast.success("Authentification à deux facteurs activée avec succès");
-        fetchSecurityData(); // Recharger les données
+        loadSecurityPage(); // Recharger les données
       } else {
         toast.error("Code invalide");
       }
@@ -255,11 +247,11 @@ const SecuriteComponent: React.FC = () => {
   const handleDisable2FA = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) {
       try {
-        await axios.post(`${apiUrl}/security/user/${targetUserId}/2fa/disable`, {
+        await apiClient.post(`/security/user/${targetUserId}/2fa/disable`, {
           password: "current_password" // TODO: Demander le mot de passe actuel
         });
         toast.success("Authentification à deux facteurs désactivée");
-        fetchSecurityData(); // Recharger les données
+        loadSecurityPage(); // Recharger les données
       } catch (error) {
         console.error('Erreur désactivation 2FA:', error);
         toast.error("Erreur lors de la désactivation");
@@ -270,9 +262,9 @@ const SecuriteComponent: React.FC = () => {
   // 🔹 TERMINER UNE SESSION
   const handleTerminateSession = async (sessionId: string) => {
     try {
-      await axios.delete(`${apiUrl}/security/user/${targetUserId}/sessions/${sessionId}`);
+      await apiClient.delete(`/security/user/${targetUserId}/sessions/${sessionId}`);
       toast.success("Session terminée avec succès");
-      fetchSecurityData(); // Recharger les données
+      loadSecurityPage(); // Recharger les données
     } catch (error) {
       console.error('Erreur termination session:', error);
       toast.error("Erreur lors de la termination de la session");
@@ -283,9 +275,9 @@ const SecuriteComponent: React.FC = () => {
   const handleRemoveTrustedDevice = async (deviceId: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet appareil de confiance ?")) {
       try {
-        await axios.delete(`${apiUrl}/security/user/${targetUserId}/devices/${deviceId}`);
+        await apiClient.delete(`/security/user/${targetUserId}/devices/${deviceId}`);
         toast.success("Appareil supprimé avec succès");
-        fetchSecurityData(); // Recharger les données
+        loadSecurityPage(); // Recharger les données
       } catch (error) {
         console.error('Erreur suppression appareil:', error);
         toast.error("Erreur lors de la suppression de l'appareil");
@@ -296,9 +288,9 @@ const SecuriteComponent: React.FC = () => {
   // 🔹 MARQUER UNE ALERTE COMME LUE
   const handleMarkAlertAsRead = async (alertId: string) => {
     try {
-      await axios.patch(`${apiUrl}/security/user/${targetUserId}/alerts/${alertId}/read`);
+      await apiClient.patch(`/security/user/${targetUserId}/alerts/${alertId}/read`);
       toast.success("Alerte marquée comme lue");
-      fetchSecurityData(); // Recharger les données
+      loadSecurityPage(); // Recharger les données
     } catch (error) {
       console.error('Erreur marquage alerte:', error);
       toast.error("Erreur lors du marquage de l'alerte");
@@ -309,13 +301,13 @@ const SecuriteComponent: React.FC = () => {
   const handleUpdateSecuritySettings = async (settings: any) => {
     setSaving(true);
     try {
-      await axios.put(`${apiUrl}/security/user/${targetUserId}/settings`, {
+      await apiClient.put(`/security/user/${targetUserId}/settings`, {
         securitySettings: settings
       });
       setSnackbarMessage('Paramètres de sécurité mis à jour avec succès');
       setSnackbarOpen(true);
       toast.success("Paramètres mis à jour avec succès");
-      fetchSecurityData(); // Recharger les données
+      loadSecurityPage(); // Recharger les données
     } catch (error) {
       console.error('Erreur mise à jour paramètres:', error);
       setSnackbarMessage('Erreur lors de la mise à jour');
@@ -353,8 +345,15 @@ const SecuriteComponent: React.FC = () => {
   if (!securityData) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          Impossible de charger les données de sécurité. Veuillez réessayer.
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={() => loadSecurityPage()}>
+              Réessayer
+            </Button>
+          }
+        >
+          {loadError || 'Impossible de charger les données de sécurité.'}
         </Alert>
       </Box>
     );
@@ -367,8 +366,16 @@ const SecuriteComponent: React.FC = () => {
       p: 3 
     }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-        Sécurité du Compte
+        Sécurité du compte
       </Typography>
+
+      {securityProfileUninitialized && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Aucune configuration de sécurité avancée n&apos;est encore activée. Les compteurs affichés
+          reflètent un profil vierge — activez la 2FA ou enregistrez des paramètres pour enrichir ce
+          tableau de bord.
+        </Alert>
+      )}
 
       {/* 📊 STATISTIQUES DE SÉCURITÉ */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -877,7 +884,7 @@ const SecuriteComponent: React.FC = () => {
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
-          onClick={fetchSecurityData}
+          onClick={loadSecurityPage}
         >
           Actualiser
         </Button>

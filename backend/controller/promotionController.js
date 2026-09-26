@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 import { pickFields } from '../utils/pickFields.js';
 
 const PROMOTION_EDITABLE_FIELDS = [
-  'titre', 'description', 'typeCiblage', 'cibles', 'cibleModel',
-  'typeOffre', 'valeurOffre', 'montantMinimum', 'dateDebut', 'dateFin',
-  'image', 'couleur', 'statut',
+    'titre', 'description', 'typeCiblage', 'cibles', 'cibleModel',
+    'typeOffre', 'valeurOffre', 'montantMinimum', 'dateDebut', 'dateFin',
+    'image', 'couleur', 'statut',
 ];
 
 // ✅ CRÉER UNE NOUVELLE PROMOTION
@@ -28,15 +28,15 @@ export const createPromotion = async (req, res) => {
 
         // Validation des données requises
         if (!titre || !description || !typeOffre || !valeurOffre || !dateDebut || !dateFin) {
-            return res.status(400).json({ 
-                error: 'Titre, description, type d\'offre, valeur, date début et fin sont requis' 
+            return res.status(400).json({
+                error: 'Titre, description, type d\'offre, valeur, date début et fin sont requis'
             });
         }
 
         // Validation des dates
         if (new Date(dateDebut) >= new Date(dateFin)) {
-            return res.status(400).json({ 
-                error: 'La date de début doit être antérieure à la date de fin' 
+            return res.status(400).json({
+                error: 'La date de début doit être antérieure à la date de fin'
             });
         }
 
@@ -68,10 +68,10 @@ export const createPromotion = async (req, res) => {
 // ✅ OBTENIR TOUTES LES PROMOTIONS
 export const getAllPromotions = async (req, res) => {
     try {
-        const { 
-            page = 1, 
-            limit = 20, 
-            statut, 
+        const {
+            page = 1,
+            limit = 20,
+            statut,
             typeCiblage,
             dateDebut,
             dateFin,
@@ -83,7 +83,7 @@ export const getAllPromotions = async (req, res) => {
         if (statut) filters.statut = statut;
         if (typeCiblage) filters.typeCiblage = typeCiblage;
         if (createur) filters.createur = new mongoose.Types.ObjectId(createur);
-        
+
         if (dateDebut && dateFin) {
             filters.dateDebut = {
                 $gte: new Date(dateDebut),
@@ -128,7 +128,7 @@ export const getPromotionsActives = async (req, res) => {
 export const getPromotionById = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'ID de promotion invalide' });
         }
@@ -136,11 +136,11 @@ export const getPromotionById = async (req, res) => {
         const promotion = await promotionModel.findById(id)
             .populate('createur', 'nom prenom email')
             .populate('cibles');
-        
+
         if (!promotion) {
             return res.status(404).json({ error: 'Promotion non trouvée' });
         }
-        
+
         res.status(200).json(promotion);
     } catch (err) {
         console.error('Erreur récupération promotion:', err.message);
@@ -173,9 +173,9 @@ export const updatePromotion = async (req, res) => {
         const ancienneValeur = { ...promotion.toObject() };
 
         const promotionMiseAJour = await promotionModel.findByIdAndUpdate(
-            id, 
-            { 
-                ...updates, 
+            id,
+            {
+                ...updates,
                 $push: {
                     historiqueModifications: {
                         date: new Date(),
@@ -206,11 +206,11 @@ export const deletePromotion = async (req, res) => {
         }
 
         const promotion = await promotionModel.findByIdAndDelete(id);
-        
+
         if (!promotion) {
             return res.status(404).json({ error: 'Promotion non trouvée' });
         }
-        
+
         res.status(200).json({ message: 'Promotion supprimée avec succès' });
     } catch (err) {
         console.error('Erreur suppression promotion:', err.message);
@@ -222,16 +222,32 @@ export const deletePromotion = async (req, res) => {
 export const getPromotionStats = async (req, res) => {
     try {
         const { dateDebut, dateFin } = req.query;
-        
+
         const stats = await promotionModel.getStatsPromotions(dateDebut, dateFin);
-        
+
         const totalPromotions = await promotionModel.countDocuments();
         const promotionsActives = await promotionModel.countDocuments({ statut: 'ACTIVE' });
-        
+
+        // Agréger vues, clics, conversions sur toutes les promotions
+        const totals = await promotionModel.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalVues: { $sum: '$vues' },
+                    totalClics: { $sum: '$clics' },
+                    totalConversions: { $sum: '$conversions' },
+                }
+            }
+        ]);
+        const { totalVues = 0, totalClics = 0, totalConversions = 0 } = totals[0] ?? {};
+
         res.status(200).json({
             statsParStatut: stats,
             totalPromotions,
-            promotionsActives
+            promotionsActives,
+            totalVues,
+            totalClics,
+            totalConversions,
         });
     } catch (err) {
         console.error('Erreur statistiques promotions:', err.message);
@@ -243,12 +259,12 @@ export const getPromotionStats = async (req, res) => {
 export const incrementerVues = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const promotion = await promotionModel.findById(id);
         if (!promotion) {
             return res.status(404).json({ error: 'Promotion non trouvée' });
         }
-        
+
         await promotion.incrementerVues();
         res.status(200).json({ message: 'Vue incrémentée' });
     } catch (err) {
@@ -261,12 +277,12 @@ export const incrementerVues = async (req, res) => {
 export const incrementerClics = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const promotion = await promotionModel.findById(id);
         if (!promotion) {
             return res.status(404).json({ error: 'Promotion non trouvée' });
         }
-        
+
         await promotion.incrementerClics();
         res.status(200).json({ message: 'Clic incrémenté' });
     } catch (err) {
@@ -279,12 +295,12 @@ export const incrementerClics = async (req, res) => {
 export const incrementerConversions = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const promotion = await promotionModel.findById(id);
         if (!promotion) {
             return res.status(404).json({ error: 'Promotion non trouvée' });
         }
-        
+
         await promotion.incrementerConversions();
         res.status(200).json({ message: 'Conversion incrémentée' });
     } catch (err) {

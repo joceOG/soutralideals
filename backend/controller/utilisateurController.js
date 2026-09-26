@@ -3,9 +3,6 @@ import cloudinary from 'cloudinary';
 import fs from 'fs';
 import { assertOwnerOrAdmin, isAdmin } from '../utils/accessControl.js';
 import Utilisateur from '../models/utilisateurModel.js';
-import prestataireModel from '../models/prestataireModel.js';
-import freelanceModel from '../models/freelanceModel.js';
-import vendeurModel from '../models/vendeurModel.js';
 import validator from 'validator';
 import { assertPhoneVerificationToken, requireCanonicalPhone } from '../services/otpService.js';
 import {
@@ -29,6 +26,26 @@ import {
   googleIdMismatchPayload,
 } from '../services/googleIdentityService.js';
 import crypto from 'crypto';
+import {
+  USER_ROLES,
+  assertValidUserObjectId,
+  countActiveAdmins,
+  collectUserDependencyCounts,
+  assertLastAdminProtection,
+  mapMongoUserWriteError,
+} from '../services/userAdminPolicy.js';
+import {
+  resolveProfessionalCapabilities,
+  toPublicCapabilitiesPayload,
+  toAdminCapabilitiesPayload,
+  CapabilitiesUserNotFoundError,
+  CapabilitiesInvalidIdError,
+  isAllowedAccountRoleForWrite,
+  isProfessionalAccountRole,
+} from '../services/professionalCapabilitiesService.js';
+
+const ADMIN_LIST_SELECT =
+  '-password -tokens -refreshTokens -resetPasswordToken -resetPasswordExpires -fcmTokens';
 
 // Config Cloudinary depuis les variables d'environnement
 cloudinary.v2.config({
@@ -109,7 +126,11 @@ export const signUp = async (req, res) => {
       }
     }
 
-    // ✅ Accepter les rôles en minuscules et les convertir
+    // ✅ Accepter les rôles publics uniquement — jamais Admin via /register (DASH-8D)
+    if (role && String(role).toLowerCase() === 'admin') {
+      return res.status(400).json({ error: 'Rôle non autorisé à l’inscription publique' });
+    }
+
     const validRoles = ["prestataire", "vendeur", "freelance", "client"];
     const roleMap = {
       "prestataire": "Prestataire",
@@ -585,27 +606,104 @@ export const logout = async (req, res) => {
 // ✅ LISTER TOUS LES UTILISATEURS (ADMIN seulement, avec pagination)
 export const getAllUsers = async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
     const skip = (page - 1) * limit;
 
+    const filter = {};
+    if (req.query.role && USER_ROLES.includes(String(req.query.role))) {
+      filter.role = req.query.role;
+    }
+    if (req.query.isActive === 'true') filter.isActive = true;
+    if (req.query.isActive === 'false') filter.isActive = false;
+    const search = String(req.query.search || '').trim();
+    if (search) {
+      const rx = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [{ nom: rx }, { prenom: rx }, { email: rx }, { telephone: rx }];
+    }
+
     const [utilisateurs, total] = await Promise.all([
-      Utilisateur.find({})
-        .select('-password -tokens')
+      Utilisateur.find(filter)
+        .select(ADMIN_LIST_SELECT)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
-      Utilisateur.countDocuments({})
+      Utilisateur.countDocuments(filter),
     ]);
 
     res.status(200).json({
       utilisateurs,
       total,
       page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ CRÉATION ADMIN (dashboard — distincte de /register)
+export const createUserByAdmin = async (req, res) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ error: 'Droits administrateur requis.' });
+    }
+
+    const {
+      nom,
+      prenom,
+      datedenaissance,
+      email,
+      password,
+      telephone,
+      genre,
+      note,
+      role,
+      isActive,
+    } = req.body;
+
+    if (!isAllowedAccountRoleForWrite(role)) {
+      if (isProfessionalAccountRole(role) || !USER_ROLES.includes(role)) {
+        return res.status(400).json({
+          error: 'Les activités professionnelles se créent via les modules Prestataire, Freelance ou Vendeur.',
+          code: 'PROFESSIONAL_ROLE_REQUIRES_PROFILE_FLOW',
+        });
+      }
+      return res.status(400).json({ error: 'Rôle invalide', code: 'INVALID_ROLE' });
+    }
+
+    let photoProfil = '';
+    if (req.file) {
+      const result = await cloudinary.v2.uploader.upload(req.file.path, { folder: 'users' });
+      photoProfil = result.secure_url;
+      fs.unlinkSync(req.file.path);
+    }
+
+    const emailNorm = normalizeEmail(email);
+
+    const newUser = new Utilisateur({
+      nom,
+      prenom,
+      datedenaissance,
+      email: emailNorm,
+      password,
+      telephone: telephone || undefined,
+      genre,
+      note,
+      photoProfil: photoProfil || undefined,
+      role,
+      isActive: isActive === false || isActive === 'false' ? false : true,
+      source: 'dashboard',
+      authProvider: 'local',
+    });
+
+    await newUser.save();
+
+    res.status(201).json({ utilisateur: newUser.toJSON() });
+  } catch (err) {
+    if (mapMongoUserWriteError(err, res)) return;
+    console.error('createUserByAdmin:', err.message);
+    res.status(500).json({ error: 'Erreur interne' });
   }
 };
 
@@ -614,7 +712,7 @@ export const getUserById = async (req, res) => {
   try {
     if (!assertOwnerOrAdmin(req, res, req.params.id)) return;
 
-    const utilisateur = await Utilisateur.findById(req.params.id).select('-password -tokens');
+    const utilisateur = await Utilisateur.findById(req.params.id).select(ADMIN_LIST_SELECT);
     if (!utilisateur) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     res.status(200).json(utilisateur);
   } catch (err) {
@@ -644,7 +742,7 @@ export const updateUserById = async (req, res) => {
       'datedenaissance',
     ];
     if (requesterIsAdmin) {
-      allowedFields.push('role', 'canCreateRecensement');
+      allowedFields.push('role', 'canCreateRecensement', 'isActive');
     }
 
     // 2️⃣ Construire l'objet safeUpdates avec uniquement les champs autorisés
@@ -653,13 +751,56 @@ export const updateUserById = async (req, res) => {
       if (req.body[key] !== undefined) safeUpdates[key] = req.body[key];
     }
 
+    if (safeUpdates.email !== undefined) {
+      safeUpdates.email = normalizeEmail(safeUpdates.email);
+    }
+
+    if (safeUpdates.isActive !== undefined) {
+      safeUpdates.isActive =
+        safeUpdates.isActive === true ||
+        safeUpdates.isActive === 'true' ||
+        safeUpdates.isActive === 1 ||
+        safeUpdates.isActive === '1';
+    }
+
     // 3️⃣ Vérification du rôle si présent
-    const validRoles = ['Admin', 'Prestataire', 'Vendeur', 'Freelance', 'Client'];
-    if (safeUpdates.role && !validRoles.includes(safeUpdates.role)) {
-      return res.status(400).json({ error: 'Rôle invalide' });
+    if (safeUpdates.role) {
+      if (isProfessionalAccountRole(safeUpdates.role)) {
+        return res.status(400).json({
+          error: 'Les activités professionnelles se gèrent via les modules dédiés, pas via le rôle compte.',
+          code: 'PROFESSIONAL_ROLE_REQUIRES_PROFILE_FLOW',
+        });
+      }
+      if (!isAllowedAccountRoleForWrite(safeUpdates.role)) {
+        return res.status(400).json({ error: 'Rôle invalide', code: 'INVALID_ROLE' });
+      }
     }
     if (safeUpdates.role === 'Admin' && !requesterIsAdmin) {
       return res.status(403).json({ error: 'Seul un administrateur peut attribuer le rôle Admin' });
+    }
+
+    // 5️⃣ Chercher l'utilisateur
+    const user = await Utilisateur.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    if (requesterIsAdmin && requesterId === targetId && safeUpdates.isActive === false) {
+      return res.status(409).json({
+        error: 'Vous ne pouvez pas désactiver votre propre compte administrateur depuis cette page.',
+        code: 'ADMIN_SELF_DEACTIVATE_FORBIDDEN',
+      });
+    }
+
+    if (
+      requesterIsAdmin &&
+      user.role === 'Admin' &&
+      safeUpdates.role &&
+      safeUpdates.role !== 'Admin'
+    ) {
+      if (!(await assertLastAdminProtection(user, 'rétrogradation', res))) return;
+    }
+
+    if (requesterIsAdmin && safeUpdates.isActive === false && user.role === 'Admin') {
+      if (!(await assertLastAdminProtection(user, 'désactivation', res))) return;
     }
 
     // 4️⃣ Upload photoProfil si présent
@@ -669,11 +810,6 @@ export const updateUserById = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    // 5️⃣ Chercher l'utilisateur
-    const user = await Utilisateur.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
-
-    // 6️⃣ Mettre à jour uniquement les champs autorisés
     if (safeUpdates.telephone !== undefined) {
       try {
         const phoneCountry = req.body.phoneCountry;
@@ -686,7 +822,7 @@ export const updateUserById = async (req, res) => {
           _id: { $ne: user._id },
         });
         if (clash) {
-          return res.status(400).json({ error: 'Numéro de téléphone déjà utilisé' });
+          return res.status(409).json({ error: 'Numéro de téléphone déjà utilisé', code: 'DUPLICATE_PHONE' });
         }
       } catch {
         return res.status(400).json({
@@ -703,10 +839,13 @@ export const updateUserById = async (req, res) => {
     const safeUser = user.toObject();
     delete safeUser.password;
     delete safeUser.tokens;
+    delete safeUser.refreshTokens;
+    delete safeUser.fcmTokens;
     res.status(200).json(safeUser);
   } catch (err) {
-    console.error("❌ Erreur updateUserById:", err);
-    res.status(500).json({ error: err.message });
+    if (mapMongoUserWriteError(err, res)) return;
+    console.error('❌ Erreur updateUserById:', err);
+    res.status(500).json({ error: 'Erreur interne' });
   }
 };
 
@@ -770,13 +909,26 @@ export const setCanCreateRecensement = async (req, res) => {
   }
 };
 
-// ✅ SUPPRIMER UN UTILISATEUR
+// ✅ SUPPRIMER UN UTILISATEUR (self-service ou admin sécurisé)
 export const deleteUserById = async (req, res) => {
   try {
-    // 🛡️ IDOR : seul l'utilisateur lui-même (pas de hard-delete admin massif ici).
-    // Play / intégrité : anonymisation via accountDeletionService — jamais findByIdAndDelete.
     const requesterId = req.utilisateur?._id?.toString();
     const targetId = req.params.id?.toString();
+
+    if (!assertValidUserObjectId(targetId, res)) return;
+
+    if (isAdmin(req) && requesterId === targetId) {
+      return res.status(409).json({
+        error: 'Suppression de votre propre compte administrateur interdite depuis cette action.',
+        code: 'ADMIN_SELF_DELETE_FORBIDDEN',
+      });
+    }
+
+    if (isAdmin(req) && requesterId !== targetId) {
+      return adminDeleteUserById(req, res);
+    }
+
+    // 🛡️ IDOR : seul l'utilisateur lui-même — anonymisation (Play / intégrité).
     if (!requesterId || requesterId !== targetId) {
       return res.status(403).json({
         error: 'Accès refusé : vous ne pouvez supprimer que votre propre compte',
@@ -807,7 +959,60 @@ export const deleteUserById = async (req, res) => {
   }
 };
 
-// ✅ RÔLES UTILISATEUR AGRÉGÉS (self-or-admin déjà appliqué sur la route)
+async function adminDeleteUserById(req, res) {
+  const targetId = req.params.id?.toString();
+
+  const user = await Utilisateur.findById(targetId);
+  if (!user) {
+    return res.status(404).json({ error: 'Utilisateur non trouvé', code: 'USER_NOT_FOUND' });
+  }
+
+  if (user.role === 'Admin') {
+    if (!(await assertLastAdminProtection(user, 'suppression', res))) return;
+  }
+
+  const { counts, total } = await collectUserDependencyCounts(targetId);
+  if (total > 0) {
+    return res.status(409).json({
+      error: 'Impossible de supprimer : des données sont liées à ce compte.',
+      code: 'USER_HAS_DEPENDENCIES',
+      dependencies: counts,
+    });
+  }
+
+  await Utilisateur.findByIdAndDelete(targetId);
+  return res.status(200).json({
+    success: true,
+    code: 'USER_DELETED',
+    message: 'Utilisateur supprimé.',
+  });
+}
+
+// ✅ Capacités professionnelles — compte connecté (DASH-8E.1)
+export const getMyCapabilities = async (req, res) => {
+  try {
+    const userId = req.utilisateur?._id?.toString();
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentification requise' });
+    }
+    const resolved = await resolveProfessionalCapabilities(userId);
+    return res.status(200).json({
+      success: true,
+      data: toPublicCapabilitiesPayload(resolved),
+    });
+  } catch (err) {
+    if (err instanceof CapabilitiesUserNotFoundError) {
+      return res.status(404).json({ error: err.message, code: err.code });
+    }
+    if (err instanceof CapabilitiesInvalidIdError) {
+      return res.status(400).json({ error: err.message, code: err.code });
+    }
+    console.error('getMyCapabilities:', err.message);
+    return res.status(500).json({ error: 'Erreur interne' });
+  }
+};
+
+// ✅ RÔLES / CAPACITÉS (resolver central — DASH-8E.1)
 export const getUserRoles = async (req, res) => {
   try {
     const { id } = req.params;
@@ -822,32 +1027,7 @@ export const getUserRoles = async (req, res) => {
       });
     }
 
-    const roles = new Set(['CLIENT']);
-
-    const [prestataire, freelance, vendeur] = await Promise.all([
-      prestataireModel.findOne({ utilisateur: id }).select('_id verifier').lean(),
-      freelanceModel.findOne({ utilisateur: id }).select('_id accountStatus').lean(),
-      vendeurModel.findOne({ utilisateur: id }).select('_id verifier').lean(),
-    ]);
-
-    if (prestataire) roles.add('PRESTATAIRE');
-    if (freelance) roles.add('FREELANCE');
-    if (vendeur) roles.add('VENDEUR');
-
-    if (String(user.role || '').toUpperCase() === 'ADMIN') roles.add('ADMIN');
-
-    // Détails minimaux — pas de KYC / URLs / secrets
-    const details = {
-      prestataire: prestataire
-        ? { id: prestataire._id, verifier: !!prestataire.verifier }
-        : null,
-      freelance: freelance
-        ? { id: freelance._id, accountStatus: freelance.accountStatus || 'Pending' }
-        : null,
-      vendeur: vendeur
-        ? { id: vendeur._id, verifier: !!vendeur.verifier }
-        : null,
-    };
+    const resolved = await resolveProfessionalCapabilities(id);
 
     const viewerIsAdmin = String(req.utilisateur?.role || '').toUpperCase() === 'ADMIN';
     const utilisateurPayload = {
@@ -855,20 +1035,34 @@ export const getUserRoles = async (req, res) => {
       nom: user.nom,
       prenom: user.prenom,
     };
-    // Contact : utile admin seulement ; self n’en a pas besoin via cette route
-    // (consommateurs mobile/web n’utilisent que roles + details).
     if (viewerIsAdmin) {
       utilisateurPayload.email = user.email ?? null;
       utilisateurPayload.telephone = user.telephone ?? null;
     }
 
+    const cap = toAdminCapabilitiesPayload(resolved);
+
     return res.status(200).json({
+      success: true,
       utilisateur: utilisateurPayload,
-      roles: Array.from(roles),
-      details,
+      data: cap,
+      /** @deprecated compat DASH-8D — préférer `data.capabilities` */
+      roles: ['CLIENT', ...(resolved.accountRole === 'Admin' ? ['ADMIN'] : []), ...resolved.capabilities.map((c) => c.toUpperCase())],
+      capabilities: cap.capabilities,
+      details: {
+        prestataire: cap.profiles.prestataire.id
+          ? { id: cap.profiles.prestataire.id, status: cap.profiles.prestataire.status, canOperate: cap.profiles.prestataire.canOperate }
+          : null,
+        freelance: cap.profiles.freelance.id
+          ? { id: cap.profiles.freelance.id, status: cap.profiles.freelance.status, canOperate: cap.profiles.freelance.canOperate }
+          : null,
+        vendeur: cap.profiles.vendeur.id
+          ? { id: cap.profiles.vendeur.id, status: cap.profiles.vendeur.status, canOperate: cap.profiles.vendeur.canOperate }
+          : null,
+      },
     });
   } catch (err) {
-    if (err?.name === 'CastError') {
+    if (err instanceof CapabilitiesInvalidIdError || err?.name === 'CastError') {
       return res.status(400).json({
         success: false,
         code: 'USER_ID_INVALID',

@@ -87,6 +87,9 @@ const prestataireSchema = new mongoose.Schema({
     default: 'incomplete'
   },
   
+  /** Pause volontaire par le propriétaire (distincte d'une suspension admin `status: suspended`). */
+  ownerSelfPaused: { type: Boolean, default: false },
+
   // 🆕 SYSTÈME DE FINALISATION
   finalizationStatus: {
     // Documents obligatoires
@@ -168,6 +171,11 @@ prestataireSchema.methods.calculateFinalizationStatus = function() {
     }
   };
 };
+
+prestataireSchema.index(
+  { utilisateur: 1 },
+  { name: 'idx_prestataire_utilisateur' },
+);
 
 prestataireSchema.index(
   { sourceFieldRecensementId: 1 },

@@ -28,12 +28,17 @@ const CommandeSchema = new mongoose.Schema({
 
   articles: [
     {
+      article: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Article',
+        required: false,
+      },
       nom: { type: String, required: true },
       // Renommé sans accent pour cohérence JSON
       quantite: { type: Number, required: true, min: 1 },
       image: { type: String },
-      prix: { type: Number, required: true, min: 0 }
-    }
+      prix: { type: Number, required: true, min: 0 },
+    },
   ],
 
   paiementInfo: {

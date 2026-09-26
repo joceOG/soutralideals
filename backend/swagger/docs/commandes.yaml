@@ -1,8 +1,14 @@
 paths:
   /api/commande:
     post:
-      summary: Créer une nouvelle commande
+      summary: Créer une commande (DASH-8E.3B.1 — Articles + JWT)
+      description: |
+        Contrat détaillé, exemples Next/Flutter et migration : `docs/api/COMMANDE_CREATE.md`.
+        Authentification Bearer obligatoire. Acheteur = JWT. Vendeur dérivé des Articles.
+        Mono-boutique uniquement. Pas de paiement sur cette route.
       tags: [Commandes]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -12,112 +18,169 @@ paths:
               required:
                 - infoCommande
                 - articles
-                - prixArticles
-                - prixLivraison
-                - prixTotal
               properties:
+                articles:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - articleId
+                      - quantite
+                    properties:
+                      articleId:
+                        type: string
+                        description: ObjectId Article MongoDB
+                        example: "68d6f43f92b0e26a12345678"
+                      quantite:
+                        type: integer
+                        minimum: 1
+                        example: 2
                 infoCommande:
                   type: object
                   required:
-                    - addresse
                     - ville
                     - telephone
                     - codePostal
                     - pays
                   properties:
+                    adresse:
+                      type: string
+                      description: Alias accepté (stocké addresse)
                     addresse:
                       type: string
-                      example: "123 Rue de la Paix"
-                      description: "Adresse de livraison"
+                      example: "Cocody Angré"
                     ville:
                       type: string
-                      example: "Douala"
-                      description: "Ville de livraison"
+                      example: "Abidjan"
                     telephone:
                       type: string
-                      example: "+237123456789"
-                      description: "Téléphone de contact"
+                      example: "+2250700000000"
                     codePostal:
                       type: string
-                      example: "12345"
-                      description: "Code postal"
+                      example: "00225"
                     pays:
                       type: string
-                      example: "Cameroun"
-                      description: "Pays de livraison"
-                articles:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - nom
-                      - quantité
-                      - image
-                      - prix
-                    properties:
-                      nom:
-                        type: string
-                        example: "Produit A"
-                        description: "Nom de l'article"
-                      quantité:
-                        type: number
-                        example: 2
-                        description: "Quantité commandée"
-                      image:
-                        type: string
-                        example: "https://example.com/image.jpg"
-                        description: "Image de l'article"
-                      prix:
-                        type: number
-                        example: 15000
-                        description: "Prix unitaire"
-                prixArticles:
-                  type: number
-                  example: 30000
-                  description: "Prix total des articles"
-                prixLivraison:
-                  type: number
-                  example: 5000
-                  description: "Prix de livraison"
-                prixTotal:
-                  type: number
-                  example: 35000
-                  description: "Prix total de la commande"
-                statusCommande:
+                      example: "CI"
+                dateLivraison:
                   type: string
-                  enum: [En cours, En attente, Livrée, Annulée]
-                  example: "En cours"
-                  description: "Statut de la commande"
+                  format: date
+                  example: "2026-09-30"
+            examples:
+              monoVendeur:
+                summary: Deux articles même boutique
+                value:
+                  articles:
+                    - articleId: "68d6f43f92b0e26a12345678"
+                      quantite: 2
+                    - articleId: "68d6f43f92b0e26a87654321"
+                      quantite: 1
+                  infoCommande:
+                    adresse: "Cocody Angré 8e tranche"
+                    ville: "Abidjan"
+                    telephone: "+2250700000000"
+                    codePostal: "00225"
+                    pays: "CI"
+                  dateLivraison: "2026-09-30"
       responses:
-        201:
-          description: Commande créée avec succès
+        '201':
+          description: Commande créée
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
                   _id:
                     type: string
-                  DateCommande:
+                  statusCommande:
                     type: string
-                  DetailsCommande:
-                    type: string
-                  article:
-                    type: string
-                  utilisateur:
-                    type: string
-        400:
-          description: Erreur de validation
+                    example: "En cours"
+                  prixArticles:
+                    type: number
+                  prixLivraison:
+                    type: number
+                    example: 0
+                  prixTotal:
+                    type: number
+                  articles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        articleId:
+                          type: string
+                          nullable: true
+                        nom:
+                          type: string
+                        quantite:
+                          type: integer
+                        prix:
+                          type: number
+                        image:
+                          type: string
+                          nullable: true
+                  vendeur:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      shopName:
+                        type: string
+        '400':
+          description: Payload ou quantité invalide / champ interdit
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        500:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  code:
+                    type: string
+                    enum:
+                      - INVALID_ORDER_PAYLOAD
+                      - ORDER_FIELD_FORBIDDEN
+                      - INVALID_ARTICLE_ID
+                      - INVALID_ORDER_QUANTITY
+                  message:
+                    type: string
+        '401':
+          description: JWT absent ou invalide
+        '404':
+          description: Article introuvable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: ARTICLE_NOT_FOUND
+        '409':
+          description: Stock, multi-vendeurs ou boutique indisponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INSUFFICIENT_STOCK
+                      - MULTI_VENDOR_ORDER_NOT_SUPPORTED
+                      - VENDOR_NOT_AVAILABLE
+        '500':
           description: Erreur serveur
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: SERVER_ERROR
 
   /api/commandes:
     get:

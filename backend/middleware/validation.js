@@ -386,3 +386,32 @@ export const validatePayment = [
   handleValidationErrors,
 ];
 
+// DASH-8D — Création utilisateur par Admin (distinct de /register)
+export const validateAdminUserCreate = [
+  body('nom')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Le nom doit contenir entre 2 et 50 caractères'),
+  body('prenom')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Le prénom doit contenir entre 2 et 50 caractères'),
+  body('email')
+    .optional({ nullable: true, checkFalsy: true })
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Email invalide'),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Le mot de passe doit contenir au moins 6 caractères'),
+  body('role')
+    .isIn(['Admin', 'Client'])
+    .withMessage('Rôle de compte invalide — utilisez Client ou Admin'),
+  body('telephone')
+    .optional({ nullable: true, checkFalsy: true })
+    .isString()
+    .withMessage('Téléphone invalide'),
+  handleValidationErrors,
+];
+

@@ -1,10 +1,13 @@
 import { Router } from "express";
 import { imageUpload } from "../utils/uploadMiddleware.js";
 import auth, { authAdmin, optionalAuth } from "../middleware/authMiddleware.js";
+import { requireFreelanceOwnerOrAdmin } from "../middleware/entityAccess.js";
 import {
-  requireFreelanceOwnerOrAdmin,
-  requireSelfOrAdmin,
-} from "../middleware/entityAccess.js";
+  requireFreelanceCreatePreUpload,
+  requireFreelanceCreatePostUpload,
+  requireFreelanceUpdatePreUpload,
+  rejectUnknownFreelanceUploadFields,
+} from "../middleware/freelanceMultipartGate.js";
 import {
   createFreelance,
   getAllFreelances,
@@ -28,6 +31,15 @@ const uploadFields = imageUpload.fields([
   { name: "selfie", maxCount: 1 },
 ]);
 
+function runFreelanceUpload(req, res, next) {
+  uploadFields(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Fichier invalide' });
+    }
+    next();
+  });
+}
+
 const freelanceRouter = Router();
 
 // Public — catalogue (routes spécifiques avant /:id)
@@ -48,8 +60,10 @@ freelanceRouter.put("/freelance/:id/promote", ...authAdmin, promoteFreelance);
 freelanceRouter.post(
   "/freelance",
   auth,
-  requireSelfOrAdmin("utilisateur"),
-  uploadFields,
+  requireFreelanceCreatePreUpload,
+  runFreelanceUpload,
+  rejectUnknownFreelanceUploadFields,
+  requireFreelanceCreatePostUpload,
   createFreelance,
 );
 
@@ -57,7 +71,9 @@ freelanceRouter.put(
   "/freelance/:id",
   auth,
   requireFreelanceOwnerOrAdmin(),
-  uploadFields,
+  requireFreelanceUpdatePreUpload,
+  runFreelanceUpload,
+  rejectUnknownFreelanceUploadFields,
   updateFreelance,
 );
 

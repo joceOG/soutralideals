@@ -4,7 +4,7 @@ import * as utilisateurController from '../controller/utilisateurController.js';
 import * as fieldAgentAdminController from '../controller/fieldAgentAdminController.js';
 import auth, { authRole } from '../middleware/authMiddleware.js';
 import { requireSelfOrAdminParam } from '../middleware/entityAccess.js';
-import { validateUserRegistration, validateUserLogin, handleValidationErrors } from '../middleware/validation.js';
+import { validateUserRegistration, validateUserLogin, validateAdminUserCreate, handleValidationErrors } from '../middleware/validation.js';
 
 const utilisateurRouter = Router();
 
@@ -38,8 +38,19 @@ utilisateurRouter.get('/utilisateur/profile', auth, (req, res) => {
   });
 });
 
+utilisateurRouter.get('/utilisateur/me/capabilities', auth, utilisateurController.getMyCapabilities);
+
 // --- UTILISATEUR (protégé) ---
 utilisateurRouter.get('/utilisateur', auth, authRole(['Admin', 'ADMIN']), utilisateurController.getAllUsers);
+
+utilisateurRouter.post(
+  '/utilisateur',
+  auth,
+  authRole(['Admin', 'ADMIN']),
+  upload.single('photoProfil'),
+  validateAdminUserCreate,
+  utilisateurController.createUserByAdmin,
+);
 
 // R3-05 — Agents recenseurs (avant /:id pour éviter le conflit de param)
 utilisateurRouter.get(

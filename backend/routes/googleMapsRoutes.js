@@ -152,7 +152,11 @@ googleMapsRouter.post('/service-area', async (req, res) => {
             return res.status(400).json({ error: 'Centre et rayon requis' });
         }
 
-        const result = await calculateServiceArea(center, radiusKm);
+        const result = await calculateServiceArea(
+          Number(center.lat),
+          Number(center.lng),
+          Number(radiusKm),
+        );
         res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
         console.error('Erreur route service-area:', error);

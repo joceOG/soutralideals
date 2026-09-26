@@ -18,7 +18,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import axios from 'axios';
+import { apiClient } from '../services/setupApi';
 import { DataTable } from 'primereact/datatable';
 import { Column, ColumnBodyOptions } from 'primereact/column';
 import { toast, ToastContainer } from 'react-toastify';
@@ -90,7 +90,6 @@ const emptyForm = {
 };
 
 const FreelanceServicesPage: React.FC = () => {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [rows, setRows] = useState<IFreelanceServiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -123,9 +122,9 @@ const FreelanceServicesPage: React.FC = () => {
 
   const loadRefs = useCallback(async () => {
     const [catRes, svcRes, frRes] = await Promise.all([
-      axios.get<ICategorieRow[]>(`${apiUrl}/categorie`),
-      axios.get<IServiceRow[]>(`${apiUrl}/service`),
-      axios.get<{ freelances: IFreelanceListItem[] }>(`${apiUrl}/freelance`, {
+      apiClient.get<ICategorieRow[]>(`/categorie`),
+      apiClient.get<IServiceRow[]>(`/service`),
+      apiClient.get<{ freelances: IFreelanceListItem[] }>(`/freelance`, {
         params: { limit: 200, page: 1 },
       }),
     ]);
@@ -143,12 +142,12 @@ const FreelanceServicesPage: React.FC = () => {
         name: f.name || `${f.utilisateur?.prenom || ''} ${f.utilisateur?.nom || ''}`.trim() || 'Sans nom',
       }))
     );
-  }, [apiUrl]);
+  }, []);
 
   const loadOffers = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get<{ offers: IFreelanceServiceRow[] }>(`${apiUrl}/freelance-services`);
+      const { data } = await apiClient.get<{ offers: IFreelanceServiceRow[] }>(`/freelance-services`);
       setRows(data.offers || []);
     } catch (e) {
       console.error(e);
@@ -157,7 +156,7 @@ const FreelanceServicesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [apiUrl]);
+  }, []);
 
   useEffect(() => {
     loadRefs().catch(() => toast.error('Erreur chargement référentiels'));
@@ -230,10 +229,10 @@ const FreelanceServicesPage: React.FC = () => {
 
     try {
       if (editing?._id) {
-        await axios.put(`${apiUrl}/freelance-services/${editing._id}`, fd);
+        await apiClient.put(`/freelance-services/${editing._id}`, fd);
         toast.success('Offre mise à jour');
       } else {
-        await axios.post(`${apiUrl}/freelance-services`, fd);
+        await apiClient.post(`/freelance-services`, fd);
         toast.success('Offre créée');
       }
       setModalOpen(false);
@@ -247,7 +246,7 @@ const FreelanceServicesPage: React.FC = () => {
   const handleDelete = async (r: IFreelanceServiceRow) => {
     if (!window.confirm(`Supprimer l’offre « ${displayTitle(r)} » ?`)) return;
     try {
-      await axios.delete(`${apiUrl}/freelance-services/${r._id}`);
+      await apiClient.delete(`/freelance-services/${r._id}`);
       toast.success('Offre supprimée');
       loadOffers();
     } catch (e: any) {
