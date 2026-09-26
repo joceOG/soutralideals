@@ -1,486 +1,301 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-
-// Material UI
-import { Box, Typography, Fab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, Button, Alert, Snackbar, Chip, Divider, Tooltip, Zoom, Fade, TablePagination, Card, Paper, InputBase } from '@mui/material';
+/**
+ * Groupe.tsx — Administration des groupes Soutrali
+ * Design unifié : tokens colors, MUI Table, icônes réelles
+ */
+import React, { useEffect, useState, useCallback } from 'react';
+import { apiClient } from '../services/setupApi';
+import { colors } from '../tokens/colors';
 import {
-  Table, TableBody, TableCell, tableCellClasses, TableContainer,
-  TableHead, TableRow
+  Box, Typography, Button, TextField, InputAdornment,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Paper, IconButton, Tooltip, Dialog, DialogTitle, DialogContent,
+  DialogActions, Snackbar, Alert, Skeleton, TablePagination, Stack,
 } from '@mui/material';
-import { styled, alpha } from '@mui/material/styles';
-
-// Icons
+import { alpha } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
-import FolderIcon from '@mui/icons-material/Folder';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import CloseIcon from '@mui/icons-material/Close';
 
-// Framer Motion
-import { motion, AnimatePresence, Variants, Transition } from 'framer-motion';
-
-// Styled components
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.2) : alpha(theme.palette.primary.main, 0.1),
-    color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
-    fontSize: 14,
-    fontWeight: 600,
-    border: 'none',
-    padding: '12px 16px',
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-    border: 'none',
-    padding: '12px 16px',
-    transition: 'all 0.2s ease-in-out',
-  },
-}));
-
-const SearchBox = styled(Paper)(({ theme }) => ({
-  padding: '2px 8px',
-  display: 'flex',
-  alignItems: 'center',
-  width: 300,
-  borderRadius: theme.shape.borderRadius * 4,
-  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : alpha(theme.palette.common.white, 0.9),
-  boxShadow: theme.palette.mode === 'dark'
-    ? `inset 2px 2px 5px ${alpha(theme.palette.common.black, 0.5)}, 
-       inset -2px -2px 5px ${alpha(theme.palette.common.white, 0.1)}`
-    : `inset 2px 2px 5px ${alpha(theme.palette.common.black, 0.05)}, 
-       inset -2px -2px 5px ${alpha(theme.palette.common.white, 0.9)}`,
-  '&:hover': {
-    boxShadow: theme.palette.mode === 'dark'
-      ? `inset 2px 2px 8px ${alpha(theme.palette.common.black, 0.6)}, 
-         inset -2px -2px 8px ${alpha(theme.palette.common.white, 0.15)}`
-      : `inset 2px 2px 8px ${alpha(theme.palette.common.black, 0.1)}, 
-         inset -2px -2px 8px ${alpha(theme.palette.common.white, 1)}`
-  },
-  transition: 'all 0.3s ease',
-}));
-
-const NeumorphicCard = styled(Card)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.8) : theme.palette.background.paper,
-  borderRadius: theme.shape.borderRadius * 2,
-  padding: theme.spacing(2),
-  boxShadow: theme.palette.mode === 'dark'
-    ? `5px 5px 10px ${alpha(theme.palette.common.black, 0.5)}, 
-       -5px -5px 10px ${alpha(theme.palette.common.white, 0.05)}`
-    : `5px 5px 10px ${alpha(theme.palette.common.black, 0.05)}, 
-       -5px -5px 10px ${alpha(theme.palette.common.white, 0.8)}`,
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    boxShadow: theme.palette.mode === 'dark'
-      ? `8px 8px 16px ${alpha(theme.palette.common.black, 0.6)}, 
-         -8px -8px 16px ${alpha(theme.palette.common.white, 0.08)}`
-      : `8px 8px 16px ${alpha(theme.palette.common.black, 0.08)}, 
-         -8px -8px 16px ${alpha(theme.palette.common.white, 1)}`
-  },
-}));
-
-// Interface for Item
-interface Item {
+// ── Types ──────────────────────────────────────────────────────────────────────
+interface GroupeRecord {
   _id: string;
   nomgroupe: string;
-  _categoriesCount?: number;
 }
 
-type SortOrder = 'asc' | 'desc';
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1,
-    transition: { 
-      staggerChildren: 0.05
-    }
-  }
-};
-
-const springTransition: Transition = {
-  type: 'spring',
-  stiffness: 100,
-  damping: 12,
-};
-
-const itemVariants: Variants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { 
-    y: 0, 
-    opacity: 1,
-    transition: springTransition,
-  }
+// ── Helpers visuels ────────────────────────────────────────────────────────────
+const TH_SX = {
+  color: colors.textSecondary,
+  fontWeight: 600,
+  fontSize: '0.72rem',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.06em',
+  backgroundColor: colors.bgWarm,
+  borderBottom: `1px solid ${colors.border}`,
+  py: 1.5,
+  px: 2,
 };
 
 const Groupe: React.FC = () => {
-  
-  const [groupe, setGroupe] = useState<Item[]>([]);
-  const [filteredGroupe, setFilteredGroupe] = useState<Item[]>([]);
+    // ── État ──────────────────────────────────────────────────────────────────
+  const [groupes, setGroupes] = useState<GroupeRecord[]>([]);
+  const [filtered, setFiltered] = useState<GroupeRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
-  const [nomgroupe, setNomgroupe] = useState('');
-  const [updateId, setUpdateId] = useState<string | null>(null);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sortField, setSortField] = useState<'nomgroupe' | '_id'>('nomgroupe');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  console.log("API URL:", apiUrl);
-  
+  // Dialog
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<GroupeRecord | null>(null);
+  const [nomgroupe, setNomgroupe] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(`${apiUrl}/groupe`);
-        setGroupe(response.data);
-        setFilteredGroupe(response.data);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Snackbar
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success' | 'error' }>({
+    open: false, msg: '', severity: 'success',
+  });
+  const notify = (msg: string, severity: 'success' | 'error' = 'success') =>
+    setSnack({ open: true, msg, severity });
 
-    fetchData();
-  }, [apiUrl]);
-
-  useEffect(() => {
-    let result = [...groupe];
-    if (searchQuery) {
-      result = result.filter(item => 
-        item.nomgroupe.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    result.sort((a, b) => {
-      const valueA = a[sortField];
-      const valueB = b[sortField];
-      if (sortOrder === 'asc') {
-        return valueA > valueB ? 1 : -1;
-      } else {
-        return valueA < valueB ? 1 : -1;
-      }
-    });
-    setFilteredGroupe(result);
-  }, [groupe, searchQuery, sortField, sortOrder]);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-    setNomgroupe('');
-    setUpdateId(null);
-  };
-
-  const handleClickOpenUpdate = (item: Item) => {
-    setOpen(true);
-    setNomgroupe(item.nomgroupe);
-    setUpdateId(item._id);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setNomgroupe('');
-    setUpdateId(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ── Données ───────────────────────────────────────────────────────────────
+  const fetchGroupes = useCallback(async () => {
+    setLoading(true);
     try {
-      if (updateId) {
-        await axios.put(`${apiUrl}/groupe/${updateId}`, { nomgroupe });
-        setAlertMessage('Groupe mis à jour avec succès');
-      } else {
-        await axios.post(`${apiUrl}/groupe`, { nomgroupe });
-        setAlertMessage('Groupe ajouté avec succès');
-      }
-      setOpenSnackbar(true);
-      const response = await axios.get(`${apiUrl}/groupe`);
-      setGroupe(response.data);
-    } catch (error) {
-      console.error('Failed to submit form:' , error);
-      if (axios.isAxiosError(error)) {
-        console.error('Axios Error:', error.response?.data || error.message);
-      } else {
-        console.error('General Error:', error);
-      }
+      const { data } = await apiClient.get(`/groupe`);
+      setGroupes(data);
+    } catch {
+      notify('Erreur lors du chargement', 'error');
+    } finally {
+      setLoading(false);
     }
-    handleClose();
-  };
+  }, []);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
-      try {
-        await axios.delete(`${apiUrl}/groupe/${id}`);
-        setAlertMessage('Groupe supprimé avec succès');
-        setOpenSnackbar(true);
-        setGroupe(groupe.filter((item) => item._id !== id));
-      } catch (error) {
-        console.error('Failed to delete group:', error);
-      }
-    }
-  };
+  useEffect(() => { fetchGroupes(); }, [fetchGroupes]);
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+  useEffect(() => {
+    const q = search.toLowerCase();
+    setFiltered(groupes.filter(g => g.nomgroupe.toLowerCase().includes(q)));
     setPage(0);
-  };
+  }, [search, groupes]);
 
-  const handleSort = (field: 'nomgroupe' | '_id') => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
+  // ── Dialogue ──────────────────────────────────────────────────────────────
+  const openAdd = () => { setEditTarget(null); setNomgroupe(''); setDialogOpen(true); };
+  const openEdit = (g: GroupeRecord) => { setEditTarget(g); setNomgroupe(g.nomgroupe); setDialogOpen(true); };
+  const closeDialog = () => { setDialogOpen(false); setSaving(false); };
+
+  const handleSave = async () => {
+    if (!nomgroupe.trim()) return;
+    setSaving(true);
+    try {
+      if (editTarget) {
+        await apiClient.put(`/groupe/${editTarget._id}`, { nomgroupe: nomgroupe.trim() });
+        notify('Groupe mis à jour');
+      } else {
+        await apiClient.post(`/groupe`, { nomgroupe: nomgroupe.trim() });
+        notify('Groupe ajouté');
+      }
+      closeDialog();
+      fetchGroupes();
+    } catch {
+      notify('Erreur lors de la sauvegarde', 'error');
+      setSaving(false);
     }
   };
 
-  const currentGroups = filteredGroupe.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const handleDelete = async (g: GroupeRecord) => {
+    if (!window.confirm(`Supprimer "${g.nomgroupe}" ?`)) return;
+    try {
+      await apiClient.delete(`/groupe/${g._id}`);
+      notify('Groupe supprimé');
+      setGroupes(prev => prev.filter(x => x._id !== g._id));
+    } catch {
+      notify('Erreur lors de la suppression', 'error');
+    }
+  };
 
+  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Box mb={2} display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4" component={motion.h4} 
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          Groupes
-        </Typography>
-        
+    <Box sx={{ p: 3 }}>
 
-        <br></br>
-        <SearchBox>
-          <IconButton sx={{ p: '10px' }} aria-label="search">
-            <SearchIcon />
-          </IconButton>
-          <InputBase
-            sx={{ ml: 1, flex: 1 }}
-            placeholder="Rechercher un groupe..."
-            inputProps={{ 'aria-label': 'rechercher un groupe' }}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </SearchBox>
-      </Box>
-
-      <motion.div variants={containerVariants} initial="hidden" animate="visible">
-        <NeumorphicCard>
-          <Box mb={2} px={2} display="flex" alignItems="center">
-            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-              Liste des Groupes
-            </Typography>
-            <Box flexGrow={1} />
-            <Chip 
-              icon={<FolderIcon />} 
-              label={`${filteredGroupe.length} groupe${filteredGroupe.length > 1 ? 's' : ''}`} 
-              color="primary" 
-              variant="outlined" 
-              size="small" 
-            />
+      {/* ── En-tête ── */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
+        <Stack direction="row" alignItems="center" gap={1.5}>
+          <Box sx={{
+            width: 40, height: 40, borderRadius: 2,
+            backgroundColor: alpha(colors.primary, 0.1),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <FolderOpenIcon sx={{ color: colors.primary, fontSize: 22 }} />
           </Box>
-          <Divider sx={{ mb: 2 }} />
+          <Box>
+            <Typography variant="body2" fontWeight={500} color={colors.textSecondary}>
+              Gérez les univers Métiers, Freelance et E-marché.
+            </Typography>
+            <Typography variant="caption" color={colors.textMuted}>
+              {loading ? '…' : `${filtered.length} groupe${filtered.length > 1 ? 's' : ''}`}
+            </Typography>
+          </Box>
+        </Stack>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} sx={{ borderRadius: 2, px: 2.5 }}>
+          Ajouter un groupe
+        </Button>
+      </Stack>
 
-          {loading ? (
-            <Box p={3} textAlign="center">
-              <Typography>Chargement des groupes...</Typography>
-            </Box>
-          ) : (
-            <>
-              <TableContainer component={Paper} elevation={0}>
-                <Table sx={{ minWidth: 700 }} aria-label="customized table">
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell>#</StyledTableCell>
-                      <StyledTableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('nomgroupe')}>
-                          Groupe
-                          {sortField === 'nomgroupe' && (
-                            <motion.span 
-                              initial={{ opacity: 0, scale: 0.5 }} 
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                              style={{ marginLeft: '5px' }}
-                            >
-                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                            </motion.span>
-                          )}
+      {/* ── Recherche ── */}
+      <TextField
+        size="small"
+        placeholder="Rechercher un groupe…"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon sx={{ color: colors.textMuted, fontSize: 18 }} />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 2.5, width: 320 }}
+      />
+
+      {/* ── Tableau ── */}
+      <Paper elevation={0} sx={{ border: `1px solid ${colors.border}`, borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ ...TH_SX, width: 48 }}>#</TableCell>
+                <TableCell sx={TH_SX}>Nom du groupe</TableCell>
+                <TableCell sx={{ ...TH_SX, width: 110 }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {[48, 'auto', 110].map((w, j) => (
+                      <TableCell key={j} sx={{ width: w }}>
+                        <Skeleton variant="text" width="70%" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : paginated.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align="center" sx={{ py: 6, color: colors.textMuted }}>
+                    Aucun groupe trouvé
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginated.map((g, idx) => (
+                  <TableRow key={g._id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                    <TableCell sx={{ color: colors.textMuted, fontSize: '0.8rem', pl: 2 }}>
+                      {page * rowsPerPage + idx + 1}
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        <Box sx={{
+                          width: 28, height: 28, borderRadius: 1,
+                          backgroundColor: alpha(colors.primary, 0.08),
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}>
+                          <FolderOpenIcon sx={{ fontSize: 14, color: colors.primary }} />
                         </Box>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleSort('_id')}>
-                          Identifiant
-                          {sortField === '_id' && (
-                            <motion.span 
-                              initial={{ opacity: 0, scale: 0.5 }} 
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                              style={{ marginLeft: '5px' }}
-                            >
-                              {sortOrder === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
-                            </motion.span>
-                          )}
-                        </Box>
-                      </StyledTableCell>
-                      <StyledTableCell>Action</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <AnimatePresence>
-                      {currentGroups.map((item, index) => (
-                        <motion.tr
-                          key={item._id}
-                          variants={itemVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit={{ opacity: 0, y: -10 }}
-                          style={{ display: 'table-row' }} // Important pour garder le comportement TR
-                        >
-                          <StyledTableCell component="th" scope="row">
-                            {page * rowsPerPage + index + 1}
-                          </StyledTableCell>
-                          <StyledTableCell>
-                            <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                              {item.nomgroupe}
-                            </motion.div>
-                          </StyledTableCell>
-                          <StyledTableCell>{item._id}</StyledTableCell>
-                          <StyledTableCell>
-                            <Box className="action-buttons" sx={{ opacity: 100, transition: 'opacity 0.3s' }}>
-                              <Tooltip title="Modifier" TransitionComponent={Zoom} arrow>
-                                <IconButton color="primary" onClick={() => handleClickOpenUpdate(item)}>
-                                  <EditIcon />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Supprimer" TransitionComponent={Zoom} arrow>
-                                <IconButton color="error" onClick={() => handleDelete(item._id)}>
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </StyledTableCell>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              
-              <TablePagination
-                component="div"
-                count={filteredGroupe.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25]}
-                labelRowsPerPage="Lignes par page:"
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
-              />
-            </>
-          )}
-        </NeumorphicCard>
-      </motion.div>
+                        <Typography variant="body2" fontWeight={500}>{g.nomgroupe}</Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" gap={0.5}>
+                        <Tooltip title="Modifier" arrow>
+                          <IconButton size="small" onClick={() => openEdit(g)} sx={{ color: colors.primary }}>
+                            <EditIcon sx={{ fontSize: 17 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Supprimer" arrow>
+                          <IconButton size="small" onClick={() => handleDelete(g)} sx={{ color: colors.error }}>
+                            <DeleteIcon sx={{ fontSize: 17 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={filtered.length}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={(_, p) => setPage(p)}
+          onRowsPerPageChange={e => { setRowsPerPage(+e.target.value); setPage(0); }}
+          rowsPerPageOptions={[5, 10, 25]}
+          labelRowsPerPage="Par page :"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+          sx={{ borderTop: `1px solid ${colors.border}` }}
+        />
+      </Paper>
 
-      {/* Floating Action Button */}
-      <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
-        <motion.div
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Fab 
-            color="secondary" 
-            aria-label="add" 
-            onClick={handleClickOpen}
-          >
-            <AddIcon />
-          </Fab>
-        </motion.div>
-      </Box>
-
-      {/* Modal */}
-      <AnimatePresence>
-        {open && (
-          <Dialog 
-            onClose={handleClose} 
-            open={open} 
+      {/* ── Dialogue ajout/édition ── */}
+      <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography fontWeight={700}>{editTarget ? 'Modifier le groupe' : 'Nouveau groupe'}</Typography>
+            <IconButton size="small" onClick={closeDialog}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            autoFocus
             fullWidth
-            TransitionComponent={Fade}
+            label="Nom du groupe *"
+            placeholder="Ex. : Métiers, Freelance, E-marché"
+            value={nomgroupe}
+            onChange={e => setNomgroupe(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
+            margin="normal"
+            size="small"
+            required
+            helperText="Ce nom sera visible dans le catalogue et les formulaires."
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2, borderTop: `1px solid ${colors.border}`, gap: 1 }}>
+          <Button onClick={closeDialog} color="inherit" sx={{ minWidth: 90 }}>Annuler</Button>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={saving || !nomgroupe.trim()}
+            sx={{ minWidth: 160, height: 40 }}
           >
-            <DialogTitle sx={{ m: 0, p: 2 }}>
-              {updateId ? 'Mettre à jour le groupe' : 'Ajouter un groupe'}
-              <IconButton
-                aria-label="close"
-                onClick={handleClose}
-                sx={{
-                  position: 'absolute',
-                  right: 8,
-                  top: 8,
-                  color: (theme) => theme.palette.grey[500],
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
+            {saving ? 'Enregistrement…' : editTarget ? 'Enregistrer les modifications' : 'Créer le groupe'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-            <DialogContent dividers>
-              <form id="form-groupe" onSubmit={handleSubmit}>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  id="nomgroupe"
-                  label="Nom du groupe"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={nomgroupe}
-                  onChange={(e) => setNomgroupe(e.target.value)}
-                  required
-                />
-              </form>
-            </DialogContent>
-
-            <DialogActions>
-              <Button onClick={handleClose} color="secondary">
-                Annuler
-              </Button>
-              <Button type="submit" form="form-groupe" variant="contained" color="primary">
-                {updateId ? 'Mettre à jour' : 'Ajouter'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        )}
-      </AnimatePresence>
-
-      {/* Snackbar */}
+      {/* ── Snackbar ── */}
       <Snackbar
-        open={openSnackbar}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
+        open={snack.open}
+        autoHideDuration={3500}
+        onClose={() => setSnack(s => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
-          {alertMessage}
+        <Alert
+          severity={snack.severity}
+          variant="filled"
+          onClose={() => setSnack(s => ({ ...s, open: false }))}
+        >
+          {snack.msg}
         </Alert>
       </Snackbar>
-    </motion.div>
+    </Box>
   );
 };
 

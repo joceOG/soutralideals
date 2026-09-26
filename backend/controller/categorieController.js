@@ -1,7 +1,11 @@
+import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-import mongoose from 'mongoose';
 import categorieModel from '../models/categorieModel.js';
+import {
+  resolveGroupeRef,
+  sendControllerError,
+} from '../utils/catalogValidation.js';
 
 cloudinary.v2.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,7 +19,7 @@ export const updateCategoryById = async (req, res) => {
         const { nomcategorie, groupe } = req.body;
         const { path: filePath } = req.file || {};
 
-        let categorie = await categorieModel.findById(req.params.id); // 🔁 utiliser let ici
+        let categorie = await categorieModel.findById(req.params.id);
 
         if (!categorie) {
             return res.status(404).json({ error: 'Catégorie non trouvée' });
@@ -33,15 +37,26 @@ export const updateCategoryById = async (req, res) => {
             categorie.imagecategorie = result.secure_url;
         }
 
-        categorie.nomcategorie = nomcategorie || categorie.nomcategorie;
-        categorie.groupe = groupe ? new mongoose.Types.ObjectId(groupe) : categorie.groupe;
+        if (nomcategorie !== undefined) {
+            if (!String(nomcategorie).trim()) {
+                return res.status(400).json({ error: 'Nom de catégorie requis.' });
+            }
+            categorie.nomcategorie = String(nomcategorie).trim();
+        }
 
-        const updatedCategorie = await categorie.save(); // ✅ ici on appelle .save() sur l'instance
+        if (groupe !== undefined && groupe !== null && String(groupe).trim() !== '') {
+            const groupeResolved = await resolveGroupeRef(groupe);
+            if (groupeResolved.error) {
+                return res.status(groupeResolved.status).json({ error: groupeResolved.error });
+            }
+            categorie.groupe = groupeResolved.id;
+        }
+
+        const updatedCategorie = await categorie.save();
 
         res.status(200).json(updatedCategorie);
     } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log("Erreur : " + err.message);
+        return sendControllerError(res, err, 'updateCategoryById:');
     }
 };
 
@@ -50,23 +65,33 @@ export const updateCategoryById = async (req, res) => {
 export const createCategory = async (req, res) => {
     try {
         const { nomcategorie, groupe } = req.body;
+
+        if (!nomcategorie || !String(nomcategorie).trim()) {
+            return res.status(400).json({ error: 'Nom de catégorie requis.' });
+        }
+
+        if (!req.file?.path) {
+            return res.status(400).json({ error: 'Image requise (champ imagecategorie).' });
+        }
+
+        const groupeResolved = await resolveGroupeRef(groupe);
+        if (groupeResolved.error) {
+            return res.status(groupeResolved.status).json({ error: groupeResolved.error });
+        }
+
         const result = await cloudinary.v2.uploader.upload(req.file.path);
         fs.unlinkSync(req.file.path);
 
-        var groupeId = new mongoose.Types.ObjectId(groupe);
-        console.log("Id Groupe" , groupeId); 
-
         const newCategorie = new categorieModel({
-            nomcategorie,
+            nomcategorie: String(nomcategorie).trim(),
             imagecategorie: result.secure_url,
-            groupe: groupeId,
+            groupe: groupeResolved.id,
         });
 
         await newCategorie.save();
         res.status(201).json(newCategorie);
     } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log("Erreur:", err.message);
+        return sendControllerError(res, err, 'createCategory:');
     }
 };
 
@@ -93,8 +118,6 @@ export const getCategoryById = async (req, res) => {
     }
 };
 
-// controllers/categorieController.js
-
 export const getCategoriesByGroupe = async (req, res) => {
   try {
     const { nomgroupe } = req.params;
@@ -110,7 +133,7 @@ export const getCategoriesByGroupe = async (req, res) => {
 
     res.json(filteredCategories);
   } catch (err) {
-    res.status(500).json({ message: 'Erreur serveur', error: err });
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 };
 

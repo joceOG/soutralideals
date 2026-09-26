@@ -113,12 +113,36 @@ export function mapModerationResponse(
   return { kind: 'other', code, httpStatus };
 }
 
+function statusAwareSuccessMessage(outcome: ModerationApiOutcome): string | null {
+  if (
+    outcome.kind !== 'success' &&
+    outcome.kind !== 'processing' &&
+    outcome.kind !== 'already_applied'
+  ) {
+    return null;
+  }
+  const rs = outcome.data?.reviewStatus;
+  const ps = outcome.data?.publicationStatus;
+  if (ps === 'published') {
+    return 'Dossier publié. Le tableau et le téléphone doivent afficher « publié » après actualisation.';
+  }
+  if (rs === 'approved') {
+    return outcome.kind === 'processing'
+      ? 'Dossier approuvé. Publication encore en cours — le statut « publié » suivra.'
+      : 'Dossier approuvé. La publication n’est pas encore terminée.';
+  }
+  return null;
+}
+
 export function userMessageForOutcome(outcome: ModerationApiOutcome): string {
+  const fromStatus = statusAwareSuccessMessage(outcome);
+  if (fromStatus) return fromStatus;
+
   switch (outcome.kind) {
     case 'success':
-      return 'Action enregistrée.';
+      return 'Action enregistrée. Actualisez le tableau si le statut n’a pas changé.';
     case 'processing':
-      return 'Traitement en cours sur le serveur.';
+      return 'Traitement en cours sur le serveur. Actualisez dans quelques secondes.';
     case 'already_applied':
       return 'Cette action était déjà appliquée.';
     case 'revision_conflict':

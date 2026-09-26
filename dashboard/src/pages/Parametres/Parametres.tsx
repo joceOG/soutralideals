@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Card, CardContent, Grid, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Button, Alert, Tabs, Tab, CircularProgress, Snackbar } from '@mui/material';
-import { Language as LanguageIcon, AttachMoney as CurrencyIcon, Public as CountryIcon, Palette as ThemeIcon, Notifications as NotificationIcon, Security as SecurityIcon, Accessibility as AccessibilityIcon, Save as SaveIcon, Refresh as RefreshIcon, Settings as SettingsIcon } from '@mui/icons-material';
-import axios from 'axios';
+import {
+  Box, Typography, Paper, Card, CardContent, Grid, FormControl,
+  InputLabel, Select, MenuItem, Switch, FormControlLabel, Button,
+  TextField, Divider, Alert, Chip, Avatar, List, ListItem,
+  ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton,
+  Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab,
+  CircularProgress, Snackbar
+} from '@mui/material';
+import {
+  Language as LanguageIcon,
+  AttachMoney as CurrencyIcon,
+  Public as CountryIcon,
+  Schedule as TimeIcon,
+  Palette as ThemeIcon,
+  Notifications as NotificationIcon,
+  Security as SecurityIcon,
+  Accessibility as AccessibilityIcon,
+  PhoneAndroid as MobileIcon,
+  Save as SaveIcon,
+  Refresh as RefreshIcon,
+  Settings as SettingsIcon
+} from '@mui/icons-material';
+import { apiClient, getCurrentUserId } from '../../services/setupApi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getCurrentUserId } from '../../services/setupApi';
 import Securite from './Securite';
 
 // ✅ INTERFACES TYPESCRIPT
@@ -73,8 +92,6 @@ interface IPreferencesStats {
   byCountry: Array<{ _id: string; count: number }>;
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
 const ParametresComponent: React.FC = () => {
   const [preferences, setPreferences] = useState<IUserPreferences | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -135,10 +152,10 @@ const ParametresComponent: React.FC = () => {
     { value: '24h', label: '24 heures' }
   ];
 
-  const themeOptions = [
-    { value: 'light', label: 'Clair', icon: '☀️' },
-    { value: 'dark', label: 'Sombre', icon: '🌙' },
-    { value: 'auto', label: 'Automatique', icon: '🔄' }
+  const monetaryFormatOptions = [
+    { value: '1,234.56', label: '1,234.56 (Anglais)' },
+    { value: '1 234,56', label: '1 234,56 (Français)' },
+    { value: '1.234,56', label: '1.234,56 (Allemand)' }
   ];
 
   // 🔹 CHARGEMENT DES PRÉFÉRENCES
@@ -148,8 +165,9 @@ const ParametresComponent: React.FC = () => {
       // STAB-11 : session authentifiée (admin connecté = cible préférences)
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Session introuvable');
-      const response = await axios.get(`${apiUrl}/preferences/user/${userId}`);
-      setPreferences(response.data.preferences);
+      const response = await apiClient.get(`/preferences/user/${userId}`);
+      const loaded = response.data.preferences as IUserPreferences;
+      setPreferences({ ...loaded, theme: 'light' });
     } catch (error) {
       console.error('Erreur lors du chargement des préférences:', error);
       // Créer des préférences par défaut en cas d'erreur
@@ -212,7 +230,7 @@ const ParametresComponent: React.FC = () => {
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/preferences/stats`);
+      const response = await apiClient.get(`/preferences/stats`);
       setStats(response.data);
     } catch (error) {
       console.error('Erreur lors du chargement des statistiques:', error);
@@ -244,7 +262,10 @@ const ParametresComponent: React.FC = () => {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Session introuvable');
-      await axios.put(`${apiUrl}/preferences/user/${userId}`, preferences);
+      await apiClient.put(`/preferences/user/${userId}`, {
+        ...preferences,
+        theme: 'light',
+      });
       setSnackbarMessage('Préférences sauvegardées avec succès');
       setSnackbarOpen(true);
       toast.success("Préférences sauvegardées avec succès");
@@ -265,7 +286,7 @@ const ParametresComponent: React.FC = () => {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Session introuvable');
-      await axios.patch(`${apiUrl}/preferences/user/${userId}/reset`);
+      await apiClient.patch(`/preferences/user/${userId}/reset`);
       await fetchPreferences();
       setSnackbarMessage('Préférences réinitialisées avec succès');
       setSnackbarOpen(true);
@@ -297,8 +318,6 @@ const ParametresComponent: React.FC = () => {
       newPreferences.formatHeure = value;
     } else if (path === 'formatMonetaire') {
       newPreferences.formatMonetaire = value;
-    } else if (path === 'theme') {
-      newPreferences.theme = value;
     } else if (path === 'notifications.email') {
       newPreferences.notifications.email = value;
     } else if (path === 'notifications.push') {
@@ -564,25 +583,17 @@ const ParametresComponent: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  🎨 Thème
+                  Thème
                 </Typography>
                 <FormControl fullWidth>
                   <InputLabel>Thème</InputLabel>
-                  <Select
-                    value={preferences.theme}
-                    onChange={(e) => handlePreferenceChange('theme', e.target.value)}
-                    label="Thème"
-                  >
-                    {themeOptions.map((theme) => (
-                      <MenuItem key={theme.value} value={theme.value}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography sx={{ mr: 1 }}>{theme.icon}</Typography>
-                          <Typography>{theme.label}</Typography>
-                        </Box>
-                      </MenuItem>
-                    ))}
+                  <Select value="light" label="Thème" disabled>
+                    <MenuItem value="light">Clair</MenuItem>
                   </Select>
                 </FormControl>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                  Mode sombre — bientôt disponible
+                </Typography>
               </CardContent>
             </Card>
           </Grid>

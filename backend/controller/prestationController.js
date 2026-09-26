@@ -3,8 +3,12 @@ import prestataireModel from '../models/prestataireModel.js';
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import fs from 'fs';
-import { isAdmin, assertOwnerOrAdmin } from '../utils/accessControl.js';
-import { pickFields } from '../utils/pickFields.js';
+import {
+  authorizePrestationOperation,
+  pickPrestationUpdates,
+  PrestationAuthorizationError,
+} from '../services/prestationAuthorizationService.js';
+import { isAdmin } from '../utils/accessControl.js';
 import { formatPrestationResponse } from '../utils/prestationVisibility.js';
 
 cloudinary.v2.config({
@@ -13,35 +17,15 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const PRESTATION_CLIENT_FIELDS = [
-  'datePrestation', 'heureDebut', 'heureFin', 'dureeEstimee',
-  'adresse', 'ville', 'codePostal', 'localisation',
-  'description', 'notesClient', 'telephoneUrgence', 'estRecurrente', 'frequenceRecurrence',
-];
-
-const PRESTATION_PRESTATAIRE_FIELDS = [
-  'notesPrestataire', 'notePrestataire', 'commentairePrestataire',
-];
-
-const PRESTATION_ADMIN_FIELDS = [
-  'prestataire', 'service', 'tarifHoraire', 'montantTotal', 'fraisDeplacements',
-  'moyenPaiement', 'statut', 'statutPaiement', 'referencePaiement',
-  'noteClient', 'commentaireClient',
-];
-
-async function getPrestationAllowedFields(req, prestation) {
-  if (isAdmin(req)) {
-    return [...PRESTATION_CLIENT_FIELDS, ...PRESTATION_PRESTATAIRE_FIELDS, ...PRESTATION_ADMIN_FIELDS];
+function sendPrestationAuthError(res, err) {
+  if (err instanceof PrestationAuthorizationError) {
+    return res.status(err.httpStatus).json({
+      success: false,
+      code: err.code,
+      message: err.message,
+    });
   }
-  const userId = req.utilisateur._id.toString();
-  if (prestation.utilisateur?.toString() === userId) {
-    return PRESTATION_CLIENT_FIELDS;
-  }
-  const prestDoc = await prestataireModel.findById(prestation.prestataire).select('utilisateur');
-  if (prestDoc?.utilisateur?.toString() === userId) {
-    return PRESTATION_PRESTATAIRE_FIELDS;
-  }
-  return [];
+  return null;
 }
 
 async function canAccessPrestation(req, prestation) {
@@ -330,20 +314,37 @@ export const updatePrestation = async (req, res) => {
             return res.status(404).json({ error: 'Prestation non trouvée' });
         }
         if (!(await canAccessPrestation(req, existing))) {
-            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+            return res.status(403).json({
+              success: false,
+              code: 'RESOURCE_ACCESS_FORBIDDEN',
+              message: 'Accès refusé à cette prestation.',
+            });
         }
 
-        const allowedFields = await getPrestationAllowedFields(req, existing);
-        if (allowedFields.length === 0) {
-            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+        let auth;
+        try {
+            auth = await authorizePrestationOperation({
+              utilisateur: req.utilisateur,
+              prestation: existing,
+              operation: 'update',
+              payload: req.body,
+            });
+        } catch (err) {
+            const sent = sendPrestationAuthError(res, err);
+            if (sent) return sent;
+            throw err;
         }
 
-        const body = pickFields(req.body, allowedFields);
+        const body = pickPrestationUpdates(req.body, auth.allowedFields);
         const updates = { ...body, updatedAt: new Date() };
 
         if (body.datePrestation) updates.datePrestation = new Date(body.datePrestation);
-        if (body.prestataire) updates.prestataire = new mongoose.Types.ObjectId(body.prestataire);
-        if (body.service) updates.service = new mongoose.Types.ObjectId(body.service);
+        if (body.prestataire && auth.actor === 'admin') {
+          updates.prestataire = new mongoose.Types.ObjectId(body.prestataire);
+        }
+        if (body.service && auth.actor === 'admin') {
+          updates.service = new mongoose.Types.ObjectId(body.service);
+        }
 
         if (req.files?.photosApres) {
             const photosApres = [];
@@ -401,7 +402,24 @@ export const changerStatutPrestation = async (req, res) => {
         }
 
         if (!(await canAccessPrestation(req, prestation))) {
-            return res.status(403).json({ error: 'Accès refusé à cette prestation.' });
+            return res.status(403).json({
+              success: false,
+              code: 'RESOURCE_ACCESS_FORBIDDEN',
+              message: 'Accès refusé à cette prestation.',
+            });
+        }
+
+        try {
+            await authorizePrestationOperation({
+              utilisateur: req.utilisateur,
+              prestation,
+              operation: 'changeStatus',
+              payload: { statut: newStatus, nouveauStatut: newStatus },
+            });
+        } catch (err) {
+            const sent = sendPrestationAuthError(res, err);
+            if (sent) return sent;
+            throw err;
         }
 
         await prestation.changerStatut(newStatus, commentaire || '');

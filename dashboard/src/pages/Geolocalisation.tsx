@@ -38,7 +38,7 @@ const Geolocalisation: React.FC = () => {
       stats: "127 prestataires actifs"
     },
     {
-      title: "Vendeurs Map", 
+      title: "Vendeurs Map",
       description: "Localisez les vendeurs et leurs zones de livraison",
       icon: <PublicIcon />,
       path: "/vendeurs-map",
@@ -50,7 +50,7 @@ const Geolocalisation: React.FC = () => {
       title: "Freelances Map",
       description: "Trouvez les freelances disponibles par compétence et localisation",
       icon: <LocationOnIcon />,
-      path: "/freelances-map", 
+      path: "/freelances-map",
       color: theme.palette.info.main,
       features: ["Compétences", "Disponibilité", "Tarifs", "Portfolio"],
       stats: "156 freelances actifs"
@@ -74,7 +74,7 @@ const Geolocalisation: React.FC = () => {
       icon: <SearchIcon />
     },
     {
-      title: "Calcul de Distance", 
+      title: "Calcul de Distance",
       description: "Distance et durée entre points",
       icon: <DirectionsIcon />
     },
@@ -89,10 +89,10 @@ const Geolocalisation: React.FC = () => {
     <Box>
       {/* En-tête de la page */}
       <Box sx={{ mb: 4 }}>
-        <Typography 
-          variant="h4" 
-          gutterBottom 
-          sx={{ 
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
             fontWeight: 600,
             mb: 2,
             position: 'relative',
@@ -111,7 +111,7 @@ const Geolocalisation: React.FC = () => {
           🗺️ Géolocalisation
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600 }}>
-          Gérez et visualisez toutes les données géographiques de votre plateforme. 
+          Gérez et visualisez toutes les données géographiques de votre plateforme.
           Accédez aux cartes interactives, analytics et services de localisation.
         </Typography>
       </Box>
@@ -120,8 +120,8 @@ const Geolocalisation: React.FC = () => {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {mapCards.map((card, index) => (
           <Grid item xs={12} md={6} key={index}>
-            <Card 
-              sx={{ 
+            <Card
+              sx={{
                 height: '100%',
                 borderRadius: 3,
                 overflow: 'hidden',
@@ -137,9 +137,9 @@ const Geolocalisation: React.FC = () => {
             >
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar 
-                    sx={{ 
-                      bgcolor: card.color, 
+                  <Avatar
+                    sx={{
+                      bgcolor: card.color,
                       mr: 2,
                       width: 48,
                       height: 48
@@ -151,21 +151,21 @@ const Geolocalisation: React.FC = () => {
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       {card.title}
                     </Typography>
-                    <Chip 
-                      label={card.stats} 
-                      size="small" 
-                      sx={{ 
+                    <Chip
+                      label={card.stats}
+                      size="small"
+                      sx={{
                         bgcolor: alpha(card.color, 0.1),
                         color: card.color,
                         fontWeight: 500
-                      }} 
+                      }}
                     />
                   </Box>
                 </Box>
-                
-                <Typography 
-                  variant="body2" 
-                  color="text.secondary" 
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
                   sx={{ mb: 2 }}
                 >
                   {card.description}
@@ -178,8 +178,8 @@ const Geolocalisation: React.FC = () => {
                       label={feature}
                       size="small"
                       variant="outlined"
-                      sx={{ 
-                        mr: 1, 
+                      sx={{
+                        mr: 1,
                         mb: 1,
                         borderColor: alpha(card.color, 0.3),
                         color: card.color
@@ -188,7 +188,7 @@ const Geolocalisation: React.FC = () => {
                   ))}
                 </Box>
               </CardContent>
-              
+
               <CardActions sx={{ p: 3, pt: 0 }}>
                 <Button
                   component={Link}
@@ -212,10 +212,10 @@ const Geolocalisation: React.FC = () => {
 
       {/* Services disponibles */}
       <Box sx={{ mb: 4 }}>
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            fontWeight: 600, 
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 600,
             mb: 3,
             display: 'flex',
             alignItems: 'center',
@@ -225,12 +225,12 @@ const Geolocalisation: React.FC = () => {
           <DirectionsIcon color="primary" />
           Services de Géolocalisation
         </Typography>
-        
+
         <Grid container spacing={2}>
           {services.map((service, index) => (
             <Grid item xs={12} sm={4} key={index}>
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   p: 2,
                   textAlign: 'center',
                   borderRadius: 2,
@@ -242,8 +242,8 @@ const Geolocalisation: React.FC = () => {
                   transition: 'all 0.2s ease'
                 }}
               >
-                <Avatar 
-                  sx={{ 
+                <Avatar
+                  sx={{
                     bgcolor: alpha(theme.palette.primary.main, 0.1),
                     color: theme.palette.primary.main,
                     mx: 'auto',
@@ -267,18 +267,18 @@ const Geolocalisation: React.FC = () => {
       </Box>
 
       {/* Statistiques rapides */}
-      <Card 
-        sx={{ 
+      <Card
+        sx={{
           p: 3,
           borderRadius: 3,
           background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
           border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
         }}
       >
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            fontWeight: 600, 
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 600,
             mb: 2,
             display: 'flex',
             alignItems: 'center',
@@ -288,7 +288,7 @@ const Geolocalisation: React.FC = () => {
           <AnalyticsIcon color="primary" />
           Vue d'ensemble
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={6} sm={3}>
             <Box sx={{ textAlign: 'center' }}>

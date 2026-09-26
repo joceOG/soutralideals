@@ -1,13 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, InputAdornment, IconButton, MenuItem, Chip, Card, CardContent, Avatar, Grid, CircularProgress, Select, FormControl, InputLabel, Tooltip, Switch, FormControlLabel } from '@mui/material';
+import {
+  Box, Typography, Dialog, DialogActions, DialogContent,
+  DialogTitle, Button, TextField, InputAdornment,
+  IconButton, MenuItem, Chip, Card, CardContent,
+  Avatar, Grid, CircularProgress, Select, FormControl, InputLabel,
+  Tabs, Tab, Badge, Tooltip, Switch, FormControlLabel
+} from '@mui/material';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArchiveIcon from '@mui/icons-material/Archive';
-
-import axios from 'axios';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import { apiClient } from '../services/setupApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -57,21 +67,19 @@ interface IFavoriteStats {
   recentFavorites: number;
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
 const FavorisComponent: React.FC = () => {
   const [favorites, setFavorites] = useState<IFavorite[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [modalOpen, setModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedFavorite, setSelectedFavorite] = useState<IFavorite | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statutFilter, setStatutFilter] = useState<string>('');
   const [objetTypeFilter, setObjetTypeFilter] = useState<string>('');
-  const [categorieFilter] = useState<string>('');
-  const [villeFilter] = useState<string>('');
+  const [categorieFilter, setCategorieFilter] = useState<string>('');
+  const [villeFilter, setVilleFilter] = useState<string>('');
   const [stats, setStats] = useState<IFavoriteStats | null>(null);
-
+  const [activeTab, setActiveTab] = useState(0);
   const [customLists, setCustomLists] = useState<string[]>([]);
   const [selectedList, setSelectedList] = useState<string>('');
 
@@ -105,8 +113,8 @@ const FavorisComponent: React.FC = () => {
       if (villeFilter) params.append('ville', villeFilter);
       if (selectedList) params.append('listePersonnalisee', selectedList);
 
-      const response = await axios.get(`${apiUrl}/favorites?${params.toString()}`);
-      
+      const response = await apiClient.get(`/favorites?${params.toString()}`);
+
       // Vérifier si la réponse est un tableau
       const data = response.data.favorites || response.data;
       if (Array.isArray(data)) {
@@ -127,7 +135,7 @@ const FavorisComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = useCallback(async () => {
     try {
-      const response = await axios.get(`${apiUrl}/favorites/stats`);
+      const response = await apiClient.get(`/favorites/stats`);
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -137,8 +145,8 @@ const FavorisComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES LISTES PERSONNALISÉES
   const fetchCustomLists = useCallback(async () => {
     try {
-      const response = await axios.get(`${apiUrl}/favorites/lists`);
-      
+      const response = await apiClient.get(`/favorites/lists`);
+
       // Vérifier si la réponse est un tableau
       if (Array.isArray(response.data)) {
         setCustomLists(response.data);
@@ -174,7 +182,7 @@ const FavorisComponent: React.FC = () => {
     if (!favorite._id) return;
     if (window.confirm(`Supprimer le favori "${favorite.titre}" ?`)) {
       try {
-        await axios.delete(`${apiUrl}/favorites/${favorite._id}`);
+        await apiClient.delete(`/favorites/${favorite._id}`);
         toast.success("Favori supprimé");
         fetchFavorites();
         fetchStats();
@@ -188,7 +196,7 @@ const FavorisComponent: React.FC = () => {
   const handleArchive = async (favorite: IFavorite) => {
     if (!favorite._id) return;
     try {
-      await axios.patch(`${apiUrl}/favorites/${favorite._id}/archive`);
+      await apiClient.patch(`/favorites/${favorite._id}/archive`);
       toast.success("Favori archivé");
       fetchFavorites();
       fetchStats();
@@ -222,12 +230,12 @@ const FavorisComponent: React.FC = () => {
   );
 
   const objetTypeBodyTemplate = (rowData: IFavorite) => (
-    <Chip 
-      label={rowData.objetType} 
-      color={rowData.objetType === 'PRESTATAIRE' ? 'primary' : 
-             rowData.objetType === 'VENDEUR' ? 'secondary' : 
-             rowData.objetType === 'FREELANCE' ? 'success' : 'default'} 
-      size="small" 
+    <Chip
+      label={rowData.objetType}
+      color={rowData.objetType === 'PRESTATAIRE' ? 'primary' :
+        rowData.objetType === 'VENDEUR' ? 'secondary' :
+          rowData.objetType === 'FREELANCE' ? 'success' : 'default'}
+      size="small"
     />
   );
 
@@ -408,23 +416,23 @@ const FavorisComponent: React.FC = () => {
               <Typography color="textSecondary" gutterBottom>
                 {selectedFavorite.objetType} • {selectedFavorite.categorie}
               </Typography>
-              
+
               {selectedFavorite.description && (
                 <Typography sx={{ mt: 2 }}>{selectedFavorite.description}</Typography>
               )}
-              
+
               {selectedFavorite.prix && (
                 <Typography sx={{ mt: 1 }}>
                   Prix: {selectedFavorite.prix} {selectedFavorite.devise}
                 </Typography>
               )}
-              
+
               {selectedFavorite.localisation && (
                 <Typography sx={{ mt: 1 }}>
                   Localisation: {selectedFavorite.localisation.ville}, {selectedFavorite.localisation.pays}
                 </Typography>
               )}
-              
+
               {selectedFavorite.tags && selectedFavorite.tags.length > 0 && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2">Tags:</Typography>
@@ -435,28 +443,28 @@ const FavorisComponent: React.FC = () => {
                   </Box>
                 </Box>
               )}
-              
+
               <Typography sx={{ mt: 2 }}>
-                Statut: <Chip 
-                  label={selectedFavorite.statut} 
-                  color={selectedFavorite.statut === 'ACTIF' ? 'success' : 
-                         selectedFavorite.statut === 'ARCHIVE' ? 'warning' : 'error'} 
+                Statut: <Chip
+                  label={selectedFavorite.statut}
+                  color={selectedFavorite.statut === 'ACTIF' ? 'success' :
+                    selectedFavorite.statut === 'ARCHIVE' ? 'warning' : 'error'}
                 />
               </Typography>
-              
+
               {selectedFavorite.listePersonnalisee && (
                 <Typography sx={{ mt: 1 }}>
                   Liste: {selectedFavorite.listePersonnalisee}
                 </Typography>
               )}
-              
+
               {selectedFavorite.notesPersonnelles && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2">Notes personnelles:</Typography>
                   <Typography>{selectedFavorite.notesPersonnelles}</Typography>
                 </Box>
               )}
-              
+
               <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                 <FormControlLabel
                   control={<Switch checked={selectedFavorite.alertePrix} disabled />}
@@ -481,4 +489,6 @@ const FavorisComponent: React.FC = () => {
 };
 
 export default FavorisComponent;
+
+
 

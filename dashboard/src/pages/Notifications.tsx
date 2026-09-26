@@ -11,7 +11,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import SmsIcon from '@mui/icons-material/Sms';
 import PushIcon from '@mui/icons-material/PhoneAndroid';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
-import axios from 'axios';
+import { apiClient } from '../services/setupApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -62,13 +62,6 @@ interface INotificationStats {
   total: number;
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
-function authHeaders() {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 function notificationText(n: INotification): string {
   return (n.contenu ?? n.message ?? '').trim();
 }
@@ -112,7 +105,7 @@ const NotificationsComponent: React.FC = () => {
   });
 
   const typeOptions = [
-    'COMMANDE', 'PRESTATION', 'PAIEMENT', 'VERIFICATION', 
+    'COMMANDE', 'PRESTATION', 'PAIEMENT', 'VERIFICATION',
     'MESSAGE', 'SYSTEME', 'PROMOTION', 'RAPPEL'
   ];
 
@@ -128,9 +121,8 @@ const NotificationsComponent: React.FC = () => {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/notifications`, {
+      const response = await apiClient.get('/notifications', {
         params: { page: 1, limit: 200 },
-        headers: authHeaders(),
       });
       setNotifications(normalizeNotificationsPayload(response.data));
     } catch (error) {
@@ -144,9 +136,7 @@ const NotificationsComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/notifications/stats`, {
-        headers: authHeaders(),
-      });
+      const response = await apiClient.get('/notifications/stats');
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -193,9 +183,7 @@ const NotificationsComponent: React.FC = () => {
   const handleMarkAsRead = async (notification: INotification) => {
     if (!notification._id) return;
     try {
-      await axios.put(`${apiUrl}/notification/${notification._id}/read`, {}, {
-        headers: authHeaders(),
-      });
+      await apiClient.put(`/notification/${notification._id}/read`, {});
       toast.success("Notification marquée comme lue");
       fetchNotifications();
       fetchStats();
@@ -207,9 +195,7 @@ const NotificationsComponent: React.FC = () => {
   const handleArchive = async (notification: INotification) => {
     if (!notification._id) return;
     try {
-      await axios.put(`${apiUrl}/notification/${notification._id}/archive`, {}, {
-        headers: authHeaders(),
-      });
+      await apiClient.put(`/notification/${notification._id}/archive`, {});
       toast.success("Notification archivée");
       fetchNotifications();
       fetchStats();
@@ -222,9 +208,7 @@ const NotificationsComponent: React.FC = () => {
     if (!notification._id) return;
     if (window.confirm(`Supprimer la notification "${notification.titre}" ?`)) {
       try {
-        await axios.delete(`${apiUrl}/notification/${notification._id}`, {
-          headers: authHeaders(),
-        });
+        await apiClient.delete(`/notification/${notification._id}`);
         toast.success("Notification supprimée");
         fetchNotifications();
         fetchStats();
@@ -237,13 +221,12 @@ const NotificationsComponent: React.FC = () => {
   // 🔹 ENVOI EN MASSE
   const handleBulkSend = async () => {
     try {
-      await axios.post(
-        `${apiUrl}/notifications/bulk`,
+      await apiClient.post(
+        '/notifications/bulk',
         {
           ...bulkData,
           contenu: bulkData.message,
         },
-        { headers: authHeaders() }
       );
       toast.success("Notifications envoyées en masse");
       fetchNotifications();
@@ -300,8 +283,8 @@ const NotificationsComponent: React.FC = () => {
     };
 
     return (
-      <Chip 
-        label={rowData.type} 
+      <Chip
+        label={rowData.type}
         color={getTypeColor(rowData.type) as any}
         size="small"
       />
@@ -319,8 +302,8 @@ const NotificationsComponent: React.FC = () => {
     };
 
     return (
-      <Chip 
-        label={rowData.statut} 
+      <Chip
+        label={rowData.statut}
         color={getStatutColor(rowData.statut) as any}
         size="small"
       />
@@ -378,13 +361,13 @@ const NotificationsComponent: React.FC = () => {
   return (
     <Box m={2}>
       <ToastContainer />
-      
+
       {/* 📊 HEADER AVEC STATISTIQUES */}
       <Box mb={3}>
         <Typography variant="h4" gutterBottom>
           Gestion des Notifications
         </Typography>
-        
+
         {stats && (
           <Box display="flex" gap={2} mb={2}>
             <Card sx={{ minWidth: 150 }}>
@@ -397,7 +380,7 @@ const NotificationsComponent: React.FC = () => {
                 </Typography>
               </CardContent>
             </Card>
-            
+
             {(stats.statsParStatut ?? []).map(stat => (
               <Card key={stat._id} sx={{ minWidth: 120 }}>
                 <CardContent sx={{ p: 2 }}>
@@ -428,7 +411,7 @@ const NotificationsComponent: React.FC = () => {
             }}
             sx={{ width: 300 }}
           />
-          
+
           <TextField
             select
             variant="outlined"
@@ -459,7 +442,7 @@ const NotificationsComponent: React.FC = () => {
             ))}
           </TextField>
         </Box>
-        
+
         <Box display="flex" gap={1}>
           <Button variant="outlined" onClick={() => setBulkModalOpen(true)}>
             Envoi en masse
@@ -479,43 +462,43 @@ const NotificationsComponent: React.FC = () => {
         dataKey="_id"
         emptyMessage="Aucune notification trouvée"
       >
-        <Column 
-          header="Destinataire" 
+        <Column
+          header="Destinataire"
           body={avatarBodyTemplate}
           style={{ width: '200px' }}
         />
         <Column field="titre" header="Titre" sortable style={{ width: '200px' }} />
         <Column header="Message" body={messageBodyTemplate} style={{ width: '300px' }} />
-        <Column 
-          header="Type" 
-          body={typeBodyTemplate} 
-          sortable 
+        <Column
+          header="Type"
+          body={typeBodyTemplate}
+          sortable
           sortField="type"
           style={{ width: '120px' }}
         />
-        <Column 
-          header="Statut" 
-          body={statutBodyTemplate} 
-          sortable 
+        <Column
+          header="Statut"
+          body={statutBodyTemplate}
+          sortable
           sortField="statut"
           style={{ width: '100px' }}
         />
-        <Column 
-          header="Priorité" 
-          body={prioriteBodyTemplate} 
-          sortable 
+        <Column
+          header="Priorité"
+          body={prioriteBodyTemplate}
+          sortable
           sortField="priorite"
           style={{ width: '100px' }}
         />
-        <Column 
-          header="Canaux" 
+        <Column
+          header="Canaux"
           body={envoiBodyTemplate}
           style={{ width: '100px' }}
         />
-        <Column 
-          header="Date" 
-          body={dateBodyTemplate} 
-          sortable 
+        <Column
+          header="Date"
+          body={dateBodyTemplate}
+          sortable
           sortField="createdAt"
           style={{ width: '120px' }}
         />
@@ -536,7 +519,7 @@ const NotificationsComponent: React.FC = () => {
               value={formData.titre || ''}
               onChange={handleChange}
             />
-            
+
             <TextField
               label="Message"
               name="message"
@@ -546,7 +529,7 @@ const NotificationsComponent: React.FC = () => {
               value={formData.message || ''}
               onChange={handleChange}
             />
-            
+
             <Box display="flex" gap={2}>
               <TextField
                 select
@@ -560,7 +543,7 @@ const NotificationsComponent: React.FC = () => {
                   <MenuItem key={option} value={option}>{option}</MenuItem>
                 ))}
               </TextField>
-              
+
               <TextField
                 select
                 label="Priorité"
@@ -617,7 +600,7 @@ const NotificationsComponent: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Annuler</Button>
-          <Button variant="contained" onClick={() => {}}>
+          <Button variant="contained" onClick={() => { }}>
             {selectedNotification?._id ? "Enregistrer" : "Créer"}
           </Button>
         </DialogActions>

@@ -1,472 +1,541 @@
-import React, { useEffect, useState } from 'react';
+/**
+ * Service.tsx — Administration des services Soutrali
+ * Design unifié : tokens colors, MUI Table, icônes réelles
+ */
+import React, { useEffect, useState, useCallback } from 'react';
+import { apiClient } from '../services/setupApi';
 import {
-  Alert, Box, IconButton, MenuItem, Snackbar, TextField,
-  Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, InputAdornment, Chip
+  Box, Typography, Button, TextField, InputAdornment, MenuItem,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Paper, IconButton, Tooltip, Chip, Avatar, Stack,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  Snackbar, Alert, Skeleton, TablePagination,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Close';
 import { alpha } from '@mui/material/styles';
-import axios from 'axios';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { motion } from 'framer-motion';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
+import DesignServicesIcon from '@mui/icons-material/DesignServices';
+import ImageIcon from '@mui/icons-material/Image';
+import CloseIcon from '@mui/icons-material/Close';
+import EuroIcon from '@mui/icons-material/Euro';
+import { colors } from '../tokens/colors';
 import TagsInput from '../components/TagsInput';
 
-interface Item {
+// ── Types ──────────────────────────────────────────────────────────────────────
+interface ServiceItem {
   _id: string;
   nomservice: string;
   imageservice?: string;
   prixmoyen?: number;
-  tags: string[]; // ✅ Added tags
+  tags: string[];
   categorie: {
     _id: string;
     nomcategorie: string;
-    groupe: {
-      _id: string;
-      nomgroupe: string;
-    };
+    groupe: { _id: string; nomgroupe: string };
   };
 }
 
-interface Option {
-  _id?: string;
-  label: string;
-  value: string;
-  groupeId?: string; // Ajout de l'ID du groupe pour le filtrage
+interface CategorieOption {
+  _id: string;
+  nomcategorie: string;
+  groupeId: string;
 }
 
+interface GroupeOption {
+  _id: string;
+  nomgroupe: string;
+}
+
+const TH_SX = {
+  color: colors.textSecondary,
+  fontWeight: 600,
+  fontSize: '0.72rem',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.06em',
+  backgroundColor: colors.bgWarm,
+  borderBottom: `1px solid ${colors.border}`,
+  py: 1.5, px: 2,
+};
+
+// ── Composant ──────────────────────────────────────────────────────────────────
 const Service: React.FC = () => {
-  const [service, setService] = useState<Item[]>([]);
-  const [nomservice, setNomService] = useState('');
-  const [prixMoyen, setPrixMoyen] = useState<number | ''>('');
-  const [imageservice, setImageService] = useState<File | null>(null);
+    const [services, setServices] = useState<ServiceItem[]>([]);
+  const [filtered, setFiltered] = useState<ServiceItem[]>([]);
+  const [categories, setCategories] = useState<CategorieOption[]>([]);
+  const [groupes, setGroupes] = useState<GroupeOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // ✅ Managed tags state
-  const [currentTags, setCurrentTags] = useState<string[]>([]);
+  // Dialog
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<ServiceItem | null>(null);
+  const [nomservice, setNomservice] = useState('');
+  const [prixmoyen, setPrixmoyen] = useState<string>('');
+  const [selectedGroupe, setSelectedGroupe] = useState('');
+  const [selectedCategorie, setSelectedCategorie] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
-  const [file, setFile] = useState<File | null>(null);
-  const [open, setOpen] = useState(false);
-  const [categorie, setCategorie] = useState<Option[]>([]);
-  const [groupe, setGroupe] = useState<Option[]>([]);
-  const [selectedCategorie, setSelectedCategorie] = useState<string | null>(null);
-  const [selectedGroupe, setSelectedGroupe] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentService, setCurrentService] = useState<Item | null>(null);
-  const [openSnackbarSuccess, setOpenSnackbarSuccess] = useState(false);
-  const [openSnackbarError, setOpenSnackbarError] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  // Snackbar
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success' | 'error' }>({
+    open: false, msg: '', severity: 'success',
+  });
+  const notify = (msg: string, severity: 'success' | 'error' = 'success') =>
+    setSnack({ open: true, msg, severity });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${apiUrl}/service`);
-        // Ensure tags is always an array
-        const sanitizedData = response.data.map((item: any) => ({
-          ...item,
-          tags: item.tags || []
-        }));
-        setService(sanitizedData);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchData();
-  }, [apiUrl]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(`${apiUrl}/categorie`);
-        // On garde toutes les catégories mais on stocke leur groupeId
-        const options = response.data.map((cat: any) => ({
-          label: cat.nomcategorie,
-          value: cat._id,
-          // Gérer le cas où groupe est peuplé (objet) ou non (string ID)
-          groupeId: typeof cat.groupe === 'object' ? cat.groupe?._id : cat.groupe
-        }));
-        setCategorie(options);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchCategories();
-  }, [apiUrl]);
-
-  useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        const response = await axios.get(`${apiUrl}/groupe`);
-        // Filtrer pour exclure le groupe 'E-marché'
-        const filteredGroups = response.data.filter((grp: any) =>
-          !grp.nomgroupe.toLowerCase().includes('marché') &&
-          !grp.nomgroupe.toLowerCase().includes('e-marché')
-        );
-
-        const options = filteredGroups.map((grp: any) => ({
-          label: grp.nomgroupe,
-          value: grp._id,
-        }));
-        setGroupe(options);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchGroups();
-  }, [apiUrl]);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-    setIsEditing(false);
-    resetForm();
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setNomService('');
-    setPrixMoyen('');
-    setImageService(null);
-    setFile(null);
-    setSelectedCategorie(null);
-    setSelectedGroupe(null);
-    setCurrentService(null);
-    setCurrentTags([]); // Reset tags
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageService(e.target.files[0]);
-    }
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const formData = new FormData();
-    formData.append('nomservice', nomservice);
-    if (selectedCategorie) formData.append('categorie', selectedCategorie);
-    if (prixMoyen !== '') formData.append('prixmoyen', prixMoyen.toString());
-
-    // ✅ Send tags as stringified JSON
-    formData.append('tags', JSON.stringify(currentTags));
-
-    if (imageservice) formData.append('imageservice', imageservice);
-
+  // ── Données ───────────────────────────────────────────────────────────────
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
     try {
-      if (isEditing && currentService) {
-        await axios.put(`${apiUrl}/service/${currentService._id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        toast.success('Service mis à jour avec succès!');
-      } else {
-        await axios.post(`${apiUrl}/service`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        toast.success('Service créé avec succès!');
-      }
-
-      setOpenSnackbarSuccess(true);
-      handleClose();
-      const response = await axios.get(`${apiUrl}/service`);
-      // Ensure tags is always an array
-      const sanitizedData = response.data.map((item: any) => ({
-        ...item,
-        tags: item.tags || []
-      }));
-      setService(sanitizedData);
-    } catch (error) {
-      console.error(error);
-      setOpenSnackbarError(true);
+      const [svcRes, catRes, grpRes] = await Promise.all([
+        apiClient.get(`/service`),
+        apiClient.get(`/categorie`),
+        apiClient.get(`/groupe`),
+      ]);
+      setServices(svcRes.data.map((s: any) => ({ ...s, tags: s.tags || [] })));
+      setCategories(catRes.data.map((c: any) => ({
+        _id: c._id,
+        nomcategorie: c.nomcategorie,
+        groupeId: typeof c.groupe === 'object' ? c.groupe?._id : c.groupe,
+      })));
+      setGroupes(grpRes.data);
+    } catch {
+      notify('Erreur lors du chargement', 'error');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const onEdit = (rowData: Item) => {
-    setOpen(true);
-    setIsEditing(true);
-    setCurrentService(rowData);
-    setNomService(rowData.nomservice);
-    setPrixMoyen(rowData.prixmoyen || '');
-    setSelectedCategorie(rowData.categorie?._id || null);
-    setSelectedGroupe(rowData.categorie?.groupe?._id || null);
-    setCurrentTags(rowData.tags || []); // ✅ Load existing tags
-  };
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const onDelete = async (rowData: Item) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce service ?')) {
-      try {
-        await axios.delete(`${apiUrl}/service/${rowData._id}`);
-        setService(service.filter((item) => item._id !== rowData._id));
-        toast.success('Service supprimé avec succès!');
-      } catch (error) {
-        console.error(error);
-        toast.error('Erreur lors de la suppression du service.');
-      }
-    }
-  };
-
-  const filteredServices = service.filter((item) =>
-    item.nomservice.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.categorie?.nomcategorie?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.categorie?.groupe?.nomgroupe?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) // ✅ Search by tags
-  );
-
-  // ✅ Tags column template
-  const tagsBodyTemplate = (rowData: Item) => {
-    return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-        {rowData.tags?.slice(0, 3).map((tag, idx) => (
-          <Chip key={idx} label={tag} size="small" variant="outlined" style={{ fontSize: '10px' }} />
-        ))}
-        {rowData.tags?.length > 3 && (
-          <Chip label={`+${rowData.tags.length - 3}`} size="small" style={{ fontSize: '10px' }} />
-        )}
-      </Box>
+  useEffect(() => {
+    const q = search.toLowerCase();
+    setFiltered(
+      services.filter(s =>
+        s.nomservice.toLowerCase().includes(q) ||
+        (s.categorie?.nomcategorie ?? '').toLowerCase().includes(q) ||
+        (s.categorie?.groupe?.nomgroupe ?? '').toLowerCase().includes(q) ||
+        s.tags.some(t => t.toLowerCase().includes(q)),
+      ),
     );
+    setPage(0);
+  }, [search, services]);
+
+  // Filtrage catégories par groupe sélectionné
+  const filteredCats = selectedGroupe
+    ? categories.filter(c => c.groupeId === selectedGroupe)
+    : categories;
+
+  // ── Dialogue ──────────────────────────────────────────────────────────────
+  const openAdd = () => {
+    setEditTarget(null);
+    setNomservice(''); setPrixmoyen(''); setSelectedGroupe('');
+    setSelectedCategorie(''); setImageFile(null); setTags([]);
+    setDialogOpen(true);
   };
 
+  const openEdit = (s: ServiceItem) => {
+    setEditTarget(s);
+    setNomservice(s.nomservice);
+    setPrixmoyen(s.prixmoyen !== undefined ? String(s.prixmoyen) : '');
+    const grpId = typeof s.categorie?.groupe === 'object' ? s.categorie.groupe._id : '';
+    setSelectedGroupe(grpId);
+    setSelectedCategorie(s.categorie?._id ?? '');
+    setImageFile(null);
+    setTags(s.tags || []);
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => { setDialogOpen(false); setSaving(false); };
+
+  const handleSave = async () => {
+    if (!nomservice.trim() || !selectedCategorie) return;
+    setSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append('nomservice', nomservice.trim());
+      fd.append('categorie', selectedCategorie);
+      if (prixmoyen !== '') fd.append('prixmoyen', prixmoyen);
+      fd.append('tags', JSON.stringify(tags));
+      if (imageFile) fd.append('imageservice', imageFile);
+
+      if (editTarget) {
+        await apiClient.put(`/service/${editTarget._id}`, fd);
+        notify('Service mis à jour');
+      } else {
+        await apiClient.post(`/service`, fd);
+        notify('Service ajouté');
+      }
+      closeDialog();
+      fetchAll();
+    } catch {
+      notify('Erreur lors de la sauvegarde', 'error');
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (s: ServiceItem) => {
+    if (!window.confirm(`Supprimer "${s.nomservice}" ?`)) return;
+    try {
+      await apiClient.delete(`/service/${s._id}`);
+      notify('Service supprimé');
+      setServices(prev => prev.filter(x => x._id !== s._id));
+    } catch {
+      notify('Erreur lors de la suppression', 'error');
+    }
+  };
+
+  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>Services</Typography>
+    <Box sx={{ p: 3 }}>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleClickOpen}>
-          Ajouter un nouveau service
+      {/* En-tête */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
+        <Stack direction="row" alignItems="center" gap={1.5}>
+          <Box sx={{
+            width: 40, height: 40, borderRadius: 2,
+            backgroundColor: alpha(colors.primary600, 0.1),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <DesignServicesIcon sx={{ color: colors.primary600, fontSize: 22 }} />
+          </Box>
+          <Box>
+            <Typography variant="body2" fontWeight={500} color={colors.textSecondary}>
+              Gérez les services disponibles pour les professionnels.
+            </Typography>
+            <Typography variant="caption" color={colors.textMuted}>
+              {loading ? '…' : `${filtered.length} service${filtered.length > 1 ? 's' : ''}`}
+            </Typography>
+          </Box>
+        </Stack>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} sx={{ borderRadius: 2, px: 2.5 }}>
+          Ajouter un service
         </Button>
-        <TextField
-          label="Rechercher"
-          variant="outlined"
-          size="small"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-            endAdornment: searchTerm && (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setSearchTerm('')} size="small">
-                  <ClearIcon />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
+      </Stack>
 
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ m: 0, p: 2 }}>
-          {isEditing ? "Modifier le service" : "Ajouter un nouveau service"}
-          <IconButton
-            aria-label="close"
-            onClick={handleClose}
-            sx={{ position: 'absolute', right: 8, top: 8, color: 'grey.500' }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
+      {/* Recherche */}
+      <TextField
+        size="small"
+        placeholder="Rechercher par nom, catégorie, tag…"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon sx={{ color: colors.textMuted, fontSize: 18 }} />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 2.5, width: 380 }}
+      />
 
-        <DialogContent dividers>
-          <motion.form
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            onSubmit={handleSubmit}
-          >
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Nom du service"
-              type="text"
-              fullWidth
-              variant="outlined"
-              value={nomservice}
-              onChange={(e) => setNomService(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              margin="dense"
-              label="Prix moyen (optionnel)"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={prixMoyen}
-              onChange={(e) => setPrixMoyen(Number(e.target.value) || '')}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              select
-              label="Groupe"
-              value={selectedGroupe || ''}
-              onChange={(e) => setSelectedGroupe(e.target.value)}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 2 }}
-            >
-              <MenuItem value="" disabled>Sélectionner Groupe</MenuItem>
-              {groupe.map((option) => (
-                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Catégorie"
-              value={selectedCategorie || ''}
-              onChange={(e) => setSelectedCategorie(e.target.value)}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 2 }}
-              disabled={!selectedGroupe} // Désactiver si aucun groupe choisi
-            >
-              <MenuItem value="" disabled>Sélectionner Catégorie</MenuItem>
-              {categorie
-                // Filtrer les catégories qui appartiennent au groupe sélectionné
-                .filter(option => !selectedGroupe || option.groupeId === selectedGroupe)
-                .map((option) => (
-                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                ))}
-            </TextField>
-
-            {/* ✅ Added TagsInput */}
-            <TagsInput
-              tags={currentTags}
-              onChange={setCurrentTags}
-              label="Mots-clés / Tags"
-              placeholder="Tag (ex: fuite, urgence...)"
-            />
-
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="upload-service-image"
-              type="file"
-              onChange={(e) => {
-                handleImageChange(e);
-                if (e.target.files?.[0]) setFile(e.target.files[0]);
-              }}
-            />
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                mt: 2,
-                p: 2,
-                borderRadius: 2,
-                bgcolor: theme => alpha(theme.palette.background.paper, 0.8),
-                boxShadow: theme => `inset 2px 2px 5px ${alpha(theme.palette.mode === 'dark' ? '#000000' : '#a3b1c6', 0.5)},
-                                  inset -2px -2px 5px ${alpha(theme.palette.mode === 'dark' ? '#0c1a2c' : '#FFFFFF', 0.5)}`
-              }}
-            >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <label htmlFor="upload-service-image">
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    component="span"
-                    startIcon={<PhotoCameraIcon />}
-                    sx={{ mb: 2 }}
-                  >
-                    {file ? 'Changer l\'image' : 'Sélectionner une image'}
-                  </Button>
-                </label>
-              </motion.div>
-
-              {file && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                    <Typography variant="body2" color="textSecondary">{file.name}</Typography>
-                    <IconButton size="small" onClick={() => setFile(null)}>
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                </motion.div>
+      {/* Tableau */}
+      <Paper elevation={0} sx={{ border: `1px solid ${colors.border}`, borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ ...TH_SX, width: 48 }}>#</TableCell>
+                <TableCell sx={{ ...TH_SX, width: 60 }}>Image</TableCell>
+                <TableCell sx={TH_SX}>Nom du service</TableCell>
+                <TableCell sx={TH_SX}>Catégorie</TableCell>
+                <TableCell sx={TH_SX}>Groupe</TableCell>
+                <TableCell sx={{ ...TH_SX, width: 110 }}>Prix moyen</TableCell>
+                <TableCell sx={TH_SX}>Tags</TableCell>
+                <TableCell sx={{ ...TH_SX, width: 110 }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(j => (
+                      <TableCell key={j}><Skeleton variant="text" width="75%" /></TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : paginated.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 6, color: colors.textMuted }}>
+                    Aucun service trouvé
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginated.map((s, idx) => (
+                  <TableRow key={s._id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                    <TableCell sx={{ color: colors.textMuted, fontSize: '0.8rem', pl: 2 }}>
+                      {page * rowsPerPage + idx + 1}
+                    </TableCell>
+                    <TableCell>
+                      {s.imageservice ? (
+                        <Avatar src={s.imageservice} variant="rounded" sx={{ width: 34, height: 34 }} />
+                      ) : (
+                        <Box sx={{
+                          width: 34, height: 34, borderRadius: 1,
+                          backgroundColor: colors.bgWarm,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <ImageIcon sx={{ fontSize: 16, color: colors.textMuted }} />
+                        </Box>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={500}>{s.nomservice}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={s.categorie?.nomcategorie ?? '—'}
+                        size="small"
+                        sx={{
+                          backgroundColor: alpha(colors.emerald, 0.08),
+                          color: colors.emerald,
+                          fontWeight: 500,
+                          fontSize: '0.72rem',
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={s.categorie?.groupe?.nomgroupe ?? '—'}
+                        size="small"
+                        sx={{
+                          backgroundColor: alpha(colors.forestGreen, 0.08),
+                          color: colors.forestGreen,
+                          fontWeight: 500,
+                          fontSize: '0.72rem',
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {s.prixmoyen !== undefined ? (
+                        <Typography variant="body2" color={colors.textPrimary} fontWeight={500}>
+                          {s.prixmoyen.toLocaleString('fr-FR')} F
+                        </Typography>
+                      ) : (
+                        <Typography variant="body2" color={colors.textMuted}>—</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" gap={0.5} flexWrap="wrap">
+                        {(s.tags || []).slice(0, 2).map(tag => (
+                          <Chip key={tag} label={tag} size="small"
+                            sx={{ fontSize: '0.68rem', height: 20, backgroundColor: alpha(colors.primary, 0.07), color: colors.primary700 }} />
+                        ))}
+                        {s.tags.length > 2 && (
+                          <Chip label={`+${s.tags.length - 2}`} size="small"
+                            sx={{ fontSize: '0.68rem', height: 20, backgroundColor: colors.bgWarm, color: colors.textMuted }} />
+                        )}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" gap={0.5}>
+                        <Tooltip title="Modifier" arrow>
+                          <IconButton size="small" onClick={() => openEdit(s)} sx={{ color: colors.primary }}>
+                            <EditIcon sx={{ fontSize: 17 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Supprimer" arrow>
+                          <IconButton size="small" onClick={() => handleDelete(s)} sx={{ color: colors.error }}>
+                            <DeleteIcon sx={{ fontSize: 17 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
-            </Box>
-          </motion.form>
-        </DialogContent>
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={filtered.length}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={(_, p) => setPage(p)}
+          onRowsPerPageChange={e => { setRowsPerPage(+e.target.value); setPage(0); }}
+          rowsPerPageOptions={[5, 10, 25]}
+          labelRowsPerPage="Par page :"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+          sx={{ borderTop: `1px solid ${colors.border}` }}
+        />
+      </Paper>
 
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">Annuler</Button>
-          <Button onClick={handleSubmit} color="primary" variant="contained">
-            {isEditing ? "Mettre à jour" : "Enregistrer"}
+      {/* Dialogue */}
+      <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ pb: 1, borderBottom: `1px solid ${colors.border}` }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box>
+              <Typography fontWeight={700} color={colors.textPrimary}>
+                {editTarget ? 'Modifier le service' : 'Nouveau service'}
+              </Typography>
+              <Typography variant="caption" color={colors.textMuted}>
+                {editTarget ? 'Modifiez les informations du service.' : 'Renseignez les informations du nouveau service.'}
+              </Typography>
+            </Box>
+            <IconButton size="small" onClick={closeDialog} aria-label="Fermer">
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0 }}>
+          {/* Section 1 — Informations générales */}
+          <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${colors.border}` }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, display: 'block', mb: 2 }}>
+              Informations générales
+            </Typography>
+            <TextField
+              fullWidth
+              label="Nom du service *"
+              placeholder="Ex. : Plomberie, Électricité, Design graphique"
+              value={nomservice}
+              onChange={e => setNomservice(e.target.value)}
+              size="small"
+              required
+              sx={{ mb: 0 }}
+            />
+          </Box>
+
+          {/* Section 2 — Classification */}
+          <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${colors.border}` }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, display: 'block', mb: 2 }}>
+              Classification
+            </Typography>
+            <Stack gap={2}>
+              <TextField
+                select
+                fullWidth
+                label="Groupe *"
+                value={selectedGroupe}
+                onChange={e => { setSelectedGroupe(e.target.value); setSelectedCategorie(''); }}
+                size="small"
+              >
+                <MenuItem value=""><em>Choisir un groupe</em></MenuItem>
+                {groupes.map(g => (
+                  <MenuItem key={g._id} value={g._id}>{g.nomgroupe}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                fullWidth
+                label="Catégorie *"
+                value={selectedCategorie}
+                onChange={e => setSelectedCategorie(e.target.value)}
+                size="small"
+                required
+                disabled={!selectedGroupe}
+                helperText={!selectedGroupe ? 'Sélectionnez d\'abord un groupe' : ''}
+              >
+                {filteredCats.length === 0 && selectedGroupe ? (
+                  <MenuItem value="" disabled>Aucune catégorie pour ce groupe</MenuItem>
+                ) : filteredCats.map(c => (
+                  <MenuItem key={c._id} value={c._id}>{c.nomcategorie}</MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+          </Box>
+
+          {/* Section 3 — Tarification */}
+          <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${colors.border}` }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, display: 'block', mb: 2 }}>
+              Tarification
+            </Typography>
+            <TextField
+              fullWidth
+              label="Prix moyen indicatif (optionnel)"
+              placeholder="Ex. : 15000"
+              type="number"
+              value={prixmoyen}
+              onChange={e => setPrixmoyen(e.target.value)}
+              size="small"
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><EuroIcon sx={{ fontSize: 16, color: colors.textMuted }} /></InputAdornment>,
+                endAdornment: <InputAdornment position="end"><Typography variant="caption" color={colors.textMuted}>FCFA</Typography></InputAdornment>,
+              }}
+              inputProps={{ min: 0 }}
+              helperText="Indicatif uniquement — ne constitue pas un prix contractuel."
+            />
+          </Box>
+
+          {/* Section 4 — Mots-clés */}
+          <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${colors.border}` }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, display: 'block', mb: 2 }}>
+              Mots-clés
+            </Typography>
+            <TagsInput tags={tags} onChange={setTags} label="Tags (Entrée ou virgule pour ajouter)" />
+          </Box>
+
+          {/* Section 5 — Image */}
+          <Box sx={{ px: 3, py: 2.5, backgroundColor: colors.bgWarm }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, display: 'block', mb: 2 }}>
+              Image
+            </Typography>
+            {imageFile ? (
+              <Stack direction="row" alignItems="center" gap={2}>
+                <Avatar
+                  src={URL.createObjectURL(imageFile)}
+                  variant="rounded"
+                  sx={{ width: 64, height: 64 }}
+                />
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="body2" fontWeight={500}>{imageFile.name}</Typography>
+                  <Typography variant="caption" color={colors.textMuted}>
+                    {(imageFile.size / 1024).toFixed(0)} Ko
+                  </Typography>
+                </Box>
+                <Button size="small" color="inherit" onClick={() => setImageFile(null)}>
+                  Supprimer
+                </Button>
+              </Stack>
+            ) : (
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<ImageIcon />}
+                sx={{ color: colors.textSecondary, borderColor: colors.border, borderStyle: 'dashed', width: '100%', py: 1.5, borderRadius: 2 }}
+              >
+                Choisir une image (optionnel)
+                <input type="file" hidden accept="image/*" onChange={e => setImageFile(e.target.files?.[0] ?? null)} />
+              </Button>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2, borderTop: `1px solid ${colors.border}`, gap: 1 }}>
+          <Button onClick={closeDialog} color="inherit" sx={{ minWidth: 90 }}>Annuler</Button>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={saving || !nomservice.trim() || !selectedCategorie}
+            sx={{ minWidth: 160, height: 40 }}
+          >
+            {saving ? 'Enregistrement…' : editTarget ? 'Enregistrer les modifications' : 'Créer le service'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Box sx={{ mt: 2, mb: 2 }}>
-        <DataTable value={filteredServices || []} paginator rows={10} dataKey="_id" emptyMessage="Aucun service trouvé">
-          <Column field="_id" header="ID" sortable />
-          <Column
-            header="Image"
-            body={(rowData) => (
-              rowData.imageservice ? (
-                <img
-                  src={rowData.imageservice}
-                  alt="service"
-                  style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                />
-              ) : (
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    backgroundColor: '#f1f5f9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12,
-                    color: '#64748b',
-                  }}
-                >
-                  N/A
-                </Box>
-              )
-            )}
-          />
-          <Column field="nomservice" header="Service" sortable />
-          <Column field="prixmoyen" header="Prix Moyen (€)" sortable />
-          <Column header="Catégorie" sortable body={(rowData: Item) => rowData.categorie?.nomcategorie || 'Non défini'} />
-          <Column header="Groupe" sortable body={(rowData: Item) => rowData.categorie?.groupe?.nomgroupe || 'Non défini'} />
-          <Column body={tagsBodyTemplate} header="Tags" style={{ width: '15%' }}></Column> {/* ✅ Added Tags Column */}
-          <Column
-            header="Actions"
-            body={(rowData) => (
-              <>
-                <IconButton color="primary" onClick={() => onEdit(rowData)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton color="error" onClick={() => onDelete(rowData)}>
-                  <DeleteIcon />
-                </IconButton>
-              </>
-            )}
-          />
-        </DataTable>
-      </Box>
-
-      <ToastContainer />
-
-      <Snackbar open={openSnackbarSuccess} autoHideDuration={3000} onClose={() => setOpenSnackbarSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <Alert severity="success" onClose={() => setOpenSnackbarSuccess(false)}>Service ajouté avec succès!</Alert>
+      {/* Snackbar */}
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={3500}
+        onClose={() => setSnack(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snack.severity}
+          variant="filled"
+          onClose={() => setSnack(s => ({ ...s, open: false }))}
+        >
+          {snack.msg}
+        </Alert>
       </Snackbar>
-      <Snackbar open={openSnackbarError} autoHideDuration={3000} onClose={() => setOpenSnackbarError(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <Alert severity="error" onClose={() => setOpenSnackbarError(false)}>Une erreur s'est produite.</Alert>
-      </Snackbar>
-    </div>
+    </Box>
   );
 };
 

@@ -417,42 +417,36 @@ SecuritySchema.methods.removeActiveSession = function(sessionId) {
   this.activeSessions = this.activeSessions.filter(session => session.sessionId !== sessionId);
 };
 
-SecuritySchema.methods.updateSecurityScore = function() {
-  let score = 0;
-  
-  // 2FA activé (+20 points)
-  if (this.twoFactorAuth.enabled) score += 20;
-  
-  // Mot de passe récent (+10 points)
-  const passwordAge = Date.now() - this.passwordSecurity.lastChanged.getTime();
-  if (passwordAge < 90 * 24 * 60 * 60 * 1000) score += 10; // Moins de 90 jours
-  
-  // Vérification d'identité (+15 points)
-  if (this.identityVerification.status === 'VERIFIED') score += 15;
-  
-  // Pas d'échecs récents (+10 points)
-  const recentFailures = this.loginHistory
-    .filter(login => !login.success)
-    .filter(login => login.loginTime > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
-  if (recentFailures.length === 0) score += 10;
-  
-  // Appareils de confiance (+5 points)
-  if (this.trustedDevices.length > 0) score += 5;
-  
-  // Sessions actives limitées (+10 points)
-  if (this.activeSessions.length <= this.securitySettings.maxConcurrentSessions) score += 10;
-  
-  // Alertes lues (+5 points)
-  const unreadAlerts = this.securityAlerts.filter(alert => !alert.read);
-  if (unreadAlerts.length === 0) score += 5;
-  
-  // Paramètres de sécurité stricts (+15 points)
-  if (this.securitySettings.emailNotifications.newLogin) score += 5;
-  if (this.securitySettings.emailNotifications.suspiciousActivity) score += 5;
-  if (this.securitySettings.sessionTimeout <= 30) score += 5;
-  
-  this.securityStats.securityScore = Math.min(score, 100);
+SecuritySchema.methods.updateSecurityScore = function updateSecurityScorePersist() {
+  this.securityStats.securityScore = this.constructor.computeSecurityScoreReadOnly(this);
   return this.securityStats.securityScore;
+};
+
+/** Score calculé à la lecture — ne modifie pas le document. */
+SecuritySchema.statics.computeSecurityScoreReadOnly = function computeSecurityScoreReadOnly(securityLike) {
+  const doc = securityLike || {};
+  let score = 0;
+  if (doc.twoFactorAuth?.enabled) score += 20;
+  const lastChanged = doc.passwordSecurity?.lastChanged
+    ? new Date(doc.passwordSecurity.lastChanged).getTime()
+    : Date.now();
+  const passwordAge = Date.now() - lastChanged;
+  if (passwordAge < 90 * 24 * 60 * 60 * 1000) score += 10;
+  if (doc.identityVerification?.status === 'VERIFIED') score += 15;
+  const recentFailures = (doc.loginHistory || [])
+    .filter((login) => !login.success)
+    .filter((login) => new Date(login.loginTime) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+  if (recentFailures.length === 0) score += 10;
+  if ((doc.trustedDevices || []).length > 0) score += 5;
+  const maxSessions = doc.securitySettings?.maxConcurrentSessions ?? 5;
+  if ((doc.activeSessions || []).length <= maxSessions) score += 10;
+  const unreadAlerts = (doc.securityAlerts || []).filter((alert) => !alert.read);
+  if (unreadAlerts.length === 0) score += 5;
+  const emailNotifications = doc.securitySettings?.emailNotifications || {};
+  if (emailNotifications.newLogin) score += 5;
+  if (emailNotifications.suspiciousActivity) score += 5;
+  if ((doc.securitySettings?.sessionTimeout ?? 30) <= 30) score += 5;
+  return Math.min(score, 100);
 };
 
 // 🔄 MÉTHODES STATIQUES

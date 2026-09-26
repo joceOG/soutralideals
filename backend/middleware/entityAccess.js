@@ -76,6 +76,26 @@ export function requireSelfOrAdmin(bodyField = 'utilisateur') {
   };
 }
 
+export function requirePrestataireOwnerOnly() {
+  return async (req, res, next) => {
+    try {
+      const { doc, ownerId } = await loadOwnerId(prestataireModel, req.params.id);
+      if (!doc) return res.status(404).json({ error: 'Prestataire non trouvé' });
+      if (!isSelf(req, ownerId)) {
+        return res.status(403).json({
+          success: false,
+          code: 'USER_ACCESS_FORBIDDEN',
+          message: 'Accès non autorisé.',
+        });
+      }
+      req.prestataireOwnerDoc = doc;
+      next();
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  };
+}
+
 export function requirePrestataireOwnerOrAdmin() {
   return async (req, res, next) => {
     try {

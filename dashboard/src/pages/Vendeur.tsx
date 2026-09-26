@@ -1,919 +1,323 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, InputAdornment, IconButton, MenuItem, Chip, Avatar, FormControlLabel, Checkbox} from '@mui/material';
-import Autocomplete from '@mui/material/Autocomplete';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Paper,
+  Avatar,
+  Chip,
+  Skeleton,
+  Snackbar,
+  Alert,
+  Tooltip,
+  Stack,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-
-import StarIcon from '@mui/icons-material/Star';
+import AddIcon from '@mui/icons-material/Add';
 import StorefrontIcon from '@mui/icons-material/Storefront';
-
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import { Link as RouterLink } from 'react-router-dom';
+import { apiClient } from '../services/setupApi';
+import { colors } from '../tokens/colors';
+import { VendeurFormDialog, VendeurPostCreateHint } from '../components/vendeur/VendeurFormDialog';
+import { stripVendeurListRow } from '../services/vendeurService';
 
-import axios from 'axios';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
-import { Column, ColumnBodyOptions } from 'primereact/column';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-// ✅ INTERFACES TYPESCRIPT MODERNISÉES (sdealsapp standard)
 export interface IUtilisateur {
   _id: string;
   nom: string;
   prenom: string;
-  email?: string;
   telephone?: string;
-  photoProfil?: string;
 }
 
-export interface IVendeurData {
+export interface IVendeurRow {
   _id?: string;
-  utilisateur: IUtilisateur;
-  
-  // 🏪 Informations boutique (sdealsapp)
+  utilisateur?: IUtilisateur;
   shopName: string;
-  shopDescription: string;
+  shopDescription?: string;
   shopLogo?: string;
   businessType: string;
   businessCategories: string[];
-  
-  // ⭐ Système de notation
-  rating: number;
-  completedOrders: number;
-  isTopRated: boolean;
-  isFeatured: boolean;
-  isNew: boolean;
-  responseTime: number;
-  
-  // 💰 Statistiques business
-  totalEarnings: number;
-  totalSales: number;
-  currentOrders: number;
-  customerSatisfaction: number;
-  returnRate: number;
-  
-  // 🚚 Livraison & logistique
-  deliveryZones: string[];
-  shippingMethods: string[];
-  deliveryTimes: {
-    standard: string;
-    express: string;
+  businessAddress?: { city?: string; country?: string };
+  accountStatus?: string;
+  status?: string;
+  articleCount?: number;
+  verificationDocuments?: {
+    isVerified?: boolean;
+    cni1?: boolean | string;
+    businessLicense?: boolean | string;
   };
-  
-  // 💳 Paiements & commission
-  paymentMethods: string[];
-  commissionRate: number;
-  payoutFrequency: string;
-  
-  // 📦 Produits & inventaire
-  productCategories: string[];
-  totalProducts: number;
-  activeProducts: number;
-  averageProductPrice: number;
-  
-  // 🏢 Informations légales
-  businessRegistrationNumber?: string;
-  businessAddress: {
-    street?: string;
-    city: string;
-    postalCode?: string;
-    country: string;
-  };
-  businessPhone?: string;
-  businessEmail?: string;
-  
-  // 📊 Politiques
-  returnPolicy: string;
-  warrantyInfo?: string;
-  minimumOrderAmount: number;
-  maxOrdersPerDay: number;
-  
-  // 🔐 Vérification
-  verificationLevel: string;
-  verificationDocuments: {
-    cni1?: string;
-    cni2?: string;
-    selfie?: string;
-    businessLicense?: string;
-    taxDocument?: string;
-    isVerified: boolean;
-  };
-  identityVerified: boolean;
-  businessVerified: boolean;
-  
-  // 📈 Activité & performance
-  lastActive: string;
-  joinedDate: string;
-  profileViews: number;
-  conversionRate: number;
-  
-  // ⚙️ Statut compte
-  accountStatus: string;
-  subscriptionType: string;
-  premiumFeatures: string[];
-  
-  // 🌐 Réseaux sociaux & marketing
-  socialMedia: {
-    facebook?: string;
-    instagram?: string;
-    whatsapp?: string;
-    website?: string;
-  };
-  
-  preferredContactMethod: string;
-  tags: string[];
-  notes?: string;
-  
-  // ✅ Timestamps
-  createdAt?: string;
-  updatedAt?: string;
+}
+
+function normalizeVendeursPayload(data: unknown): IVendeurRow[] {
+  let rows: IVendeurRow[] = [];
+  if (Array.isArray(data)) rows = data as IVendeurRow[];
+  else if (data && typeof data === 'object' && Array.isArray((data as { vendeurs?: unknown }).vendeurs)) {
+    rows = (data as { vendeurs: IVendeurRow[] }).vendeurs;
+  }
+  return rows.map((r) => stripVendeurListRow(r) as IVendeurRow);
 }
 
 const VendeurComponent: React.FC = () => {
-  const [vendeurs, setVendeurs] = useState<IVendeurData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [filters, setFilters] = useState<DataTableFilterMeta>({ global: { value: null, matchMode: 'contains' } });
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const [selectedVendeur, setSelectedVendeur] = useState<IVendeurData | null>(null);
-
-  // ✅ ÉTAT FORMULAIRE MODERNE (sdealsapp)
-  const [formData, setFormData] = useState<IVendeurData>({
-    utilisateur: {} as IUtilisateur,
-    
-    // 🏪 Informations boutique
-    shopName: '',
-    shopDescription: '',
-    shopLogo: '',
-    businessType: 'Particulier',
-    businessCategories: [],
-    
-    // ⭐ Système de notation (initialisé)
-    rating: 0,
-    completedOrders: 0,
-    isTopRated: false,
-    isFeatured: false,
-    isNew: true,
-    responseTime: 24,
-    
-    // 💰 Statistiques business (initialisées)
-    totalEarnings: 0,
-    totalSales: 0,
-    currentOrders: 0,
-    customerSatisfaction: 0,
-    returnRate: 0,
-    
-    // 🚚 Livraison & logistique
-    deliveryZones: [],
-    shippingMethods: ['Standard'],
-    deliveryTimes: {
-      standard: '3-5 jours',
-      express: '1-2 jours'
-    },
-    
-    // 💳 Paiements
-    paymentMethods: ['Mobile Money'],
-    commissionRate: 5,
-    payoutFrequency: 'Mensuelle',
-    
-    // 📦 Produits
-    productCategories: [],
-    totalProducts: 0,
-    activeProducts: 0,
-    averageProductPrice: 0,
-    
-    // 🏢 Informations légales
-    businessRegistrationNumber: '',
-    businessAddress: {
-      street: '',
-      city: '',
-      postalCode: '',
-      country: 'Côte d\'Ivoire'
-    },
-    businessPhone: '',
-    businessEmail: '',
-    
-    // 📊 Politiques
-    returnPolicy: 'Retour accepté sous 14 jours',
-    warrantyInfo: '',
-    minimumOrderAmount: 0,
-    maxOrdersPerDay: 50,
-    
-    // 🔐 Vérification
-    verificationLevel: 'Basic',
-    verificationDocuments: {
-      cni1: '',
-      cni2: '',
-      selfie: '',
-      businessLicense: '',
-      taxDocument: '',
-      isVerified: false
-    },
-    identityVerified: false,
-    businessVerified: false,
-    
-    // 📈 Activité
-    lastActive: new Date().toISOString(),
-    joinedDate: new Date().toISOString(),
-    profileViews: 0,
-    conversionRate: 0,
-    
-    // ⚙️ Statut compte
-    accountStatus: 'Pending',
-    subscriptionType: 'Free',
-    premiumFeatures: [],
-    
-    // 🌐 Réseaux sociaux
-    socialMedia: {
-      facebook: '',
-      instagram: '',
-      whatsapp: '',
-      website: ''
-    },
-    
-    preferredContactMethod: 'Email',
-    tags: [],
-    notes: ''
+  const [vendeurs, setVendeurs] = useState<IVendeurRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tablePage, setTablePage] = useState(0);
+  const [tableRowsPerPage, setTableRowsPerPage] = useState(10);
+  const [tableSearch, setTableSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [lastCreatedId, setLastCreatedId] = useState<string | null>(null);
+  const [snack, setSnack] = useState<{ open: boolean; msg: string; severity: 'success' | 'error' }>({
+    open: false,
+    msg: '',
+    severity: 'success',
   });
+  const notify = (msg: string, severity: 'success' | 'error' = 'success') =>
+    setSnack({ open: true, msg, severity });
 
-  // ✅ GESTION FICHIERS MODERNE
-  const [shopLogoFile, setShopLogoFile] = useState<File | null>(null);
-  const [cniFile, setCniFile] = useState<File | null>(null);
-  const [cni2File, setCni2File] = useState<File | null>(null);
-  const [selfieFile, setSelfieFile] = useState<File | null>(null);
-  const [businessLicenseFile, setBusinessLicenseFile] = useState<File | null>(null);
-  const [taxDocumentFile, setTaxDocumentFile] = useState<File | null>(null);
-
-  const [utilisateurs, setUtilisateurs] = useState<IUtilisateur[]>([]);
-  const [showUserDialog, setShowUserDialog] = useState(false);
-  const [loadingUtilisateurs, setLoadingUtilisateurs] = useState(false);
-  const [userSearch, setUserSearch] = useState('');
-  const [zoomImage, setZoomImage] = useState<string | null>(null);
-  
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
-  // ✅ CONSTANTES SDEALSAPP
-  const businessTypes = ['Particulier', 'Entreprise', 'Auto-entrepreneur'];
-  const businessCategories = [
-    'Mode', 'Électronique', 'Beauté', 'Maison', 'Informatique', 
-    'Sports & Loisirs', 'Santé', 'Alimentation', 'Artisanat', 
-    'Livres', 'Jouets', 'Animaux', 'Automobile'
-  ];
-
-  // useCallback pour stabiliser la fonction et éviter warning react-hooks/exhaustive-deps
   const fetchVendeurs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${apiUrl}/vendeur`);
-      
-      // ✅ VÉRIFICATION ET SÉCURISATION DES DONNÉES
-      if (response.data && Array.isArray(response.data)) {
-        setVendeurs(response.data);
-      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-        // Si l'API retourne { data: [...] }
-        setVendeurs(response.data.data);
-      } else {
-        // Fallback : tableau vide si les données ne sont pas valides
-        console.warn('Données API invalides, utilisation d\'un tableau vide');
-        setVendeurs([]);
-      }
-    } catch (error) {
-      console.error('Erreur API vendeurs:', error);
-      toast.error("Erreur lors du chargement des vendeurs");
-      setVendeurs([]); // ✅ Assurer qu'on a toujours un tableau
+      const response = await apiClient.get('/vendeur', { params: { page: 1, limit: 200 } });
+      setVendeurs(normalizeVendeursPayload(response.data));
+    } catch {
+      setVendeurs([]);
+      notify('Erreur lors du chargement des vendeurs', 'error');
     } finally {
       setLoading(false);
     }
-  }, [apiUrl]);
+  }, []);
 
   useEffect(() => {
-    // ✅ Éviter les appels API multiples
-    if (apiUrl) {
-      fetchVendeurs();
-    }
-  }, [apiUrl, fetchVendeurs]);
+    fetchVendeurs();
+  }, [fetchVendeurs]);
 
-  const loadUtilisateurs = async () => {
+  const onDelete = async (row: IVendeurRow) => {
+    if (!window.confirm('Supprimer ce vendeur ?')) return;
     try {
-      setLoadingUtilisateurs(true);
-      const res = await axios.get(`${apiUrl}/utilisateur`);
-      
-      // ✅ VÉRIFICATION ET SÉCURISATION DES DONNÉES
-      if (res.data && Array.isArray(res.data)) {
-        setUtilisateurs(res.data);
-      } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
-        setUtilisateurs(res.data.data);
-      } else {
-        console.warn('Données utilisateurs invalides, utilisation d\'un tableau vide');
-        setUtilisateurs([]);
-      }
-    } catch (error) {
-      console.error('Erreur API utilisateurs:', error);
-      toast.error("Erreur lors du chargement des utilisateurs");
-      setUtilisateurs([]); // ✅ Assurer qu'on a toujours un tableau
-    } finally {
-      setLoadingUtilisateurs(false);
+      await apiClient.delete(`/vendeur/${row._id}`);
+      setVendeurs((prev) => prev.filter((v) => v._id !== row._id));
+      notify('Vendeur supprimé.');
+    } catch {
+      notify('Erreur lors de la suppression.', 'error');
     }
   };
 
-  const handleOpenUserDialog = () => {
-    loadUtilisateurs();
-    setUserSearch('');
-    setShowUserDialog(true);
+  const TH = {
+    color: colors.textSecondary,
+    fontWeight: 600,
+    fontSize: '0.72rem',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.06em',
+    backgroundColor: colors.bgWarm,
+    borderBottom: `1px solid ${colors.border}`,
+    py: 1.5,
+    px: 2,
   };
 
-  const filteredUtilisateurs = React.useMemo(() => {
-    if (!utilisateurs || !Array.isArray(utilisateurs)) return [];
-    return utilisateurs.filter(u => {
-      const search = userSearch.toLowerCase();
-      return (
-        u.nom.toLowerCase().includes(search) ||
-        u.prenom.toLowerCase().includes(search) ||
-        (u.email?.toLowerCase().includes(search) ?? false)
-      );
-    });
-  }, [utilisateurs, userSearch]);
-
-  const onDelete = async (rowData: IVendeurData) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce vendeur ?')) {
-      try {
-        await axios.delete(`${apiUrl}/vendeur/${rowData._id}`);
-        setVendeurs(vendeurs.filter(item => item._id !== rowData._id));
-        toast.success('Vendeur supprimé avec succès !');
-      } catch {
-        toast.error('Erreur lors de la suppression du vendeur.');
-      }
-    }
-  };
-
-  const onEdit = (rowData: IVendeurData) => {
-    setSelectedVendeur(rowData);
-    setFormData(rowData);
-    // ✅ RÉINITIALISER TOUS LES FICHIERS
-    setShopLogoFile(null);
-    setCniFile(null);
-    setCni2File(null);
-    setSelfieFile(null);
-    setBusinessLicenseFile(null);
-    setTaxDocumentFile(null);
-    setModalOpen(true);
-  };
-
-  const onAdd = () => {
-    setSelectedVendeur(null);
-    setFormData({
-      utilisateur: {} as IUtilisateur,
-      
-      // 🏪 Informations boutique
-      shopName: '',
-      shopDescription: '',
-      shopLogo: '',
-      businessType: 'Particulier',
-      businessCategories: [],
-      
-      // ⭐ Système de notation (initialisé)
-      rating: 0,
-      completedOrders: 0,
-      isTopRated: false,
-      isFeatured: false,
-      isNew: true,
-      responseTime: 24,
-      
-      // 💰 Statistiques business (initialisées)
-      totalEarnings: 0,
-      totalSales: 0,
-      currentOrders: 0,
-      customerSatisfaction: 0,
-      returnRate: 0,
-      
-      // 🚚 Livraison & logistique
-      deliveryZones: [],
-      shippingMethods: ['Standard'],
-      deliveryTimes: {
-        standard: '3-5 jours',
-        express: '1-2 jours'
-      },
-      
-      // 💳 Paiements
-      paymentMethods: ['Mobile Money'],
-      commissionRate: 5,
-      payoutFrequency: 'Mensuelle',
-      
-      // 📦 Produits
-      productCategories: [],
-      totalProducts: 0,
-      activeProducts: 0,
-      averageProductPrice: 0,
-      
-      // 🏢 Informations légales
-      businessRegistrationNumber: '',
-      businessAddress: {
-        street: '',
-        city: '',
-        postalCode: '',
-        country: 'Côte d\'Ivoire'
-      },
-      businessPhone: '',
-      businessEmail: '',
-      
-      // 📊 Politiques
-      returnPolicy: 'Retour accepté sous 14 jours',
-      warrantyInfo: '',
-      minimumOrderAmount: 0,
-      maxOrdersPerDay: 50,
-      
-      // 🔐 Vérification
-      verificationLevel: 'Basic',
-      verificationDocuments: {
-        cni1: '',
-        cni2: '',
-        selfie: '',
-        businessLicense: '',
-        taxDocument: '',
-        isVerified: false
-      },
-      identityVerified: false,
-      businessVerified: false,
-      
-      // 📈 Activité
-      lastActive: new Date().toISOString(),
-      joinedDate: new Date().toISOString(),
-      profileViews: 0,
-      conversionRate: 0,
-      
-      // ⚙️ Statut compte
-      accountStatus: 'Pending',
-      subscriptionType: 'Free',
-      premiumFeatures: [],
-      
-      // 🌐 Réseaux sociaux
-      socialMedia: {
-        facebook: '',
-        instagram: '',
-        whatsapp: '',
-        website: ''
-      },
-      
-      preferredContactMethod: 'Email',
-      tags: [],
-      notes: ''
-    });
-    // ✅ RÉINITIALISER TOUS LES FICHIERS
-    setShopLogoFile(null);
-    setCniFile(null);
-    setCni2File(null);
-    setSelfieFile(null);
-    setBusinessLicenseFile(null);
-    setTaxDocumentFile(null);
-    setModalOpen(true);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cni' | 'cni2' | 'selfie' | 'shopLogo' | 'businessLicense' | 'taxDocument') => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      switch (type) {
-        case 'cni': setCniFile(file); break;
-        case 'cni2': setCni2File(file); break;
-        case 'selfie': setSelfieFile(file); break;
-        case 'shopLogo': setShopLogoFile(file); break;
-        case 'businessLicense': setBusinessLicenseFile(file); break;
-        case 'taxDocument': setTaxDocumentFile(file); break;
-      }
-    }
-  };
-
-  const handleSave = async () => {
-    // ✅ VALIDATION MODERNE
-    if (!formData.utilisateur || !formData.utilisateur._id) {
-      toast.error("Veuillez sélectionner un utilisateur avant de sauvegarder.");
-      return;
-    }
-    if (!formData.shopName.trim()) {
-      toast.error("Le nom de la boutique est requis.");
-      return;
-    }
-    if (!formData.shopDescription.trim()) {
-      toast.error("La description de la boutique est requise.");
-      return;
-    }
-    if (!formData.businessType) {
-      toast.error("Le type de business est requis.");
-      return;
-    }
-    if (formData.businessCategories.length === 0) {
-      toast.error("Au moins une catégorie de produit est requise.");
-      return;
-    }
-
-    try {
-      const isUpdate = Boolean(selectedVendeur?._id);
-      const url = isUpdate ? `${apiUrl}/vendeur/${selectedVendeur?._id}` : `${apiUrl}/vendeur`;
-      const method = isUpdate ? 'put' : 'post';
-
-      const form = new FormData();
-      
-      // ✅ CHAMPS OBLIGATOIRES
-      form.append('utilisateur', formData.utilisateur._id);
-      form.append('shopName', formData.shopName);
-      form.append('shopDescription', formData.shopDescription);
-      form.append('businessType', formData.businessType);
-      
-      // ✅ CHAMPS ARRAYS (JSON stringify)
-      form.append('businessCategories', JSON.stringify(formData.businessCategories));
-      form.append('deliveryZones', JSON.stringify(formData.deliveryZones));
-      form.append('shippingMethods', JSON.stringify(formData.shippingMethods));
-      form.append('paymentMethods', JSON.stringify(formData.paymentMethods));
-      form.append('productCategories', JSON.stringify(formData.productCategories));
-      form.append('tags', JSON.stringify(formData.tags));
-      
-      // ✅ CHAMPS OBJETS (JSON stringify)
-      form.append('businessAddress', JSON.stringify(formData.businessAddress));
-      form.append('socialMedia', JSON.stringify(formData.socialMedia));
-      
-      // ✅ CHAMPS SIMPLES
-      form.append('businessPhone', formData.businessPhone || '');
-      form.append('businessEmail', formData.businessEmail || '');
-      form.append('businessRegistrationNumber', formData.businessRegistrationNumber || '');
-      form.append('returnPolicy', formData.returnPolicy);
-      form.append('warrantyInfo', formData.warrantyInfo || '');
-      form.append('minimumOrderAmount', formData.minimumOrderAmount.toString());
-      form.append('maxOrdersPerDay', formData.maxOrdersPerDay.toString());
-      form.append('commissionRate', formData.commissionRate.toString());
-      form.append('payoutFrequency', formData.payoutFrequency);
-      form.append('preferredContactMethod', formData.preferredContactMethod);
-      form.append('notes', formData.notes || '');
-      
-      // ✅ UPLOAD FICHIERS MODERNISÉ
-      if (shopLogoFile) form.append('shopLogo', shopLogoFile);
-      if (cniFile) form.append('cni1', cniFile);
-      if (cni2File) form.append('cni2', cni2File);
-      if (selfieFile) form.append('selfie', selfieFile);
-      if (businessLicenseFile) form.append('businessLicense', businessLicenseFile);
-      if (taxDocumentFile) form.append('taxDocument', taxDocumentFile);
-
-      const response = await axios({ method, url, data: form, headers: { 'Content-Type': 'multipart/form-data' } });
-      console.log('Réponse après ajout/modif:', response.data);
-
-      await fetchVendeurs();
-      toast.success(isUpdate ? 'Vendeur mis à jour avec succès !' : 'Nouveau vendeur ajouté avec succès !');
-      setModalOpen(false);
-    } catch (error: any) {
-      console.error(error.response?.data || error);
-      toast.error('Erreur lors de la sauvegarde du vendeur.');
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-  };
-
-  const rowIndexTemplate = (rowData: IVendeurData, options: ColumnBodyOptions) => options.rowIndex + 1;
-
-  const utilisateurNameTemplate = (rowData: IVendeurData) => `${rowData.utilisateur?.nom || ''} ${rowData.utilisateur?.prenom || ''}`;
-
-  const actionTemplate = (rowData: IVendeurData) => (
-    <>
-      <IconButton color="error" onClick={() => onDelete(rowData)}><DeleteIcon /></IconButton>
-      <IconButton color="primary" onClick={() => onEdit(rowData)}><EditIcon /></IconButton>
-    </>
-  );
+  const filtered = vendeurs.filter((v) => {
+    const q = tableSearch.toLowerCase();
+    return (
+      !q ||
+      v.shopName?.toLowerCase().includes(q) ||
+      v.businessType?.toLowerCase().includes(q) ||
+      v.businessAddress?.city?.toLowerCase().includes(q) ||
+      v.utilisateur?.nom?.toLowerCase().includes(q)
+    );
+  });
+  const paged = filtered.slice(tablePage * tableRowsPerPage, (tablePage + 1) * tableRowsPerPage);
 
   return (
-    <div>
-      <ToastContainer />
-      <Typography variant="h4" gutterBottom>Vendeurs</Typography>
-      <Box sx={{ mt: 2, mb: 2 }}>
-        <DataTable
-          value={Array.isArray(vendeurs) ? vendeurs : []}
-          paginator
-          showGridlines
-          rows={10}
-          loading={loading}
-          dataKey="_id"
-          filters={filters}
-          globalFilterFields={['shopName', 'shopDescription', 'businessType', 'notes']}
-          header={<div style={{ display: 'flex', justifyContent: 'space-between' }}><h5>Gestion des Vendeurs</h5><Button variant="contained" onClick={onAdd}>Ajouter</Button></div>}
-          emptyMessage="Aucun vendeur trouvé"
-          onFilter={(e) => setFilters(e.filters)}
-        >
-          <Column header="#" body={rowIndexTemplate} />
-          
-          <Column header="Boutique" body={(rowData) => (
-            <Box display="flex" alignItems="center" gap={1}>
-              {rowData.shopLogo && (
-                <Avatar src={rowData.shopLogo} sx={{ width: 40, height: 40 }}>
-                  <StorefrontIcon />
-                </Avatar>
-              )}
-              <Box>
-                <Typography variant="body2" fontWeight="bold">
-                  {rowData.shopName || 'Boutique sans nom'}
-                </Typography>
-                <Typography variant="caption" color="textSecondary">
-                  {rowData.businessType}
-                </Typography>
-              </Box>
-            </Box>
-          )} sortable />
-          
-          <Column header="Propriétaire" body={utilisateurNameTemplate} sortable />
-          
-          <Column header="Catégories" body={(rowData) => (
-            <Box display="flex" gap={0.5} flexWrap="wrap">
-              {rowData.businessCategories?.slice(0, 2).map((cat: string, idx: number) => (
-                <Chip key={idx} label={cat} size="small" variant="outlined" />
-              ))}
-              {rowData.businessCategories?.length > 2 && (
-                <Chip label={`+${rowData.businessCategories.length - 2}`} size="small" />
-              )}
-            </Box>
-          )} />
-          
-          <Column header="Localisation" body={(rowData) => (
-            <Typography variant="body2">
-              {rowData.businessAddress?.city || rowData.deliveryZones?.[0] || 'Non défini'}
-            </Typography>
-          )} sortable />
-          
-          <Column header="Rating" body={(rowData) => (
-            <Box display="flex" alignItems="center" gap={0.5}>
-              <StarIcon color={rowData.rating >= 4 ? 'warning' : 'disabled'} fontSize="small" />
-              <Typography variant="body2">
-                {rowData.rating?.toFixed(1) || '0.0'}
-              </Typography>
-              {rowData.isTopRated && <Chip label="👑" size="small" />}
-              {rowData.isFeatured && <Chip label="⭐" size="small" />}
-            </Box>
-          )} sortable />
-          
-          <Column header="Commandes" body={(rowData) => (
-            <Typography variant="body2" fontWeight="bold">
-              {rowData.completedOrders || 0}
-            </Typography>
-          )} sortable />
-          
-          <Column header="Statut" body={(rowData) => (
-            <Chip 
-              label={rowData.accountStatus} 
-              color={
-                rowData.accountStatus === 'Active' ? 'success' :
-                rowData.accountStatus === 'Pending' ? 'warning' :
-                rowData.accountStatus === 'Suspended' ? 'error' : 'default'
-              }
-              size="small" 
-            />
-          )} sortable />
-          
-          <Column header="Vérification" body={(rowData) => (
-            <Box display="flex" gap={0.5}>
-              {rowData.verificationDocuments?.cni1 && <Chip label="🆔" size="small" />}
-              {rowData.verificationDocuments?.businessLicense && <Chip label="📄" size="small" />}
-              {rowData.verificationDocuments?.isVerified && <VerifiedIcon color="success" fontSize="small" />}
-            </Box>
-          )} />
-          
-          <Column header="Actions" body={actionTemplate} />
-        </DataTable>
-      </Box>
-
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedVendeur ? 'Modifier le Vendeur' : 'Ajouter un Nouveau Vendeur'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Utilisateur"
-            value={formData.utilisateur?._id || ''}
-            InputProps={{
-              readOnly: true,
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={handleOpenUserDialog}><SearchIcon /></IconButton>
-                </InputAdornment>
-              )
+    <Box sx={{ p: 3 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+        <Stack direction="row" alignItems="center" gap={1.5}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              bgcolor: alpha(colors.primary, 0.1),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-          />
-
-          {/* ✅ INFORMATIONS BOUTIQUE MODERNES */}
-          <TextField 
-            margin="normal" 
-            fullWidth 
-            label="Nom de la boutique" 
-            name="shopName" 
-            value={formData.shopName} 
-            onChange={handleChange} 
-            required 
-          />
-          <TextField 
-            margin="normal" 
-            fullWidth 
-            multiline 
-            rows={3}
-            label="Description de la boutique" 
-            name="shopDescription" 
-            value={formData.shopDescription} 
-            onChange={handleChange} 
-            required 
-          />
-          
-          <TextField
-            select
-            margin="normal"
-            fullWidth
-            label="Type de business"
-            name="businessType"
-            value={formData.businessType}
-            onChange={handleChange}
-            required
           >
-            {businessTypes.map(type => (
-              <MenuItem key={type} value={type}>{type}</MenuItem>
-            ))}
-          </TextField>
-
-          <Autocomplete
-            multiple
-            options={businessCategories}
-            value={formData.businessCategories}
-            onChange={(_, newValue) => setFormData(prev => ({ ...prev, businessCategories: newValue }))}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-              ))
-            }
-            renderInput={(params) => (
-              <TextField {...params} label="Catégories de produits" placeholder="Sélectionner catégories" margin="normal" fullWidth />
-            )}
-          />
-
-          <TextField 
-            margin="normal" 
-            fullWidth 
-            label="Ville principale" 
-            name="city" 
-            value={formData.businessAddress.city} 
-            onChange={(e) => setFormData(prev => ({ 
-              ...prev, 
-              businessAddress: { ...prev.businessAddress, city: e.target.value }
-            }))} 
-          />
-          <TextField 
-            margin="normal" 
-            fullWidth 
-            label="Notes administratives" 
-            name="notes" 
-            value={formData.notes || ''} 
-            onChange={handleChange} 
-          />
-
-          <Box sx={{ mt: 1, mb: 1 }}>
-            <Typography>CNI 1</Typography>
-            <input type="file" onChange={(e) => handleFileChange(e, 'cni')} accept="image/*" />
+            <StorefrontIcon sx={{ color: colors.primary }} />
           </Box>
-          <Box sx={{ mt: 1, mb: 1 }}>
-            <Typography>CNI 2</Typography>
-            <input type="file" onChange={(e) => handleFileChange(e, 'cni2')} accept="image/*" />
+          <Box>
+            <Typography variant="body2" color={colors.textSecondary}>
+              Profils vendeurs et vitrines E‑marché (produits dans Articles, ventes dans Commandes).
+            </Typography>
+            <Typography variant="caption" color={colors.textMuted}>
+              {loading ? '…' : `${filtered.length} vendeur${filtered.length > 1 ? 's' : ''}`}
+            </Typography>
           </Box>
-          <Box sx={{ mt: 1, mb: 1 }}>
-            <Typography>Selfie</Typography>
-            <input type="file" onChange={(e) => handleFileChange(e, 'selfie')} accept="image/*" />
-          </Box>
+        </Stack>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setEditId(null); setFormOpen(true); }}>
+          Créer un vendeur
+        </Button>
+      </Stack>
 
-          {/* ✅ UPLOAD LOGO BOUTIQUE */}
-          <Box sx={{ mt: 2, mb: 1, p: 2, border: '1px dashed #ddd', borderRadius: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>🏪 Logo Boutique</Typography>
-            <input type="file" onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setShopLogoFile(e.target.files[0]);
-              }
-            }} accept="image/*" />
-            {formData.shopLogo && (
-              <Box sx={{ mt: 1 }}>
-                <img src={formData.shopLogo} alt="Logo" width={60} height={60} style={{borderRadius: '8px', objectFit: 'cover'}} />
-              </Box>
-            )}
-          </Box>
+      {lastCreatedId ? <VendeurPostCreateHint vendeurId={lastCreatedId} /> : null}
 
-          {/* ✅ DOCUMENTS LÉGAUX */}
-          <Box sx={{ mt: 1, mb: 1 }}>
-            <Typography>📄 Licence Commerciale</Typography>
-            <input type="file" onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setBusinessLicenseFile(e.target.files[0]);
-              }
-            }} accept="image/*,application/pdf" />
-            {formData.verificationDocuments?.businessLicense && (
-              <img src={formData.verificationDocuments.businessLicense} alt="Licence" width={40} height={40} style={{marginLeft: 8, objectFit: 'cover', borderRadius: 4}} />
-            )}
-          </Box>
+      <TextField
+        size="small"
+        placeholder="Rechercher boutique, type, ville…"
+        value={tableSearch}
+        onChange={(e) => { setTableSearch(e.target.value); setTablePage(0); }}
+        sx={{ mb: 2, width: 360 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon sx={{ color: colors.textMuted, fontSize: 18 }} />
+            </InputAdornment>
+          ),
+        }}
+      />
 
-          <Box sx={{ mt: 1, mb: 1 }}>
-            <Typography>🧾 Document Fiscal</Typography>
-            <input type="file" onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setTaxDocumentFile(e.target.files[0]);
-              }
-            }} accept="image/*,application/pdf" />
-            {formData.verificationDocuments?.taxDocument && (
-              <img src={formData.verificationDocuments.taxDocument} alt="Fiscal" width={40} height={40} style={{marginLeft: 8, objectFit: 'cover', borderRadius: 4}} />
-            )}
-          </Box>
+      <Paper elevation={0} sx={{ border: `1px solid ${colors.border}`, borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={TH}>Boutique</TableCell>
+                <TableCell sx={TH}>Propriétaire</TableCell>
+                <TableCell sx={TH}>Type</TableCell>
+                <TableCell sx={TH}>Localisation</TableCell>
+                <TableCell sx={TH}>Articles</TableCell>
+                <TableCell sx={TH}>Statut</TableCell>
+                <TableCell sx={TH}>Vérification</TableCell>
+                <TableCell sx={{ ...TH, width: 100 }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 8 }).map((__, j) => (
+                      <TableCell key={j}><Skeleton variant="text" /></TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : paged.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 6, color: colors.textMuted }}>
+                    Aucun vendeur
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paged.map((v) => {
+                  const verified = Boolean(v.verificationDocuments?.isVerified);
+                  const owner = v.utilisateur
+                    ? `${v.utilisateur.prenom ?? ''} ${v.utilisateur.nom ?? ''}`.trim()
+                    : '—';
+                  return (
+                    <TableRow key={v._id} hover>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" gap={1}>
+                          {v.shopLogo ? (
+                            <Avatar src={v.shopLogo} variant="rounded" sx={{ width: 32, height: 32 }} />
+                          ) : (
+                            <Avatar variant="rounded" sx={{ width: 32, height: 32, fontSize: 12 }}>
+                              {(v.shopName?.[0] ?? 'B').toUpperCase()}
+                            </Avatar>
+                          )}
+                          <Box>
+                            <Typography variant="body2" fontWeight={500}>{v.shopName}</Typography>
+                            <Typography variant="caption" color={colors.textMuted}>
+                              {(v.businessCategories || []).slice(0, 2).join(', ')}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </TableCell>
+                      <TableCell><Typography variant="body2">{owner}</Typography></TableCell>
+                      <TableCell><Typography variant="body2">{v.businessType}</Typography></TableCell>
+                      <TableCell><Typography variant="body2">{v.businessAddress?.city ?? '—'}</Typography></TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>
+                          {typeof v.articleCount === 'number' ? v.articleCount : '—'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={v.accountStatus || v.status || '—'} size="small" sx={{ fontSize: '0.72rem' }} />
+                      </TableCell>
+                      <TableCell>
+                        {verified ? (
+                          <Chip icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="Vérifié" size="small" />
+                        ) : (
+                          <Chip label="En attente" size="small" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row">
+                          <Tooltip title="Gérer les articles">
+                            <IconButton
+                              size="small"
+                              component={RouterLink}
+                              to={`/article?vendeur=${v._id}`}
+                              sx={{ color: colors.warning }}
+                            >
+                              <Inventory2Icon sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Modifier">
+                            <IconButton size="small" onClick={() => { setEditId(v._id ?? null); setFormOpen(true); }}>
+                              <EditIcon sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Supprimer">
+                            <IconButton size="small" color="error" onClick={() => onDelete(v)}>
+                              <DeleteIcon sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={filtered.length}
+          page={tablePage}
+          rowsPerPage={tableRowsPerPage}
+          onPageChange={(_, p) => setTablePage(p)}
+          onRowsPerPageChange={(e) => { setTableRowsPerPage(+e.target.value); setTablePage(0); }}
+          rowsPerPageOptions={[5, 10, 25]}
+        />
+      </Paper>
 
-          {/* ✅ VÉRIFICATION MODERNE */}
-          <Box sx={{ mt: 2 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.verificationDocuments?.isVerified || false}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    verificationDocuments: {
-                      ...prev.verificationDocuments,
-                      isVerified: e.target.checked
-                    }
-                  }))}
-                />
-              }
-              label="Documents vérifiés"
-            />
-          </Box>
+      <VendeurFormDialog
+        open={formOpen}
+        vendeurId={editId}
+        onClose={() => setFormOpen(false)}
+        onSuccess={(saved) => {
+          notify(editId ? 'Vendeur mis à jour.' : 'Vendeur créé.');
+          if (!editId && saved._id) setLastCreatedId(String(saved._id));
+          fetchVendeurs();
+        }}
+      />
 
-          <Box sx={{ mt: 1 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.isTopRated}
-                  onChange={(e) => setFormData(prev => ({ ...prev, isTopRated: e.target.checked }))}
-                />
-              }
-              label="Top Rated (👑)"
-            />
-          </Box>
-
-          <Box sx={{ mt: 1 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.isFeatured}
-                  onChange={(e) => setFormData(prev => ({ ...prev, isFeatured: e.target.checked }))}
-                />
-              }
-              label="Featured (⭐)"
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)}>Annuler</Button>
-          <Button onClick={handleSave}>{selectedVendeur ? 'Enregistrer' : 'Ajouter'}</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={showUserDialog} onClose={() => setShowUserDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Sélectionner un utilisateur</DialogTitle>
-        <DialogContent>
-          <TextField fullWidth margin="normal" label="Rechercher" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
-          <DataTable
-            value={Array.isArray(filteredUtilisateurs) ? filteredUtilisateurs : []}
-            paginator
-            rows={5}
-            loading={loadingUtilisateurs}
-            selectionMode="single"
-            onRowClick={(e) => {
-              const utilisateur = e.data as IUtilisateur;
-              setFormData(prev => ({ ...prev, utilisateur }));
-              setShowUserDialog(false);
-              toast.success(`Utilisateur sélectionné : ${utilisateur.nom} ${utilisateur.prenom}`);
-            }}
-            dataKey="_id"
-          >
-            <Column field="nom" header="Nom" />
-            <Column field="prenom" header="Prénom" />
-            <Column field="email" header="Email" />
-            <Column field="telephone" header="Téléphone" />
-          </DataTable>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowUserDialog(false)}>Fermer</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={!!zoomImage} onClose={() => setZoomImage(null)} maxWidth="md">
-        <DialogTitle>Image</DialogTitle>
-        <DialogContent>
-          {zoomImage && (
-            <img
-              src={zoomImage}
-              alt="document"
-              style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setZoomImage(null)} color="primary">Fermer</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+      <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack((s) => ({ ...s, open: false }))}>
+        <Alert severity={snack.severity} variant="filled">{snack.msg}</Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

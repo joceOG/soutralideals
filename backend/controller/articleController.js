@@ -66,7 +66,7 @@ const ARTICLE_OWNER_FIELDS = [
     'isPromo', 'quantiteArticle', 'tags', 'categorie',
 ];
 
-const ARTICLE_ADMIN_FIELDS = ['rating', 'salesCount', 'vendeur'];
+const ARTICLE_ADMIN_FIELDS = ['rating', 'salesCount'];
 
 async function loadArticleWithOwner(articleId) {
     return articleModel.findById(articleId).populate({
@@ -95,12 +95,12 @@ async function assertVendeurOwnership(req, res, vendeurId) {
         res.status(400).json({ error: 'ID vendeur invalide' });
         return false;
     }
-    if (isAdmin(req)) return true;
     const vendeurDoc = await vendeurModel.findById(vendeurId).select('utilisateur');
     if (!vendeurDoc) {
         res.status(404).json({ error: 'Vendeur non trouvé' });
         return false;
     }
+    if (isAdmin(req)) return true;
     if (vendeurDoc.utilisateur.toString() !== req.utilisateur._id.toString()) {
         res.status(403).json({ error: 'Vous ne pouvez créer des articles que pour votre boutique.' });
         return false;
@@ -133,56 +133,89 @@ export const updateArticleById = async (req, res) => {
             updatedFields.tags = parseTags(body.tags);
         }
 
-        if (isAdmin(req) && body.vendeur) {
-            updatedFields.vendeur = new mongoose.Types.ObjectId(body.vendeur);
-        }
-
         if (body.categorie) {
             updatedFields.categorie = new mongoose.Types.ObjectId(body.categorie);
         }
 
+        // Le vendeur propriétaire n'est pas modifiable via UPDATE (DASH-8C.2).
+
+        let pendingUpload = null;
         if (req.file) {
-            // Upload nouvelle image
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'articles',
             });
-
-            // Supprimer l'image temporaire
             fs.unlinkSync(req.file.path);
-
-            // Supprimer l'ancienne image dans Cloudinary si elle existe
-            if (article.photoArticle) {
-                const publicId = article.photoArticle.split('/').slice(-2).join('/').split('.')[0];
-                await cloudinary.v2.uploader.destroy(publicId);
-            }
-
-            updatedFields.photoArticle = result.secure_url;
+            pendingUpload = {
+                secure_url: result.secure_url,
+                public_id: result.public_id || result.secure_url?.split('/').slice(-2).join('/').split('.')[0],
+            };
+            updatedFields.photoArticle = pendingUpload.secure_url;
         }
 
-        const updatedArticle = await articleModel.findByIdAndUpdate(
-            req.params.id,
-            updatedFields,
-            { new: true }
-        )
-            .populate('categorie')
-            .populate({
-                path: 'vendeur',
-                populate: {
-                    path: 'utilisateur',
-                    model: 'Utilisateur'
+        let updatedArticle;
+        try {
+            updatedArticle = await articleModel.findByIdAndUpdate(
+                req.params.id,
+                updatedFields,
+                { new: true }
+            )
+                .populate('categorie')
+                .populate({
+                    path: 'vendeur',
+                    populate: {
+                        path: 'utilisateur',
+                        model: 'Utilisateur',
+                        select: 'nom prenom',
+                    }
+                });
+        } catch (updateErr) {
+            if (pendingUpload?.public_id) {
+                try {
+                    await cloudinary.v2.uploader.destroy(pendingUpload.public_id);
+                } catch {
+                    /* best-effort */
                 }
-            });
+            }
+            throw updateErr;
+        }
 
         if (!updatedArticle) {
+            if (pendingUpload?.public_id) {
+                try {
+                    await cloudinary.v2.uploader.destroy(pendingUpload.public_id);
+                } catch {
+                    /* best-effort */
+                }
+            }
             return res.status(404).json({ error: 'Article non trouvé' });
+        }
+
+        if (pendingUpload && article.photoArticle) {
+            const oldPublicId = article.photoArticle.split('/').slice(-2).join('/').split('.')[0];
+            try {
+                await cloudinary.v2.uploader.destroy(oldPublicId);
+            } catch {
+                /* best-effort */
+            }
         }
 
         res.status(200).json(updatedArticle);
     } catch (err) {
+        await unlinkReqFile(req);
         console.error('Erreur lors de la mise à jour de l\'article:', err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erreur interne' });
     }
 };
+
+async function unlinkReqFile(req) {
+    if (req.file?.path) {
+        try {
+            fs.unlinkSync(req.file.path);
+        } catch {
+            /* ignore */
+        }
+    }
+}
 
 // ✅ Crée un nouvel article avec upload d'image
 export const createArticle = async (req, res) => {
@@ -199,18 +232,36 @@ export const createArticle = async (req, res) => {
             tags
         } = req.body;
 
-        if (!vendeur || !categorie) {
-            return res.status(400).json({ error: 'Vendeur et catégorie requis' });
+        if (!vendeur || !String(vendeur).trim()) {
+            await unlinkReqFile(req);
+            return res.status(400).json({ error: 'Vendeur requis' });
+        }
+        if (!categorie || !String(categorie).trim()) {
+            await unlinkReqFile(req);
+            return res.status(400).json({ error: 'Catégorie requise' });
+        }
+        if (!mongoose.Types.ObjectId.isValid(String(vendeur))
+            || String(new mongoose.Types.ObjectId(String(vendeur))) !== String(vendeur)) {
+            await unlinkReqFile(req);
+            return res.status(400).json({ error: 'Identifiant vendeur invalide' });
+        }
+        if (!mongoose.Types.ObjectId.isValid(String(categorie))
+            || String(new mongoose.Types.ObjectId(String(categorie))) !== String(categorie)) {
+            await unlinkReqFile(req);
+            return res.status(400).json({ error: 'Identifiant catégorie invalide' });
         }
 
-        if (!(await assertVendeurOwnership(req, res, vendeur))) return;
+        if (!(await assertVendeurOwnership(req, res, vendeur))) {
+            await unlinkReqFile(req);
+            return;
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'Photo de l\'article requise' });
+        }
 
         const categorieId = new mongoose.Types.ObjectId(categorie);
         const vendeurId = new mongoose.Types.ObjectId(vendeur);
-
-        if (!req.file) {
-            return res.status(400).json({ error: 'Aucun fichier image téléchargé' });
-        }
 
         const result = await cloudinary.v2.uploader.upload(req.file.path, {
             folder: 'articles',
@@ -230,33 +281,111 @@ export const createArticle = async (req, res) => {
             photoArticle: result.secure_url,
             vendeur: vendeurId,
             categorie: categorieId,
-            tags: parseTags(tags) // ✅ Ajout des tags
+            tags: parseTags(tags)
         });
 
-        const savedArticle = await newArticle.save();
+        let savedArticle;
+        try {
+            savedArticle = await newArticle.save();
+        } catch (saveErr) {
+            try {
+                const publicId = result.public_id || result.secure_url?.split('/').slice(-2).join('/').split('.')[0];
+                if (publicId) await cloudinary.v2.uploader.destroy(publicId);
+            } catch {
+                /* best-effort */
+            }
+            throw saveErr;
+        }
 
-        // ✅ Correction ici : une seule utilisation de populate avec un tableau
         const populatedArticle = await savedArticle.populate([
             { path: 'categorie' },
             {
                 path: 'vendeur',
                 populate: {
                     path: 'utilisateur',
-                    model: 'Utilisateur'
+                    model: 'Utilisateur',
+                    select: 'nom prenom',
                 }
             }
         ]);
 
         res.status(201).json(populatedArticle);
     } catch (err) {
+        await unlinkReqFile(req);
         console.error('Erreur lors de la création de l\'article:', err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erreur interne' });
     }
 };
 
-// ✅ Récupère tous les articles (vendeurs publics uniquement)
+// ✅ Récupère tous les articles (vendeurs publics uniquement, ou filtre boutique admin)
 export const getAllArticles = async (req, res) => {
     try {
+        const vendeurParam = req.query.vendeur;
+
+        if (vendeurParam !== undefined && vendeurParam !== '') {
+            if (!req.utilisateur) {
+                return res.status(401).json({ error: 'Authentification requise pour filtrer par boutique.' });
+            }
+            if (!mongoose.Types.ObjectId.isValid(String(vendeurParam))
+                || String(new mongoose.Types.ObjectId(String(vendeurParam))) !== String(vendeurParam)) {
+                return res.status(400).json({ error: 'Identifiant vendeur invalide' });
+            }
+
+            const vendeurOid = new mongoose.Types.ObjectId(String(vendeurParam));
+            const vendeurDoc = await vendeurModel.findById(vendeurOid).select('utilisateur shopName shopLogo');
+            if (!vendeurDoc) {
+                return res.status(404).json({ error: 'Vendeur non trouvé' });
+            }
+
+            if (!isAdmin(req)) {
+                if (vendeurDoc.utilisateur.toString() !== req.utilisateur._id.toString()) {
+                    return res.status(403).json({ error: 'Accès refusé : boutique non autorisée.' });
+                }
+            }
+
+            const filter = { vendeur: vendeurOid };
+            const searchQ = req.query.search || req.query.query;
+            if (searchQ && String(searchQ).trim()) {
+                const safe = escapeRegex(String(searchQ).trim());
+                filter.$or = [
+                    { nomArticle: { $regex: safe, $options: 'i' } },
+                    { tags: { $in: [new RegExp(safe, 'i')] } },
+                ];
+            }
+
+            const categorieParam = req.query.categorie;
+            if (categorieParam) {
+                if (!mongoose.Types.ObjectId.isValid(String(categorieParam))) {
+                    return res.status(400).json({ error: 'Identifiant catégorie invalide' });
+                }
+                filter.categorie = new mongoose.Types.ObjectId(String(categorieParam));
+            }
+
+            const pageNum = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+            const limitNum = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '10'), 10) || 10));
+            const skip = (pageNum - 1) * limitNum;
+
+            const total = await articleModel.countDocuments(filter);
+            const items = await articleModel.find(filter)
+                .populate('categorie', 'nomcategorie')
+                .populate('vendeur', 'shopName shopLogo')
+                .sort({ _id: -1 })
+                .skip(skip)
+                .limit(limitNum)
+                .lean();
+
+            return res.status(200).json({
+                items,
+                total,
+                page: pageNum,
+                limit: limitNum,
+                boutique: {
+                    shopName: vendeurDoc.shopName,
+                    shopLogo: vendeurDoc.shopLogo || null,
+                },
+            });
+        }
+
         const publicVendeurIds = await findPublicVendeurIds(vendeurModel);
         const articles = await articleModel.find({ vendeur: { $in: publicVendeurIds } })
             .populate('categorie')
@@ -271,7 +400,7 @@ export const getAllArticles = async (req, res) => {
         res.status(200).json(articles);
     } catch (err) {
         console.error('Erreur lors de la récupération des articles:', err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erreur interne' });
     }
 };
 

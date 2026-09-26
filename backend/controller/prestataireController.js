@@ -1,3 +1,14 @@
+import {
+  assertPrestataireRouteId,
+  applyOwnerDeactivate,
+  applyOwnerReactivate,
+  canOwnerDeactivate,
+  canOwnerReactivate,
+  PrestatairePauseTransitionError,
+} from '../services/prestataireOwnerPauseService.js';
+import {
+  presentPrestatairePendingListItem,
+} from '../utils/prestatairePendingPresenter.js';
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
 import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
@@ -5,10 +16,17 @@ import { isAdmin } from "../middleware/entityAccess.js";
 import { pickFields } from '../utils/pickFields.js';
 import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
 import {
+  validatePrestataireCreateBody,
+  mongooseValidationTo400,
+} from '../utils/prestataireValidation.js';
+import {
   uploadKycToCloudinary,
   prepareKycReplacement,
   stripInjectedKycFromBody,
   presentProDocForViewer,
+  redactKycFromPlain,
+  KYC_FIELD_NAMES,
+  CLD_AUTH_PREFIX,
 } from '../utils/kycAccess.js';
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
@@ -19,7 +37,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 🔹 Upload Cloudinary — KYC = authenticated (pas d'URL publique)
 const uploadToCloudinary = async (filePath, folder, { kyc = false } = {}) => {
   try {
     if (kyc) {
@@ -62,6 +79,22 @@ const parseStringArrayField = (v) => {
   }
   return [String(v)];
 };
+
+async function destroyKycRef(ref) {
+  if (typeof ref !== 'string' || !ref.startsWith(CLD_AUTH_PREFIX)) return;
+  const publicId = ref.slice(CLD_AUTH_PREFIX.length);
+  try {
+    await cloudinary.uploader.destroy(publicId, { type: 'authenticated', invalidate: true });
+  } catch {
+    /* best-effort */
+  }
+}
+
+async function destroyUploadedKycMap(uploads) {
+  for (const ref of Object.values(uploads || {})) {
+    await destroyKycRef(ref);
+  }
+}
 
 // ✅ Créer un prestataire
 export const createPrestataire = async (req, res) => {
@@ -142,9 +175,37 @@ export const createPrestataire = async (req, res) => {
       return res.status(400).json({ error: "service ou category requis" });
     }
 
+    const isAdminUser = isAdmin(req);
+    const isTerrain = isRecensementRequest(req);
+
+    const preValidate = validatePrestataireCreateBody({
+      body: req.body,
+      isAdminUser,
+      requesterId: req.utilisateur._id.toString(),
+      finalServiceId: finalService,
+    });
+    if (!preValidate.ok) {
+      return res.status(400).json({ error: preValidate.errors.join(' ; ') });
+    }
+
+    if (isAdminUser && preValidate.ownerId) {
+      const Utilisateur = (await import('../models/utilisateurModel.js')).default;
+      const userExists = await Utilisateur.exists({ _id: preValidate.ownerId });
+      if (!userExists) {
+        return res.status(404).json({ error: 'Utilisateur introuvable' });
+      }
+    }
+
+    const serviceExists = await (await import('../models/serviceModel.js')).default.exists({
+      _id: finalService,
+    });
+    if (!serviceExists) {
+      return res.status(404).json({ error: 'Service introuvable' });
+    }
+
     // Parsing localisationmaps
-    let parsedLocalisation = null;
-    if (localisationmaps) {
+    let parsedLocalisation = preValidate.parsedLocalisation;
+    if (!parsedLocalisation && localisationmaps) {
       if (typeof localisationmaps === "string") {
         try {
           parsedLocalisation = JSON.parse(localisationmaps);
@@ -183,16 +244,17 @@ export const createPrestataire = async (req, res) => {
     // STAB-11b : permission agent avant création terrain
     const denied = assertRecensementAgent(req);
     if (denied) {
+      await destroyUploadedKycMap(uploads);
       return res.status(denied.status).json({ error: denied.error });
     }
 
     // Création prestataire — status/verifier/recenseur contrôlés côté serveur (STAB-11)
-    const isAdminUser = isAdmin(req);
-    const isTerrain = isRecensementRequest(req);
     const ownerId =
-      (isAdminUser || isTerrain) && utilisateur
+      isAdminUser && utilisateur
         ? utilisateur
-        : req.utilisateur._id.toString();
+        : isTerrain && utilisateur
+          ? utilisateur
+          : req.utilisateur._id.toString();
 
     const recensement = buildRecensementCreateFields(req, {
       defaultStatus: 'incomplete',
@@ -201,8 +263,8 @@ export const createPrestataire = async (req, res) => {
     const newPrestataire = new prestataireModel({
       utilisateur: new mongoose.Types.ObjectId(ownerId),
       service: new mongoose.Types.ObjectId(finalService),
-      prixprestataire: parseNumber(prixprestataire, 0),
-      localisation,
+      prixprestataire: preValidate.prixprestataire,
+      localisation: preValidate.localisation,
       note: isAdminUser ? parseNumber(note, 0) : 0,
       verifier: isAdminUser && (verifier === "true" || verifier === true),
       status: recensement.status || "incomplete",
@@ -232,7 +294,14 @@ export const createPrestataire = async (req, res) => {
     }
 
     newPrestataire.syncFinalizationFromDocuments();
-    await newPrestataire.save();
+    try {
+      await newPrestataire.save();
+    } catch (saveErr) {
+      await destroyUploadedKycMap(uploads);
+      const mapped = mongooseValidationTo400(saveErr);
+      if (mapped) return res.status(mapped.status).json({ error: mapped.error });
+      throw saveErr;
+    }
 
     const populatedPrestataire = await prestataireModel
       .findById(newPrestataire._id)
@@ -242,8 +311,12 @@ export const createPrestataire = async (req, res) => {
 
     res.status(201).json(populatedPrestataire);
   } catch (err) {
+    const mapped = mongooseValidationTo400(err);
+    if (mapped) {
+      return res.status(mapped.status).json({ error: mapped.error });
+    }
     console.error("Erreur création prestataire:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Erreur interne' });
   }
 };
 
@@ -411,8 +484,12 @@ export const updatePrestataire = async (req, res) => {
     res.status(200).json(prestataire);
 
   } catch (err) {
+    const mapped = mongooseValidationTo400(err);
+    if (mapped) {
+      return res.status(mapped.status).json({ error: mapped.error });
+    }
     console.error("Erreur mise à jour prestataire:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Erreur interne' });
   }
 };
 
@@ -476,8 +553,15 @@ export const getAllPrestataires = async (req, res) => {
       ? prestataires.filter(p => p.service !== null)
       : prestataires;
 
-    // STAB-11b / R0-06 : jamais exposer refs KYC brutes en liste
-    const safe = result.map((p) => presentProDocForViewer(req, p, res));
+    // STAB-11b / R0-06 / DASH-8A : liste = jamais d’URL KYC (même admin) ; détail via GET /:id
+    const safe = result.map((p) => {
+      const plain = typeof p.toObject === 'function' ? p.toObject() : { ...p };
+      const redacted = redactKycFromPlain(plain);
+      for (const f of KYC_FIELD_NAMES) {
+        redacted[f] = Boolean(plain[f]);
+      }
+      return redacted;
+    });
 
     res.status(200).json(safe);
   } catch (err) {
@@ -551,7 +635,9 @@ export const getPendingPrestataires = async (req, res) => {
       })
       .sort({ dateRecensement: -1, createdAt: -1 });
 
-    res.status(200).json(prestataires);
+    const safe = prestataires.map((p) => presentPrestatairePendingListItem(p));
+
+    res.status(200).json(safe);
   } catch (err) {
     console.error("Erreur récupération prestataires pending:", err.message);
     res.status(500).json({ error: err.message });
@@ -636,61 +722,68 @@ export const rejectPrestataire = async (req, res) => {
 export const deactivatePrestataire = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
+    assertPrestataireRouteId(id);
     const prestataire = await prestataireModel.findById(id);
-    if (!prestataire) {
-      return res.status(404).json({ error: 'Prestataire non trouvé' });
+    const decision = canOwnerDeactivate(prestataire);
+    if (decision.idempotent) {
+      return res.status(200).json({
+        success: true,
+        idempotent: true,
+        message: 'Espace Métiers déjà désactivé',
+        prestataire,
+      });
     }
-    const ownerId = prestataire.utilisateur?.toString?.() || String(prestataire.utilisateur);
-    const requesterId = req.utilisateur?._id?.toString?.();
-    if (!isAdmin(req) && ownerId !== requesterId) {
-      return res.status(403).json({ error: 'Accès refusé' });
-    }
-    prestataire.status = 'suspended';
-    prestataire.disponible = false;
+    applyOwnerDeactivate(prestataire);
     await prestataire.save();
     res.status(200).json({
+      success: true,
       message: 'Espace Métiers désactivé',
       prestataire,
     });
   } catch (err) {
+    if (err instanceof PrestatairePauseTransitionError) {
+      return res.status(err.status).json({
+        success: false,
+        code: err.code,
+        message: err.message,
+      });
+    }
     console.error('Erreur deactivatePrestataire:', err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, code: 'SERVER_ERROR', message: 'Erreur serveur.' });
   }
 };
 
-/** Self-service : réactiver (repasse en pending si pas encore active) */
+/** Self-service : réactiver après pause volontaire */
 export const reactivatePrestataire = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
+    assertPrestataireRouteId(id);
     const prestataire = await prestataireModel.findById(id);
-    if (!prestataire) {
-      return res.status(404).json({ error: 'Prestataire non trouvé' });
-    }
-    const ownerId = prestataire.utilisateur?.toString?.() || String(prestataire.utilisateur);
-    const requesterId = req.utilisateur?._id?.toString?.();
-    if (!isAdmin(req) && ownerId !== requesterId) {
-      return res.status(403).json({ error: 'Accès refusé' });
-    }
-    if (prestataire.status === 'rejected') {
-      return res.status(400).json({
-        error: 'Profil rejeté — contactez le support pour une nouvelle validation',
+    const decision = canOwnerReactivate(prestataire);
+    if (decision.idempotent) {
+      return res.status(200).json({
+        success: true,
+        idempotent: true,
+        message: 'Espace Métiers déjà actif',
+        prestataire,
       });
     }
-    prestataire.status = prestataire.verifier ? 'active' : 'pending';
-    prestataire.disponible = true;
+    applyOwnerReactivate(prestataire);
     await prestataire.save();
     res.status(200).json({
+      success: true,
       message: 'Espace Métiers réactivé',
       prestataire,
     });
   } catch (err) {
+    if (err instanceof PrestatairePauseTransitionError) {
+      return res.status(err.status).json({
+        success: false,
+        code: err.code,
+        message: err.message,
+      });
+    }
     console.error('Erreur reactivatePrestataire:', err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, code: 'SERVER_ERROR', message: 'Erreur serveur.' });
   }
 };

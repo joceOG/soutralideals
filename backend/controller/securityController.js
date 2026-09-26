@@ -4,53 +4,214 @@ import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 
+/** État virtuel GET /stats — aucune persistance. */
+function buildUninitializedSecurityStatsData() {
+  return {
+    initialized: false,
+    twoFactorEnabled: false,
+    has2FA: false,
+    activeSessions: 0,
+    trustedDevices: 0,
+    unreadAlerts: 0,
+    recentSecurityEvents: 0,
+    securityScore: 0,
+    totalLogins: 0,
+    failedLogins: 0,
+    identityVerified: false,
+    lastLogin: null,
+    lastLoginAt: null,
+    lastPasswordChange: null,
+    recentLogins: [],
+  };
+}
+
+function sanitizeRecentLogins(entries) {
+  return (entries || []).slice(0, 5).map((entry) => ({
+    loginTime: entry.loginTime,
+    success: entry.success,
+    twoFactorUsed: !!entry.twoFactorUsed,
+    deviceInfo: entry.deviceInfo
+      ? { name: entry.deviceInfo.name, type: entry.deviceInfo.type }
+      : undefined,
+  }));
+}
+
+function buildInitializedSecurityStatsData(security) {
+  const unreadAlerts = (security.securityAlerts || []).filter((a) => !a.read).length;
+  return {
+    initialized: true,
+    twoFactorEnabled: !!security.twoFactorAuth?.enabled,
+    has2FA: !!security.twoFactorAuth?.enabled,
+    activeSessions: (security.activeSessions || []).filter((s) => s.isActive).length,
+    trustedDevices: (security.trustedDevices || []).filter((d) => d.isActive).length,
+    unreadAlerts,
+    recentSecurityEvents: unreadAlerts,
+    securityScore: Security.computeSecurityScoreReadOnly(security) ?? security.securityStats?.securityScore ?? 0,
+    totalLogins: security.securityStats?.totalLogins ?? 0,
+    failedLogins: security.securityStats?.failedLogins ?? 0,
+    identityVerified: security.identityVerification?.status === 'VERIFIED',
+    lastLogin: security.securityStats?.lastLogin ?? null,
+    lastLoginAt: security.securityStats?.lastLogin ?? null,
+    lastPasswordChange: security.passwordSecurity?.lastChanged ?? null,
+    recentLogins: sanitizeRecentLogins(security.loginHistory),
+  };
+}
+
+function buildUninitializedSecurityProfileData() {
+  return {
+    initialized: false,
+    twoFactorEnabled: false,
+    securitySettings: {
+      emailNotifications: {
+        newLogin: true,
+        newDevice: true,
+        passwordChange: true,
+        suspiciousActivity: true,
+      },
+      sessionTimeout: 30,
+      maxConcurrentSessions: 5,
+      allowedCountries: [],
+      blockedCountries: [],
+      allowedIPs: [],
+      blockedIPs: [],
+    },
+    trustedDevices: [],
+    activeSessions: [],
+    loginHistory: [],
+    securityAlerts: [],
+    securityStats: {
+      securityScore: 0,
+      totalLogins: 0,
+      failedLogins: 0,
+      lastLogin: null,
+      averageSessionDuration: 0,
+      mostUsedDevice: '',
+      mostUsedLocation: '',
+    },
+  };
+}
+
+const SECURITY_READ_EXCLUDE =
+  '-twoFactorAuth.secret -twoFactorAuth.backupCodes -twoFactorAuth.recoveryCodes '
+  + '-passwordSecurity.previousPasswords';
+
+function buildInitializedSecurityProfileData(securityLean) {
+  const score = Security.computeSecurityScoreReadOnly(securityLean);
+  return {
+    initialized: true,
+    twoFactorEnabled: !!securityLean.twoFactorAuth?.enabled,
+    utilisateur: String(securityLean.utilisateur),
+    twoFactorAuth: {
+      enabled: !!securityLean.twoFactorAuth?.enabled,
+      lastUsed: securityLean.twoFactorAuth?.lastUsed ?? null,
+    },
+    trustedDevices: (securityLean.trustedDevices || []).map((d) => ({
+      deviceId: d.deviceId,
+      deviceName: d.deviceName,
+      deviceType: d.deviceType,
+      lastUsed: d.lastUsed,
+      isActive: d.isActive,
+    })),
+    activeSessions: (securityLean.activeSessions || []).map((s) => ({
+      sessionId: s.sessionId,
+      loginTime: s.loginTime,
+      lastActivity: s.lastActivity,
+      expiresAt: s.expiresAt,
+      isActive: s.isActive,
+      deviceInfo: s.deviceInfo
+        ? { name: s.deviceInfo.name, type: s.deviceInfo.type }
+        : undefined,
+    })),
+    loginHistory: sanitizeRecentLogins(securityLean.loginHistory),
+    securityAlerts: (securityLean.securityAlerts || []).map((a) => ({
+      type: a.type,
+      title: a.title,
+      message: a.message,
+      severity: a.severity,
+      timestamp: a.timestamp,
+      read: a.read,
+    })),
+    securitySettings: securityLean.securitySettings,
+    securityStats: {
+      securityScore: score,
+      totalLogins: securityLean.securityStats?.totalLogins ?? 0,
+      failedLogins: securityLean.securityStats?.failedLogins ?? 0,
+      lastLogin: securityLean.securityStats?.lastLogin ?? null,
+      averageSessionDuration: securityLean.securityStats?.averageSessionDuration ?? 0,
+      mostUsedDevice: securityLean.securityStats?.mostUsedDevice ?? '',
+      mostUsedLocation: securityLean.securityStats?.mostUsedLocation ?? '',
+    },
+  };
+}
+
+/** Création lazy — réservé aux routes de mutation (POST/PUT/PATCH/DELETE). */
+async function getOrCreateSecurityForMutation(utilisateurId) {
+  const existing = await Security.findOne({ utilisateur: utilisateurId });
+  if (existing) return existing;
+  try {
+    return await Security.create({ utilisateur: utilisateurId });
+  } catch (err) {
+    if (err?.code === 11000) {
+      const retry = await Security.findOne({ utilisateur: utilisateurId });
+      if (retry) return retry;
+    }
+    throw err;
+  }
+}
+
+async function assertTargetUserExists(utilisateurId) {
+  const Utilisateur = (await import('../models/utilisateurModel.js')).default;
+  return Utilisateur.exists({ _id: utilisateurId });
+}
+
 // Helper : vérifier que l'utilisateur connecté est le propriétaire de la ressource (ou admin)
 const checkSecurityOwnership = (req, utilisateurId) => {
   if (req.utilisateur?.role?.toUpperCase() === 'ADMIN') return true;
   return req.utilisateur._id.toString() === utilisateurId;
 };
 
-// ✅ OBTENIR LES PARAMÈTRES DE SÉCURITÉ D'UN UTILISATEUR
+// ✅ OBTENIR LES PARAMÈTRES DE SÉCURITÉ D'UN UTILISATEUR (lecture seule)
 export const getUserSecurity = async (req, res) => {
   try {
     const { utilisateurId } = req.params;
-    
+
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ error: 'ID utilisateur invalide' });
+      return res.status(400).json({ success: false, error: 'ID utilisateur invalide' });
     }
 
     if (!checkSecurityOwnership(req, utilisateurId)) {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez accéder qu\'à vos propres paramètres de sécurité' });
+      return res.status(403).json({
+        success: false,
+        error: 'Accès refusé : vous ne pouvez accéder qu\'à vos propres paramètres de sécurité',
+      });
     }
 
-    let security = await Security.findOne({ utilisateur: utilisateurId });
+    const targetExists = await assertTargetUserExists(utilisateurId);
+    if (!targetExists) {
+      return res.status(404).json({ success: false, error: 'Utilisateur introuvable' });
+    }
+
+    const security = await Security.findOne({ utilisateur: utilisateurId })
+      .select(SECURITY_READ_EXCLUDE)
+      .lean();
 
     if (!security) {
-      // Créer des paramètres de sécurité par défaut
-      security = new Security({
-        utilisateur: utilisateurId,
-        securitySettings: {
-          emailNotifications: {
-            newLogin: true,
-            newDevice: true,
-            passwordChange: true,
-            suspiciousActivity: true
-          },
-          sessionTimeout: 30,
-          maxConcurrentSessions: 5
-        }
+      return res.status(200).json({
+        success: true,
+        data: buildUninitializedSecurityProfileData(),
       });
-      await security.save();
     }
 
-    // Calculer le score de sécurité
-    security.updateSecurityScore();
-    await security.save();
-
-    res.status(200).json({ security });
+    return res.status(200).json({
+      success: true,
+      data: buildInitializedSecurityProfileData(security),
+    });
   } catch (err) {
     console.error('Erreur récupération sécurité:', err.message);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la récupération des paramètres de sécurité',
+    });
   }
 };
 
@@ -66,11 +227,7 @@ export const enable2FA = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    let security = await Security.findOne({ utilisateur: utilisateurId });
-    
-    if (!security) {
-      security = new Security({ utilisateur: utilisateurId });
-    }
+    const security = await getOrCreateSecurityForMutation(utilisateurId);
 
     // Générer le secret 2FA
     const secret = security.generate2FASecret();
@@ -457,13 +614,31 @@ export const updateSecuritySettings = async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que vos propres paramètres de sécurité' });
     }
 
-    let security = await Security.findOne({ utilisateur: utilisateurId });
-    
-    if (!security) {
-      security = new Security({ utilisateur: utilisateurId });
-    }
+    const security = await getOrCreateSecurityForMutation(utilisateurId);
 
-    security.securitySettings = { ...security.securitySettings, ...securitySettings };
+    const incoming = securitySettings && typeof securitySettings === 'object' ? securitySettings : {};
+    if (incoming.emailNotifications && typeof incoming.emailNotifications === 'object') {
+      Object.assign(security.securitySettings.emailNotifications, incoming.emailNotifications);
+    }
+    if (incoming.sessionTimeout !== undefined) {
+      security.securitySettings.sessionTimeout = incoming.sessionTimeout;
+    }
+    if (incoming.maxConcurrentSessions !== undefined) {
+      security.securitySettings.maxConcurrentSessions = incoming.maxConcurrentSessions;
+    }
+    if (Array.isArray(incoming.allowedCountries)) {
+      security.securitySettings.allowedCountries = incoming.allowedCountries;
+    }
+    if (Array.isArray(incoming.blockedCountries)) {
+      security.securitySettings.blockedCountries = incoming.blockedCountries;
+    }
+    if (Array.isArray(incoming.allowedIPs)) {
+      security.securitySettings.allowedIPs = incoming.allowedIPs;
+    }
+    if (Array.isArray(incoming.blockedIPs)) {
+      security.securitySettings.blockedIPs = incoming.blockedIPs;
+    }
+    security.markModified('securitySettings');
     security.lastSecurityUpdate = new Date();
     await security.save();
 
@@ -481,43 +656,46 @@ export const updateSecuritySettings = async (req, res) => {
 export const getSecurityStats = async (req, res) => {
   try {
     const { utilisateurId } = req.params;
-    
+
     if (!mongoose.Types.ObjectId.isValid(utilisateurId)) {
-      return res.status(400).json({ 
-        error: 'ID utilisateur invalide' 
+      return res.status(400).json({
+        success: false,
+        error: 'ID utilisateur invalide',
       });
     }
 
     if (!checkSecurityOwnership(req, utilisateurId)) {
-      return res.status(403).json({ error: 'Accès refusé : vous ne pouvez consulter que vos propres statistiques de sécurité' });
-    }
-
-    const security = await Security.findOne({ utilisateur: utilisateurId });
-    
-    if (!security) {
-      return res.status(404).json({ 
-        error: 'Paramètres de sécurité non trouvés' 
+      return res.status(403).json({
+        success: false,
+        error: 'Accès refusé : vous ne pouvez consulter que vos propres statistiques de sécurité',
       });
     }
 
-    // Calculer les statistiques
-    const stats = {
-      securityScore: security.securityStats.securityScore,
-      totalLogins: security.securityStats.totalLogins,
-      failedLogins: security.securityStats.failedLogins,
-      activeSessions: security.activeSessions.filter(s => s.isActive).length,
-      trustedDevices: security.trustedDevices.filter(d => d.isActive).length,
-      unreadAlerts: security.securityAlerts.filter(a => !a.read).length,
-      has2FA: security.twoFactorAuth.enabled,
-      identityVerified: security.identityVerification.status === 'VERIFIED',
-      lastLogin: security.securityStats.lastLogin,
-      recentLogins: security.loginHistory.slice(0, 5)
-    };
+    const Utilisateur = (await import('../models/utilisateurModel.js')).default;
+    const targetExists = await Utilisateur.exists({ _id: utilisateurId });
+    if (!targetExists) {
+      return res.status(404).json({
+        success: false,
+        error: 'Utilisateur introuvable',
+      });
+    }
 
-    res.status(200).json({ stats });
+    const security = await Security.findOne({ utilisateur: utilisateurId }).select(
+      '-twoFactorAuth.secret -twoFactorAuth.backupCodes -twoFactorAuth.recoveryCodes '
+      + '-passwordSecurity.previousPasswords',
+    );
+
+    const data = security
+      ? buildInitializedSecurityStatsData(security)
+      : buildUninitializedSecurityStatsData();
+
+    return res.status(200).json({ success: true, data });
   } catch (err) {
     console.error('Erreur récupération statistiques:', err.message);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la récupération des statistiques de sécurité',
+    });
   }
 };
 

@@ -158,7 +158,7 @@ const UtilisateurSchema = new mongoose.Schema({
   },
   source: {
     type: String,
-    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard', 'field_recensement_v1'],
+    enum: ['web', 'sdealsmobile', 'sdealsidentification', 'dashboard', 'field_recensement_v1', 'import'],
     default: 'web',
   },
   sourceFieldRecensementId: {

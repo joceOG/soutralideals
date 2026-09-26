@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, IconButton, Button, TextField, Select, MenuItem, FormControl, InputLabel, Grid, Avatar, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Stack } from '@mui/material';
 import { Search as SearchIcon, FilterList as FilterIcon, Delete as DeleteIcon, Archive as ArchiveIcon, Visibility as VisibilityIcon, Refresh as RefreshIcon, AccessTime as TimeIcon, History as HistoryIcon } from '@mui/icons-material';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import { apiClient } from '../services/setupApi';
 
 // 🎯 INTERFACES
 interface IUtilisateur {
@@ -81,8 +81,6 @@ interface IHistoriqueStats {
   consultationsRecentes: number;
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
 const HistoriqueComponent: React.FC = () => {
   const [historique, setHistorique] = useState<IHistorique[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -139,8 +137,8 @@ const HistoriqueComponent: React.FC = () => {
       params.append('page', pagination.page.toString());
       params.append('limit', pagination.limit.toString());
 
-      const response = await axios.get(`${apiUrl}/history?${params.toString()}`);
-      
+      const response = await apiClient.get(`/history?${params.toString()}`);
+
       // Vérifier si la réponse est un tableau
       const data = response.data.history || response.data;
       if (Array.isArray(data)) {
@@ -150,7 +148,7 @@ const HistoriqueComponent: React.FC = () => {
         setHistorique([]);
         toast.error("Format de données incorrect reçu du serveur");
       }
-      
+
       if (response.data.pagination) {
         setPagination(response.data.pagination);
       }
@@ -165,7 +163,7 @@ const HistoriqueComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/history/stats?periode=${periodeFilter}`);
+      const response = await apiClient.get(`/history/stats?periode=${periodeFilter}`);
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -196,7 +194,7 @@ const HistoriqueComponent: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette consultation ?')) {
       try {
-        await axios.delete(`${apiUrl}/history/${id}`);
+        await apiClient.delete(`/history/${id}`);
         toast.success('Consultation supprimée avec succès');
         fetchHistorique();
       } catch (error) {
@@ -209,7 +207,7 @@ const HistoriqueComponent: React.FC = () => {
   // 🔹 ARCHIVER UNE CONSULTATION
   const handleArchive = async (id: string) => {
     try {
-      await axios.patch(`${apiUrl}/history/${id}/archive`);
+      await apiClient.patch(`/history/${id}/archive`);
       toast.success('Consultation archivée avec succès');
       fetchHistorique();
     } catch (error) {
@@ -222,7 +220,7 @@ const HistoriqueComponent: React.FC = () => {
   const handleCleanOld = async () => {
     if (window.confirm('Êtes-vous sûr de vouloir nettoyer l\'historique ancien (90+ jours) ?')) {
       try {
-        const response = await axios.delete(`${apiUrl}/history/clean?jours=90`);
+        const response = await apiClient.delete(`/history/clean?jours=90`);
         toast.success(`${response.data.deletedCount} consultations supprimées`);
         fetchHistorique();
       } catch (error) {
@@ -237,7 +235,7 @@ const HistoriqueComponent: React.FC = () => {
     const heures = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (heures > 0) {
       return `${heures}h ${minutes}m`;
     } else if (minutes > 0) {
@@ -471,8 +469,8 @@ const HistoriqueComponent: React.FC = () => {
                     <TableRow key={item._id} hover>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar 
-                            src={item.utilisateur.photoProfil} 
+                          <Avatar
+                            src={item.utilisateur.photoProfil}
                             sx={{ width: 32, height: 32 }}
                           >
                             {item.utilisateur.nom?.[0]}{item.utilisateur.prenom?.[0]}
@@ -490,8 +488,8 @@ const HistoriqueComponent: React.FC = () => {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {item.image && (
-                            <Avatar 
-                              src={item.image} 
+                            <Avatar
+                              src={item.image}
                               variant="rounded"
                               sx={{ width: 40, height: 40 }}
                             />
@@ -512,7 +510,7 @@ const HistoriqueComponent: React.FC = () => {
                         <Chip
                           label={typeOptions.find(t => t.value === item.objetType)?.label || item.objetType}
                           size="small"
-                          sx={{ 
+                          sx={{
                             backgroundColor: getTypeColor(item.objetType),
                             color: 'white',
                             fontWeight: 'medium'

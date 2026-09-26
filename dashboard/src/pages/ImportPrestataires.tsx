@@ -30,6 +30,7 @@ import {
 } from '@mui/material';
 import { CloudUpload, CheckCircle } from '@mui/icons-material';
 import Papa from 'papaparse';
+import { apiClient } from '../services/setupApi';
 
 interface PrestataireData {
   nom: string;
@@ -50,7 +51,6 @@ interface ImportResult {
 }
 
 const ImportPrestataires: React.FC = () => {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<PrestataireData[]>([]);
   const [importing, setImporting] = useState(false);
@@ -98,30 +98,30 @@ const ImportPrestataires: React.FC = () => {
         console.log('📊 Taille du fichier:', file.size, 'bytes');
         console.log('📊 Dernière ligne:', results.data[results.data.length - 1]);
         console.log('📊 Taille du fichier:', file.size, 'bytes');
-        
+
         // Mapping des colonnes détectées vers les colonnes attendues
         const detectedColumns = results.meta.fields || [];
         console.log('🔍 Colonnes détectées:', detectedColumns);
-        
+
         // Mapping spécifique pour votre structure de 8 colonnes
         const columnMapping = {
-          nom: detectedColumns.find(col => 
+          nom: detectedColumns.find(col =>
             col.toLowerCase().includes('nom et') ||
             col.toLowerCase().includes('nom et prénoms') ||
             col.toLowerCase().includes('nom') ||
             col.toLowerCase().includes('prénom') ||
             col.toLowerCase().includes('prénoms')
           ),
-          telephone: detectedColumns.find(col => 
+          telephone: detectedColumns.find(col =>
             col.toLowerCase().includes('numéro de') ||
             col.toLowerCase().includes('numero de') ||
-            col.toLowerCase().includes('téléphone') || 
+            col.toLowerCase().includes('téléphone') ||
             col.toLowerCase().includes('telephone') ||
             col.toLowerCase().includes('numéro') ||
             col.toLowerCase().includes('numero')
           ),
-          metier: detectedColumns.find(col => 
-            col.toLowerCase().includes('métier') || 
+          metier: detectedColumns.find(col =>
+            col.toLowerCase().includes('métier') ||
             col.toLowerCase().includes('metier') ||
             col.toLowerCase().includes('métiers') ||
             col.toLowerCase().includes('metiers') ||
@@ -129,27 +129,27 @@ const ImportPrestataires: React.FC = () => {
             col.toLowerCase().includes('activité') ||
             col.toLowerCase().includes('activite')
           ),
-          latitude: detectedColumns.find(col => 
-            col.toLowerCase().includes('latitude') || 
+          latitude: detectedColumns.find(col =>
+            col.toLowerCase().includes('latitude') ||
             col.toLowerCase().includes('lat')
           ),
-          longitude: detectedColumns.find(col => 
-            col.toLowerCase().includes('longitude') || 
+          longitude: detectedColumns.find(col =>
+            col.toLowerCase().includes('longitude') ||
             col.toLowerCase().includes('long') ||
             col.toLowerCase().includes('longitud')
           ),
-          ville: detectedColumns.find(col => 
+          ville: detectedColumns.find(col =>
             col.toLowerCase().includes('la ville') ||
             col.toLowerCase().includes('ville')
           ),
-          quartier: detectedColumns.find(col => 
+          quartier: detectedColumns.find(col =>
             col.toLowerCase().includes('la comr') ||
             col.toLowerCase().includes('comr') ||
             col.toLowerCase().includes('commune') ||
             col.toLowerCase().includes('quartier')
           ),
-          horaires: detectedColumns.find(col => 
-            col.toLowerCase().includes('horaire') || 
+          horaires: detectedColumns.find(col =>
+            col.toLowerCase().includes('horaire') ||
             col.toLowerCase().includes('horaires') ||
             col.toLowerCase().includes('plage') ||
             col.toLowerCase().includes('ouverture') ||
@@ -157,28 +157,28 @@ const ImportPrestataires: React.FC = () => {
             col.toLowerCase().includes('disponibilite')
           )
         };
-        
+
         console.log('🗺️ Mapping des colonnes:', columnMapping);
-        
+
         // Debug détaillé du mapping
         console.log('📊 Détail du mapping:');
         Object.entries(columnMapping).forEach(([key, value]) => {
           console.log(`  ${key}: ${value || 'NON TROUVÉ'}`);
         });
-        
+
         // Vérifier les colonnes essentielles (seulement GPS obligatoires)
         const essentialColumns = ['latitude', 'longitude'];
         const missingEssential = essentialColumns.filter(col => !columnMapping[col as keyof typeof columnMapping]);
-        
+
         if (missingEssential.length > 0) {
           console.error('❌ Colonnes manquantes:', missingEssential);
           console.error('📋 Colonnes détectées:', detectedColumns);
           console.error('🗺️ Mapping complet:', columnMapping);
-          
+
           alert(`❌ ERREUR DE MAPPING\n\nColonnes manquantes: ${missingEssential.join(', ')}\n\nColonnes détectées dans votre fichier:\n${detectedColumns.map((col, i) => `${i + 1}. "${col}"`).join('\n')}\n\nMapping actuel:\n${Object.entries(columnMapping).map(([key, value]) => `${key}: ${value || 'NON TROUVÉ'}`).join('\n')}\n\nVérifiez que vos colonnes correspondent exactement à la structure attendue.`);
           return;
         }
-        
+
         // Transformer les données avec le mapping - Adapté pour votre structure
         const transformedData = results.data.map((row: any, index: number) => {
           // Récupérer les valeurs des colonnes mappées
@@ -190,21 +190,21 @@ const ImportPrestataires: React.FC = () => {
           const ville = row[columnMapping.ville || ''] || 'À définir';
           const quartier = row[columnMapping.quartier || ''] || 'À définir';
           const horaires = row[columnMapping.horaires || ''] || '';
-          
+
           // Corriger les coordonnées GPS (remplacer virgule par point)
           const latitude = parseFloat(latitudeRaw.toString().replace(',', '.')) || 0;
           const longitude = parseFloat(longitudeRaw.toString().replace(',', '.')) || 0;
-          
+
           // Debug pour les premières lignes
           if (index < 3) {
             console.log(`📋 Ligne ${index + 1}:`, {
-              nom, telephone, metier, 
+              nom, telephone, metier,
               latitudeRaw, longitudeRaw, // Valeurs brutes
               latitude, longitude, // Valeurs transformées
               ville, quartier, horaires
             });
           }
-          
+
           return {
             // Nom avec valeur par défaut si vide
             nom: nom.trim() || `Prestataire ${index + 1}`,
@@ -220,17 +220,17 @@ const ImportPrestataires: React.FC = () => {
             horaires: horaires.trim() || '8h-18h'
           };
         });
-        
+
         console.log('✅ Données transformées:', transformedData.slice(0, 3));
         console.log('📊 TOTAL DONNÉES TRANSFORMÉES:', transformedData.length);
-        
+
         const data = transformedData as PrestataireData[];
         console.log('📊 AVANT setPreviewData - data.length:', data.length);
-        
+
         // ✅ PERSISTANCE dans localStorage
         localStorage.setItem('csvImportData', JSON.stringify(data));
         console.log('💾 Données sauvegardées dans localStorage');
-        
+
         setPreviewData(data);
         console.log('📊 APRÈS setPreviewData - previewData sera:', data.length);
       },
@@ -243,47 +243,47 @@ const ImportPrestataires: React.FC = () => {
 
   const validateData = (data: PrestataireData[]): string[] => {
     const errors: string[] = [];
-    
+
     data.forEach((row, index) => {
       const lineNumber = index + 2; // +2 car index 0 = ligne 2 (après header)
-      
+
       // Nom optionnel - utiliser une valeur par défaut si vide
       if (!row.nom?.trim()) {
         console.log(`Ligne ${lineNumber}: Nom vide, utilisation de la valeur par défaut`);
       }
-      
+
       // Téléphone optionnel - utiliser une valeur par défaut si vide
       if (!row.telephone?.trim()) {
         console.log(`Ligne ${lineNumber}: Téléphone vide, utilisation de la valeur par défaut`);
       }
-      
+
       // Métier optionnel - utiliser une valeur par défaut si vide
       if (!row.metier?.trim()) {
         // Pas d'erreur, on utilisera une valeur par défaut
         console.log(`Ligne ${lineNumber}: Métier vide, utilisation de la valeur par défaut`);
       }
-      
+
       // Validation GPS plus flexible - ignorer les lignes avec coordonnées vides
       if (row.latitude && row.longitude && (isNaN(Number(row.latitude)) || isNaN(Number(row.longitude)) || Number(row.latitude) === 0 || Number(row.longitude) === 0)) {
         errors.push(`Ligne ${lineNumber}: Coordonnées GPS invalides (lat: ${row.latitude}, lng: ${row.longitude})`);
       }
-      
+
       // Horaires optionnels - utiliser une valeur par défaut si vide
       if (!row.horaires?.trim()) {
         // Pas d'erreur, on utilisera une valeur par défaut
         console.log(`Ligne ${lineNumber}: Horaires vides, utilisation de la valeur par défaut`);
       }
     });
-    
+
     return errors;
   };
 
   const handleImport = async () => {
     if (!csvFile || previewData.length === 0) return;
-    
+
     setImporting(true);
     setProgress(0);
-    
+
     try {
       // Validation des données
       const validationErrors = validateData(previewData);
@@ -312,37 +312,31 @@ const ImportPrestataires: React.FC = () => {
 
       console.log(`📦 Nombre de lots à traiter: ${batches.length}`);
       console.log(`📊 Total prestataires à importer: ${previewData.length}`);
-      
+
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
         console.log(`🔄 Traitement du lot ${i + 1}/${batches.length} (${batch.length} prestataires)`);
-        
+
         // ✅ Délai entre les requêtes pour éviter le rate limiting
         if (i > 0) {
           await new Promise(resolve => setTimeout(resolve, 200)); // 200ms de délai
         }
-        
+
         try {
           // Appel API réel vers le backend
-          const response = await fetch(`${apiUrl}/prestataires/import-csv`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              csvData: batch,
-              clearExisting: i === 0 // Nettoyer seulement au premier lot
-            })
+          const response = await apiClient.post('/prestataires/import-csv', {
+            csvData: batch,
+            clearExisting: i === 0,
           });
 
-          if (response.ok) {
-            const result = await response.json();
+          const result = response.data;
+          if (response.status >= 200 && response.status < 300) {
             console.log(`📊 Réponse backend lot ${i + 1}:`, result);
             // ✅ Corriger l'accès à la propriété success
             const lotSuccessCount = result.results?.success || batch.length;
             successCount += lotSuccessCount;
             console.log(`✅ Lot ${i + 1}/${batches.length} terminé: ${lotSuccessCount} succès`);
-            
+
             if (result.errors && result.errors.length > 0) {
               errors.push(`Lot ${i + 1}: ${result.errors.length} erreurs`);
             }
@@ -356,7 +350,7 @@ const ImportPrestataires: React.FC = () => {
           // ✅ Ne pas compter comme succès en cas d'erreur
           errors.push(`Lot ${i + 1}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
         }
-        
+
         setProgress(((i + 1) / batches.length) * 100);
       }
 
@@ -366,12 +360,12 @@ const ImportPrestataires: React.FC = () => {
         duplicates,
         total: previewData.length
       });
-      
+
       setShowResults(true);
-      
+
       // Afficher un message de succès
       console.log(`🎉 Import terminé: ${successCount} prestataires importés avec succès !`);
-      
+
     } catch (error) {
       console.error('Erreur import:', error);
       setImportResult({
@@ -402,7 +396,7 @@ const ImportPrestataires: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Import Prestataires CSV
       </Typography>
-      
+
       <Card>
         <CardHeader title="Étape 1: Sélection du fichier CSV" />
         <CardContent>
@@ -425,7 +419,7 @@ const ImportPrestataires: React.FC = () => {
               </Button>
             </label>
           </Box>
-          
+
           {csvFile && (
             <Alert severity="success" sx={{ mb: 2 }}>
               Fichier sélectionné: {csvFile.name} ({csvFile.size} bytes)
@@ -436,7 +430,7 @@ const ImportPrestataires: React.FC = () => {
 
       {previewData.length > 0 && (
         <Card sx={{ mt: 2 }}>
-          <CardHeader 
+          <CardHeader
             title={`Étape 2: Prévisualisation (${previewData.length} prestataires)`}
             action={
               <Button
@@ -458,7 +452,7 @@ const ImportPrestataires: React.FC = () => {
                 <LinearProgress variant="determinate" value={progress} />
               </Box>
             )}
-            
+
             <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
               <Table stickyHeader>
                 <TableHead>
@@ -476,28 +470,28 @@ const ImportPrestataires: React.FC = () => {
                   {previewData
                     .slice(currentPage * rowsPerPage, currentPage * rowsPerPage + rowsPerPage)
                     .map((row, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{row.nom}</TableCell>
-                      <TableCell>{row.telephone}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={row.metier} 
-                          color="primary" 
-                          size="small" 
-                        />
-                      </TableCell>
-                      <TableCell>{row.ville}</TableCell>
-                      <TableCell>{row.quartier}</TableCell>
-                      <TableCell>{row.horaires}</TableCell>
-                      <TableCell>
-                        {row.latitude}, {row.longitude}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                      <TableRow key={index}>
+                        <TableCell>{row.nom}</TableCell>
+                        <TableCell>{row.telephone}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={row.metier}
+                            color="primary"
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>{row.ville}</TableCell>
+                        <TableCell>{row.quartier}</TableCell>
+                        <TableCell>{row.horaires}</TableCell>
+                        <TableCell>
+                          {row.latitude}, {row.longitude}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </TableContainer>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>Lignes par page</InputLabel>
@@ -512,7 +506,7 @@ const ImportPrestataires: React.FC = () => {
                   <MenuItem value={200}>200</MenuItem>
                 </Select>
               </FormControl>
-              
+
               <TablePagination
                 component="div"
                 count={previewData.length}
@@ -524,7 +518,7 @@ const ImportPrestataires: React.FC = () => {
                   setCurrentPage(0);
                 }}
                 labelRowsPerPage="Lignes par page:"
-                labelDisplayedRows={({ from, to, count }) => 
+                labelDisplayedRows={({ from, to, count }) =>
                   `${from}-${to} sur ${count !== -1 ? count : `plus de ${to}`}`
                 }
               />
@@ -536,7 +530,7 @@ const ImportPrestataires: React.FC = () => {
       {/* Affichage des résultats persistants */}
       {importResult && !showResults && (
         <Card sx={{ mt: 2, bgcolor: 'success.light' }}>
-          <CardHeader 
+          <CardHeader
             title="Import terminé avec succès !"
             avatar={<CheckCircle color="success" />}
           />
@@ -567,9 +561,9 @@ const ImportPrestataires: React.FC = () => {
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
+                <Button
+                  variant="contained"
+                  color="primary"
                   onClick={() => setShowResults(true)}
                   fullWidth
                 >
@@ -582,10 +576,10 @@ const ImportPrestataires: React.FC = () => {
       )}
 
       {/* Dialog des résultats */}
-      <Dialog 
-        open={showResults} 
-        onClose={() => setShowResults(false)} 
-        maxWidth="xl" 
+      <Dialog
+        open={showResults}
+        onClose={() => setShowResults(false)}
+        maxWidth="xl"
         fullWidth
         fullScreen={false}
         PaperProps={{
@@ -636,7 +630,7 @@ const ImportPrestataires: React.FC = () => {
                   </Card>
                 </Grid>
               </Grid>
-              
+
               {/* Message de succès */}
               {importResult.success > 0 && (
                 <Alert severity="success" sx={{ mb: 2 }}>
@@ -654,23 +648,23 @@ const ImportPrestataires: React.FC = () => {
                   <Typography variant="h6" color="error" gutterBottom>
                     Erreurs détectées ({importResult.errors.length}):
                   </Typography>
-                  <Box sx={{ 
-                    maxHeight: '300px', 
-                    overflow: 'auto', 
-                    border: '1px solid #e0e0e0', 
+                  <Box sx={{
+                    maxHeight: '300px',
+                    overflow: 'auto',
+                    border: '1px solid #e0e0e0',
                     borderRadius: 1,
                     p: 1
                   }}>
                     {importResult.errors.map((error, index) => (
-                      <Typography 
-                        key={index} 
-                        variant="body2" 
-                        color="error" 
-                        sx={{ 
-                          mb: 0.5, 
-                          p: 0.5, 
-                          bgcolor: 'error.light', 
-                          borderRadius: 0.5 
+                      <Typography
+                        key={index}
+                        variant="body2"
+                        color="error"
+                        sx={{
+                          mb: 0.5,
+                          p: 0.5,
+                          bgcolor: 'error.light',
+                          borderRadius: 0.5
                         }}
                       >
                         {error}
@@ -685,23 +679,23 @@ const ImportPrestataires: React.FC = () => {
                   <Typography variant="h6" color="warning" gutterBottom>
                     Doublons détectés ({importResult.duplicates.length}):
                   </Typography>
-                  <Box sx={{ 
-                    maxHeight: '200px', 
-                    overflow: 'auto', 
-                    border: '1px solid #e0e0e0', 
+                  <Box sx={{
+                    maxHeight: '200px',
+                    overflow: 'auto',
+                    border: '1px solid #e0e0e0',
                     borderRadius: 1,
                     p: 1
                   }}>
                     {importResult.duplicates.map((dup, index) => (
-                      <Typography 
-                        key={index} 
-                        variant="body2" 
-                        color="warning.main" 
-                        sx={{ 
-                          mb: 0.5, 
-                          p: 0.5, 
-                          bgcolor: 'warning.light', 
-                          borderRadius: 0.5 
+                      <Typography
+                        key={index}
+                        variant="body2"
+                        color="warning.main"
+                        sx={{
+                          mb: 0.5,
+                          p: 0.5,
+                          bgcolor: 'warning.light',
+                          borderRadius: 0.5
                         }}
                       >
                         {dup.nom} - {dup.telephone}
@@ -720,12 +714,12 @@ const ImportPrestataires: React.FC = () => {
           <Button onClick={resetImport} variant="contained" color="primary">
             Nouvel import
           </Button>
-          <Button 
+          <Button
             onClick={() => {
               setShowResults(false);
               // Garder les résultats affichés
-            }} 
-            variant="contained" 
+            }}
+            variant="contained"
             color="success"
           >
             Voir les prestataires

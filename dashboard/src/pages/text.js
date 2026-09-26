@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Test = () => {
-    const [categories, setCategories] = useState([]); // Liste des groupes
-    const [selectedCategory, setSelectedCategory] = useState(''); // ID du groupe sélectionné
-    const [subcategories, setSubcategories] = useState([]); // Sous-catégories du groupe sélectionné
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [subcategories, setSubcategories] = useState([]);
 
-    // Charger les groupes depuis le backend
     useEffect(() => {
         axios
             .get('http://localhost:3000/api/groupe')
@@ -18,7 +17,6 @@ const Test = () => {
             });
     }, []);
 
-    // Charger les sous-catégories lorsque l'utilisateur sélectionne un groupe
     useEffect(() => {
         if (selectedCategory) {
             axios

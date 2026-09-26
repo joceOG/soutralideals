@@ -1,8 +1,12 @@
 import cartModel from '../models/cartModel.js';
-import commandeModel from '../models/commandeModel.js';
 import articleModel from '../models/articleModel.js';
 import mongoose from 'mongoose';
 import { assertOwnerOrAdmin, assertAdmin } from '../utils/accessControl.js';
+import {
+  createOrderFromClientPayload,
+  formatPublicCommandeResponse,
+  OrderCreationError,
+} from '../services/commandeCreationService.js';
 
 const ARTICLE_POPULATE_FIELDS = 'nomArticle prixArticle photoArticle quantiteArticle';
 
@@ -364,11 +368,10 @@ export const updateDeliveryAddress = async (req, res) => {
     }
 };
 
-// ✅ CONVERTIR LE PANIER EN COMMANDE (CHECKOUT)
+// ✅ CONVERTIR LE PANIER EN COMMANDE (CHECKOUT → DASH-8E.3B.1)
 export const checkout = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { moyenPaiement, notesClient } = req.body;
 
         if (!assertOwnerOrAdmin(req, res, userId)) return;
 
@@ -376,14 +379,10 @@ export const checkout = async (req, res) => {
             return res.status(400).json({ error: 'ID utilisateur invalide' });
         }
 
-        // Récupérer le panier
-        const cart = await cartModel.findOne({ 
-            utilisateur: userId, 
-            statut: 'ACTIF' 
-        })
-        .populate('utilisateur', 'nom prenom email telephone')
-        .populate('articles.article', ARTICLE_POPULATE_FIELDS)
-        .populate('articles.vendeur');
+        const cart = await cartModel.findOne({
+            utilisateur: userId,
+            statut: 'ACTIF',
+        }).populate('articles.article', ARTICLE_POPULATE_FIELDS);
 
         if (!cart) {
             return res.status(404).json({ error: 'Panier non trouvé' });
@@ -393,102 +392,62 @@ export const checkout = async (req, res) => {
             return res.status(400).json({ error: 'Panier vide' });
         }
 
-        // Vérifier que l'adresse de livraison est renseignée
         if (!cart.adresseLivraison || !cart.adresseLivraison.adresse) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Adresse de livraison requise',
-                message: 'Veuillez ajouter une adresse de livraison avant de valider'
+                message: 'Veuillez ajouter une adresse de livraison avant de valider',
             });
         }
 
-        // Vérifier le stock de tous les articles
         for (const item of cart.articles) {
             if (!item.article) {
-                return res.status(400).json({ 
-                    error: 'Un article n\'est plus disponible',
-                    articleId: item._id
-                });
-            }
-
-            const stockDisponible = getArticleStock(item.article);
-            if (stockDisponible < item.quantite) {
-                return res.status(400).json({ 
-                    error: `Stock insuffisant pour ${item.nomArticle}`,
-                    stockDisponible,
-                    quantiteDemandee: item.quantite
+                return res.status(400).json({
+                    success: false,
+                    code: 'ARTICLE_NOT_FOUND',
+                    message: 'Un article du panier n\'est plus disponible.',
                 });
             }
         }
 
-        // 🔒 TRANSACTION ATOMIQUE — évite la race condition stock
-        const session = await mongoose.startSession();
-        let commande;
-        try {
-            await session.withTransaction(async () => {
-                // Décrémentation atomique du stock avec contrainte ≥ 0
-                for (const item of cart.articles) {
-                    const updated = await articleModel.findOneAndUpdate(
-                        { _id: item.article._id, quantiteArticle: { $gte: item.quantite } },
-                        { $inc: { quantiteArticle: -item.quantite } },
-                        { session, new: true }
-                    );
-                    if (!updated) {
-                        throw Object.assign(
-                            new Error(`Stock épuisé pour ${item.nomArticle}`),
-                            { status: 409 }
-                        );
-                    }
-                }
+        const addr = cart.adresseLivraison;
+        const commande = await createOrderFromClientPayload({
+            utilisateurId: new mongoose.Types.ObjectId(userId),
+            body: {
+                articles: cart.articles.map((item) => ({
+                    articleId: String(item.article._id),
+                    quantite: item.quantite,
+                })),
+                infoCommande: {
+                    adresse: addr.adresse,
+                    ville: addr.ville || 'Abidjan',
+                    telephone: addr.telephone || '',
+                    codePostal: addr.codePostal || '00000',
+                    pays: addr.pays || 'CI',
+                },
+            },
+        });
 
-                commande = new commandeModel({
-                    utilisateur: userId,
-                    infoCommande: {
-                        addresse: cart.adresseLivraison.adresse,
-                        ville: cart.adresseLivraison.ville,
-                        codePostal: cart.adresseLivraison.codePostal,
-                        pays: cart.adresseLivraison.pays,
-                        telephone: cart.adresseLivraison.telephone
-                    },
-                    articles: cart.articles.map(item => ({
-                        nom: item.nomArticle,
-                        quantite: item.quantite,
-                        image: item.imageArticle,
-                        prix: item.prixUnitaire,
-                        prixTotal: item.prixTotal,
-                        articleId: item.article._id,
-                        vendeurId: item.vendeur._id
-                    })),
-                    prixArticles: cart.montantArticles,
-                    prixLivraison: cart.fraisLivraison,
-                    prixTotal: cart.montantTotal,
-                    statusCommande: 'En cours',
-                    moyenPaiement: moyenPaiement || 'A définir',
-                    notesClient: notesClient || cart.notes,
-                    codePromo: cart.codePromo.code ? {
-                        code: cart.codePromo.code,
-                        reduction: cart.codePromo.reduction,
-                        type: cart.codePromo.typeReduction
-                    } : undefined
-                });
-
-                await commande.save({ session });
-                await cart.convertirEnCommande(commande._id);
-            });
-        } finally {
-            session.endSession();
-        }
-
-        await commande.populate('utilisateur', 'nom prenom email telephone');
+        await cart.convertirEnCommande(commande._id);
 
         res.status(201).json({
             message: 'Commande créée avec succès',
-            commande,
-            cart
+            commande: formatPublicCommandeResponse(commande),
+            cart,
         });
     } catch (err) {
+        if (err instanceof OrderCreationError) {
+            return res.status(err.httpStatus).json({
+                success: false,
+                code: err.code,
+                message: err.message,
+            });
+        }
         console.error('Erreur checkout:', err.message);
-        const status = err.status || 500;
-        res.status(status).json({ error: err.message });
+        res.status(500).json({
+            success: false,
+            code: 'SERVER_ERROR',
+            message: 'Erreur serveur.',
+        });
     }
 };
 

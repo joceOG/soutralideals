@@ -2,7 +2,6 @@ import serviceModel from '../models/serviceModel.js';
 import articleModel from '../models/articleModel.js';
 import freelanceModel from '../models/freelanceModel.js';
 import vendeurModel from '../models/vendeurModel.js';
-import utilisateurModel from '../models/utilisateurModel.js';
 import prestataireModel from '../models/prestataireModel.js';
 import { buildFuzzyRegex, removeAccents } from '../utils/searchNormalize.js';
 import {
@@ -11,16 +10,28 @@ import {
   findPublicVendeurIds,
   isPrestatairePubliclyVisible,
 } from '../utils/proPublicFilter.js';
+import {
+  applyUtilisateurConflictExclusion,
+  loadPublicSearchConflictUtilisateurIds,
+} from '../services/publicSearchConflictService.js';
+import {
+  presentPublicFreelanceSearchItem,
+  presentPublicPrestataireSearchItem,
+  presentPublicVendeurSearchItem,
+} from '../utils/publicSearchPresenters.js';
+
+/** Endpoint non paginé : limite fixe par collection après filtre public + conflits. */
+const SEARCH_RESULT_LIMIT = 8;
 
 export const globalSearch = async (req, res) => {
   try {
-    const { query, minPrice, maxPrice, city } = req.query;
+    const { query, minPrice, maxPrice } = req.query;
 
     if (!query) {
-      return res.status(400).json({ message: "Le paramètre query est requis" });
+      return res.status(400).json({ message: 'Le paramètre query est requis' });
     }
 
-    const limit = 8;
+    const limit = SEARCH_RESULT_LIMIT;
     const { contains: fuzzyContains, exact: exactRegex } = buildFuzzyRegex(query);
 
     const priceFilter = {};
@@ -28,32 +39,39 @@ export const globalSearch = async (req, res) => {
     if (maxPrice) priceFilter.$lte = Number(maxPrice);
     const hasPriceFilter = Object.keys(priceFilter).length > 0;
 
+    const conflictIds = await loadPublicSearchConflictUtilisateurIds();
     const publicVendeurIds = await findPublicVendeurIds(vendeurModel);
 
-    const freelancePublic = applyFreelanceVendeurPublicMatch({
-      $or: [
-        { name: exactRegex },
-        { name: fuzzyContains },
-        { job: exactRegex },
-        { job: fuzzyContains },
-        { skills: { $in: [fuzzyContains] } },
-      ],
-    });
+    const freelancePublic = applyUtilisateurConflictExclusion(
+      applyFreelanceVendeurPublicMatch({
+        $or: [
+          { name: exactRegex },
+          { name: fuzzyContains },
+          { job: exactRegex },
+          { job: fuzzyContains },
+          { skills: { $in: [fuzzyContains] } },
+        ],
+      }),
+      conflictIds.freelance,
+    );
 
-    const vendeurPublic = applyFreelanceVendeurPublicMatch({
-      $or: [
-        { shopName: exactRegex },
-        { shopName: fuzzyContains },
-        { shopDescription: fuzzyContains },
-      ],
-    });
+    const vendeurPublic = applyUtilisateurConflictExclusion(
+      applyFreelanceVendeurPublicMatch({
+        $or: [
+          { shopName: exactRegex },
+          { shopName: fuzzyContains },
+          { shopDescription: fuzzyContains },
+        ],
+      }),
+      conflictIds.vendeur,
+    );
 
-    const prestatairePublic = applyPrestatairePublicMatch({
-      $or: [
-        { description: fuzzyContains },
-        { specialite: { $in: [fuzzyContains] } },
-      ],
-    });
+    const prestatairePublic = applyUtilisateurConflictExclusion(
+      applyPrestatairePublicMatch({
+        $or: [{ description: fuzzyContains }, { specialite: { $in: [fuzzyContains] } }],
+      }),
+      conflictIds.prestataire,
+    );
 
     const articleFilter = {
       $or: [
@@ -67,90 +85,54 @@ export const globalSearch = async (req, res) => {
       ...(hasPriceFilter && { prixArticle: priceFilter }),
     };
 
-    const [services, articles, freelances, vendeurs, prestatairesRaw] = await Promise.all([
-      serviceModel.find({
-        $or: [
-          { nomservice: exactRegex },
-          { nomservice: fuzzyContains },
-          { tags: { $in: [exactRegex] } },
-          { tags: { $in: [fuzzyContains] } },
-        ]
-      })
+    const [services, articles, freelancesRaw, vendeursRaw, prestatairesRaw] = await Promise.all([
+      serviceModel
+        .find({
+          $or: [
+            { nomservice: exactRegex },
+            { nomservice: fuzzyContains },
+            { tags: { $in: [exactRegex] } },
+            { tags: { $in: [fuzzyContains] } },
+          ],
+        })
         .select('nomservice prixmoyen imageservice categorie')
         .populate('categorie', 'nomcategorie')
         .limit(limit),
 
-      articleModel.find(articleFilter)
+      articleModel
+        .find(articleFilter)
         .select('nomArticle prixArticle photoArticle description')
         .limit(limit),
 
-      freelanceModel.find(freelancePublic)
-        .select('name job rating imagePath location ville hourlyRate')
+      freelanceModel
+        .find(freelancePublic)
+        .select(
+          'name job rating imagePath location ville hourlyRate displayName jobTitle utilisateur verificationDocuments',
+        )
         .limit(limit),
 
-      vendeurModel.find(vendeurPublic)
-        .select('shopName rating shopLogo ville')
+      vendeurModel
+        .find(vendeurPublic)
+        .select(
+          'shopName shopDescription rating shopLogo ville businessCategories utilisateur verificationDocuments email telephone',
+        )
         .limit(limit),
 
-      prestataireModel.find(prestatairePublic)
-        .populate('utilisateur', 'nom prenom photoProfil')
+      prestataireModel
+        .find(prestatairePublic)
+        .populate('utilisateur', 'nom prenom photoProfil telephone email role')
         .populate('service', 'nomservice')
         .limit(limit),
     ]);
 
-    const userPrestataires = await utilisateurModel.find({
-      role: 'Prestataire',
-      $or: [
-        { nom: exactRegex },
-        { nom: fuzzyContains },
-        { prenom: exactRegex },
-        { prenom: fuzzyContains },
-      ]
-    })
-      .select('nom prenom photoProfil')
-      .populate({
-        path: 'prestataire',
-        select: 'localisation service ville status verifier',
-        populate: { path: 'service', select: 'nomservice' }
-      })
-      .limit(limit);
+    const prestataires = prestatairesRaw
+      .filter((p) => p.utilisateur && isPrestatairePubliclyVisible(p))
+      .slice(0, limit)
+      .map((p) => presentPublicPrestataireSearchItem(p));
 
-    const formattedPrestataires = [
-      ...prestatairesRaw
-        .filter(p => p.utilisateur)
-        .map(p => ({
-          _id: p._id,
-          name: `${p.utilisateur?.prenom ?? ''} ${p.utilisateur?.nom ?? ''}`.trim(),
-          job: p.service?.nomservice || 'Prestataire',
-          imagePath: p.utilisateur?.photoProfil,
-          ville: p.ville || p.localisation,
-          rating: p.note ?? 0,
-          type: 'Prestataire',
-        })),
-      ...userPrestataires
-        .map(user => {
-          const prest = Array.isArray(user.prestataire) ? user.prestataire[0] : user.prestataire;
-          if (!prest || !isPrestatairePubliclyVisible(prest)) return null;
-          return {
-            _id: user._id,
-            name: `${user.prenom ?? ''} ${user.nom ?? ''}`.trim(),
-            job: prest?.service?.nomservice || 'Prestataire',
-            imagePath: user.photoProfil,
-            ville: prest?.ville || prest?.localisation,
-            rating: 0,
-            type: 'Prestataire',
-          };
-        })
-        .filter(Boolean),
-    ];
+    const freelances = freelancesRaw.slice(0, limit).map((f) => presentPublicFreelanceSearchItem(f));
 
-    const seenIds = new Set();
-    const uniquePrestataires = formattedPrestataires.filter(p => {
-      const id = String(p._id);
-      if (seenIds.has(id)) return false;
-      seenIds.add(id);
-      return true;
-    });
+    const vendeurs = vendeursRaw.slice(0, limit).map((v) => presentPublicVendeurSearchItem(v));
 
     res.json({
       query,
@@ -158,18 +140,21 @@ export const globalSearch = async (req, res) => {
         services,
         articles,
         freelances,
-        prestataires: uniquePrestataires,
-        vendeurs
+        prestataires,
+        vendeurs,
       },
       counts: {
         services: services.length,
         articles: articles.length,
         freelances: freelances.length,
-        prestataires: uniquePrestataires.length,
+        prestataires: prestataires.length,
         vendeurs: vendeurs.length,
-      }
+      },
+      pagination: {
+        paginated: false,
+        limitPerType: limit,
+      },
     });
-
   } catch (error) {
     console.error('Erreur recherche globale:', error);
     res.status(500).json({ error: error.message });
@@ -186,6 +171,7 @@ export const getSuggestions = async (req, res) => {
     const limit = 5;
     const { contains: fuzzyRegex, exact: exactRegex } = buildFuzzyRegex(query);
     const publicVendeurIds = await findPublicVendeurIds(vendeurModel);
+    const conflictIds = await loadPublicSearchConflictUtilisateurIds();
 
     const [services, articles, freelances, prestataires] = await Promise.all([
       serviceModel
@@ -202,28 +188,35 @@ export const getSuggestions = async (req, res) => {
         .limit(limit),
 
       freelanceModel
-        .find(applyFreelanceVendeurPublicMatch({
-          $or: [{ job: exactRegex }, { job: fuzzyRegex }],
-        }))
+        .find(
+          applyUtilisateurConflictExclusion(
+            applyFreelanceVendeurPublicMatch({
+              $or: [{ job: exactRegex }, { job: fuzzyRegex }],
+            }),
+            conflictIds.freelance,
+          ),
+        )
         .select('job')
         .limit(limit),
 
       prestataireModel
-        .find(applyPrestatairePublicMatch({}))
+        .find(
+          applyUtilisateurConflictExclusion(applyPrestatairePublicMatch({}), conflictIds.prestataire),
+        )
         .populate({
           path: 'service',
           match: { $or: [{ nomservice: exactRegex }, { nomservice: fuzzyRegex }] },
-          select: 'nomservice'
+          select: 'nomservice',
         })
         .select('service')
         .limit(limit),
     ]);
 
     const raw = [
-      ...services.map(s => s.nomservice),
-      ...articles.map(a => a.nomArticle),
-      ...freelances.map(f => f.job).filter(Boolean),
-      ...prestataires.map(p => p.service?.nomservice).filter(Boolean),
+      ...services.map((s) => s.nomservice),
+      ...articles.map((a) => a.nomArticle),
+      ...freelances.map((f) => f.job).filter(Boolean),
+      ...prestataires.map((p) => p.service?.nomservice).filter(Boolean),
     ];
 
     const normalized = removeAccents(query);

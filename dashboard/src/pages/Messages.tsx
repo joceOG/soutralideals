@@ -8,10 +8,9 @@ import SendIcon from '@mui/icons-material/Send';
 import SearchIcon from '@mui/icons-material/Search';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import axios from 'axios';
+import { apiClient, getCurrentUserId } from '../services/setupApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getCurrentUserId } from '../services/setupApi';
 
 // ✅ INTERFACES TYPESCRIPT
 interface IUtilisateur {
@@ -50,8 +49,6 @@ interface IMessageStats {
   }>;
 }
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-
 const MessagesComponent: React.FC = () => {
   const [conversations, setConversations] = useState<IConversation[]>([]);
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -72,7 +69,7 @@ const MessagesComponent: React.FC = () => {
       return;
     }
     try {
-      const response = await axios.get(`${apiUrl}/messages/conversations/${currentUserId}`);
+      const response = await apiClient.get(`/messages/conversations/${currentUserId}`);
       setConversations(response.data.conversations || []);
     } catch (error) {
       toast.error("Erreur lors du chargement des conversations");
@@ -83,13 +80,13 @@ const MessagesComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES MESSAGES D'UNE CONVERSATION
   const fetchMessages = async (conversationId: string) => {
     try {
-      const response = await axios.get(
-        `${apiUrl}/messages/conversation/${conversationId}?userId=${currentUserId}`
+      const response = await apiClient.get(
+        `/messages/conversation/${conversationId}?userId=${currentUserId}`
       );
       setMessages(response.data.messages || []);
-      
+
       // Marquer comme lus
-      await axios.patch(`${apiUrl}/messages/mark-read`, {
+      await apiClient.patch(`/messages/mark-read`, {
         conversationId,
         userId: currentUserId
       });
@@ -102,7 +99,7 @@ const MessagesComponent: React.FC = () => {
   // 🔹 CHARGEMENT DES STATISTIQUES
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/messages/stats?userId=${currentUserId}`);
+      const response = await apiClient.get(`/messages/stats?userId=${currentUserId}`);
       setStats(response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -133,27 +130,25 @@ const MessagesComponent: React.FC = () => {
 
     try {
       const formData = new FormData();
-      
+
       // Déterminer le destinataire depuis la conversation sélectionnée
       const conversation = conversations.find(c => c._id === selectedConversation);
       if (!conversation) return;
       if (!currentUserId) return;
 
-      const destinataire = conversation.dernierMessage.expediteur._id === currentUserId 
-        ? conversation.dernierMessage.destinataire._id 
+      const destinataire = conversation.dernierMessage.expediteur._id === currentUserId
+        ? conversation.dernierMessage.destinataire._id
         : conversation.dernierMessage.expediteur._id;
 
       formData.append('expediteur', currentUserId);
       formData.append('destinataire', destinataire);
       formData.append('contenu', newMessage);
-      
+
       if (file) {
         formData.append('pieceJointe', file);
       }
 
-      await axios.post(`${apiUrl}/message`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await apiClient.post('/message', formData);
 
       setNewMessage('');
       setFile(null);
@@ -167,10 +162,10 @@ const MessagesComponent: React.FC = () => {
 
   // 🔹 FILTRAGE DES CONVERSATIONS
   const filteredConversations = conversations.filter(conv => {
-    const otherUser = conv.dernierMessage.expediteur._id === currentUserId 
-      ? conv.dernierMessage.destinataire 
+    const otherUser = conv.dernierMessage.expediteur._id === currentUserId
+      ? conv.dernierMessage.destinataire
       : conv.dernierMessage.expediteur;
-    
+
     return `${otherUser.nom} ${otherUser.prenom}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -194,13 +189,13 @@ const MessagesComponent: React.FC = () => {
   return (
     <Box m={2}>
       <ToastContainer />
-      
+
       {/* 📊 HEADER AVEC STATISTIQUES */}
       <Box mb={3}>
         <Typography variant="h4" gutterBottom>
           Messages & Conversations
         </Typography>
-        
+
         {stats && (
           <Box display="flex" gap={2} mb={2}>
             <Card sx={{ minWidth: 150 }}>
@@ -213,7 +208,7 @@ const MessagesComponent: React.FC = () => {
                 </Typography>
               </CardContent>
             </Card>
-            
+
             <Card sx={{ minWidth: 150 }}>
               <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" color="secondary">
@@ -230,7 +225,7 @@ const MessagesComponent: React.FC = () => {
 
       {/* 💬 INTERFACE DE CHAT */}
       <Box display="flex" height="70vh" gap={2}>
-        
+
         {/* 📝 PANNEAU DES CONVERSATIONS */}
         <Paper sx={{ width: '30%', display: 'flex', flexDirection: 'column' }}>
           {/* Recherche */}
@@ -251,16 +246,16 @@ const MessagesComponent: React.FC = () => {
               }}
             />
           </Box>
-          
+
           <Divider />
-          
+
           {/* Liste des conversations */}
           <List sx={{ flex: 1, overflow: 'auto', p: 0 }}>
             {filteredConversations.map((conversation) => {
-              const otherUser = conversation.dernierMessage.expediteur._id === currentUserId 
-                ? conversation.dernierMessage.destinataire 
+              const otherUser = conversation.dernierMessage.expediteur._id === currentUserId
+                ? conversation.dernierMessage.destinataire
                 : conversation.dernierMessage.expediteur;
-              
+
               return (
                 <React.Fragment key={conversation._id}>
                   <ListItem
@@ -285,9 +280,9 @@ const MessagesComponent: React.FC = () => {
                       primary={`${otherUser.nom} ${otherUser.prenom}`}
                       secondary={
                         <Box>
-                          <Typography 
-                            variant="body2" 
-                            noWrap 
+                          <Typography
+                            variant="body2"
+                            noWrap
                             sx={{ maxWidth: 200 }}
                           >
                             {conversation.dernierMessage.contenu}
@@ -311,20 +306,20 @@ const MessagesComponent: React.FC = () => {
           {selectedConversation ? (
             <>
               {/* Header de conversation */}
-              <Box 
-                p={2} 
-                borderBottom={1} 
+              <Box
+                p={2}
+                borderBottom={1}
                 borderColor="divider"
-                display="flex" 
-                alignItems="center" 
+                display="flex"
+                alignItems="center"
                 justifyContent="space-between"
               >
                 <Typography variant="h6">
                   {(() => {
                     const conversation = conversations.find(c => c._id === selectedConversation);
                     if (!conversation) return '';
-                    const otherUser = conversation.dernierMessage.expediteur._id === currentUserId 
-                      ? conversation.dernierMessage.destinataire 
+                    const otherUser = conversation.dernierMessage.expediteur._id === currentUserId
+                      ? conversation.dernierMessage.destinataire
                       : conversation.dernierMessage.expediteur;
                     return `${otherUser.nom} ${otherUser.prenom}`;
                   })()}
@@ -347,11 +342,11 @@ const MessagesComponent: React.FC = () => {
                       sx={{
                         maxWidth: '70%',
                         p: 1.5,
-                        backgroundColor: message.expediteur._id === currentUserId 
-                          ? 'primary.main' 
+                        backgroundColor: message.expediteur._id === currentUserId
+                          ? 'primary.main'
                           : 'grey.100',
-                        color: message.expediteur._id === currentUserId 
-                          ? 'primary.contrastText' 
+                        color: message.expediteur._id === currentUserId
+                          ? 'primary.contrastText'
                           : 'text.primary'
                       }}
                     >
@@ -361,9 +356,9 @@ const MessagesComponent: React.FC = () => {
                       {message.pieceJointe && (
                         <Box mt={1}>
                           {message.typePieceJointe === 'IMAGE' ? (
-                            <img 
-                              src={message.pieceJointe} 
-                              alt="Pièce jointe" 
+                            <img
+                              src={message.pieceJointe}
+                              alt="Pièce jointe"
                               style={{ maxWidth: 200, borderRadius: 8 }}
                             />
                           ) : (
@@ -395,7 +390,7 @@ const MessagesComponent: React.FC = () => {
                       <AttachFileIcon />
                     </IconButton>
                   </label>
-                  
+
                   <TextField
                     fullWidth
                     variant="outlined"
@@ -412,16 +407,16 @@ const MessagesComponent: React.FC = () => {
                     multiline
                     maxRows={3}
                   />
-                  
-                  <IconButton 
-                    color="primary" 
+
+                  <IconButton
+                    color="primary"
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() && !file}
                   >
                     <SendIcon />
                   </IconButton>
                 </Box>
-                
+
                 {file && (
                   <Box mt={1}>
                     <Typography variant="caption" color="primary">
@@ -435,10 +430,10 @@ const MessagesComponent: React.FC = () => {
               </Box>
             </>
           ) : (
-            <Box 
-              display="flex" 
-              alignItems="center" 
-              justifyContent="center" 
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
               height="100%"
               color="text.secondary"
             >

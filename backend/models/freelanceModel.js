@@ -102,6 +102,10 @@ const FreelanceSchema = mongoose.Schema({
 }, { timestamps: true });
 
 // Index textuel pour la recherche
+FreelanceSchema.index(
+  { utilisateur: 1 },
+  { name: 'idx_freelance_utilisateur' },
+);
 FreelanceSchema.index({
     name: 'text',
     job: 'text',

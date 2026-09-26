@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -19,10 +19,17 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import { LocationOn, Person, Directions, Search } from '@mui/icons-material';
+import {
+  LocationOn,
+  Person,
+  Business,
+  Directions,
+  Search,
+  FilterList
+} from '@mui/icons-material';
 import GoogleMapComponent from './GoogleMapComponent';
-import { geocodeAddress} from '../../services/googleMapsService';
-import axios from 'axios';
+import { geocodeAddress, calculateDistance, searchNearbyPlaces } from '../../services/googleMapsService';
+import { apiClient } from '../../services/setupApi';
 
 // Types
 interface Prestataire {
@@ -42,6 +49,12 @@ interface Prestataire {
   };
 }
 
+interface ServiceArea {
+  center: { lat: number; lng: number };
+  radius: number;
+  points: Array<{ lat: number; lng: number }>;
+}
+
 const PrestatairesMap: React.FC = () => {
   const [prestataires, setPrestataires] = useState<Prestataire[]>([]);
   const [filteredPrestataires, setFilteredPrestataires] = useState<Prestataire[]>([]);
@@ -52,10 +65,14 @@ const PrestatairesMap: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: 5.3600, lng: -4.0083 }); // Abidjan par défaut
-
+  const [showServiceArea, setShowServiceArea] = useState(false);
+  const [serviceArea, setServiceArea] = useState<ServiceArea | null>(null);
   
   // Configuration API
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  // ✅ CHARGEMENT DES PRESTATAIRES
+  useEffect(() => {
+    loadPrestataires();
+  }, []);
 
   const loadPrestataires = async () => {
     try {
@@ -66,7 +83,7 @@ const PrestatairesMap: React.FC = () => {
       let apiPrestataires: Prestataire[] = [];
       try {
         console.log('🔄 Chargement des prestataires depuis l\'API...');
-        const response = await axios.get(`${apiUrl}/prestataire`);
+        const response = await apiClient.get('/prestataire');
         
         if (Array.isArray(response.data)) {
           // Transformer les données de l'API vers le format attendu
@@ -152,12 +169,6 @@ const PrestatairesMap: React.FC = () => {
       setLoading(false);
     }
   };
-
-  const loadPrestatairesRef = useRef(loadPrestataires);
-  loadPrestatairesRef.current = loadPrestataires;
-  useEffect(() => {
-    loadPrestatairesRef.current();
-  }, []);
 
   // ✅ RECHERCHE PAR ADRESSE
   const handleSearchByAddress = async () => {

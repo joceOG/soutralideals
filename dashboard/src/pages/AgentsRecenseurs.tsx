@@ -39,12 +39,11 @@ import {
   setFieldAgentActive,
   setFieldAgentAuthorization,
 } from '../services/fieldAgentsApi';
-import { clearSession, isCurrentUserAdmin } from '../services/setupApi';
+import { clearSession, isCurrentUserAdmin, isApiClientError } from '../services/setupApi';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 function errMessage(err: unknown): string {
-  if (axios.isAxiosError(err)) {
+  if (isApiClientError(err)) {
     const data = err.response?.data as { error?: string; message?: string };
     return data?.error || data?.message || err.message;
   }
@@ -102,7 +101,7 @@ const AgentsRecenseurs: React.FC = () => {
       setAgents(data.agents || []);
       setTotal(data.total || 0);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
+      if (isApiClientError(err) && err.response?.status === 401) {
         clearSession();
         navigate('/connexion', { replace: true });
         return;
@@ -150,7 +149,7 @@ const AgentsRecenseurs: React.FC = () => {
       if (form.authorize && !res.authorizationGranted) {
         setCreateWarning(
           res.authorizationError ||
-            'Compte créé, mais autorisation de recensement non activée.',
+          'Compte créé, mais autorisation de recensement non activée.',
         );
         setPendingRetryId(res.agent.id);
         setSuccess(

@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { getApiUrl, getAuthHeaders } from './setupApi';
+import { apiClient } from './setupApi';
 
 export type FieldAgent = {
   id: string;
@@ -28,10 +27,7 @@ export async function listFieldAgents(params: {
   page?: number;
   limit?: number;
 }) {
-  const res = await axios.get(`${getApiUrl()}/utilisateur/field-agents`, {
-    params,
-    headers: getAuthHeaders(),
-  });
+  const res = await apiClient.get('/utilisateur/field-agents', { params });
   return res.data as {
     agents: FieldAgent[];
     total: number;
@@ -49,9 +45,7 @@ export async function createFieldAgent(body: {
   authorize?: boolean;
   phoneCountry?: string;
 }) {
-  const res = await axios.post(`${getApiUrl()}/utilisateur/field-agents`, body, {
-    headers: getAuthHeaders(),
-  });
+  const res = await apiClient.post('/utilisateur/field-agents', body);
   return res.data as {
     agent: FieldAgent;
     temporaryPasswordSet: boolean;
@@ -62,11 +56,7 @@ export async function createFieldAgent(body: {
 }
 
 export async function setFieldAgentAuthorization(id: string, enabled: boolean) {
-  const res = await axios.patch(
-    `${getApiUrl()}/utilisateur/${id}/can-create-recensement`,
-    { enabled },
-    { headers: getAuthHeaders() },
-  );
+  const res = await apiClient.patch(`/utilisateur/${id}/can-create-recensement`, { enabled });
   return res.data as {
     agent: FieldAgent;
     canCreateRecensement: boolean;
@@ -75,20 +65,12 @@ export async function setFieldAgentAuthorization(id: string, enabled: boolean) {
 }
 
 export async function setFieldAgentActive(id: string, isActive: boolean) {
-  const res = await axios.patch(
-    `${getApiUrl()}/utilisateur/${id}/field-agent-active`,
-    { isActive },
-    { headers: getAuthHeaders() },
-  );
+  const res = await apiClient.patch(`/utilisateur/${id}/field-agent-active`, { isActive });
   return res.data as { agent: FieldAgent; message: string };
 }
 
 export async function resetAgentPassword(id: string, password: string) {
-  const res = await axios.patch(
-    `${getApiUrl()}/utilisateur/${id}/agent-password`,
-    { password },
-    { headers: getAuthHeaders() },
-  );
+  const res = await apiClient.patch(`/utilisateur/${id}/agent-password`, { password });
   return res.data as { message: string };
 }
 

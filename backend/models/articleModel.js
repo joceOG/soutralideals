@@ -37,6 +37,8 @@ const ArticleSchema = new mongoose.Schema({
 
 // Index textuel pour la recherche
 ArticleSchema.index({ nomArticle: 'text', tags: 'text' });
+ArticleSchema.index({ vendeur: 1 });
+ArticleSchema.index({ vendeur: 1, categorie: 1 });
 
 const articleModel = mongoose.model('Article', ArticleSchema);
 
