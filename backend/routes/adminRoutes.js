@@ -52,4 +52,16 @@ adminRouter.get('/admin/navigation-summary',
   adminController.getNavigationSummary
 );
 
+/**
+ * R1-09 C-3 — Backfill rétroactif photo prestataire
+ * Copie media.profilePhoto.promotedPublicUrl → Utilisateur.photoProfil
+ * pour les prestataires déjà publiés sans photo utilisateur.
+ * Body : { dryRun: true } pour simuler.
+ */
+adminRouter.post('/admin/recensement/backfill-prestataire-photo',
+  auth,
+  authRole(['Admin', 'ADMIN']),
+  adminController.backfillPrestatairePhotoProfil
+);
+
 export default adminRouter;
