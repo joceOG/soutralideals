@@ -151,3 +151,7 @@ dist
 
 
 config.bat
+
+# Sauvegardes de migration catalogue (mongodump / fallback JSON)
+backend/catalog/backup-*/
+backend/catalog/*.bson
