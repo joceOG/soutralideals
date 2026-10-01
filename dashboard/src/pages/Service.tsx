@@ -30,6 +30,10 @@ interface ServiceItem {
   imageservice?: string;
   prixmoyen?: number;
   tags: string[];
+  aliases: string[];
+  needs: string[];
+  shortcutRank?: number;
+  catalogKey?: string;
   categorie: {
     _id: string;
     nomcategorie: string;
@@ -78,7 +82,12 @@ const Service: React.FC = () => {
   const [selectedGroupe, setSelectedGroupe] = useState('');
   const [selectedCategorie, setSelectedCategorie] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [clearImage, setClearImage] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
+  const [aliases, setAliases] = useState<string[]>([]);
+  const [needs, setNeeds] = useState<string[]>([]);
+  const [shortcutRank, setShortcutRank] = useState('');
+  const [catalogKey, setCatalogKey] = useState('');
   const [saving, setSaving] = useState(false);
 
   // Snackbar
@@ -97,7 +106,12 @@ const Service: React.FC = () => {
         apiClient.get(`/categorie`),
         apiClient.get(`/groupe`),
       ]);
-      setServices(svcRes.data.map((s: any) => ({ ...s, tags: s.tags || [] })));
+      setServices(svcRes.data.map((s: any) => ({
+        ...s,
+        tags: s.tags || [],
+        aliases: s.aliases || [],
+        needs: s.needs || [],
+      })));
       setCategories(catRes.data.map((c: any) => ({
         _id: c._id,
         nomcategorie: c.nomcategorie,
@@ -120,7 +134,9 @@ const Service: React.FC = () => {
         s.nomservice.toLowerCase().includes(q) ||
         (s.categorie?.nomcategorie ?? '').toLowerCase().includes(q) ||
         (s.categorie?.groupe?.nomgroupe ?? '').toLowerCase().includes(q) ||
-        s.tags.some(t => t.toLowerCase().includes(q)),
+        s.tags.some(t => t.toLowerCase().includes(q)) ||
+        (s.aliases || []).some(t => t.toLowerCase().includes(q)) ||
+        (s.needs || []).some(t => t.toLowerCase().includes(q)),
       ),
     );
     setPage(0);
@@ -135,7 +151,8 @@ const Service: React.FC = () => {
   const openAdd = () => {
     setEditTarget(null);
     setNomservice(''); setPrixmoyen(''); setSelectedGroupe('');
-    setSelectedCategorie(''); setImageFile(null); setTags([]);
+    setSelectedCategorie(''); setImageFile(null); setClearImage(false);
+    setTags([]); setAliases([]); setNeeds([]); setShortcutRank(''); setCatalogKey('');
     setDialogOpen(true);
   };
 
@@ -147,7 +164,12 @@ const Service: React.FC = () => {
     setSelectedGroupe(grpId);
     setSelectedCategorie(s.categorie?._id ?? '');
     setImageFile(null);
+    setClearImage(false);
     setTags(s.tags || []);
+    setAliases(s.aliases || []);
+    setNeeds(s.needs || []);
+    setShortcutRank(s.shortcutRank != null ? String(s.shortcutRank) : '');
+    setCatalogKey(s.catalogKey || '');
     setDialogOpen(true);
   };
 
@@ -162,7 +184,12 @@ const Service: React.FC = () => {
       fd.append('categorie', selectedCategorie);
       if (prixmoyen !== '') fd.append('prixmoyen', prixmoyen);
       fd.append('tags', JSON.stringify(tags));
+      fd.append('aliases', JSON.stringify(aliases));
+      fd.append('needs', JSON.stringify(needs));
+      fd.append('shortcutRank', shortcutRank);
+      fd.append('catalogKey', catalogKey);
       if (imageFile) fd.append('imageservice', imageFile);
+      if (clearImage && !imageFile) fd.append('clearImage', 'true');
 
       if (editTarget) {
         await apiClient.put(`/service/${editTarget._id}`, fd);
@@ -464,12 +491,34 @@ const Service: React.FC = () => {
             />
           </Box>
 
-          {/* Section 4 — Mots-clés */}
+          {/* Section 4 — Vocabulaire de recherche */}
           <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${colors.border}` }}>
             <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, display: 'block', mb: 2 }}>
-              Mots-clés
+              Vocabulaire de recherche
             </Typography>
-            <TagsInput tags={tags} onChange={setTags} label="Tags (Entrée ou virgule pour ajouter)" />
+            <TagsInput tags={aliases} onChange={setAliases} label="Alias et anciens noms (synonymes)" />
+            <TagsInput tags={needs} onChange={setNeeds} label="Besoins associés (fuite d’eau, robinet…)" />
+            <TagsInput tags={tags} onChange={setTags} label="Tags legacy (ne pas confondre avec les alias)" />
+            <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} mt={2}>
+              <TextField
+                size="small"
+                label="Raccourci éditorial (1–6)"
+                placeholder="Vide = hors raccourcis"
+                value={shortcutRank}
+                onChange={e => setShortcutRank(e.target.value)}
+                helperText="Ordre stable des raccourcis Métiers. Pas un indice de popularité."
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                size="small"
+                label="Clé catalogue"
+                placeholder="metiers.plombier"
+                value={catalogKey}
+                onChange={e => setCatalogKey(e.target.value)}
+                helperText="Clé stable de migration. Laisser vide si non utilisé."
+                sx={{ flex: 1 }}
+              />
+            </Stack>
           </Box>
 
           {/* Section 5 — Image */}
@@ -491,19 +540,46 @@ const Service: React.FC = () => {
                   </Typography>
                 </Box>
                 <Button size="small" color="inherit" onClick={() => setImageFile(null)}>
-                  Supprimer
+                  Annuler le fichier
+                </Button>
+              </Stack>
+            ) : editTarget?.imageservice && !clearImage ? (
+              <Stack direction="row" alignItems="center" gap={2}>
+                <Avatar src={editTarget.imageservice} variant="rounded" sx={{ width: 64, height: 64 }} />
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="body2">Image actuelle conservée si vous n’en choisissez pas une autre.</Typography>
+                </Box>
+                <Button size="small" color="inherit" onClick={() => setClearImage(true)}>
+                  Retirer l’image
+                </Button>
+                <Button variant="outlined" component="label" size="small">
+                  Remplacer
+                  <input type="file" hidden accept="image/*" onChange={e => {
+                    setImageFile(e.target.files?.[0] ?? null);
+                    setClearImage(false);
+                  }} />
                 </Button>
               </Stack>
             ) : (
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<ImageIcon />}
-                sx={{ color: colors.textSecondary, borderColor: colors.border, borderStyle: 'dashed', width: '100%', py: 1.5, borderRadius: 2 }}
-              >
-                Choisir une image (optionnel)
-                <input type="file" hidden accept="image/*" onChange={e => setImageFile(e.target.files?.[0] ?? null)} />
-              </Button>
+              <Stack gap={1}>
+                {clearImage && (
+                  <Typography variant="caption" color={colors.textMuted}>
+                    L’image actuelle sera retirée à l’enregistrement.
+                  </Typography>
+                )}
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<ImageIcon />}
+                  sx={{ color: colors.textSecondary, borderColor: colors.border, borderStyle: 'dashed', width: '100%', py: 1.5, borderRadius: 2 }}
+                >
+                  Choisir une image (optionnel)
+                  <input type="file" hidden accept="image/*" onChange={e => {
+                    setImageFile(e.target.files?.[0] ?? null);
+                    setClearImage(false);
+                  }} />
+                </Button>
+              </Stack>
             )}
           </Box>
         </DialogContent>
