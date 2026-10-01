@@ -498,6 +498,48 @@ export const updatePrestataire = async (req, res) => {
 };
 
 // ✅ Lire tous les prestataires (avec filtres optionnels)
+// ── Helper photo publique partagé ──────────────────────────────────────────
+// Injecte utilisateur.photoProfil depuis FieldRecensement quand manquant.
+// Aucune écriture en base. Préserve les protections KYC existantes.
+// Fonctionne sur un tableau de plain objects (modifie en place).
+async function applyRecensementPhotoFallback(plains) {
+  const needing = plains.filter(
+    (p) =>
+      p.source === 'field_recensement_v1' &&
+      !p.utilisateur?.photoProfil &&
+      p.sourceFieldRecensementId,
+  );
+  if (!needing.length) return;
+
+  const ids = needing.map((p) => p.sourceFieldRecensementId);
+  const recensements = await FieldRecensement.find({ _id: { $in: ids } })
+    .select('+media.profilePhoto.promotedPublicUrl +media.profilePhoto.publicRevocationStatus')
+    .lean();
+
+  const photoMap = Object.fromEntries(
+    recensements
+      .filter(
+        (r) =>
+          r.media?.profilePhoto?.promotedPublicUrl &&
+          r.media?.profilePhoto?.publicRevocationStatus !== 'revoked',
+      )
+      .map((r) => [String(r._id), r.media.profilePhoto.promotedPublicUrl]),
+  );
+
+  for (const p of plains) {
+    if (
+      p.source === 'field_recensement_v1' &&
+      !p.utilisateur?.photoProfil &&
+      p.sourceFieldRecensementId
+    ) {
+      const url = photoMap[String(p.sourceFieldRecensementId)];
+      if (url) {
+        p.utilisateur = { ...(p.utilisateur || {}), photoProfil: url };
+      }
+    }
+  }
+}
+
 export const getAllPrestataires = async (req, res) => {
   try {
     const built = await buildPrestataireListFilter(req);
@@ -541,43 +583,8 @@ export const getAllPrestataires = async (req, res) => {
       return redacted;
     });
 
-    // Fallback photo pour les profils recensement dont promotePhotoIfNeeded
-    // a réussi la promotion Cloudinary mais pas la propagation Mongo
-    // (utilisateur.photoProfil = null malgré une URL publique disponible).
-    const recensementMissing = safe.filter(
-      (p) =>
-        p.source === 'field_recensement_v1' &&
-        !p.utilisateur?.photoProfil &&
-        p.sourceFieldRecensementId,
-    );
-    if (recensementMissing.length > 0) {
-      const recensementIds = recensementMissing.map((p) => p.sourceFieldRecensementId);
-      const recensements = await FieldRecensement.find({ _id: { $in: recensementIds } })
-        .select('+media.profilePhoto.promotedPublicUrl +media.profilePhoto.publicRevocationStatus')
-        .lean();
-      const photoMap = Object.fromEntries(
-        recensements
-          .filter(
-            (r) =>
-              r.media?.profilePhoto?.promotedPublicUrl &&
-              r.media?.profilePhoto?.publicRevocationStatus !== 'revoked',
-          )
-          .map((r) => [String(r._id), r.media.profilePhoto.promotedPublicUrl]),
-      );
-      for (const p of safe) {
-        if (
-          p.source === 'field_recensement_v1' &&
-          !p.utilisateur?.photoProfil &&
-          p.sourceFieldRecensementId
-        ) {
-          const url = photoMap[String(p.sourceFieldRecensementId)];
-          if (url) {
-            // Injecte l'URL dans la même shape utilisateur — pas de nouveau champ
-            p.utilisateur = { ...(p.utilisateur || {}), photoProfil: url };
-          }
-        }
-      }
-    }
+    // Fallback photo recensement via helper partagé
+    await applyRecensementPhotoFallback(safe);
 
     res.setHeader('X-Total-Count', String(total));
     res.status(200).json(safe);
@@ -616,9 +623,115 @@ export const getPrestataireById = async (req, res) => {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
 
-    res.status(200).json(presentProDocForViewer(req, prestataire, res));
+    // Applique le même fallback photo que la liste — résoud photoProfil
+    // pour les profils recensement dont la propagation Mongo a échoué.
+    const result = presentProDocForViewer(req, prestataire, res);
+    await applyRecensementPhotoFallback([result]);
+    res.status(200).json(result);
   } catch (err) {
     console.error("Erreur lecture prestataire:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ── Helper URL photo publique ──────────────────────────────────────────────
+// Protocole http/https et hostname présent. Aucun téléchargement.
+function isValidPublicPhotoUrl(value) {
+  if (typeof value !== 'string' || !value) return false;
+  try {
+    const u = new URL(value);
+    return (u.protocol === 'http:' || u.protocol === 'https:') && !!u.hostname;
+  } catch {
+    return false;
+  }
+}
+
+// ✅ Aperçu accueil — uniquement les profils avec photo publique résolue,
+// filtrage AVANT la limite de 5. Endpoint dédié pour ne pas altérer
+// le catalogue global GET /prestataire.
+//
+// Parcourt le catalogue par lots de 20 (pagination curseur via _id)
+// jusqu'à collecter 5 profils éligibles ou atteindre la fin des résultats.
+export const getHomePreview = async (req, res) => {
+  try {
+    const built = await buildPrestataireListFilter(req);
+    if (built.error) {
+      return res.status(built.status || 400).json({ error: built.error });
+    }
+    if (built.empty) {
+      return res.status(200).json([]);
+    }
+    const filter = built.filter;
+
+    const TARGET = 5;
+    const BATCH_SIZE = 20;
+    // Garde-fou : protège contre une collection très grande ou très peu
+    // de profils éligibles. Si déclenché → résultat potentiellement partiel.
+    const MAX_BATCHES = 25;
+
+    const collected = [];
+    let lastId = null;
+    let partial = false;
+
+    for (let i = 0; i < MAX_BATCHES; i++) {
+      // Pagination curseur : évite le coût O(n) du skip.
+      // _id: 1 donne un ordre stable et cohérent entre lots.
+      const batchFilter = lastId
+        ? { ...filter, _id: { $gt: lastId } }
+        : filter;
+
+      const batch = await prestataireModel
+        .find(batchFilter)
+        .sort({ _id: 1 })
+        .limit(BATCH_SIZE)
+        .populate('utilisateur', 'nom prenom photoProfil email telephone')
+        .populate({
+          path: 'service',
+          populate: { path: 'categorie', populate: { path: 'groupe' } },
+        });
+
+      if (!batch.length) break; // fin réelle du catalogue
+
+      // KYC redact sur ce lot
+      const safeBatch = batch.map((p) => {
+        const plain = typeof p.toObject === 'function' ? p.toObject() : { ...p };
+        const redacted = redactKycFromPlain(plain);
+        for (const f of KYC_FIELD_NAMES) {
+          redacted[f] = Boolean(plain[f]);
+        }
+        return redacted;
+      });
+
+      // Fallback photo recensement sur ce lot (même logique que la liste)
+      await applyRecensementPhotoFallback(safeBatch);
+
+      // Validation par parseur : protocole http/https + hostname présent.
+      // Aucun téléchargement de l'image.
+      for (const p of safeBatch) {
+        if (isValidPublicPhotoUrl(p.utilisateur?.photoProfil)) {
+          collected.push(p);
+          if (collected.length >= TARGET) break;
+        }
+      }
+
+      // Mise à jour du curseur pour le prochain lot
+      lastId = batch[batch.length - 1]._id;
+      if (batch.length < BATCH_SIZE) break; // dernier lot — catalogue épuisé
+      if (collected.length >= TARGET) break;
+
+      // Dernière itération permise atteinte → signal résultat partiel
+      if (i === MAX_BATCHES - 1) {
+        partial = true;
+      }
+    }
+
+    // X-Preview-Partial : 1 quand le garde-fou MAX_BATCHES a interrompu
+    // la traversée avant d'atteindre la fin du catalogue.
+    // Le client peut utiliser ce header pour afficher un accès global alternatif.
+    res.setHeader('X-Preview-Partial', partial ? '1' : '0');
+    return res.status(200).json(collected);
+  } catch (err) {
+    console.error('Erreur home preview prestataires:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
