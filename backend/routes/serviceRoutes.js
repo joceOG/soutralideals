@@ -6,6 +6,7 @@ import {
     createServiceDirect,
     updateService,
     getAllServices,
+    getServiceShortcuts,
     getServicesByCategorie,
     deleteService,
     searchServices
@@ -20,6 +21,7 @@ function serviceDirectTestOnly(req, res, next) {
 }
 
 serviceRouter.get("/service/search", searchServices);
+serviceRouter.get("/service/shortcuts", getServiceShortcuts);
 serviceRouter.get("/service", getAllServices);
 serviceRouter.get("/service/:categorie", getServicesByCategorie);
 

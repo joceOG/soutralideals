@@ -5,15 +5,17 @@ import { escapeRegex } from "../utils/escapeRegex.js";
 import multer from "multer";
 import cloudinary from "cloudinary";
 import fs from "fs";
+import { parseStringList } from "../utils/catalogText.js";
+import { loadCatalogServicesForScope } from "../utils/catalogSearch.js";
 import {
     validateServicePayload,
     sendControllerError,
 } from "../utils/catalogValidation.js";
 
 cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Configure Multer
@@ -89,7 +91,7 @@ const parseTags = (tags) => {
 
 export const createService = async (req, res) => {
     try {
-        const { nomservice, categorie, prixmoyen, imageservice, tags } = req.body;
+        const { nomservice, categorie, prixmoyen, imageservice, tags, aliases, needs, shortcutRank, catalogKey } = req.body;
 
         const validation = await validateServicePayload({ nomservice, categorie });
         if (validation.error) {
@@ -111,10 +113,18 @@ export const createService = async (req, res) => {
             nomservice: String(nomservice).trim(),
             categorie,
             tags: parseTags(tags),
+            aliases: parseStringList(aliases),
+            needs: parseStringList(needs),
         };
         if (finalImageUrl) newServiceData.imageservice = finalImageUrl;
         if (typeof prixmoyen !== "undefined" && prixmoyen !== null && prixmoyen !== "") {
             newServiceData.prixmoyen = prixmoyen;
+        }
+        if (shortcutRank !== undefined && shortcutRank !== null && shortcutRank !== '') {
+            newServiceData.shortcutRank = Number(shortcutRank);
+        }
+        if (catalogKey && String(catalogKey).trim()) {
+            newServiceData.catalogKey = String(catalogKey).trim();
         }
 
         const newService = new Service(newServiceData);
@@ -130,7 +140,7 @@ export const createService = async (req, res) => {
 export const updateService = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nomservice, categorie, prixmoyen, tags } = req.body;
+        const { nomservice, categorie, prixmoyen, tags, aliases, needs, shortcutRank, catalogKey, clearImage } = req.body;
         const updates = {};
         if (typeof nomservice !== "undefined") updates.nomservice = nomservice;
         if (typeof categorie !== "undefined") updates.categorie = categorie;
@@ -138,6 +148,16 @@ export const updateService = async (req, res) => {
 
         if (tags) {
             updates.tags = parseTags(tags);
+        }
+        if (aliases !== undefined) updates.aliases = parseStringList(aliases);
+        if (needs !== undefined) updates.needs = parseStringList(needs);
+        if (shortcutRank === '' || shortcutRank === 'null' || shortcutRank === null) {
+            updates.shortcutRank = undefined;
+        } else if (shortcutRank !== undefined) {
+            updates.shortcutRank = Number(shortcutRank);
+        }
+        if (catalogKey !== undefined) {
+            updates.catalogKey = catalogKey ? String(catalogKey).trim() : undefined;
         }
 
         // Check if a new image is uploaded
@@ -152,6 +172,8 @@ export const updateService = async (req, res) => {
 
             // Remove the local file after uploading
             fs.unlinkSync(req.file.path);
+        } else if (clearImage === 'true' || clearImage === true) {
+            updates.imageservice = null;
         }
 
         // Find and update the service
@@ -173,6 +195,14 @@ export const updateService = async (req, res) => {
 // Obtenir tous les services
 export const getAllServices = async (req, res) => {
     try {
+        const scopeRaw = req.query.scope;
+        // Si scope fourni (ex: metiers, freelance, emarket), retourner uniquement les services
+        // du groupe demandé via loadCatalogServicesForScope — réduit le payload mobile.
+        // Sans scope → comportement original (tous les services hors Services généraux).
+        if (scopeRaw && scopeRaw !== 'global') {
+            const { services } = await loadCatalogServicesForScope(scopeRaw);
+            return res.json(services);
+        }
         const excludedCatIds = await getCategorieIdsUnderServicesGenerauxGroupe();
         const q = excludedCatIds.length ? { categorie: { $nin: excludedCatIds } } : {};
         const services = await Service.find(q).populate({
@@ -182,6 +212,21 @@ export const getAllServices = async (req, res) => {
             },
         }); // Populate categorie and groupe if necessary
         res.json(services);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const getServiceShortcuts = async (req, res) => {
+    try {
+        const scope = String(req.query.scope || req.query.groupe || 'metiers');
+        const loaded = await loadCatalogServicesForScope(scope);
+        const shortcuts = loaded.services
+            .filter((s) => Number.isFinite(s.shortcutRank) && s.shortcutRank >= 1)
+            .sort((a, b) => a.shortcutRank - b.shortcutRank || String(a.nomservice).localeCompare(b.nomservice, 'fr'))
+            .slice(0, 6);
+        res.json(shortcuts);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

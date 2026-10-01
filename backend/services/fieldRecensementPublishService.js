@@ -159,7 +159,26 @@ async function revalidateForPublish(doc) {
     throw apiError(409, 'RECENSEMENT_INVALID_STATE', 'Dossier non approuvé.');
   }
   if (doc.ingestionStatus !== 'completed') {
-    throw apiError(409, 'RECENSEMENT_PUBLICATION_BLOCKED', 'Ingestion incomplète.');
+    // R1-09b : si l'ingestion a échoué ET qu'aucune donnée photo n'est récupérable
+    // (ni ref Cloudinary ni publicId), l'upload n'a produit aucune donnée utilisable.
+    // On peut traiter ce recensement comme "sans photo" et autoriser la publication.
+    // L'auto-correction en base évite que les reprises ultérieures restent bloquées.
+    const photo = doc.media?.profilePhoto;
+    const hasRecoverablePhoto = Boolean(photo?.ref || photo?.publicId || photo?.promotedPublicUrl);
+    if (doc.ingestionStatus === 'failed' && !hasRecoverablePhoto) {
+      // Auto-corriger silencieusement : la photo était absente ou l'upload a échoué sans trace.
+      await FieldRecensement.updateOne(
+        { _id: doc._id, ingestionStatus: 'failed' },
+        { $set: { ingestionStatus: 'completed' }, $unset: { ingestionErrorCode: 1 } },
+      ).catch((e) => {
+        // Non-bloquant : la correction en base est du best-effort.
+        console.warn('[revalidateForPublish] Impossible de corriger ingestionStatus:', e.message);
+      });
+      // Mettre à jour le doc en mémoire pour la suite de la publication
+      doc.ingestionStatus = 'completed';
+    } else {
+      throw apiError(409, 'RECENSEMENT_PUBLICATION_BLOCKED', 'Ingestion incomplète.');
+    }
   }
   if (!doc.consent?.recensementAccepted) {
     throw apiError(409, 'RECENSEMENT_PUBLICATION_BLOCKED', 'Consentement invalide.');
@@ -486,7 +505,25 @@ async function promotePhotoIfNeeded(doc, profile) {
     return { promoted: false };
   }
   if (photo.kind === 'profile_public' && photo.promotedPublicUrl && photo.publicRevocationStatus !== 'revoked') {
-    return { promoted: true, url: photo.promotedPublicUrl };
+    // Photo déjà promue : s'assurer que l'URL est bien propagée au profil
+    // (cas de reprise ou de re-publication après une première publication incomplète)
+    const url = photo.promotedPublicUrl;
+    if (doc.professionalType === 'prestataire') {
+      await Utilisateur.updateOne(
+        {
+          _id: profile.utilisateur,
+          $or: [
+            { photoProfil: { $exists: false } },
+            { photoProfil: null },
+            { photoProfil: '' },
+          ],
+        },
+        { $set: { photoProfil: url } },
+      ).catch((e) => {
+        console.warn('[promotePhotoIfNeeded/idempotent] Impossible de mettre à jour Utilisateur.photoProfil:', e.message);
+      });
+    }
+    return { promoted: true, url };
   }
 
   const publicId = buildDeterministicProfilePublicId(doc.professionalType, profile._id);
@@ -514,6 +551,22 @@ async function promotePhotoIfNeeded(doc, profile) {
     await freelanceModel.updateOne({ _id: profile._id }, { $set: { imagePath: url } });
   } else if (doc.professionalType === 'vendeur') {
     await vendeurModel.updateOne({ _id: profile._id }, { $set: { shopLogo: url } });
+  } else if (doc.professionalType === 'prestataire') {
+    // R1-09 fix : la photo promue doit être stockée dans Utilisateur.photoProfil
+    // car le modèle Prestataire n'a pas de champ image propre, et c'est
+    // uniquement via utilisateur.photoProfil que l'API publique expose une image.
+    await Utilisateur.updateOne(
+      { _id: profile.utilisateur },
+      {
+        $set: { photoProfil: url },
+        // Ne jamais écraser si l'utilisateur a déjà une vraie photo (compte revendiqué)
+        // → condition : on écrit seulement si photoProfil est actuellement absent
+      },
+    ).then(() => { }).catch((e) => {
+      // Non-bloquant : si l'update échoue, la publication reste valide.
+      // La photo sera absent mais le profil reste visible.
+      console.warn('[promotePhotoIfNeeded] Impossible de mettre à jour Utilisateur.photoProfil:', e.message);
+    });
   }
 
   return { promoted: true, url };

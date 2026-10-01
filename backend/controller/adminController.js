@@ -757,3 +757,93 @@ async function getRecentElements(userId) {
  *                 format: date-time
  *                 description: Date de création
  */
+
+/**
+ * R1-09 C-3 — Backfill rétroactif : copie promotedPublicUrl → Utilisateur.photoProfil
+ * pour les prestataires déjà publiés dont l'utilisateur associé n'a pas encore de photo.
+ *
+ * POST /admin/recensement/backfill-prestataire-photo
+ * Body optionnel : { dryRun: true } pour simuler sans écrire.
+ */
+export const backfillPrestatairePhotoProfil = async (req, res) => {
+  try {
+    const dryRun = req.body?.dryRun === true;
+
+    const Utilisateur = (await import('../models/utilisateurModel.js')).default;
+    const Prestataire = (await import('../models/prestataireModel.js')).default;
+
+    // 1. Trouver tous les recensements prestataire publiés avec une photo promue
+    const docs = await FieldRecensement.find({
+      professionalType: 'prestataire',
+      publicationStatus: 'published',
+      'media.profilePhoto.promotedPublicUrl': { $exists: true, $ne: '' },
+    })
+      .select('+media.profilePhoto.promotedPublicUrl linkedProfile')
+      .lean();
+
+    if (!docs.length) {
+      return res.json({ ok: true, dryRun, processed: 0, updated: 0, skipped: 0, message: 'Aucun recensement éligible trouvé.' });
+    }
+
+    let updated = 0;
+    let skipped = 0;
+    const details = [];
+
+    for (const doc of docs) {
+      const url = doc.media?.profilePhoto?.promotedPublicUrl;
+      if (!url) { skipped++; continue; }
+
+      // Retrouver le profil Prestataire pour avoir l'utilisateurId
+      const profileId = doc.linkedProfile?.id;
+      if (!profileId) { skipped++; details.push({ docId: doc._id, reason: 'no_linkedProfile' }); continue; }
+
+      const prestataire = await Prestataire.findById(profileId).select('utilisateur').lean();
+      if (!prestataire?.utilisateur) { skipped++; details.push({ docId: doc._id, reason: 'no_utilisateur_on_prestataire' }); continue; }
+
+      const utilisateurId = prestataire.utilisateur;
+
+      // Vérifier que l'utilisateur n'a pas déjà une photo (ne pas écraser un compte revendiqué)
+      const utilisateur = await Utilisateur.findById(utilisateurId).select('photoProfil activationStatus').lean();
+      if (!utilisateur) { skipped++; details.push({ docId: doc._id, reason: 'utilisateur_not_found' }); continue; }
+
+      const hasPhoto = utilisateur.photoProfil && String(utilisateur.photoProfil).trim() !== '';
+      const isClaimed = utilisateur.activationStatus !== 'pending_claim';
+
+      if (hasPhoto || isClaimed) {
+        // Ne pas écraser : compte revendiqué ou photo déjà présente
+        skipped++;
+        details.push({ docId: doc._id, utilisateurId, reason: isClaimed ? 'account_claimed' : 'photo_already_set' });
+        continue;
+      }
+
+      if (!dryRun) {
+        await Utilisateur.updateOne(
+          {
+            _id: utilisateurId,
+            $or: [
+              { photoProfil: { $exists: false } },
+              { photoProfil: null },
+              { photoProfil: '' },
+            ],
+          },
+          { $set: { photoProfil: url } },
+        );
+      }
+
+      updated++;
+      details.push({ docId: doc._id, utilisateurId, url, action: dryRun ? 'would_update' : 'updated' });
+    }
+
+    return res.json({
+      ok: true,
+      dryRun,
+      processed: docs.length,
+      updated,
+      skipped,
+      details,
+    });
+  } catch (err) {
+    console.error('[backfillPrestatairePhotoProfil]', err);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+};

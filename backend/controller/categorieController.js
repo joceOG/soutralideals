@@ -16,7 +16,7 @@ cloudinary.v2.config({
 // Mettre à jour une catégorie par ID
 export const updateCategoryById = async (req, res) => {
     try {
-        const { nomcategorie, groupe } = req.body;
+        const { nomcategorie, groupe, clearImage } = req.body;
         const { path: filePath } = req.file || {};
 
         let categorie = await categorieModel.findById(req.params.id);
@@ -35,8 +35,9 @@ export const updateCategoryById = async (req, res) => {
             }
 
             categorie.imagecategorie = result.secure_url;
+        } else if (clearImage === 'true' || clearImage === true) {
+            categorie.imagecategorie = undefined;
         }
-
         if (nomcategorie !== undefined) {
             if (!String(nomcategorie).trim()) {
                 return res.status(400).json({ error: 'Nom de catégorie requis.' });
@@ -70,23 +71,25 @@ export const createCategory = async (req, res) => {
             return res.status(400).json({ error: 'Nom de catégorie requis.' });
         }
 
-        if (!req.file?.path) {
-            return res.status(400).json({ error: 'Image requise (champ imagecategorie).' });
-        }
-
         const groupeResolved = await resolveGroupeRef(groupe);
         if (groupeResolved.error) {
             return res.status(groupeResolved.status).json({ error: groupeResolved.error });
         }
 
-        const result = await cloudinary.v2.uploader.upload(req.file.path);
-        fs.unlinkSync(req.file.path);
+        let imageUrl;
+        if (req.file?.path) {
+            const result = await cloudinary.v2.uploader.upload(req.file.path);
+            fs.unlinkSync(req.file.path);
+            imageUrl = result.secure_url;
+        }
 
-        const newCategorie = new categorieModel({
+        const payload = {
             nomcategorie: String(nomcategorie).trim(),
-            imagecategorie: result.secure_url,
             groupe: groupeResolved.id,
-        });
+        };
+        if (imageUrl) payload.imagecategorie = imageUrl;
+
+        const newCategorie = new categorieModel(payload);
 
         await newCategorie.save();
         res.status(201).json(newCategorie);

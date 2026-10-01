@@ -11,8 +11,11 @@ import {
 } from '../utils/prestatairePendingPresenter.js';
 import prestataireModel from "../models/prestataireModel.js";
 import mongoose from "mongoose";
-import { getServiceIdsUnderServicesGenerauxCategories } from "../utils/catalogFilters.js";
 import { isAdmin } from "../middleware/entityAccess.js";
+import {
+  buildPrestataireListFilter,
+  prestataireListPagination,
+} from '../utils/prestataireListQuery.js';
 import { pickFields } from '../utils/pickFields.js';
 import { buildRecensementCreateFields, isRecensementRequest, assertRecensementAgent } from '../utils/recensementPolicy.js';
 import {
@@ -496,65 +499,39 @@ export const updatePrestataire = async (req, res) => {
 // ✅ Lire tous les prestataires (avec filtres optionnels)
 export const getAllPrestataires = async (req, res) => {
   try {
-    const { service, categorie, ville, status, utilisateur, verifier, limit = 50, page = 1 } = req.query;
-
-    const excludedSvc = await getServiceIdsUnderServicesGenerauxCategories();
-    const filter = {};
-    if (service) {
-      if (
-        excludedSvc.length &&
-        excludedSvc.some((id) => String(id) === String(service))
-      ) {
-        return res.json([]);
-      }
-      filter.service = service;
-    } else if (excludedSvc.length) {
-      filter.service = { $nin: excludedSvc };
+    const built = await buildPrestataireListFilter(req);
+    if (built.error) {
+      return res.status(built.status || 400).json({ error: built.error });
+    }
+    const { page, limit, skip } = prestataireListPagination(req.query);
+    if (built.empty) {
+      res.setHeader('X-Total-Count', '0');
+      return res.status(200).json([]);
     }
 
-    const adminUser = isAdmin(req);
-    const isOwnProfile =
-      utilisateur &&
-      req.utilisateur &&
-      String(utilisateur) === String(req.utilisateur._id);
-
-    if (adminUser) {
-      if (status) filter.status = status;
-      if (verifier !== undefined) filter.verifier = verifier === "true" || verifier === true;
-    } else if (isOwnProfile) {
-      if (status) filter.status = status;
-      filter.utilisateur = utilisateur;
-    } else {
-      // Catalogue public : uniquement profils validés
-      filter.status = "active";
-      filter.verifier = true;
+    const filter = built.filter;
+    const ville = req.query?.ville;
+    if (ville) {
+      filter.localisation = { $regex: String(ville), $options: 'i' };
     }
 
-    if (utilisateur && (adminUser || isOwnProfile)) {
-      filter.utilisateur = utilisateur;
-    }
-    if (ville) filter['localisation.ville'] = { $regex: ville, $options: 'i' };
+    const [total, prestataires] = await Promise.all([
+      prestataireModel.countDocuments(filter),
+      prestataireModel.find(filter)
+        .sort({ _id: 1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('utilisateur', 'nom prenom photoProfil email telephone')
+        .populate({
+          path: 'service',
+          populate: {
+            path: 'categorie',
+            populate: { path: 'groupe' },
+          },
+        }),
+    ]);
 
-    const prestataires = await prestataireModel.find(filter)
-      .populate('utilisateur', 'nom prenom photoProfil email telephone')
-      .populate({
-        path: 'service',
-        match: categorie ? { categorie } : undefined,
-        populate: {
-          path: 'categorie',
-          populate: { path: 'groupe' }
-        }
-      })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
-
-    // Si filtre categorie via populate match, retirer les null
-    const result = categorie
-      ? prestataires.filter(p => p.service !== null)
-      : prestataires;
-
-    // STAB-11b / R0-06 / DASH-8A : liste = jamais d’URL KYC (même admin) ; détail via GET /:id
-    const safe = result.map((p) => {
+    const safe = prestataires.map((p) => {
       const plain = typeof p.toObject === 'function' ? p.toObject() : { ...p };
       const redacted = redactKycFromPlain(plain);
       for (const f of KYC_FIELD_NAMES) {
@@ -563,6 +540,7 @@ export const getAllPrestataires = async (req, res) => {
       return redacted;
     });
 
+    res.setHeader('X-Total-Count', String(total));
     res.status(200).json(safe);
   } catch (err) {
     console.error('Erreur récupération prestataires:', err.message);

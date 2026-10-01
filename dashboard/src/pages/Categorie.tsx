@@ -78,6 +78,7 @@ const Categorie: React.FC = () => {
   const [nomcategorie, setNomcategorie] = useState('');
   const [selectedGroupe, setSelectedGroupe] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [clearImage, setClearImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Snackbar
@@ -123,6 +124,7 @@ const Categorie: React.FC = () => {
     setNomcategorie('');
     setSelectedGroupe('');
     setImageFile(null);
+    setClearImage(false);
     setDialogOpen(true);
   };
 
@@ -131,6 +133,7 @@ const Categorie: React.FC = () => {
     setNomcategorie(c.nomcategorie);
     setSelectedGroupe(typeof c.groupe === 'object' ? c.groupe._id : c.groupe);
     setImageFile(null);
+    setClearImage(false);
     setDialogOpen(true);
   };
 
@@ -144,6 +147,7 @@ const Categorie: React.FC = () => {
       fd.append('nomcategorie', nomcategorie.trim());
       fd.append('groupe', selectedGroupe);
       if (imageFile) fd.append('imagecategorie', imageFile);
+      if (clearImage && !imageFile) fd.append('clearImage', 'true');
 
       if (editTarget) {
         await apiClient.put(`/categorie/${editTarget._id}`, fd);
@@ -384,18 +388,43 @@ const Categorie: React.FC = () => {
                   <Typography variant="body2" fontWeight={500}>{imageFile.name}</Typography>
                   <Typography variant="caption" color={colors.textMuted}>{(imageFile.size / 1024).toFixed(0)} Ko</Typography>
                 </Box>
-                <Button size="small" color="inherit" onClick={() => setImageFile(null)}>Supprimer</Button>
+                <Button size="small" color="inherit" onClick={() => setImageFile(null)}>Annuler le fichier</Button>
+              </Stack>
+            ) : getImageSrc(editTarget?.imagecategorie) && !clearImage ? (
+              <Stack direction="row" alignItems="center" gap={2}>
+                <Avatar src={getImageSrc(editTarget?.imagecategorie) ?? undefined} variant="rounded" sx={{ width: 64, height: 64 }} />
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="body2">Image actuelle conservée si vous n’en choisissez pas une autre.</Typography>
+                </Box>
+                <Button size="small" color="inherit" onClick={() => setClearImage(true)}>Retirer l’image</Button>
+                <Button variant="outlined" component="label" size="small">
+                  Remplacer
+                  <input type="file" hidden accept="image/*" onChange={e => {
+                    setImageFile(e.target.files?.[0] ?? null);
+                    setClearImage(false);
+                  }} />
+                </Button>
               </Stack>
             ) : (
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<ImageIcon />}
-                sx={{ color: colors.textSecondary, borderColor: colors.border, borderStyle: 'dashed', width: '100%', py: 1.5, borderRadius: 2 }}
-              >
-                Choisir une image (optionnel)
-                <input type="file" hidden accept="image/*" onChange={e => setImageFile(e.target.files?.[0] ?? null)} />
-              </Button>
+              <Stack gap={1}>
+                {clearImage && (
+                  <Typography variant="caption" color={colors.textMuted}>
+                    L’image actuelle sera retirée à l’enregistrement.
+                  </Typography>
+                )}
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<ImageIcon />}
+                  sx={{ color: colors.textSecondary, borderColor: colors.border, borderStyle: 'dashed', width: '100%', py: 1.5, borderRadius: 2 }}
+                >
+                  Choisir une image (optionnel)
+                  <input type="file" hidden accept="image/*" onChange={e => {
+                    setImageFile(e.target.files?.[0] ?? null);
+                    setClearImage(false);
+                  }} />
+                </Button>
+              </Stack>
             )}
           </Box>
         </DialogContent>
