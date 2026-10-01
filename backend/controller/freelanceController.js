@@ -135,7 +135,7 @@ export const createFreelance = async (req, res) => {
       job: pre.job,
       category: pre.category,
       imagePath,
-      
+
       // Système de performance
       rating: 0,
       completedJobs: 0,
@@ -143,47 +143,47 @@ export const createFreelance = async (req, res) => {
       isFeatured: false,
       isNew: true,
       responseTime: 24,
-      
+
       // Compétences et tarification  
       skills: parseJsonArrayField(skills),
       hourlyRate: pre.hourlyRate,
       description: description || '',
-      
+
       // Informations professionnelles
       experienceLevel: experienceLevel || 'Débutant',
       availabilityStatus: availabilityStatus || 'Disponible',
       workingHours: workingHours || 'Temps partiel',
-      
+
       // Contact et localisation
       location: pre.location,
       phoneNumber,
-      
+
       // Portfolio
       portfolioItems: portfolioItems ? parseJsonArrayField(portfolioItems) : [],
-      
+
       // Documents de vérification
       verificationDocuments: {
         ...verificationDocs,
         isVerified: false
       },
-      
+
       // Statistiques business
       totalEarnings: 0,
       currentProjects: 0,
       clientSatisfaction: 0,
-      
+
       // Préférences
       preferredCategories: preferredCategories
         ? parseJsonArrayField(preferredCategories)
         : [pre.category],
       minimumProjectBudget: parseFloat(minimumProjectBudget) || 0,
       maxProjectsPerMonth: parseInt(maxProjectsPerMonth) || 10,
-      
+
       // Activité
       lastActive: new Date(),
       joinedDate: new Date(),
       profileViews: 0,
-      
+
       // Statut du compte
       accountStatus: 'Pending',
       subscriptionType: 'Free',
@@ -209,7 +209,7 @@ export const createFreelance = async (req, res) => {
 
     const populatedFreelance = await freelanceModel.findById(newFreelance._id)
       .populate("utilisateur");
-    
+
     res.status(201).json(presentProDocForViewer(req, populatedFreelance, res));
   } catch (err) {
     const mapped = mongooseValidationTo400(err);
@@ -237,6 +237,10 @@ export const getAllFreelances = async (req, res) => {
     const filter = applyProPublicFilter(req, {});
     if (req.query.availabilityStatus) {
       filter.availabilityStatus = req.query.availabilityStatus;
+    }
+    // Filtre catégorie (serveur-side — évite le filtrage client sur 50 résultats)
+    if (req.query.category && req.query.category !== 'Tous') {
+      filter.category = req.query.category;
     }
 
     const freelances = await freelanceModel.find(filter)
@@ -460,7 +464,7 @@ export const getFreelancesByCategory = async (req, res) => {
     const { limit = 10, sortBy = 'rating' } = req.query;
 
     let sortOptions = {};
-    switch(sortBy) {
+    switch (sortBy) {
       case 'rating': sortOptions = { rating: -1 }; break;
       case 'completedJobs': sortOptions = { completedJobs: -1 }; break;
       case 'newest': sortOptions = { joinedDate: -1 }; break;
@@ -470,9 +474,9 @@ export const getFreelancesByCategory = async (req, res) => {
     const freelances = await freelanceModel.find(
       applyProPublicFilter(req, { category }),
     )
-    .populate("utilisateur")
-    .sort(sortOptions)
-    .limit(parseInt(limit));
+      .populate("utilisateur")
+      .sort(sortOptions)
+      .limit(parseInt(limit));
 
     res.status(200).json(freelances.map((f) => mapFreelanceListItem(f)));
   } catch (err) {
@@ -511,7 +515,7 @@ export const searchFreelances = async (req, res) => {
     const sortBy = req.query.sortBy || 'rating';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
     const sortOptions = {};
-    
+
     if (sortBy === 'rating') {
       sortOptions.rating = sortOrder;
       sortOptions.completedJobs = -1; // Tri secondaire
@@ -586,7 +590,7 @@ export const validateFreelance = async (req, res) => {
     const adminId = req.user._id;
 
     const freelance = await freelanceModel.findById(id);
-    
+
     if (!freelance) {
       return res.status(404).json({ error: "Freelance non trouvé" });
     }
@@ -626,7 +630,7 @@ export const rejectFreelance = async (req, res) => {
     const adminId = req.user._id;
 
     const freelance = await freelanceModel.findById(id);
-    
+
     if (!freelance) {
       return res.status(404).json({ error: "Freelance non trouvé" });
     }
