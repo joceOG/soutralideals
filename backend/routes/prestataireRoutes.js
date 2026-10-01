@@ -48,6 +48,8 @@ import {
 
   reactivatePrestataire,
 
+  getHomePreview,
+
 } from "../controller/prestataireController.js";
 
 
@@ -93,6 +95,9 @@ function runDocumentUpload(req, res, next) {
 // Public — catalogue (routes spécifiques avant /:id)
 
 prestataireRouter.get("/prestataire/pending/list", ...authAdmin, getPendingPrestataires);
+
+// Route spécifique avant /:id — aperçu accueil avec filtre photo AVANT limite
+prestataireRouter.get("/prestataire/home-preview", optionalAuth, getHomePreview);
 
 prestataireRouter.get("/prestataire", optionalAuth, getAllPrestataires);
 
