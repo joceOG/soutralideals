@@ -509,6 +509,10 @@ async function promotePhotoIfNeeded(doc, profile) {
     // (cas de reprise ou de re-publication après une première publication incomplète)
     const url = photo.promotedPublicUrl;
     if (doc.professionalType === 'prestataire') {
+      // Bloquant : si la mise à jour échoue, l'erreur remonte au caller
+      // (publishFieldRecensement) qui peut loguer et marquer la publication
+      // comme retryable. Mieux vaut rater la publication que laisser un
+      // profil actif sans photo quand l'URL est disponible.
       await Utilisateur.updateOne(
         {
           _id: profile.utilisateur,
@@ -519,9 +523,7 @@ async function promotePhotoIfNeeded(doc, profile) {
           ],
         },
         { $set: { photoProfil: url } },
-      ).catch((e) => {
-        console.warn('[promotePhotoIfNeeded/idempotent] Impossible de mettre à jour Utilisateur.photoProfil:', e.message);
-      });
+      );
     }
     return { promoted: true, url };
   }
@@ -552,21 +554,14 @@ async function promotePhotoIfNeeded(doc, profile) {
   } else if (doc.professionalType === 'vendeur') {
     await vendeurModel.updateOne({ _id: profile._id }, { $set: { shopLogo: url } });
   } else if (doc.professionalType === 'prestataire') {
-    // R1-09 fix : la photo promue doit être stockée dans Utilisateur.photoProfil
-    // car le modèle Prestataire n'a pas de champ image propre, et c'est
-    // uniquement via utilisateur.photoProfil que l'API publique expose une image.
+    // R1-09 — bloquant : si la propagation Mongo échoue, lever une erreur
+    // retryable plutôt que laisser le profil publié sans photo.
+    // L'URL reste dans FieldRecensement.media.profilePhoto.promotedPublicUrl
+    // et le fallback dans getAllPrestataires peut la récupérer en attendant.
     await Utilisateur.updateOne(
       { _id: profile.utilisateur },
-      {
-        $set: { photoProfil: url },
-        // Ne jamais écraser si l'utilisateur a déjà une vraie photo (compte revendiqué)
-        // → condition : on écrit seulement si photoProfil est actuellement absent
-      },
-    ).then(() => { }).catch((e) => {
-      // Non-bloquant : si l'update échoue, la publication reste valide.
-      // La photo sera absent mais le profil reste visible.
-      console.warn('[promotePhotoIfNeeded] Impossible de mettre à jour Utilisateur.photoProfil:', e.message);
-    });
+      { $set: { photoProfil: url } },
+    );
   }
 
   return { promoted: true, url };
