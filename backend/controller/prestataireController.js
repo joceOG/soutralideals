@@ -10,6 +10,7 @@ import {
   presentPrestatairePendingListItem,
 } from '../utils/prestatairePendingPresenter.js';
 import prestataireModel from "../models/prestataireModel.js";
+import FieldRecensement from '../models/fieldRecensementModel.js';
 import mongoose from "mongoose";
 import { isAdmin } from "../middleware/entityAccess.js";
 import {
@@ -152,12 +153,12 @@ export const createPrestataire = async (req, res) => {
       // Si pas de service fourni mais une catégorie, trouver le service correspondant
       const Service = (await import("../models/serviceModel.js")).default;
       const Categorie = (await import("../models/categorieModel.js")).default;
-      
+
       // Trouver la catégorie par nom
-      const categorieDoc = await Categorie.findOne({ 
-        nomcategorie: { $regex: new RegExp(category, 'i') } 
+      const categorieDoc = await Categorie.findOne({
+        nomcategorie: { $regex: new RegExp(category, 'i') }
       });
-      
+
       if (categorieDoc) {
         // Trouver le premier service de cette catégorie
         const serviceDoc = await Service.findOne({ categorie: categorieDoc._id });
@@ -166,12 +167,12 @@ export const createPrestataire = async (req, res) => {
           console.log(`✅ Service trouvé pour catégorie ${category}: ${serviceDoc._id}`);
         }
       }
-      
+
       if (!finalService) {
         console.warn(`⚠️ Aucun service trouvé pour la catégorie: ${category}`);
         // Utiliser un service par défaut ou créer une erreur
-        return res.status(400).json({ 
-          error: `Aucun service trouvé pour la catégorie: ${category}` 
+        return res.status(400).json({
+          error: `Aucun service trouvé pour la catégorie: ${category}`
         });
       }
     } else if (serviceMissing) {
@@ -540,6 +541,44 @@ export const getAllPrestataires = async (req, res) => {
       return redacted;
     });
 
+    // Fallback photo pour les profils recensement dont promotePhotoIfNeeded
+    // a réussi la promotion Cloudinary mais pas la propagation Mongo
+    // (utilisateur.photoProfil = null malgré une URL publique disponible).
+    const recensementMissing = safe.filter(
+      (p) =>
+        p.source === 'field_recensement_v1' &&
+        !p.utilisateur?.photoProfil &&
+        p.sourceFieldRecensementId,
+    );
+    if (recensementMissing.length > 0) {
+      const recensementIds = recensementMissing.map((p) => p.sourceFieldRecensementId);
+      const recensements = await FieldRecensement.find({ _id: { $in: recensementIds } })
+        .select('+media.profilePhoto.promotedPublicUrl +media.profilePhoto.publicRevocationStatus')
+        .lean();
+      const photoMap = Object.fromEntries(
+        recensements
+          .filter(
+            (r) =>
+              r.media?.profilePhoto?.promotedPublicUrl &&
+              r.media?.profilePhoto?.publicRevocationStatus !== 'revoked',
+          )
+          .map((r) => [String(r._id), r.media.profilePhoto.promotedPublicUrl]),
+      );
+      for (const p of safe) {
+        if (
+          p.source === 'field_recensement_v1' &&
+          !p.utilisateur?.photoProfil &&
+          p.sourceFieldRecensementId
+        ) {
+          const url = photoMap[String(p.sourceFieldRecensementId)];
+          if (url) {
+            // Injecte l'URL dans la même shape utilisateur — pas de nouveau champ
+            p.utilisateur = { ...(p.utilisateur || {}), photoProfil: url };
+          }
+        }
+      }
+    }
+
     res.setHeader('X-Total-Count', String(total));
     res.status(200).json(safe);
   } catch (err) {
@@ -568,7 +607,7 @@ export const getPrestataireById = async (req, res) => {
       req.utilisateur &&
       prestataire.utilisateur &&
       String(prestataire.utilisateur._id ?? prestataire.utilisateur) ===
-        String(req.utilisateur._id);
+      String(req.utilisateur._id);
 
     const isPubliclyVisible =
       prestataire.status === "active" && prestataire.verifier === true;
@@ -629,7 +668,7 @@ export const validatePrestataire = async (req, res) => {
     const adminId = req.user._id;
 
     const prestataire = await prestataireModel.findById(id);
-    
+
     if (!prestataire) {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
@@ -669,7 +708,7 @@ export const rejectPrestataire = async (req, res) => {
     const adminId = req.user._id;
 
     const prestataire = await prestataireModel.findById(id);
-    
+
     if (!prestataire) {
       return res.status(404).json({ error: "Prestataire non trouvé" });
     }
