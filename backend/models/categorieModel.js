@@ -7,7 +7,7 @@ const CategorieSchema = mongoose.Schema({
         required: true },
     imagecategorie: {
         type: String,
-        required:true
+        required: false,
     },
     groupe: { 
         type: mongoose.Schema.Types.ObjectId, 
