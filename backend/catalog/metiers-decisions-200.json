@@ -1,0 +1,2196 @@
+{
+  "generatedAt": "2026-09-29T22:16:12.872Z",
+  "count": 200,
+  "actionCounts": {
+    "A_REVOIR": 14,
+    "RENOMMER+RACCOURCI": 4,
+    "CONSERVER": 147,
+    "RENOMMER": 28,
+    "ENRICHIR": 5,
+    "ENRICHIR+RACCOURCI": 2
+  },
+  "rows": [
+    {
+      "id": "66e9d88e6f6a9b71a44148b6",
+      "nomActuel": "Mécanique",
+      "nomRetenu": "Mécanique",
+      "categorie": "Mécanique & Transport",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "670db0b8628e163918cf32f2",
+      "nomActuel": "Servante ménagère",
+      "nomRetenu": "Aide ménagère à domicile",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "RENOMMER+RACCOURCI",
+      "aliasBesoins": "alias+ Servante ménagère ; aliases [\"aide menagere\",\"ménage\",\"femme de menage\"] ; needs [\"menage\",\"nettoyage maison\",\"repassage a domicile\"]",
+      "justification": "Correction de libellé, id conservé. Alias/besoins ajoutés (merge unique). Raccourci rang 3."
+    },
+    {
+      "id": "670db0e8628e163918cf32f7",
+      "nomActuel": "Baby-sitter",
+      "nomRetenu": "Baby-sitter",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Ponctuel vs régulier — rester identifiables."
+    },
+    {
+      "id": "670db127628e163918cf32fc",
+      "nomActuel": "Chauffeur de bus local",
+      "nomRetenu": "Chauffeur de bus local",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "670db16b628e163918cf3301",
+      "nomActuel": "Chauffeur de taxi VTC",
+      "nomRetenu": "Chauffeur de taxi VTC",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "670db27b628e163918cf330b",
+      "nomActuel": "Cuisinier a domicile",
+      "nomRetenu": "Cuisinier à domicile",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Cuisinier a domicile",
+      "justification": "Correction de libellé, id conservé. Chef vs cuisinier : métiers distincts possibles. Pas de fusion auto."
+    },
+    {
+      "id": "670db334628e163918cf331a",
+      "nomActuel": "Frigoriste",
+      "nomRetenu": "Frigoriste",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "670e6f12628e163918cf3324",
+      "nomActuel": "Gardien / Vigile ",
+      "nomRetenu": "Gardien / vigile",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Gardien / Vigile ",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "670e7000628e163918cf3333",
+      "nomActuel": "Livreur de colis ",
+      "nomRetenu": "Livreur de colis",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Livreur de colis ",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "670e7050628e163918cf3338",
+      "nomActuel": "Livreur de repas a domicile",
+      "nomRetenu": "Livreur de repas a domicile",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "670e71c4628e163918cf3342",
+      "nomActuel": "Nounou / Garde d'enfants",
+      "nomRetenu": "Nounou / Garde d'enfants",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Ponctuel vs régulier — rester identifiables."
+    },
+    {
+      "id": "670e72ab628e163918cf334c",
+      "nomActuel": "Réparateur d appareils électrique",
+      "nomRetenu": "Réparateur d appareils électrique",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "670e7566628e163918cf3353",
+      "nomActuel": "Réparateur de climatiseur",
+      "nomRetenu": "Réparateur de climatiseur",
+      "categorie": "Electronique & Technologie",
+      "action": "ENRICHIR",
+      "aliasBesoins": "aliases [\"climatisation\",\"clim\"] ; needs [\"climatiseur qui ne refroidit plus\",\"clim en panne\"]",
+      "justification": "Alias/besoins ajoutés (merge unique)."
+    },
+    {
+      "id": "670e75de628e163918cf335c",
+      "nomActuel": "Réparateur de générateur",
+      "nomRetenu": "Réparateur de générateur",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "670e7760628e163918cf3361",
+      "nomActuel": "Réparateur de machine agricole ",
+      "nomRetenu": "Réparateur de machine agricole ",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "670e817f628e163918cf3366",
+      "nomActuel": "Réparateur de matériel de jardinnage",
+      "nomRetenu": "Réparateur de matériel de jardinnage",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "670e822e628e163918cf3370",
+      "nomActuel": "Réparateur de pneus",
+      "nomRetenu": "Réparateur de pneus",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Pneumatique peut être industriel."
+    },
+    {
+      "id": "670e825e628e163918cf3375",
+      "nomActuel": "Réparateur de téléphone",
+      "nomRetenu": "Réparateur de téléphone",
+      "categorie": "Electronique & Technologie",
+      "action": "ENRICHIR",
+      "aliasBesoins": "aliases [\"reparation telephone\"] ; needs [\"ecran casse\",\"batterie telephone\",\"telephone qui ne charge plus\"]",
+      "justification": "Alias/besoins ajoutés (merge unique)."
+    },
+    {
+      "id": "670e8296628e163918cf337a",
+      "nomActuel": "Réparateurs d' appareils ménagers",
+      "nomRetenu": "Réparateur d’appareils ménagers",
+      "categorie": "Electronique & Technologie",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Réparateurs d' appareils ménagers",
+      "justification": "Correction de libellé, id conservé. Doublon fonctionnel probable — inventorier les références avant fusion."
+    },
+    {
+      "id": "670e832b628e163918cf3384",
+      "nomActuel": "Service de déménagement local ",
+      "nomRetenu": "Déménageur",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Service de déménagement local ",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "670e835f628e163918cf3389",
+      "nomActuel": "Taxi moto ",
+      "nomRetenu": "Taxi moto",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Taxi moto ",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "670e859d628e163918cf3393",
+      "nomActuel": "Transporteur de marchandise",
+      "nomRetenu": "Transporteur de marchandise",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68d6a877490b63f4b89fefec",
+      "nomActuel": "Blanchisseur",
+      "nomRetenu": "Blanchisseur",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68e5d9ac8e8d19052c2dfd0a",
+      "nomActuel": "Réparateur d'outils agricoles",
+      "nomRetenu": "Réparateur d'outils agricoles",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68e5db51af80079842f9f782",
+      "nomActuel": "Service de transport pour personnes ├ógées",
+      "nomRetenu": "Service de transport pour personnes ├ógées",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68e5de751678335afa68f380",
+      "nomActuel": "Conducteur de charrette",
+      "nomRetenu": "Conducteur de charrette",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68e5dff4db3ab58140240dce",
+      "nomActuel": "Conducteur de pousse-pousse",
+      "nomRetenu": "Conducteur de pousse-pousse",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68e5e1b32889b0144ce3bd55",
+      "nomActuel": "Livreur de produits frais (fruits, légumes)",
+      "nomRetenu": "Livreur de produits frais (fruits, légumes)",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68e5e4a206bf2e899dd810e3",
+      "nomActuel": "Réparateur de drones",
+      "nomRetenu": "Réparateur de drones",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "68e5e7f014315009cc296044",
+      "nomActuel": "Chauffeur de véhicule électrique",
+      "nomRetenu": "Chauffeur de véhicule électrique",
+      "categorie": "Mécanique & Transport",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "695ab6fd4e13bbfb6a0a5c2a",
+      "nomActuel": "Chauffeur Personnel",
+      "nomRetenu": "Chauffeur Personnel",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "695ab93b4e13bbfb6a0a5c2f",
+      "nomActuel": "Gardien Immeuble",
+      "nomRetenu": "Gardien Immeuble",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "695aba2c4e13bbfb6a0a5c34",
+      "nomActuel": "Concierge",
+      "nomRetenu": "Concierge",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "695abb754e13bbfb6a0a5c39",
+      "nomActuel": "Femme de Chambre",
+      "nomRetenu": "Femme de Chambre",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "695abd104e13bbfb6a0a5c3e",
+      "nomActuel": "Agent d'entretien",
+      "nomRetenu": "Agent d'entretien",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "695abed74e13bbfb6a0a5c43",
+      "nomActuel": "Repasseuse",
+      "nomRetenu": "Repasseuse",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "695ac1924e13bbfb6a0a5c48",
+      "nomActuel": "Collecteur d'ordures privées",
+      "nomRetenu": "Collecteur d'ordures privées",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "6961771abff072a8b1695d6f",
+      "nomActuel": "Garde malade à domicile",
+      "nomRetenu": "Garde malade à domicile",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6961779cbff072a8b1695d74",
+      "nomActuel": "Surveillant Parking",
+      "nomRetenu": "Surveillant Parking",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69617812bff072a8b1695d79",
+      "nomActuel": "Portier / Ouvreur",
+      "nomRetenu": "Portier / Ouvreur",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6961785ebff072a8b1695d7e",
+      "nomActuel": "Controlleur Entrée",
+      "nomRetenu": "Agent de contrôle d’accès",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Controlleur Entrée",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "69617a33bff072a8b1695d8a",
+      "nomActuel": "Maçon",
+      "nomRetenu": "Maçon",
+      "categorie": "B├ótiment & Construction",
+      "action": "ENRICHIR+RACCOURCI",
+      "aliasBesoins": "aliases [\"maconnerie\"] ; needs [\"mur a construire\",\"enduit\",\"parpaing\"]",
+      "justification": "Alias/besoins ajoutés (merge unique). Raccourci rang 4."
+    },
+    {
+      "id": "69617aa7bff072a8b1695d8f",
+      "nomActuel": "Ferrailleur",
+      "nomRetenu": "Ferrailleur",
+      "categorie": "B├ótiment & Construction",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "69617bbebff072a8b1695d94",
+      "nomActuel": "Coffreur-Betonnier",
+      "nomRetenu": "Coffreur-Betonnier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69617c45bff072a8b1695d99",
+      "nomActuel": "Carreleur",
+      "nomRetenu": "Carreleur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69617cadbff072a8b1695d9e",
+      "nomActuel": "Dalleur",
+      "nomRetenu": "Dalleur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69617d21bff072a8b1695da3",
+      "nomActuel": "Betonnier",
+      "nomRetenu": "Betonnier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69617e4dbff072a8b1695da8",
+      "nomActuel": "Terrassier",
+      "nomRetenu": "Terrassier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69617ebdbff072a8b1695dad",
+      "nomActuel": "Fondeur",
+      "nomRetenu": "Fondeur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69617f36bff072a8b1695db2",
+      "nomActuel": "Maçon Traditionnaliste",
+      "nomRetenu": "Maçon Traditionnaliste",
+      "categorie": "B├ótiment & Construction",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "69618214bff072a8b1695db7",
+      "nomActuel": "Demolisseur",
+      "nomRetenu": "Demolisseur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6961826fbff072a8b1695dbc",
+      "nomActuel": "Plombier",
+      "nomRetenu": "Plombier",
+      "categorie": "B├ótiment & Construction",
+      "action": "ENRICHIR+RACCOURCI",
+      "aliasBesoins": "aliases [\"plomberie\",\"plombier sanitaire\"] ; needs [\"robinet\",\"fuite d’eau\",\"evier bouche\",\"lavabo\",\"chasse d’eau\",\"fuite\",\"canalisation\"]",
+      "justification": "Alias/besoins ajoutés (merge unique). Raccourci rang 1."
+    },
+    {
+      "id": "696182cabff072a8b1695dc1",
+      "nomActuel": "Electricien",
+      "nomRetenu": "Électricien",
+      "categorie": "B├ótiment & Construction",
+      "action": "RENOMMER+RACCOURCI",
+      "aliasBesoins": "alias+ Electricien ; aliases [\"électricien\",\"electricien\",\"électricité\"] ; needs [\"panne de courant\",\"prise electrique\",\"tableau electrique\",\"court-circuit\"]",
+      "justification": "Correction de libellé, id conservé. Alias/besoins ajoutés (merge unique). Raccourci rang 2."
+    },
+    {
+      "id": "69618373bff072a8b1695dc6",
+      "nomActuel": "Peintre B├ótiment",
+      "nomRetenu": "Peintre B├ótiment",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618414bff072a8b1695dcb",
+      "nomActuel": "Menuisier",
+      "nomRetenu": "Menuisier",
+      "categorie": "B├ótiment & Construction",
+      "action": "ENRICHIR",
+      "aliasBesoins": "aliases [\"menuiserie\"] ; needs [\"chaise cassee\",\"reparer une chaise\",\"porte en bois\",\"meuble en bois\"]",
+      "justification": "Alias/besoins ajoutés (merge unique)."
+    },
+    {
+      "id": "6961846abff072a8b1695dd0",
+      "nomActuel": "Soudeur - Metallier",
+      "nomRetenu": "Soudeur - Metallier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "696184c0bff072a8b1695dd5",
+      "nomActuel": "Installateur Sanitaire",
+      "nomRetenu": "Installateur Sanitaire",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618620bff072a8b1695dda",
+      "nomActuel": "Electricien Industriel",
+      "nomRetenu": "Électricien industriel",
+      "categorie": "B├ótiment & Construction",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Electricien Industriel",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6961865fbff072a8b1695ddf",
+      "nomActuel": "Serrurier",
+      "nomRetenu": "Serrurier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6961877ebff072a8b1695de4",
+      "nomActuel": "Metallier",
+      "nomRetenu": "Metallier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618813bff072a8b1695de9",
+      "nomActuel": "Installateur Alarme",
+      "nomRetenu": "Installateur Alarme",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618979bff072a8b1695dee",
+      "nomActuel": "Plaquiste",
+      "nomRetenu": "Plaquiste",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618a73bff072a8b1695df7",
+      "nomActuel": "Vitrier",
+      "nomRetenu": "Vitrier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618ae4bff072a8b1695dfc",
+      "nomActuel": "Installateur Climatisation",
+      "nomRetenu": "Installateur Climatisation",
+      "categorie": "B├ótiment & Construction",
+      "action": "ENRICHIR",
+      "aliasBesoins": "aliases [\"installateur clim\"] ; needs [\"installer un climatiseur\"]",
+      "justification": "Alias/besoins ajoutés (merge unique)."
+    },
+    {
+      "id": "69618b44bff072a8b1695e01",
+      "nomActuel": "Etancheur",
+      "nomRetenu": "Etancheur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618b8bbff072a8b1695e06",
+      "nomActuel": "Faux Plafonds",
+      "nomRetenu": "Poseur de faux plafonds",
+      "categorie": "B├ótiment & Construction",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Faux Plafonds",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "69618c34bff072a8b1695e0b",
+      "nomActuel": "Parqueteur",
+      "nomRetenu": "Parqueteur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618dc2bff072a8b1695e10",
+      "nomActuel": "Moquettiste",
+      "nomRetenu": "Moquettiste",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618e74bff072a8b1695e15",
+      "nomActuel": "Tapissier",
+      "nomRetenu": "Tapissier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618ec4bff072a8b1695e1a",
+      "nomActuel": "Decorateur Interieur",
+      "nomRetenu": "Décorateur d’intérieur",
+      "categorie": "B├ótiment & Construction",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Decorateur Interieur",
+      "justification": "Correction de libellé, id conservé. Intérieur vs événementiel : non tranché. Decorateur conservé A_REVOIR."
+    },
+    {
+      "id": "69618efabff072a8b1695e1f",
+      "nomActuel": "Charpentier",
+      "nomRetenu": "Charpentier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69618f30bff072a8b1695e24",
+      "nomActuel": "Couvreur",
+      "nomRetenu": "Couvreur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6961937ebff072a8b1695e29",
+      "nomActuel": "Installateur Antenne",
+      "nomRetenu": "Installateur Antenne",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "6963d076bff072a8b1695e2e",
+      "nomActuel": "Installateur Portails",
+      "nomRetenu": "Installateur Portails",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d4368eda1aafc5de5648",
+      "nomActuel": "Installateur Volets",
+      "nomRetenu": "Installateur Volets",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d49f8eda1aafc5de5650",
+      "nomActuel": "Miroitier",
+      "nomRetenu": "Miroitier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d5348eda1aafc5de5658",
+      "nomActuel": "Installateur Store",
+      "nomRetenu": "Installateur Store",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d5cc8eda1aafc5de565d",
+      "nomActuel": "Poseur de Resine",
+      "nomRetenu": "Poseur de Resine",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d6308eda1aafc5de5662",
+      "nomActuel": "Installateur Domotique",
+      "nomRetenu": "Installateur Domotique",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Installation ≠ spécialisation réparation."
+    },
+    {
+      "id": "6963d6b38eda1aafc5de5667",
+      "nomActuel": "Jardinier / Paysagiste",
+      "nomRetenu": "Jardinier / Paysagiste",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d7398eda1aafc5de566c",
+      "nomActuel": "Installateur Piscine",
+      "nomRetenu": "Installateur Piscine",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d7a18eda1aafc5de5671",
+      "nomActuel": "Constructeur Cloture",
+      "nomRetenu": "Constructeur Cloture",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d7f28eda1aafc5de5676",
+      "nomActuel": "Paveur",
+      "nomRetenu": "Paveur",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d8498eda1aafc5de567b",
+      "nomActuel": "Foreur Puits",
+      "nomRetenu": "Foreur Puits",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d91a8eda1aafc5de5680",
+      "nomActuel": "Eclairagiste",
+      "nomRetenu": "Eclairagiste",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963d9948eda1aafc5de5685",
+      "nomActuel": "Installateur Pergolas",
+      "nomRetenu": "Installateur Pergolas",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963da028eda1aafc5de568a",
+      "nomActuel": "Constructeur Bassins",
+      "nomRetenu": "Constructeur Bassins",
+      "categorie": "B├ótiment & Construction",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6963da588eda1aafc5de568f",
+      "nomActuel": "Spécialiste Gazon",
+      "nomRetenu": "Spécialiste Gazon",
+      "categorie": "Services à Domicile & de Sécurité",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6963dc678eda1aafc5de5697",
+      "nomActuel": "Mecanicien Auto",
+      "nomRetenu": "Mécanicien auto",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER+RACCOURCI",
+      "aliasBesoins": "alias+ Mecanicien Auto ; aliases [\"mecanicien automobile\",\"garage auto\"] ; needs [\"voiture en panne\",\"revision auto\",\"vidange\"]",
+      "justification": "Correction de libellé, id conservé. Alias/besoins ajoutés (merge unique). Raccourci rang 5. Garage = établissement ; mécanicien / réparateur = activité."
+    },
+    {
+      "id": "6963de688eda1aafc5de56a6",
+      "nomActuel": "Electricien Auto",
+      "nomRetenu": "Électricien auto",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Electricien Auto",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6963e04c8eda1aafc5de56ab",
+      "nomActuel": "Carrossier",
+      "nomRetenu": "Carrossier",
+      "categorie": "B├ótiment & Construction",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e0e58eda1aafc5de56b0",
+      "nomActuel": "Garagiste",
+      "nomRetenu": "Garagiste",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Garage = établissement ; mécanicien / réparateur = activité."
+    },
+    {
+      "id": "6963e13f8eda1aafc5de56b5",
+      "nomActuel": "Mecanicien Diesel",
+      "nomRetenu": "Mecanicien Diesel",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e2198eda1aafc5de56ba",
+      "nomActuel": "Specialiste Boite Vitesse",
+      "nomRetenu": "Specialiste Boite Vitesse",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e27d8eda1aafc5de56bf",
+      "nomActuel": "Reparateur Embrayage",
+      "nomRetenu": "Reparateur Embrayage",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e2e68eda1aafc5de56c4",
+      "nomActuel": "Mecanicien Suspension",
+      "nomRetenu": "Mecanicien Suspension",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e35e8eda1aafc5de56c9",
+      "nomActuel": "Specialiste Freinage",
+      "nomRetenu": "Specialiste Freinage",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e3fc8eda1aafc5de56ce",
+      "nomActuel": "Vulganisateur",
+      "nomRetenu": "Vulcanisateur",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Vulganisateur",
+      "justification": "Correction de libellé, id conservé. Pneumatique peut être industriel."
+    },
+    {
+      "id": "6963e4588eda1aafc5de56d3",
+      "nomActuel": "Reparateur Radiateur",
+      "nomRetenu": "Reparateur Radiateur",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e4ad8eda1aafc5de56d8",
+      "nomActuel": "Sellier Auto",
+      "nomRetenu": "Sellier Auto",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e5228eda1aafc5de56dd",
+      "nomActuel": "Mecanicien Poids Lourds",
+      "nomRetenu": "Mecanicien Poids Lourds",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e6118eda1aafc5de56e7",
+      "nomActuel": "Mecanicien Marine",
+      "nomRetenu": "Mecanicien Marine",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6963e6898eda1aafc5de56ec",
+      "nomActuel": "Reparateur Engins",
+      "nomRetenu": "Reparateur Engins",
+      "categorie": "Mécanique & Transport",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6963e6f18eda1aafc5de56f1",
+      "nomActuel": "Mecanicien Groupe Electrogene",
+      "nomRetenu": "Mecanicien Groupe Electrogene",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "6966a0e931f7f3c834546d82",
+      "nomActuel": "Specialiste Echappement",
+      "nomRetenu": "Specialiste Echappement",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966a19431f7f3c834546d87",
+      "nomActuel": "Reparateur Pneumatique",
+      "nomRetenu": "Reparateur Pneumatique",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Pneumatique peut être industriel."
+    },
+    {
+      "id": "6966a1d031f7f3c834546d8c",
+      "nomActuel": "Laveur Auto ",
+      "nomRetenu": "Laveur auto",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Laveur Auto ",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6966a35031f7f3c834546d91",
+      "nomActuel": "Depanneur",
+      "nomRetenu": "Depanneur",
+      "categorie": "Mécanique & Transport",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6966a47031f7f3c834546d9a",
+      "nomActuel": "Controlleur Technique",
+      "nomRetenu": "Controlleur Technique",
+      "categorie": "Mécanique & Transport",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6966a68031f7f3c834546d9f",
+      "nomActuel": "Installateur GPS",
+      "nomRetenu": "Installateur GPS",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966a70131f7f3c834546da4",
+      "nomActuel": "Reparateur Auto",
+      "nomRetenu": "Reparateur Auto",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Garage = établissement ; mécanicien / réparateur = activité."
+    },
+    {
+      "id": "6966a77d31f7f3c834546da9",
+      "nomActuel": "Poseur VItre Teintées",
+      "nomRetenu": "Poseur de vitres teintées",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Poseur VItre Teintées",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6966a7c431f7f3c834546dae",
+      "nomActuel": "Installateur Alarme Auto",
+      "nomRetenu": "Installateur Alarme Auto",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966a84c31f7f3c834546db3",
+      "nomActuel": "Specialiste Tunning",
+      "nomRetenu": "Spécialiste tuning automobile",
+      "categorie": "Mécanique & Transport",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Specialiste Tunning",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6966a90831f7f3c834546db8",
+      "nomActuel": "Reparateur Pare Brise",
+      "nomRetenu": "Reparateur Pare Brise",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966a94631f7f3c834546dbd",
+      "nomActuel": "Installateur Attelage",
+      "nomRetenu": "Installateur Attelage",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966a9e331f7f3c834546dc7",
+      "nomActuel": "Reparateur Ordinateur",
+      "nomRetenu": "Reparateur Ordinateur",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966aa1a31f7f3c834546dcc",
+      "nomActuel": "Reparateur TV",
+      "nomRetenu": "Reparateur TV",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966aa6931f7f3c834546dd1",
+      "nomActuel": "Electronicien",
+      "nomRetenu": "Electronicien",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966aae231f7f3c834546dd6",
+      "nomActuel": "Reparateur ElectroMenager",
+      "nomRetenu": "Réparateur d’électroménager",
+      "categorie": "Electronique & Technologie",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Reparateur ElectroMenager",
+      "justification": "Correction de libellé, id conservé. Doublon fonctionnel probable — inventorier les références avant fusion."
+    },
+    {
+      "id": "6966ab3431f7f3c834546ddb",
+      "nomActuel": "Reparateur Micro Ondes",
+      "nomRetenu": "Reparateur Micro Ondes",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966acaa31f7f3c834546de5",
+      "nomActuel": "Reparateur Chaines Hi Fi",
+      "nomRetenu": "Reparateur Chaines Hi Fi",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966ad3631f7f3c834546dea",
+      "nomActuel": "Specialiste Console",
+      "nomRetenu": "Spécialiste consoles de jeux",
+      "categorie": "Electronique & Technologie",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Specialiste Console",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6966ae4a31f7f3c834546def",
+      "nomActuel": "Reparateur Imprimantes",
+      "nomRetenu": "Reparateur Imprimantes",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b0a231f7f3c834546df4",
+      "nomActuel": "Installateur Reseau",
+      "nomRetenu": "Installateur Reseau",
+      "categorie": "Electronique & Technologie",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6966b13331f7f3c834546df9",
+      "nomActuel": "Technicien CCTV",
+      "nomRetenu": "Technicien CCTV",
+      "categorie": "Electronique & Technologie",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6966b17a31f7f3c834546dfe",
+      "nomActuel": "Installateur Parabole",
+      "nomRetenu": "Installateur Parabole",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "6966b26531f7f3c834546e0d",
+      "nomActuel": "Installateur Fibre Optique",
+      "nomRetenu": "Installateur Fibre Optique",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b2f531f7f3c834546e17",
+      "nomActuel": "Technicen ADSL",
+      "nomRetenu": "Technicien ADSL",
+      "categorie": "Electronique & Technologie",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Technicen ADSL",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6966b33331f7f3c834546e1c",
+      "nomActuel": "Installateur Interphone",
+      "nomRetenu": "Installateur Interphone",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b37831f7f3c834546e21",
+      "nomActuel": "Specialiste Domotique",
+      "nomRetenu": "Specialiste Domotique",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Installation ≠ spécialisation réparation."
+    },
+    {
+      "id": "6966b3e531f7f3c834546e26",
+      "nomActuel": "Technicien Photo Voltaique",
+      "nomRetenu": "Technicien photovoltaïque",
+      "categorie": "Electronique & Technologie",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Technicien Photo Voltaique",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "6966b50231f7f3c834546e2b",
+      "nomActuel": "Cyber Cafetier",
+      "nomRetenu": "Cyber Cafetier",
+      "categorie": "Electronique & Technologie",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b5b331f7f3c834546e30",
+      "nomActuel": "Tailleur Homme",
+      "nomRetenu": "Tailleur Homme",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b61b31f7f3c834546e35",
+      "nomActuel": "Couturiere",
+      "nomRetenu": "Couturier / couturière",
+      "categorie": "Textile & Habillement",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Couturiere ; aliases [\"couture\",\"couturier\"] ; needs [\"ourlet\",\"fermeture cassee\",\"vetement a ajuster\"]",
+      "justification": "Correction de libellé, id conservé. Alias/besoins ajoutés (merge unique)."
+    },
+    {
+      "id": "6966b66a31f7f3c834546e3a",
+      "nomActuel": "Styliste Mode",
+      "nomRetenu": "Styliste Mode",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b6b631f7f3c834546e3f",
+      "nomActuel": "Brodeur",
+      "nomRetenu": "Brodeur",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b7d931f7f3c834546e44",
+      "nomActuel": "Modeliste",
+      "nomRetenu": "Modeliste",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b89b31f7f3c834546e49",
+      "nomActuel": "Costumier",
+      "nomRetenu": "Costumier",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966b8ed31f7f3c834546e4e",
+      "nomActuel": "Cordonnier",
+      "nomRetenu": "Cordonnier",
+      "categorie": "Textile & Habillement",
+      "action": "ENRICHIR",
+      "aliasBesoins": "aliases [\"cordonnerie\"] ; needs [\"chaussure a reparer\",\"semelle decollee\",\"talon\",\"chaussure\"]",
+      "justification": "Alias/besoins ajoutés (merge unique)."
+    },
+    {
+      "id": "6966b94e31f7f3c834546e53",
+      "nomActuel": "Sellier Maroquinier",
+      "nomRetenu": "Sellier Maroquinier",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966ba3031f7f3c834546e58",
+      "nomActuel": "Teinturier",
+      "nomRetenu": "Teinturier",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966ba7b31f7f3c834546e5d",
+      "nomActuel": "Createur Bijoux",
+      "nomRetenu": "Créateur de bijoux",
+      "categorie": "Textile & Habillement",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Createur Bijoux",
+      "justification": "Correction de libellé, id conservé. Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "6966bb2931f7f3c834546e62",
+      "nomActuel": "Ceinturier",
+      "nomRetenu": "Ceinturier",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6966bb8331f7f3c834546e67",
+      "nomActuel": "Coiffure Homme",
+      "nomRetenu": "Coiffeur / coiffeuse pour hommes",
+      "categorie": " Beauté & Soins",
+      "action": "RENOMMER+RACCOURCI",
+      "aliasBesoins": "alias+ Coiffure Homme ; aliases [\"coiffeur homme\",\"salon homme\"] ; needs [\"coupe homme\",\"barbe\"]",
+      "justification": "Correction de libellé, id conservé. Alias/besoins ajoutés (merge unique). Raccourci rang 6."
+    },
+    {
+      "id": "6966bbc431f7f3c834546e6c",
+      "nomActuel": "Coiffeuse Dame",
+      "nomRetenu": "Coiffeur / coiffeuse pour femmes",
+      "categorie": " Beauté & Soins",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Coiffeuse Dame ; aliases [\"coiffeuse\",\"salon femme\"] ; needs [\"tresse\",\"defrisage\",\"coupe femme\"]",
+      "justification": "Correction de libellé, id conservé. Alias/besoins ajoutés (merge unique)."
+    },
+    {
+      "id": "69876e8bb20e7d1a0d51283b",
+      "nomActuel": "Mécanicien Moto",
+      "nomRetenu": "Mécanicien Moto",
+      "categorie": "Mécanique & Transport",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69877929b20e7d1a0d512858",
+      "nomActuel": "Maroquinier",
+      "nomRetenu": "Maroquinier",
+      "categorie": "Textile & Habillement",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69877a28b20e7d1a0d51285d",
+      "nomActuel": "Tresseur",
+      "nomRetenu": "Tresseur",
+      "categorie": " Beauté & Soins",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69877a8eb20e7d1a0d512862",
+      "nomActuel": "Perruquier",
+      "nomRetenu": "Perruquier",
+      "categorie": " Beauté & Soins",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69877b1cb20e7d1a0d51286b",
+      "nomActuel": "Estheticien",
+      "nomRetenu": "Esthéticien / esthéticienne",
+      "categorie": " Beauté & Soins",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Estheticien",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "69877b84b20e7d1a0d512870",
+      "nomActuel": "Protheiste Ongulaire",
+      "nomRetenu": "Prothésiste ongulaire",
+      "categorie": " Beauté & Soins",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Protheiste Ongulaire",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "69877efcb20e7d1a0d512875",
+      "nomActuel": "Manicure Pedicure",
+      "nomRetenu": "Manucure / pédicure",
+      "categorie": " Beauté & Soins",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Manicure Pedicure",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "69877fd4b20e7d1a0d51287a",
+      "nomActuel": "Masseur Traditionnel",
+      "nomRetenu": "Masseur Traditionnel",
+      "categorie": " Beauté & Soins",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987804bb20e7d1a0d51287f",
+      "nomActuel": "Tatoueur",
+      "nomRetenu": "Tatoueur",
+      "categorie": " Beauté & Soins",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "698780b3b20e7d1a0d512884",
+      "nomActuel": "Conseiller Beauté",
+      "nomRetenu": "Conseiller Beauté",
+      "categorie": " Beauté & Soins",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69878181b20e7d1a0d512889",
+      "nomActuel": "Herboriste",
+      "nomRetenu": "Herboriste",
+      "categorie": " Beauté & Soins",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987859db20e7d1a0d5128ca",
+      "nomActuel": "Sculpteur",
+      "nomRetenu": "Sculpteur",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987860db20e7d1a0d5128cf",
+      "nomActuel": "Cuisinier Maquis",
+      "nomRetenu": "Cuisinier Maquis",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "698786a0b20e7d1a0d5128e0",
+      "nomActuel": "Cuisinier de rue",
+      "nomRetenu": "Cuisinier de rue",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "698786e1b20e7d1a0d5128e5",
+      "nomActuel": "Chef à domicile",
+      "nomRetenu": "Chef à domicile",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Chef vs cuisinier : métiers distincts possibles. Pas de fusion auto."
+    },
+    {
+      "id": "69878721b20e7d1a0d5128ea",
+      "nomActuel": "Traiteur",
+      "nomRetenu": "Traiteur",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987875fb20e7d1a0d5128ef",
+      "nomActuel": "Pizzaiolo",
+      "nomRetenu": "Pizzaiolo",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987879ab20e7d1a0d5128f4",
+      "nomActuel": "Grilleur",
+      "nomRetenu": "Grilleur",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "698787cbb20e7d1a0d5128f9",
+      "nomActuel": "Boulanger",
+      "nomRetenu": "Boulanger",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69878808b20e7d1a0d5128fe",
+      "nomActuel": "Patissier",
+      "nomRetenu": "Patissier",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69878841b20e7d1a0d512903",
+      "nomActuel": "Fabricant jus",
+      "nomRetenu": "Fabricant jus",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69878b40b20e7d1a0d512908",
+      "nomActuel": "Transformateur Manioc",
+      "nomRetenu": "Transformateur Manioc",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69878b7cb20e7d1a0d51290d",
+      "nomActuel": "Poissonnier",
+      "nomRetenu": "Poissonnier",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69878bb9b20e7d1a0d512912",
+      "nomActuel": "Boucher",
+      "nomRetenu": "Boucher",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69878c4ab20e7d1a0d512917",
+      "nomActuel": "Epicier",
+      "nomRetenu": "Epicier",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "698793d5b20e7d1a0d51291c",
+      "nomActuel": "Marchand Legume",
+      "nomRetenu": "Marchand de légumes",
+      "categorie": "Alimentation & Restauration",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Marchand Legume",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "69879683b20e7d1a0d512921",
+      "nomActuel": "Marchand Céraéles",
+      "nomRetenu": "Marchand de céréales",
+      "categorie": "Alimentation & Restauration",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Marchand Céraéles",
+      "justification": "Correction de libellé, id conservé."
+    },
+    {
+      "id": "698796dbb20e7d1a0d512926",
+      "nomActuel": "Potier",
+      "nomRetenu": "Potier",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879719b20e7d1a0d51292b",
+      "nomActuel": "Forgeron",
+      "nomRetenu": "Forgeron",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879768b20e7d1a0d512930",
+      "nomActuel": "Bijoutier Artisannal",
+      "nomRetenu": "Bijoutier artisanal",
+      "categorie": "Artisanat & Art",
+      "action": "RENOMMER",
+      "aliasBesoins": "alias+ Bijoutier Artisannal",
+      "justification": "Correction de libellé, id conservé. Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "698798fbb20e7d1a0d512940",
+      "nomActuel": "Tisserand",
+      "nomRetenu": "Tisserand",
+      "categorie": "Alimentation & Restauration",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987995ab20e7d1a0d512948",
+      "nomActuel": "Decorateur",
+      "nomRetenu": "Decorateur",
+      "categorie": "Artisanat & Art",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu). Intérieur vs événementiel : non tranché. Decorateur conservé A_REVOIR."
+    },
+    {
+      "id": "698799d6b20e7d1a0d51294d",
+      "nomActuel": "Fleuriste",
+      "nomRetenu": "Fleuriste",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879a0cb20e7d1a0d512952",
+      "nomActuel": "Musicien",
+      "nomRetenu": "Musicien",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879b1bb20e7d1a0d51295d",
+      "nomActuel": "Danseur",
+      "nomRetenu": "Danseur",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879b5bb20e7d1a0d512967",
+      "nomActuel": "Artiste Peintre",
+      "nomRetenu": "Artiste Peintre",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879c3eb20e7d1a0d51296d",
+      "nomActuel": "Comedien",
+      "nomRetenu": "Comedien",
+      "categorie": "Artisanat & Art",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879c94b20e7d1a0d512972",
+      "nomActuel": "Boutiquier",
+      "nomRetenu": "Boutiquier",
+      "categorie": "Commerce & Service de Proximité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879cc9b20e7d1a0d512977",
+      "nomActuel": "Vendeur Ambulant",
+      "nomRetenu": "Vendeur Ambulant",
+      "categorie": "Commerce & Service de Proximité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879d0db20e7d1a0d51297c",
+      "nomActuel": "Vendeur Friperie",
+      "nomRetenu": "Vendeur Friperie",
+      "categorie": "Commerce & Service de Proximité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879d8db20e7d1a0d512981",
+      "nomActuel": "Vendeur Accessoire Telephone",
+      "nomRetenu": "Vendeur Accessoire Telephone",
+      "categorie": "Commerce & Service de Proximité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879ddcb20e7d1a0d512986",
+      "nomActuel": "Vendeurs Produits Menagers",
+      "nomRetenu": "Vendeurs Produits Menagers",
+      "categorie": "Commerce & Service de Proximité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "69879ebab20e7d1a0d51298e",
+      "nomActuel": "Location Materiel",
+      "nomRetenu": "Location Materiel",
+      "categorie": "Commerce & Service de Proximité",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "69879f10b20e7d1a0d512993",
+      "nomActuel": "Collecteur déchets",
+      "nomRetenu": "Collecteur déchets",
+      "categorie": "Commerce & Service de Proximité",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Fusion candidate — pas de transfert auto."
+    },
+    {
+      "id": "6987a166b20e7d1a0d512998",
+      "nomActuel": "Eleveur volailles",
+      "nomRetenu": "Eleveur volailles",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a1aeb20e7d1a0d51299d",
+      "nomActuel": "Eleveur Ruminants",
+      "nomRetenu": "Eleveur Ruminants",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "A_REVOIR",
+      "aliasBesoins": "inchangés",
+      "justification": "Hors plan automatique (sens ou périmètre ambigu)."
+    },
+    {
+      "id": "6987a1edb20e7d1a0d5129a5",
+      "nomActuel": "Eleveur Bovin",
+      "nomRetenu": "Eleveur Bovin",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a242b20e7d1a0d5129ad",
+      "nomActuel": "Eleveur Porcin",
+      "nomRetenu": "Eleveur Porcin",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a297b20e7d1a0d5129b2",
+      "nomActuel": "Eleveur Lapins",
+      "nomRetenu": "Eleveur Lapins",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a2e7b20e7d1a0d5129b7",
+      "nomActuel": "Dresseur Chien",
+      "nomRetenu": "Dresseur Chien",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a36bb20e7d1a0d5129c9",
+      "nomActuel": "Toiletteur Canin",
+      "nomRetenu": "Toiletteur Canin",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a3acb20e7d1a0d5129ce",
+      "nomActuel": "Vendeur Aliments Betail",
+      "nomRetenu": "Vendeur Aliments Betail",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a4bcb20e7d1a0d5129d4",
+      "nomActuel": "Aide veterinaire",
+      "nomRetenu": "Aide veterinaire",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    },
+    {
+      "id": "6987a4fdb20e7d1a0d5129d9",
+      "nomActuel": "Marchand animaux",
+      "nomRetenu": "Marchand animaux",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "action": "CONSERVER",
+      "aliasBesoins": "inchangés",
+      "justification": "Aucune modification automatique. Alias/besoins inchangés."
+    }
+  ],
+  "orphans": [
+    {
+      "serviceId": "68d6a41c40b8a717973dd400",
+      "nom": "Service général",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 2,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a42040b8a717973dd417",
+      "nom": "Boulangé",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 1,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a74a8d705907be738abf",
+      "nom": "Vulgarisateur",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a74b8d705907be738ac9",
+      "nom": "T├öLIER",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a74f8d705907be738ae3",
+      "nom": "FRIGORISTE",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 1,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a7528d705907be738af5",
+      "nom": "Soudure",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a7548d705907be738aff",
+      "nom": "ELEVEUR DE POULETS",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a75b8d705907be738b2a",
+      "nom": "Freinage-auto",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a7748d705907be738bc4",
+      "nom": "Confection des bracelets",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a7768d705907be738bce",
+      "nom": "Photographe",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 1,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a77b8d705907be738bf0",
+      "nom": "Restauration",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 1,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a77c8d705907be738bfa",
+      "nom": "Boulangerie",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 1,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a852490b63f4b89feec0",
+      "nom": "Cordonnerie",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a85e490b63f4b89fef0a",
+      "nom": "Ferronnerie",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a862490b63f4b89fef24",
+      "nom": "Ébénisterie",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a868490b63f4b89fef46",
+      "nom": "Menuiserie / Allure",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a86b490b63f4b89fef6c",
+      "nom": "Coiffure homme",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a871490b63f4b89fefb5",
+      "nom": "MAINTENANCE INFORMATIQUE",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    },
+    {
+      "serviceId": "68d6a876490b63f4b89fefe2",
+      "nom": "Ferronnier",
+      "categorieIdBrut": "68d6a41c40b8a717973dd3fd",
+      "categorieExistante": false,
+      "nomcategorie": null,
+      "groupeId": null,
+      "groupeExistant": false,
+      "nomgroupe": null,
+      "populateCategorieNull": true,
+      "excludedByFilter": false,
+      "cause": "reference_non_nulle_cassee",
+      "refs": {
+        "prestataires": 0,
+        "freelanceServices": 0,
+        "prestations": 0,
+        "recensements": 0
+      },
+      "decision": "A_REVOIR"
+    }
+  ]
+}

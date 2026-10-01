@@ -1,0 +1,406 @@
+{
+  "count": 50,
+  "creations": 44,
+  "rows": [
+    {
+      "proposition": "1. Technicien de lutte contre les nuisibles",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Services à Domicile & de Sécurité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "2. Vidangeur de fosses septiques",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "3. Agent de curage et d’assainissement",
+      "correspondances": "spécialisation de Plombier",
+      "decision": "SPECIALISATION_DISTINCTE",
+      "categorie": "Bâtiment & Construction",
+      "justification": "Curage vs plomberie courante — entrée distincte, non attribuée aux plombiers.",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "4. Nettoyeur de textiles d’ameublement",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Services à Domicile & de Sécurité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "5. Laveur de vitres",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Services à Domicile & de Sécurité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "6. Nettoyeur de fin de chantier",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "7. Technicien d’entretien de piscines",
+      "correspondances": "spécialisation de Installateur Piscine",
+      "decision": "SPECIALISATION_DISTINCTE",
+      "categorie": "Bâtiment & Construction",
+      "justification": "Entretien ≠ installation (Installateur Piscine déjà au catalogue).",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "8. Auxiliaire de vie à domicile",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Services à Domicile & de Sécurité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "9. Gardien d’animaux à domicile",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "10. Élagueur",
+      "correspondances": "spécialisation de Jardinier / Paysagiste",
+      "decision": "SPECIALISATION_DISTINCTE",
+      "categorie": "Jardinage & Espaces verts",
+      "justification": "Pas du gros œuvre. Nouvelle catégorie Métiers ; Jardinier / Paysagiste n’est pas déplacé automatiquement.",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "11. Menuisier aluminium",
+      "correspondances": "spécialisation de Menuisier",
+      "decision": "SPECIALISATION_DISTINCTE",
+      "categorie": "Bâtiment & Construction",
+      "justification": "Menuisier bois #69618414bff072a8b1695dcb existe. Alu = spécialisation distincte, non attribuée aux menuisiers bois. Orphelin Menuiserie / Allure non rattaché.",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "12. Monteur de meubles",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Services à Domicile & de Sécurité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "13. Installateur de cuisines aménagées",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "14. Staffeur",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "15. Façadier-enduiseur",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "16. Poseur de moustiquaires",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "17. Installateur-réparateur de pompes à eau",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "18. Technicien de traitement de l’eau",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "19. Installateur de systèmes d’arrosage",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "20. Installateur-réparateur de chauffe-eau",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "21. Ascensoriste",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "22. Bobinier de moteurs électriques",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Electronique & Technologie",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "23. Technicien d’onduleurs",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Electronique & Technologie",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "24. Technicien de maintenance d’extincteurs",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Services à Domicile & de Sécurité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "25. Réparateur de machines à coudre",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Electronique & Technologie",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "26. Technicien de balances et pesage",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Electronique & Technologie",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "27. Réparateur de vélos",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Mécanique & Transport",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "28. Dépanneur-remorqueur automobile",
+      "correspondances": "spécialisation de Depanneur",
+      "decision": "A_REVOIR",
+      "categorie": "—",
+      "justification": "Depanneur #6966a35031f7f3c834546d91 est A_REVOIR (sens flou). Pas de création tant que le périmètre dépannage vs remorquage n’est pas tranché.",
+      "creationPrevue": "non"
+    },
+    {
+      "proposition": "29. Technicien de climatisation automobile",
+      "correspondances": "spécialisation de Mecanicien Auto",
+      "decision": "SPECIALISATION_DISTINCTE",
+      "categorie": "Mécanique & Transport",
+      "justification": "SPECIALISATION_DISTINCTE",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "30. Technicien de diagnostic électronique automobile",
+      "correspondances": "spécialisation de Mecanicien Auto",
+      "decision": "SPECIALISATION_DISTINCTE",
+      "categorie": "Mécanique & Transport",
+      "justification": "SPECIALISATION_DISTINCTE",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "31. Photographe événementiel",
+      "correspondances": "Freelance Photographe Evenementiel #69d6894cddb4b1fd93b729f4",
+      "decision": "AUTRE_UNIVERS_JUSTIFIE",
+      "categorie": "—",
+      "justification": "Équivalent Freelance existant. Pas de duplicata Métiers. L’orphelin Photographe n’est pas rattaché.",
+      "creationPrevue": "non"
+    },
+    {
+      "proposition": "32. Vidéaste événementiel",
+      "correspondances": "Freelance Videaste de Mariage #",
+      "decision": "AUTRE_UNIVERS_JUSTIFIE",
+      "categorie": "—",
+      "justification": "Équivalent Freelance (vidéaste mariage). Parcours Freelance, souvent à distance/livraison de fichiers.",
+      "creationPrevue": "non"
+    },
+    {
+      "proposition": "33. DJ",
+      "correspondances": "Musicien #69879a0cb20e7d1a0d512952 reste en Artisanat. DJ n’est pas fusionné.",
+      "decision": "AJOUTER",
+      "categorie": "Événementiel & Animation",
+      "justification": "Musicien #69879a0cb20e7d1a0d512952 reste en Artisanat. DJ n’est pas fusionné.",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "34. Technicien de sonorisation",
+      "correspondances": "Prestation live technique, distincte de Musicien.",
+      "decision": "AJOUTER",
+      "categorie": "Événementiel & Animation",
+      "justification": "Prestation live technique, distincte de Musicien.",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "35. Maître de cérémonie",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Événementiel & Animation",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "36. Organisateur d’événements",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Événementiel & Animation",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "37. Monteur de tentes et chapiteaux",
+      "correspondances": "Montage de structures, distinct de l’animation Artisanat.",
+      "decision": "AJOUTER",
+      "categorie": "Bâtiment & Construction",
+      "justification": "Montage de structures, distinct de l’animation Artisanat.",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "38. Serveur événementiel",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Alimentation & Restauration",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "39. Barman événementiel",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Alimentation & Restauration",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "40. Maquilleur professionnel",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": " Beauté & Soins",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "41. Retoucheur de vêtements",
+      "correspondances": "spécialisation de Couturiere",
+      "decision": "SPECIALISATION_DISTINCTE",
+      "categorie": "Textile & Habillement",
+      "justification": "Retouche vs création — entrée distincte.",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "42. Imprimeur",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Commerce & Service de Proximité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "43. Sérigraphe",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Textile & Habillement",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "44. Fabricant-poseur d’enseignes",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Commerce & Service de Proximité",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "45. Graveur-personnalisateur",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Artisanat & Art",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "46. Professeur particulier à domicile",
+      "correspondances": "Aucun équivalent Métiers ni Freelance « cours / professeur ». L’indépendance ne justifie pas Freelance. Domicile vs distanciel non tranché.",
+      "decision": "A_REVOIR",
+      "categorie": "—",
+      "justification": "Aucun équivalent Métiers ni Freelance « cours / professeur ». L’indépendance ne justifie pas Freelance. Domicile vs distanciel non tranché.",
+      "creationPrevue": "non"
+    },
+    {
+      "proposition": "47. Coach sportif à domicile",
+      "correspondances": "Les Coach Freelance existants sont B2B / carrière / nutrition au travail, pas un coaching sportif à domicile.",
+      "decision": "A_REVOIR",
+      "categorie": "—",
+      "justification": "Les Coach Freelance existants sont B2B / carrière / nutrition au travail, pas un coaching sportif à domicile.",
+      "creationPrevue": "non"
+    },
+    {
+      "proposition": "48. Maître-nageur / moniteur de natation",
+      "correspondances": "Installateur Piscine #6963d7398eda1aafc5de566c = construction. Pas de catégorie Sport existante. Ne pas ranger en Services à domicile. Catégorie Sport & Loisirs proposée, non créée auto.",
+      "decision": "A_REVOIR",
+      "categorie": "Sport & Loisirs",
+      "justification": "Installateur Piscine #6963d7398eda1aafc5de566c = construction. Pas de catégorie Sport existante. Ne pas ranger en Services à domicile. Catégorie Sport & Loisirs proposée, non créée auto.",
+      "creationPrevue": "non"
+    },
+    {
+      "proposition": "49. Pisciculteur",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    },
+    {
+      "proposition": "50. Apiculteur",
+      "correspondances": "aucun équivalent exact",
+      "decision": "AJOUTER",
+      "categorie": "Élevage, Animaux & Services Associés",
+      "justification": "AJOUTER",
+      "creationPrevue": "oui"
+    }
+  ]
+}

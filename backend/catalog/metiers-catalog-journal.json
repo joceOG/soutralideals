@@ -1,0 +1,6716 @@
+{
+  "version": 2,
+  "applied": [
+    {
+      "at": "2026-09-30T21:58:52.558Z",
+      "uri": "mongodb+srv://***:***@cluster0.84okv.mongodb.net/soutralideals?retryWrites=true&w=majority",
+      "apply": true,
+      "runId": "run_1790805466247",
+      "operations": [
+        {
+          "type": "category-add",
+          "after": {
+            "nomcategorie": "Jardinage & Espaces verts",
+            "groupe": "66dcaf6ccb96c35a997df14d"
+          },
+          "status": "applied",
+          "id": "6abd85db5749d458327a65a5"
+        },
+        {
+          "type": "category-add",
+          "after": {
+            "nomcategorie": "Événementiel & Animation",
+            "groupe": "66dcaf6ccb96c35a997df14d"
+          },
+          "status": "applied",
+          "id": "6abd85dc5749d458327a65a7"
+        },
+        {
+          "type": "category-trim",
+          "id": "670aa9935323d4161ecb97fc",
+          "before": {
+            "nomcategorie": " Beauté & Soins"
+          },
+          "after": {
+            "nomcategorie": "Beauté & Soins"
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69879768b20e7d1a0d512930",
+          "before": {
+            "nomservice": "Bijoutier Artisannal",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Bijoutier artisanal",
+            "aliases": [
+              "Bijoutier Artisannal",
+              "Bijoutier artisanal"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6961785ebff072a8b1695d7e",
+          "before": {
+            "nomservice": "Controlleur Entrée",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Agent de contrôle d’accès",
+            "aliases": [
+              "Controlleur Entrée",
+              "Agent de contrôle d’accès"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69618b8bbff072a8b1695e06",
+          "before": {
+            "nomservice": "Faux Plafonds",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Poseur de faux plafonds",
+            "aliases": [
+              "Faux Plafonds",
+              "Poseur de faux plafonds"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "nomservice": "Servante ménagère",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Aide ménagère à domicile",
+            "aliases": [
+              "Servante ménagère",
+              "Aide ménagère à domicile"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69879683b20e7d1a0d512921",
+          "before": {
+            "nomservice": "Marchand Céraéles",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Marchand de céréales",
+            "aliases": [
+              "Marchand Céraéles",
+              "Marchand de céréales"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966b2f531f7f3c834546e17",
+          "before": {
+            "nomservice": "Technicen ADSL",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Technicien ADSL",
+            "aliases": [
+              "Technicen ADSL",
+              "Technicien ADSL"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966b3e531f7f3c834546e26",
+          "before": {
+            "nomservice": "Technicien Photo Voltaique",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Technicien photovoltaïque",
+            "aliases": [
+              "Technicien Photo Voltaique",
+              "Technicien photovoltaïque"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6963e3fc8eda1aafc5de56ce",
+          "before": {
+            "nomservice": "Vulganisateur",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Vulcanisateur",
+            "aliases": [
+              "Vulganisateur",
+              "Vulcanisateur"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966ad3631f7f3c834546dea",
+          "before": {
+            "nomservice": "Specialiste Console",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Spécialiste consoles de jeux",
+            "aliases": [
+              "Specialiste Console",
+              "Spécialiste consoles de jeux"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "670e832b628e163918cf3384",
+          "before": {
+            "nomservice": "Service de déménagement local ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Déménageur",
+            "aliases": [
+              "Service de déménagement local",
+              "Déménageur"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "nomservice": "Coiffure Homme",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Coiffeur / coiffeuse pour hommes",
+            "aliases": [
+              "Coiffure Homme",
+              "Coiffeur / coiffeuse pour hommes"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966bbc431f7f3c834546e6c",
+          "before": {
+            "nomservice": "Coiffeuse Dame",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Coiffeur / coiffeuse pour femmes",
+            "aliases": [
+              "Coiffeuse Dame",
+              "Coiffeur / coiffeuse pour femmes"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69877efcb20e7d1a0d512875",
+          "before": {
+            "nomservice": "Manicure Pedicure",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Manucure / pédicure",
+            "aliases": [
+              "Manicure Pedicure",
+              "Manucure / pédicure"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69877b84b20e7d1a0d512870",
+          "before": {
+            "nomservice": "Protheiste Ongulaire",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Prothésiste ongulaire",
+            "aliases": [
+              "Protheiste Ongulaire",
+              "Prothésiste ongulaire"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69877b1cb20e7d1a0d51286b",
+          "before": {
+            "nomservice": "Estheticien",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Esthéticien / esthéticienne",
+            "aliases": [
+              "Estheticien",
+              "Esthéticien / esthéticienne"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966b61b31f7f3c834546e35",
+          "before": {
+            "nomservice": "Couturiere",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Couturier / couturière",
+            "aliases": [
+              "Couturiere",
+              "Couturier / couturière"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "698793d5b20e7d1a0d51291c",
+          "before": {
+            "nomservice": "Marchand Legume",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Marchand de légumes",
+            "aliases": [
+              "Marchand Legume",
+              "Marchand de légumes"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966aae231f7f3c834546dd6",
+          "before": {
+            "nomservice": "Reparateur ElectroMenager",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Réparateur d’électroménager",
+            "aliases": [
+              "Reparateur ElectroMenager",
+              "Réparateur d’électroménager"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "670e8296628e163918cf337a",
+          "before": {
+            "nomservice": "Réparateurs d' appareils ménagers",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Réparateur d’appareils ménagers",
+            "aliases": [
+              "Réparateurs d' appareils ménagers",
+              "Réparateur d’appareils ménagers"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966a77d31f7f3c834546da9",
+          "before": {
+            "nomservice": "Poseur VItre Teintées",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Poseur de vitres teintées",
+            "aliases": [
+              "Poseur VItre Teintées",
+              "Poseur de vitres teintées"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966a84c31f7f3c834546db3",
+          "before": {
+            "nomservice": "Specialiste Tunning",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Spécialiste tuning automobile",
+            "aliases": [
+              "Specialiste Tunning",
+              "Spécialiste tuning automobile"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966a1d031f7f3c834546d8c",
+          "before": {
+            "nomservice": "Laveur Auto ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Laveur auto",
+            "aliases": [
+              "Laveur Auto"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "670e835f628e163918cf3389",
+          "before": {
+            "nomservice": "Taxi moto ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Taxi moto",
+            "aliases": [
+              "Taxi moto"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "670e7000628e163918cf3333",
+          "before": {
+            "nomservice": "Livreur de colis ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Livreur de colis",
+            "aliases": [
+              "Livreur de colis"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "670e6f12628e163918cf3324",
+          "before": {
+            "nomservice": "Gardien / Vigile ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Gardien / vigile",
+            "aliases": [
+              "Gardien / Vigile"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6966ba7b31f7f3c834546e5d",
+          "before": {
+            "nomservice": "Createur Bijoux",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Créateur de bijoux",
+            "aliases": [
+              "Createur Bijoux",
+              "Créateur de bijoux"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "670db27b628e163918cf330b",
+          "before": {
+            "nomservice": "Cuisinier a domicile",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Cuisinier à domicile",
+            "aliases": [
+              "Cuisinier a domicile"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "nomservice": "Electricien",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien",
+            "aliases": [
+              "Electricien"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6963de688eda1aafc5de56a6",
+          "before": {
+            "nomservice": "Electricien Auto",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien auto",
+            "aliases": [
+              "Electricien Auto"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69618620bff072a8b1695dda",
+          "before": {
+            "nomservice": "Electricien Industriel",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien industriel",
+            "aliases": [
+              "Electricien Industriel"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "nomservice": "Mecanicien Auto",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Mécanicien auto",
+            "aliases": [
+              "Mecanicien Auto"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "rename",
+          "id": "69618ec4bff072a8b1695e1a",
+          "before": {
+            "nomservice": "Decorateur Interieur",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Décorateur d’intérieur",
+            "aliases": [
+              "Decorateur Interieur",
+              "Décorateur d’intérieur"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "6961826fbff072a8b1695dbc",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "plomberie",
+              "plombier sanitaire"
+            ],
+            "needs": [
+              "robinet",
+              "fuite d’eau",
+              "evier bouche",
+              "lavabo",
+              "chasse d’eau",
+              "fuite",
+              "canalisation"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "aliases": [
+              "Electricien"
+            ],
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "Electricien",
+              "électricité"
+            ],
+            "needs": [
+              "panne de courant",
+              "prise electrique",
+              "tableau electrique",
+              "court-circuit"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "aliases": [
+              "Servante ménagère",
+              "Aide ménagère à domicile"
+            ],
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "Servante ménagère",
+              "Aide ménagère à domicile",
+              "aide menagere",
+              "ménage",
+              "femme de menage"
+            ],
+            "needs": [
+              "menage",
+              "nettoyage maison",
+              "repassage a domicile"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "69618414bff072a8b1695dcb",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "menuiserie"
+            ],
+            "needs": [
+              "chaise cassee",
+              "reparer une chaise",
+              "porte en bois",
+              "meuble en bois"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "6966b8ed31f7f3c834546e4e",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "cordonnerie"
+            ],
+            "needs": [
+              "chaussure a reparer",
+              "semelle decollee",
+              "talon",
+              "chaussure"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "6966b61b31f7f3c834546e35",
+          "before": {
+            "aliases": [
+              "Couturiere",
+              "Couturier / couturière"
+            ],
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "Couturiere",
+              "Couturier / couturière",
+              "couture",
+              "couturier"
+            ],
+            "needs": [
+              "ourlet",
+              "fermeture cassee",
+              "vetement a ajuster"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "670e7566628e163918cf3353",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "climatisation",
+              "clim"
+            ],
+            "needs": [
+              "climatiseur qui ne refroidit plus",
+              "clim en panne"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "670e825e628e163918cf3375",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "reparation telephone"
+            ],
+            "needs": [
+              "ecran casse",
+              "batterie telephone",
+              "telephone qui ne charge plus"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "69618ae4bff072a8b1695dfc",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "installateur clim"
+            ],
+            "needs": [
+              "installer un climatiseur"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "69617a33bff072a8b1695d8a",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "maconnerie"
+            ],
+            "needs": [
+              "mur a construire",
+              "enduit",
+              "parpaing"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "aliases": [
+              "Mecanicien Auto"
+            ],
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "Mecanicien Auto",
+              "mecanicien automobile",
+              "garage auto"
+            ],
+            "needs": [
+              "voiture en panne",
+              "revision auto",
+              "vidange"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "aliases": [
+              "Coiffure Homme",
+              "Coiffeur / coiffeuse pour hommes"
+            ],
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "Coiffure Homme",
+              "Coiffeur / coiffeuse pour hommes",
+              "coiffeur homme",
+              "salon homme"
+            ],
+            "needs": [
+              "coupe homme",
+              "barbe"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "vocab",
+          "id": "6966bbc431f7f3c834546e6c",
+          "before": {
+            "aliases": [
+              "Coiffeuse Dame",
+              "Coiffeur / coiffeuse pour femmes"
+            ],
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "Coiffeuse Dame",
+              "Coiffeur / coiffeuse pour femmes",
+              "coiffeuse",
+              "salon femme"
+            ],
+            "needs": [
+              "tresse",
+              "defrisage",
+              "coupe femme"
+            ]
+          },
+          "status": "applied"
+        },
+        {
+          "type": "shortcut",
+          "id": "6961826fbff072a8b1695dbc",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 1
+          },
+          "status": "applied"
+        },
+        {
+          "type": "shortcut",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 2
+          },
+          "status": "applied"
+        },
+        {
+          "type": "shortcut",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 3
+          },
+          "status": "applied"
+        },
+        {
+          "type": "shortcut",
+          "id": "69617a33bff072a8b1695d8a",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 4
+          },
+          "status": "applied"
+        },
+        {
+          "type": "shortcut",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 5
+          },
+          "status": "applied"
+        },
+        {
+          "type": "shortcut",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 6
+          },
+          "status": "applied"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nuisibles",
+          "title": "Technicien de lutte contre les nuisibles",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Technicien de lutte contre les nuisibles",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.nuisibles",
+            "aliases": [
+              "deratiseur",
+              "desinsectisation"
+            ],
+            "needs": [
+              "rats",
+              "cafards",
+              "termite"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86005749d458327a65e3"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.vidangeur",
+          "title": "Vidangeur de fosses septiques",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Vidangeur de fosses septiques",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.vidangeur",
+            "aliases": [
+              "vidange fosse"
+            ],
+            "needs": [
+              "fosse septique",
+              "fosse pleine"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86005749d458327a65e6"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.curage",
+          "title": "Agent de curage et d’assainissement",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Agent de curage et d’assainissement",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.curage",
+            "aliases": [
+              "curage",
+              "debouchage canalisation"
+            ],
+            "needs": [
+              "canalisation bouchee",
+              "egout"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86015749d458327a65e9"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nettoyage-textile",
+          "title": "Nettoyeur de textiles d’ameublement",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Nettoyeur de textiles d’ameublement",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.nettoyage-textile",
+            "aliases": [
+              "nettoyage canape"
+            ],
+            "needs": [
+              "canape",
+              "matelas",
+              "tapis"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86025749d458327a65ec"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.laveur-vitres",
+          "title": "Laveur de vitres",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Laveur de vitres",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.laveur-vitres",
+            "aliases": [
+              "laveur vitre"
+            ],
+            "needs": [
+              "vitres sales",
+              "vitrines"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86035749d458327a65ef"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nettoyage-chantier",
+          "title": "Nettoyeur de fin de chantier",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Nettoyeur de fin de chantier",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.nettoyage-chantier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86035749d458327a65f2"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.entretien-piscine",
+          "title": "Technicien d’entretien de piscines",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Technicien d’entretien de piscines",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.entretien-piscine",
+            "aliases": [
+              "pisciniste entretien"
+            ],
+            "needs": [
+              "eau verte",
+              "entretien piscine"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86045749d458327a65f5"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.auxiliaire-vie",
+          "title": "Auxiliaire de vie à domicile",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Auxiliaire de vie à domicile",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.auxiliaire-vie",
+            "aliases": [
+              "aide a domicile"
+            ],
+            "needs": [
+              "aide personne agee"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86055749d458327a65f8"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pet-sitter",
+          "title": "Gardien d’animaux à domicile",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Gardien d’animaux à domicile",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.pet-sitter",
+            "aliases": [
+              "pet sitter"
+            ],
+            "needs": [
+              "garder un chien",
+              "chat en pension"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86055749d458327a65fb"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.elagueur",
+          "title": "Élagueur",
+          "categoryId": "6abd85db5749d458327a65a5",
+          "after": {
+            "nomservice": "Élagueur",
+            "categorie": "6abd85db5749d458327a65a5",
+            "catalogKey": "metiers.elagueur",
+            "aliases": [],
+            "needs": [
+              "arbre a couper",
+              "elagage"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86065749d458327a65fe"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.menuisier-alu",
+          "title": "Menuisier aluminium",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Menuisier aluminium",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.menuisier-alu",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86075749d458327a6601"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.monteur-meubles",
+          "title": "Monteur de meubles",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Monteur de meubles",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.monteur-meubles",
+            "aliases": [
+              "montage meuble"
+            ],
+            "needs": [
+              "lit a monter",
+              "armoire a demonter",
+              "meuble ikea"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86075749d458327a6604"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.cuisine-amenagee",
+          "title": "Installateur de cuisines aménagées",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur de cuisines aménagées",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.cuisine-amenagee",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86085749d458327a6607"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.staffeur",
+          "title": "Staffeur",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Staffeur",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.staffeur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86095749d458327a660a"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.facadier",
+          "title": "Façadier-enduiseur",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Façadier-enduiseur",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.facadier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860a5749d458327a660d"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.moustiquaires",
+          "title": "Poseur de moustiquaires",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Poseur de moustiquaires",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.moustiquaires",
+            "aliases": [],
+            "needs": [
+              "moustiques",
+              "moustiquaire fenetre"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd860a5749d458327a6610"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pompes-eau",
+          "title": "Installateur-réparateur de pompes à eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur-réparateur de pompes à eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.pompes-eau",
+            "aliases": [
+              "surpresseur"
+            ],
+            "needs": [
+              "pompe a eau",
+              "plus d eau"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd860b5749d458327a6613"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.traitement-eau",
+          "title": "Technicien de traitement de l’eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Technicien de traitement de l’eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.traitement-eau",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860b5749d458327a6616"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.arrosage",
+          "title": "Installateur de systèmes d’arrosage",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur de systèmes d’arrosage",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.arrosage",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860c5749d458327a6619"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.chauffe-eau",
+          "title": "Installateur-réparateur de chauffe-eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur-réparateur de chauffe-eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.chauffe-eau",
+            "aliases": [],
+            "needs": [
+              "chauffe-eau en panne",
+              "pas d eau chaude"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd860d5749d458327a661c"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.ascensoriste",
+          "title": "Ascensoriste",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Ascensoriste",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.ascensoriste",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860d5749d458327a661f"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.bobinier",
+          "title": "Bobinier de moteurs électriques",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Bobinier de moteurs électriques",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.bobinier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860e5749d458327a6622"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.onduleurs",
+          "title": "Technicien d’onduleurs",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Technicien d’onduleurs",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.onduleurs",
+            "aliases": [
+              "inverter"
+            ],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860f5749d458327a6625"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.extincteurs",
+          "title": "Technicien de maintenance d’extincteurs",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Technicien de maintenance d’extincteurs",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.extincteurs",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860f5749d458327a6628"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.machine-coudre",
+          "title": "Réparateur de machines à coudre",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Réparateur de machines à coudre",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.machine-coudre",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd860f5749d458327a662b"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pesage",
+          "title": "Technicien de balances et pesage",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Technicien de balances et pesage",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.pesage",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86105749d458327a662e"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.velo",
+          "title": "Réparateur de vélos",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Réparateur de vélos",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.velo",
+            "aliases": [],
+            "needs": [
+              "velo creve",
+              "chaine velo"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86105749d458327a6631"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.clim-auto",
+          "title": "Technicien de climatisation automobile",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Technicien de climatisation automobile",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.clim-auto",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86115749d458327a6634"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.diag-auto",
+          "title": "Technicien de diagnostic électronique automobile",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Technicien de diagnostic électronique automobile",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.diag-auto",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86125749d458327a6637"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.dj",
+          "title": "DJ",
+          "categoryId": "6abd85dc5749d458327a65a7",
+          "after": {
+            "nomservice": "DJ",
+            "categorie": "6abd85dc5749d458327a65a7",
+            "catalogKey": "metiers.dj",
+            "aliases": [
+              "disc jockey"
+            ],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86135749d458327a663a"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.sono",
+          "title": "Technicien de sonorisation",
+          "categoryId": "6abd85dc5749d458327a65a7",
+          "after": {
+            "nomservice": "Technicien de sonorisation",
+            "categorie": "6abd85dc5749d458327a65a7",
+            "catalogKey": "metiers.sono",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86135749d458327a663d"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.mc",
+          "title": "Maître de cérémonie",
+          "categoryId": "6abd85dc5749d458327a65a7",
+          "after": {
+            "nomservice": "Maître de cérémonie",
+            "categorie": "6abd85dc5749d458327a65a7",
+            "catalogKey": "metiers.mc",
+            "aliases": [
+              "MC",
+              "animateur ceremonie"
+            ],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86145749d458327a6640"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.wedding-planner",
+          "title": "Organisateur d’événements",
+          "categoryId": "6abd85dc5749d458327a65a7",
+          "after": {
+            "nomservice": "Organisateur d’événements",
+            "categorie": "6abd85dc5749d458327a65a7",
+            "catalogKey": "metiers.wedding-planner",
+            "aliases": [
+              "wedding planner"
+            ],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86145749d458327a6643"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.chapiteaux",
+          "title": "Monteur de tentes et chapiteaux",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Monteur de tentes et chapiteaux",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.chapiteaux",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86155749d458327a6646"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.serveur-event",
+          "title": "Serveur événementiel",
+          "categoryId": "670aa9c65323d4161ecb9800",
+          "after": {
+            "nomservice": "Serveur événementiel",
+            "categorie": "670aa9c65323d4161ecb9800",
+            "catalogKey": "metiers.serveur-event",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86165749d458327a6649"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.barman",
+          "title": "Barman événementiel",
+          "categoryId": "670aa9c65323d4161ecb9800",
+          "after": {
+            "nomservice": "Barman événementiel",
+            "categorie": "670aa9c65323d4161ecb9800",
+            "catalogKey": "metiers.barman",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86165749d458327a664c"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.maquilleur",
+          "title": "Maquilleur professionnel",
+          "categoryId": "670aa9935323d4161ecb97fc",
+          "after": {
+            "nomservice": "Maquilleur professionnel",
+            "categorie": "670aa9935323d4161ecb97fc",
+            "catalogKey": "metiers.maquilleur",
+            "aliases": [
+              "maquillage mariage"
+            ],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86165749d458327a664f"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.retouche",
+          "title": "Retoucheur de vêtements",
+          "categoryId": "670aa9495323d4161ecb97fa",
+          "after": {
+            "nomservice": "Retoucheur de vêtements",
+            "categorie": "670aa9495323d4161ecb97fa",
+            "catalogKey": "metiers.retouche",
+            "aliases": [],
+            "needs": [
+              "ourlet",
+              "pantalon trop long"
+            ]
+          },
+          "status": "applied",
+          "id": "6abd86195749d458327a6652"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.imprimeur",
+          "title": "Imprimeur",
+          "categoryId": "670aaa305323d4161ecb9804",
+          "after": {
+            "nomservice": "Imprimeur",
+            "categorie": "670aaa305323d4161ecb9804",
+            "catalogKey": "metiers.imprimeur",
+            "aliases": [
+              "imprimerie"
+            ],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd86195749d458327a6655"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.serigraphe",
+          "title": "Sérigraphe",
+          "categoryId": "670aa9495323d4161ecb97fa",
+          "after": {
+            "nomservice": "Sérigraphe",
+            "categorie": "670aa9495323d4161ecb97fa",
+            "catalogKey": "metiers.serigraphe",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd861a5749d458327a6658"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.enseignes",
+          "title": "Fabricant-poseur d’enseignes",
+          "categoryId": "670aaa305323d4161ecb9804",
+          "after": {
+            "nomservice": "Fabricant-poseur d’enseignes",
+            "categorie": "670aaa305323d4161ecb9804",
+            "catalogKey": "metiers.enseignes",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd861a5749d458327a665b"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.graveur",
+          "title": "Graveur-personnalisateur",
+          "categoryId": "670aaa045323d4161ecb9802",
+          "after": {
+            "nomservice": "Graveur-personnalisateur",
+            "categorie": "670aaa045323d4161ecb9802",
+            "catalogKey": "metiers.graveur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd861b5749d458327a665e"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pisciculteur",
+          "title": "Pisciculteur",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Pisciculteur",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.pisciculteur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd861b5749d458327a6661"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.apiculteur",
+          "title": "Apiculteur",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Apiculteur",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.apiculteur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "applied",
+          "id": "6abd861c5749d458327a6664"
+        }
+      ],
+      "createdIds": [
+        "6abd85db5749d458327a65a5",
+        "6abd85dc5749d458327a65a7",
+        "6abd86005749d458327a65e3",
+        "6abd86005749d458327a65e6",
+        "6abd86015749d458327a65e9",
+        "6abd86025749d458327a65ec",
+        "6abd86035749d458327a65ef",
+        "6abd86035749d458327a65f2",
+        "6abd86045749d458327a65f5",
+        "6abd86055749d458327a65f8",
+        "6abd86055749d458327a65fb",
+        "6abd86065749d458327a65fe",
+        "6abd86075749d458327a6601",
+        "6abd86075749d458327a6604",
+        "6abd86085749d458327a6607",
+        "6abd86095749d458327a660a",
+        "6abd860a5749d458327a660d",
+        "6abd860a5749d458327a6610",
+        "6abd860b5749d458327a6613",
+        "6abd860b5749d458327a6616",
+        "6abd860c5749d458327a6619",
+        "6abd860d5749d458327a661c",
+        "6abd860d5749d458327a661f",
+        "6abd860e5749d458327a6622",
+        "6abd860f5749d458327a6625",
+        "6abd860f5749d458327a6628",
+        "6abd860f5749d458327a662b",
+        "6abd86105749d458327a662e",
+        "6abd86105749d458327a6631",
+        "6abd86115749d458327a6634",
+        "6abd86125749d458327a6637",
+        "6abd86135749d458327a663a",
+        "6abd86135749d458327a663d",
+        "6abd86145749d458327a6640",
+        "6abd86145749d458327a6643",
+        "6abd86155749d458327a6646",
+        "6abd86165749d458327a6649",
+        "6abd86165749d458327a664c",
+        "6abd86165749d458327a664f",
+        "6abd86195749d458327a6652",
+        "6abd86195749d458327a6655",
+        "6abd861a5749d458327a6658",
+        "6abd861a5749d458327a665b",
+        "6abd861b5749d458327a665e",
+        "6abd861b5749d458327a6661",
+        "6abd861c5749d458327a6664"
+      ],
+      "failed": [],
+      "noops": [],
+      "skipped": [
+        {
+          "type": "proposal",
+          "n": 28,
+          "title": "Dépanneur-remorqueur automobile",
+          "action": "A_REVOIR",
+          "note": "Depanneur #6966a35031f7f3c834546d91 est A_REVOIR (sens flou). Pas de création tant que le périmètre dépannage vs remorquage n’est pas tranché."
+        },
+        {
+          "type": "proposal",
+          "n": 31,
+          "title": "Photographe événementiel",
+          "action": "AUTRE_UNIVERS_JUSTIFIE",
+          "note": "Équivalent Freelance existant. Pas de duplicata Métiers. L’orphelin Photographe n’est pas rattaché."
+        },
+        {
+          "type": "proposal",
+          "n": 32,
+          "title": "Vidéaste événementiel",
+          "action": "AUTRE_UNIVERS_JUSTIFIE",
+          "note": "Équivalent Freelance (vidéaste mariage). Parcours Freelance, souvent à distance/livraison de fichiers."
+        },
+        {
+          "type": "proposal",
+          "n": 46,
+          "title": "Professeur particulier à domicile",
+          "action": "A_REVOIR",
+          "note": "Aucun équivalent Métiers ni Freelance « cours / professeur ». L’indépendance ne justifie pas Freelance. Domicile vs distanciel non tranché."
+        },
+        {
+          "type": "proposal",
+          "n": 47,
+          "title": "Coach sportif à domicile",
+          "action": "A_REVOIR",
+          "note": "Les Coach Freelance existants sont B2B / carrière / nutrition au travail, pas un coaching sportif à domicile."
+        },
+        {
+          "type": "proposal",
+          "n": 48,
+          "title": "Maître-nageur / moniteur de natation",
+          "action": "A_REVOIR",
+          "note": "Installateur Piscine #6963d7398eda1aafc5de566c = construction. Pas de catégorie Sport existante. Ne pas ranger en Services à domicile. Catégorie Sport & Loisirs proposée, non créée auto."
+        }
+      ],
+      "counts": {
+        "operations": 98,
+        "applied": 98,
+        "planned": 0,
+        "noops": 0,
+        "skipped": 6,
+        "failed": 0,
+        "created": 46
+      },
+      "aRevoir": [
+        "Depanneur",
+        "Mécanique",
+        "Controlleur Technique",
+        "Installateur Reseau",
+        "Reparateur Engins",
+        "Constructeur Bassins",
+        "Location Materiel",
+        "Spécialiste Gazon",
+        "Maçon Traditionnaliste",
+        "Ferrailleur",
+        "Eleveur Ruminants",
+        "Chauffeur de véhicule électrique",
+        "Decorateur",
+        "Technicien CCTV"
+      ],
+      "orphanIds": [
+        "68d6a41c40b8a717973dd400",
+        "68d6a42040b8a717973dd417",
+        "68d6a74a8d705907be738abf",
+        "68d6a74b8d705907be738ac9",
+        "68d6a74f8d705907be738ae3",
+        "68d6a7528d705907be738af5",
+        "68d6a7548d705907be738aff",
+        "68d6a75b8d705907be738b2a",
+        "68d6a7748d705907be738bc4",
+        "68d6a7768d705907be738bce",
+        "68d6a77b8d705907be738bf0",
+        "68d6a77c8d705907be738bfa",
+        "68d6a852490b63f4b89feec0",
+        "68d6a85e490b63f4b89fef0a",
+        "68d6a862490b63f4b89fef24",
+        "68d6a868490b63f4b89fef46",
+        "68d6a86b490b63f4b89fef6c",
+        "68d6a871490b63f4b89fefb5",
+        "68d6a876490b63f4b89fefe2"
+      ]
+    }
+  ],
+  "dryRuns": [
+    {
+      "at": "2026-09-29T21:37:13.537Z",
+      "mode": "dry-run",
+      "uri": "mongodb+srv://***:***@cluster0.84okv.mongodb.net/soutralideals?retryWrites=true&w=majority",
+      "counts": {
+        "renames": 34,
+        "vocab": 13,
+        "shortcuts": 6,
+        "additions": 48,
+        "skipped": 2,
+        "orphans": 0
+      },
+      "plan": {
+        "renames": [
+          {
+            "id": "69879768b20e7d1a0d512930",
+            "from": "Bijoutier Artisannal",
+            "to": "Bijoutier artisanal",
+            "aliases": [
+              "Bijoutier Artisannal"
+            ]
+          },
+          {
+            "id": "6961785ebff072a8b1695d7e",
+            "from": "Controlleur Entrée",
+            "to": "Agent de contrôle d’accès",
+            "aliases": [
+              "Controlleur Entrée"
+            ]
+          },
+          {
+            "id": "69618b8bbff072a8b1695e06",
+            "from": "Faux Plafonds",
+            "to": "Poseur de faux plafonds",
+            "aliases": [
+              "Faux Plafonds"
+            ]
+          },
+          {
+            "id": "670db0b8628e163918cf32f2",
+            "from": "Servante ménagère",
+            "to": "Aide ménagère à domicile",
+            "aliases": [
+              "Servante ménagère"
+            ]
+          },
+          {
+            "id": "69879683b20e7d1a0d512921",
+            "from": "Marchand Céraéles",
+            "to": "Marchand de céréales",
+            "aliases": [
+              "Marchand Céraéles"
+            ]
+          },
+          {
+            "id": "6966b2f531f7f3c834546e17",
+            "from": "Technicen ADSL",
+            "to": "Technicien ADSL",
+            "aliases": [
+              "Technicen ADSL"
+            ]
+          },
+          {
+            "id": "6966b13331f7f3c834546df9",
+            "from": "Technicien CCTV",
+            "to": "Installateur de vidéosurveillance",
+            "aliases": [
+              "Technicien CCTV"
+            ]
+          },
+          {
+            "id": "6966b3e531f7f3c834546e26",
+            "from": "Technicien Photo Voltaique",
+            "to": "Technicien photovoltaïque",
+            "aliases": [
+              "Technicien Photo Voltaique"
+            ]
+          },
+          {
+            "id": "6963e3fc8eda1aafc5de56ce",
+            "from": "Vulganisateur",
+            "to": "Vulcanisateur",
+            "aliases": [
+              "Vulganisateur"
+            ]
+          },
+          {
+            "id": "6966ad3631f7f3c834546dea",
+            "from": "Specialiste Console",
+            "to": "Réparateur de consoles de jeux",
+            "aliases": [
+              "Specialiste Console"
+            ]
+          },
+          {
+            "id": "670e832b628e163918cf3384",
+            "from": "Service de déménagement local ",
+            "to": "Déménageur",
+            "aliases": [
+              "Service de déménagement local"
+            ]
+          },
+          {
+            "id": "6966bb8331f7f3c834546e67",
+            "from": "Coiffure Homme",
+            "to": "Coiffeur / coiffeuse pour hommes",
+            "aliases": [
+              "Coiffure Homme"
+            ]
+          },
+          {
+            "id": "6966bbc431f7f3c834546e6c",
+            "from": "Coiffeuse Dame",
+            "to": "Coiffeur / coiffeuse pour femmes",
+            "aliases": [
+              "Coiffeuse Dame"
+            ]
+          },
+          {
+            "id": "69877efcb20e7d1a0d512875",
+            "from": "Manicure Pedicure",
+            "to": "Manucure / pédicure",
+            "aliases": [
+              "Manicure Pedicure"
+            ]
+          },
+          {
+            "id": "69877b84b20e7d1a0d512870",
+            "from": "Protheiste Ongulaire",
+            "to": "Prothésiste ongulaire",
+            "aliases": [
+              "Protheiste Ongulaire"
+            ]
+          },
+          {
+            "id": "69877b1cb20e7d1a0d51286b",
+            "from": "Estheticien",
+            "to": "Esthéticien / esthéticienne",
+            "aliases": [
+              "Estheticien"
+            ]
+          },
+          {
+            "id": "6966b61b31f7f3c834546e35",
+            "from": "Couturiere",
+            "to": "Couturier / couturière",
+            "aliases": [
+              "Couturiere"
+            ]
+          },
+          {
+            "id": "698793d5b20e7d1a0d51291c",
+            "from": "Marchand Legume",
+            "to": "Marchand de légumes",
+            "aliases": [
+              "Marchand Legume"
+            ]
+          },
+          {
+            "id": "6966aae231f7f3c834546dd6",
+            "from": "Reparateur ElectroMenager",
+            "to": "Réparateur d’électroménager",
+            "aliases": [
+              "Reparateur ElectroMenager"
+            ]
+          },
+          {
+            "id": "670e8296628e163918cf337a",
+            "from": "Réparateurs d' appareils ménagers",
+            "to": "Réparateur d’appareils ménagers",
+            "aliases": [
+              "Réparateurs d' appareils ménagers"
+            ]
+          },
+          {
+            "id": "6966a77d31f7f3c834546da9",
+            "from": "Poseur VItre Teintées",
+            "to": "Poseur de vitres teintées",
+            "aliases": [
+              "Poseur VItre Teintées"
+            ]
+          },
+          {
+            "id": "6966a84c31f7f3c834546db3",
+            "from": "Specialiste Tunning",
+            "to": "Spécialiste tuning automobile",
+            "aliases": [
+              "Specialiste Tunning"
+            ]
+          },
+          {
+            "id": "6966a1d031f7f3c834546d8c",
+            "from": "Laveur Auto ",
+            "to": "Laveur auto",
+            "aliases": [
+              "Laveur Auto"
+            ]
+          },
+          {
+            "id": "670e835f628e163918cf3389",
+            "from": "Taxi moto ",
+            "to": "Taxi moto",
+            "aliases": [
+              "Taxi moto"
+            ]
+          },
+          {
+            "id": "670e7000628e163918cf3333",
+            "from": "Livreur de colis ",
+            "to": "Livreur de colis",
+            "aliases": [
+              "Livreur de colis"
+            ]
+          },
+          {
+            "id": "670e6f12628e163918cf3324",
+            "from": "Gardien / Vigile ",
+            "to": "Gardien / vigile",
+            "aliases": [
+              "Gardien / Vigile"
+            ]
+          },
+          {
+            "id": "6966ba7b31f7f3c834546e5d",
+            "from": "Createur Bijoux",
+            "to": "Créateur de bijoux",
+            "aliases": [
+              "Createur Bijoux"
+            ]
+          },
+          {
+            "id": "670db27b628e163918cf330b",
+            "from": "Cuisinier a domicile",
+            "to": "Cuisinier à domicile",
+            "aliases": [
+              "Cuisinier a domicile"
+            ]
+          },
+          {
+            "id": "696182cabff072a8b1695dc1",
+            "from": "Electricien",
+            "to": "Électricien",
+            "aliases": [
+              "Electricien"
+            ]
+          },
+          {
+            "id": "6963de688eda1aafc5de56a6",
+            "from": "Electricien Auto",
+            "to": "Électricien auto",
+            "aliases": [
+              "Electricien Auto"
+            ]
+          },
+          {
+            "id": "69618620bff072a8b1695dda",
+            "from": "Electricien Industriel",
+            "to": "Électricien industriel",
+            "aliases": [
+              "Electricien Industriel"
+            ]
+          },
+          {
+            "id": "6963dc678eda1aafc5de5697",
+            "from": "Mecanicien Auto",
+            "to": "Mécanicien auto",
+            "aliases": [
+              "Mecanicien Auto"
+            ]
+          },
+          {
+            "id": "69618ec4bff072a8b1695e1a",
+            "from": "Decorateur Interieur",
+            "to": "Décorateur d’intérieur",
+            "aliases": [
+              "Decorateur Interieur"
+            ]
+          },
+          {
+            "id": "6987995ab20e7d1a0d512948",
+            "from": "Decorateur",
+            "to": "Décorateur événementiel",
+            "aliases": [
+              "Decorateur"
+            ]
+          }
+        ],
+        "vocab": [
+          {
+            "id": "6961826fbff072a8b1695dbc",
+            "nomservice": "Plombier",
+            "aliases": [
+              "plomberie",
+              "plombier sanitaire"
+            ],
+            "needs": [
+              "robinet",
+              "fuite d’eau",
+              "evier bouche",
+              "lavabo",
+              "chasse d’eau",
+              "fuite",
+              "canalisation"
+            ]
+          },
+          {
+            "id": "696182cabff072a8b1695dc1",
+            "nomservice": "Electricien",
+            "aliases": [
+              "électricien",
+              "electricien",
+              "électricité"
+            ],
+            "needs": [
+              "panne de courant",
+              "prise electrique",
+              "tableau electrique",
+              "court-circuit"
+            ]
+          },
+          {
+            "id": "670db0b8628e163918cf32f2",
+            "nomservice": "Servante ménagère",
+            "aliases": [
+              "aide menagere",
+              "ménage",
+              "femme de menage"
+            ],
+            "needs": [
+              "menage",
+              "nettoyage maison",
+              "repassage a domicile"
+            ]
+          },
+          {
+            "id": "69618414bff072a8b1695dcb",
+            "nomservice": "Menuisier",
+            "aliases": [
+              "menuiserie"
+            ],
+            "needs": [
+              "chaise cassee",
+              "reparer une chaise",
+              "porte en bois",
+              "meuble en bois"
+            ]
+          },
+          {
+            "id": "6966b8ed31f7f3c834546e4e",
+            "nomservice": "Cordonnier",
+            "aliases": [
+              "cordonnerie"
+            ],
+            "needs": [
+              "chaussure a reparer",
+              "semelle decollee",
+              "talon",
+              "chaussure"
+            ]
+          },
+          {
+            "id": "6966b61b31f7f3c834546e35",
+            "nomservice": "Couturiere",
+            "aliases": [
+              "couture",
+              "couturier"
+            ],
+            "needs": [
+              "ourlet",
+              "fermeture cassee",
+              "vetement a ajuster"
+            ]
+          },
+          {
+            "id": "670e7566628e163918cf3353",
+            "nomservice": "Réparateur de climatiseur",
+            "aliases": [
+              "climatisation",
+              "clim"
+            ],
+            "needs": [
+              "climatiseur qui ne refroidit plus",
+              "clim en panne"
+            ]
+          },
+          {
+            "id": "670e825e628e163918cf3375",
+            "nomservice": "Réparateur de téléphone",
+            "aliases": [
+              "reparation telephone"
+            ],
+            "needs": [
+              "ecran casse",
+              "batterie telephone",
+              "telephone qui ne charge plus"
+            ]
+          },
+          {
+            "id": "69618ae4bff072a8b1695dfc",
+            "nomservice": "Installateur Climatisation",
+            "aliases": [
+              "installateur clim"
+            ],
+            "needs": [
+              "installer un climatiseur"
+            ]
+          },
+          {
+            "id": "69617a33bff072a8b1695d8a",
+            "nomservice": "Maçon",
+            "aliases": [
+              "maconnerie"
+            ],
+            "needs": [
+              "mur a construire",
+              "enduit",
+              "parpaing"
+            ]
+          },
+          {
+            "id": "6963dc678eda1aafc5de5697",
+            "nomservice": "Mecanicien Auto",
+            "aliases": [
+              "mecanicien automobile",
+              "garage auto"
+            ],
+            "needs": [
+              "voiture en panne",
+              "revision auto",
+              "vidange"
+            ]
+          },
+          {
+            "id": "6966bb8331f7f3c834546e67",
+            "nomservice": "Coiffure Homme",
+            "aliases": [
+              "coiffeur homme",
+              "salon homme"
+            ],
+            "needs": [
+              "coupe homme",
+              "barbe"
+            ]
+          },
+          {
+            "id": "6966bbc431f7f3c834546e6c",
+            "nomservice": "Coiffeuse Dame",
+            "aliases": [
+              "coiffeuse",
+              "salon femme"
+            ],
+            "needs": [
+              "tresse",
+              "defrisage",
+              "coupe femme"
+            ]
+          }
+        ],
+        "shortcuts": [
+          {
+            "id": "6961826fbff072a8b1695dbc",
+            "rank": 1,
+            "name": "Plombier",
+            "iconKey": "plumbing"
+          },
+          {
+            "id": "696182cabff072a8b1695dc1",
+            "rank": 2,
+            "name": "Electricien",
+            "iconKey": "electrical"
+          },
+          {
+            "id": "670db0b8628e163918cf32f2",
+            "rank": 3,
+            "name": "Servante ménagère",
+            "iconKey": "cleaning"
+          },
+          {
+            "id": "69617a33bff072a8b1695d8a",
+            "rank": 4,
+            "name": "Maçon",
+            "iconKey": "masonry"
+          },
+          {
+            "id": "6963dc678eda1aafc5de5697",
+            "rank": 5,
+            "name": "Mecanicien Auto",
+            "iconKey": "auto"
+          },
+          {
+            "id": "6966bb8331f7f3c834546e67",
+            "rank": 6,
+            "name": "Coiffure Homme",
+            "iconKey": "barber"
+          }
+        ],
+        "additions": [
+          {
+            "catalogKey": "metiers.nuisibles",
+            "title": "Technicien de lutte contre les nuisibles",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [
+              "deratiseur",
+              "desinsectisation"
+            ],
+            "needs": [
+              "rats",
+              "cafards",
+              "termite"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.vidangeur",
+            "title": "Vidangeur de fosses septiques",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [
+              "vidange fosse"
+            ],
+            "needs": [
+              "fosse septique",
+              "fosse pleine"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.curage",
+            "title": "Agent de curage et d’assainissement",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [
+              "curage",
+              "debouchage canalisation"
+            ],
+            "needs": [
+              "canalisation bouchee",
+              "egout"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.nettoyage-textile",
+            "title": "Nettoyeur de textiles d’ameublement",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [
+              "nettoyage canape"
+            ],
+            "needs": [
+              "canape",
+              "matelas",
+              "tapis"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.laveur-vitres",
+            "title": "Laveur de vitres",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [
+              "laveur vitre"
+            ],
+            "needs": [
+              "vitres sales",
+              "vitrines"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.nettoyage-chantier",
+            "title": "Nettoyeur de fin de chantier",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.entretien-piscine",
+            "title": "Technicien d’entretien de piscines",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [
+              "pisciniste entretien"
+            ],
+            "needs": [
+              "eau verte",
+              "entretien piscine"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.auxiliaire-vie",
+            "title": "Auxiliaire de vie à domicile",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [
+              "aide a domicile"
+            ],
+            "needs": [
+              "aide personne agee"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.pet-sitter",
+            "title": "Gardien d’animaux à domicile",
+            "category": "Élevage, Animaux & Services Associés",
+            "categoryId": "695a5f434e13bbfb6a0a5c0c",
+            "aliases": [
+              "pet sitter"
+            ],
+            "needs": [
+              "garder un chien",
+              "chat en pension"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.elagueur",
+            "title": "Élagueur",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [
+              "arbre a couper",
+              "elagage"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.menuisier-alu",
+            "title": "Menuisier aluminium",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.monteur-meubles",
+            "title": "Monteur de meubles",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [
+              "montage meuble"
+            ],
+            "needs": [
+              "lit a monter",
+              "armoire a demonter",
+              "meuble ikea"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.cuisine-amenagee",
+            "title": "Installateur de cuisines aménagées",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.staffeur",
+            "title": "Staffeur",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.facadier",
+            "title": "Façadier-enduiseur",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.moustiquaires",
+            "title": "Poseur de moustiquaires",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [
+              "moustiques",
+              "moustiquaire fenetre"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.pompes-eau",
+            "title": "Installateur-réparateur de pompes à eau",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [
+              "surpresseur"
+            ],
+            "needs": [
+              "pompe a eau",
+              "plus d eau"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.traitement-eau",
+            "title": "Technicien de traitement de l’eau",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.arrosage",
+            "title": "Installateur de systèmes d’arrosage",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.chauffe-eau",
+            "title": "Installateur-réparateur de chauffe-eau",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [
+              "chauffe-eau en panne",
+              "pas d eau chaude"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.ascensoriste",
+            "title": "Ascensoriste",
+            "category": "Bâtiment & Construction",
+            "categoryId": "670aa6e45323d4161ecb97e6",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.bobinier",
+            "title": "Bobinier de moteurs électriques",
+            "category": "Electronique & Technologie",
+            "categoryId": "670aa9145323d4161ecb97f8",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.onduleurs",
+            "title": "Technicien d’onduleurs",
+            "category": "Electronique & Technologie",
+            "categoryId": "670aa9145323d4161ecb97f8",
+            "aliases": [
+              "inverter"
+            ],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.extincteurs",
+            "title": "Technicien de maintenance d’extincteurs",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.machine-coudre",
+            "title": "Réparateur de machines à coudre",
+            "category": "Electronique & Technologie",
+            "categoryId": "670aa9145323d4161ecb97f8",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.pesage",
+            "title": "Technicien de balances et pesage",
+            "category": "Electronique & Technologie",
+            "categoryId": "670aa9145323d4161ecb97f8",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.velo",
+            "title": "Réparateur de vélos",
+            "category": "Mécanique & Transport",
+            "categoryId": "670aa78f5323d4161ecb97ec",
+            "aliases": [],
+            "needs": [
+              "velo creve",
+              "chaine velo"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.remorquage",
+            "title": "Dépanneur-remorqueur automobile",
+            "category": "Mécanique & Transport",
+            "categoryId": "670aa78f5323d4161ecb97ec",
+            "aliases": [
+              "depannage auto"
+            ],
+            "needs": [
+              "voiture en panne sur la route",
+              "remorquage"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.clim-auto",
+            "title": "Technicien de climatisation automobile",
+            "category": "Mécanique & Transport",
+            "categoryId": "670aa78f5323d4161ecb97ec",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.diag-auto",
+            "title": "Technicien de diagnostic électronique automobile",
+            "category": "Mécanique & Transport",
+            "categoryId": "670aa78f5323d4161ecb97ec",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.photographe",
+            "title": "Photographe événementiel",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [
+              "photographe"
+            ],
+            "needs": [
+              "photo mariage",
+              "shooting"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.videaste",
+            "title": "Vidéaste événementiel",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.dj",
+            "title": "DJ",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [
+              "disc jockey"
+            ],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.sono",
+            "title": "Technicien de sonorisation",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.mc",
+            "title": "Maître de cérémonie",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [
+              "MC",
+              "animateur ceremonie"
+            ],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.wedding-planner",
+            "title": "Organisateur d’événements",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [
+              "wedding planner"
+            ],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.chapiteaux",
+            "title": "Monteur de tentes et chapiteaux",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.serveur-event",
+            "title": "Serveur événementiel",
+            "category": "Alimentation & Restauration",
+            "categoryId": "670aa9c65323d4161ecb9800",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.barman",
+            "title": "Barman événementiel",
+            "category": "Alimentation & Restauration",
+            "categoryId": "670aa9c65323d4161ecb9800",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.maquilleur",
+            "title": "Maquilleur professionnel",
+            "category": " Beauté & Soins",
+            "categoryId": "670aa9935323d4161ecb97fc",
+            "aliases": [
+              "maquillage mariage"
+            ],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.retouche",
+            "title": "Retoucheur de vêtements",
+            "category": "Textile & Habillement",
+            "categoryId": "670aa9495323d4161ecb97fa",
+            "aliases": [],
+            "needs": [
+              "ourlet",
+              "pantalon trop long"
+            ],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.imprimeur",
+            "title": "Imprimeur",
+            "category": "Commerce & Service de Proximité",
+            "categoryId": "670aaa305323d4161ecb9804",
+            "aliases": [
+              "imprimerie"
+            ],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.serigraphe",
+            "title": "Sérigraphe",
+            "category": "Textile & Habillement",
+            "categoryId": "670aa9495323d4161ecb97fa",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.enseignes",
+            "title": "Fabricant-poseur d’enseignes",
+            "category": "Commerce & Service de Proximité",
+            "categoryId": "670aaa305323d4161ecb9804",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.graveur",
+            "title": "Graveur-personnalisateur",
+            "category": "Artisanat & Art",
+            "categoryId": "670aaa045323d4161ecb9802",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.maitre-nageur",
+            "title": "Maître-nageur / moniteur de natation",
+            "category": "Services à Domicile & de Sécurité",
+            "categoryId": "670aa6655323d4161ecb97e4",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.pisciculteur",
+            "title": "Pisciculteur",
+            "category": "Élevage, Animaux & Services Associés",
+            "categoryId": "695a5f434e13bbfb6a0a5c0c",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          },
+          {
+            "catalogKey": "metiers.apiculteur",
+            "title": "Apiculteur",
+            "category": "Élevage, Animaux & Services Associés",
+            "categoryId": "695a5f434e13bbfb6a0a5c0c",
+            "aliases": [],
+            "needs": [],
+            "refs": {
+              "prestataires": 0,
+              "freelanceServices": 0,
+              "prestations": 0
+            },
+            "status": "planned"
+          }
+        ],
+        "skipped": [
+          {
+            "type": "proposal",
+            "n": 46,
+            "title": "Professeur particulier à domicile",
+            "action": "AUTRE_UNIVERS",
+            "note": "Compétence freelance plus qu’un métier de proximité. Non créé dans Métiers."
+          },
+          {
+            "type": "proposal",
+            "n": 47,
+            "title": "Coach sportif à domicile",
+            "action": "AUTRE_UNIVERS",
+            "note": "Plutôt Freelance. Non créé dans Métiers."
+          }
+        ],
+        "orphans": [],
+        "aRevoir": [
+          "Depanneur",
+          "Mécanique",
+          "Controlleur Technique",
+          "Installateur Reseau",
+          "Reparateur Engins",
+          "Constructeur Bassins",
+          "Location Materiel",
+          "Spécialiste Gazon",
+          "Maçon Traditionnaliste",
+          "Ferrailleur",
+          "Eleveur Ruminants",
+          "Chauffeur de véhicule électrique"
+        ],
+        "categoryTrim": [
+          {
+            "id": "670aa9935323d4161ecb97fc",
+            "from": " Beauté & Soins",
+            "to": "Beauté & Soins"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-09-30T19:53:38.493Z",
+      "uri": "mongodb+srv://***:***@cluster0.84okv.mongodb.net/soutralideals?retryWrites=true&w=majority",
+      "apply": false,
+      "runId": "run_1790798007036",
+      "operations": [
+        {
+          "type": "category-add",
+          "after": {
+            "nomcategorie": "Jardinage & Espaces verts",
+            "groupe": "66dcaf6ccb96c35a997df14d"
+          },
+          "status": "planned"
+        },
+        {
+          "type": "category-add",
+          "after": {
+            "nomcategorie": "Événementiel & Animation",
+            "groupe": "66dcaf6ccb96c35a997df14d"
+          },
+          "status": "planned"
+        },
+        {
+          "type": "category-trim",
+          "id": "670aa9935323d4161ecb97fc",
+          "before": {
+            "nomcategorie": " Beauté & Soins"
+          },
+          "after": {
+            "nomcategorie": "Beauté & Soins"
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69879768b20e7d1a0d512930",
+          "before": {
+            "nomservice": "Bijoutier Artisannal",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Bijoutier artisanal",
+            "aliases": [
+              "Bijoutier Artisannal",
+              "Bijoutier artisanal"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6961785ebff072a8b1695d7e",
+          "before": {
+            "nomservice": "Controlleur Entrée",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Agent de contrôle d’accès",
+            "aliases": [
+              "Controlleur Entrée",
+              "Agent de contrôle d’accès"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69618b8bbff072a8b1695e06",
+          "before": {
+            "nomservice": "Faux Plafonds",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Poseur de faux plafonds",
+            "aliases": [
+              "Faux Plafonds",
+              "Poseur de faux plafonds"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "nomservice": "Servante ménagère",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Aide ménagère à domicile",
+            "aliases": [
+              "Servante ménagère",
+              "Aide ménagère à domicile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69879683b20e7d1a0d512921",
+          "before": {
+            "nomservice": "Marchand Céraéles",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Marchand de céréales",
+            "aliases": [
+              "Marchand Céraéles",
+              "Marchand de céréales"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966b2f531f7f3c834546e17",
+          "before": {
+            "nomservice": "Technicen ADSL",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Technicien ADSL",
+            "aliases": [
+              "Technicen ADSL",
+              "Technicien ADSL"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966b3e531f7f3c834546e26",
+          "before": {
+            "nomservice": "Technicien Photo Voltaique",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Technicien photovoltaïque",
+            "aliases": [
+              "Technicien Photo Voltaique",
+              "Technicien photovoltaïque"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6963e3fc8eda1aafc5de56ce",
+          "before": {
+            "nomservice": "Vulganisateur",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Vulcanisateur",
+            "aliases": [
+              "Vulganisateur",
+              "Vulcanisateur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966ad3631f7f3c834546dea",
+          "before": {
+            "nomservice": "Specialiste Console",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Spécialiste consoles de jeux",
+            "aliases": [
+              "Specialiste Console",
+              "Spécialiste consoles de jeux"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e832b628e163918cf3384",
+          "before": {
+            "nomservice": "Service de déménagement local ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Déménageur",
+            "aliases": [
+              "Service de déménagement local",
+              "Déménageur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "nomservice": "Coiffure Homme",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Coiffeur / coiffeuse pour hommes",
+            "aliases": [
+              "Coiffure Homme",
+              "Coiffeur / coiffeuse pour hommes"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966bbc431f7f3c834546e6c",
+          "before": {
+            "nomservice": "Coiffeuse Dame",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Coiffeur / coiffeuse pour femmes",
+            "aliases": [
+              "Coiffeuse Dame",
+              "Coiffeur / coiffeuse pour femmes"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69877efcb20e7d1a0d512875",
+          "before": {
+            "nomservice": "Manicure Pedicure",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Manucure / pédicure",
+            "aliases": [
+              "Manicure Pedicure",
+              "Manucure / pédicure"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69877b84b20e7d1a0d512870",
+          "before": {
+            "nomservice": "Protheiste Ongulaire",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Prothésiste ongulaire",
+            "aliases": [
+              "Protheiste Ongulaire",
+              "Prothésiste ongulaire"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69877b1cb20e7d1a0d51286b",
+          "before": {
+            "nomservice": "Estheticien",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Esthéticien / esthéticienne",
+            "aliases": [
+              "Estheticien",
+              "Esthéticien / esthéticienne"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966b61b31f7f3c834546e35",
+          "before": {
+            "nomservice": "Couturiere",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Couturier / couturière",
+            "aliases": [
+              "Couturiere",
+              "Couturier / couturière"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "698793d5b20e7d1a0d51291c",
+          "before": {
+            "nomservice": "Marchand Legume",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Marchand de légumes",
+            "aliases": [
+              "Marchand Legume",
+              "Marchand de légumes"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966aae231f7f3c834546dd6",
+          "before": {
+            "nomservice": "Reparateur ElectroMenager",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Réparateur d’électroménager",
+            "aliases": [
+              "Reparateur ElectroMenager",
+              "Réparateur d’électroménager"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e8296628e163918cf337a",
+          "before": {
+            "nomservice": "Réparateurs d' appareils ménagers",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Réparateur d’appareils ménagers",
+            "aliases": [
+              "Réparateurs d' appareils ménagers",
+              "Réparateur d’appareils ménagers"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966a77d31f7f3c834546da9",
+          "before": {
+            "nomservice": "Poseur VItre Teintées",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Poseur de vitres teintées",
+            "aliases": [
+              "Poseur VItre Teintées",
+              "Poseur de vitres teintées"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966a84c31f7f3c834546db3",
+          "before": {
+            "nomservice": "Specialiste Tunning",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Spécialiste tuning automobile",
+            "aliases": [
+              "Specialiste Tunning",
+              "Spécialiste tuning automobile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966a1d031f7f3c834546d8c",
+          "before": {
+            "nomservice": "Laveur Auto ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Laveur auto",
+            "aliases": [
+              "Laveur Auto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e835f628e163918cf3389",
+          "before": {
+            "nomservice": "Taxi moto ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Taxi moto",
+            "aliases": [
+              "Taxi moto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e7000628e163918cf3333",
+          "before": {
+            "nomservice": "Livreur de colis ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Livreur de colis",
+            "aliases": [
+              "Livreur de colis"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e6f12628e163918cf3324",
+          "before": {
+            "nomservice": "Gardien / Vigile ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Gardien / vigile",
+            "aliases": [
+              "Gardien / Vigile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966ba7b31f7f3c834546e5d",
+          "before": {
+            "nomservice": "Createur Bijoux",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Créateur de bijoux",
+            "aliases": [
+              "Createur Bijoux",
+              "Créateur de bijoux"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670db27b628e163918cf330b",
+          "before": {
+            "nomservice": "Cuisinier a domicile",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Cuisinier à domicile",
+            "aliases": [
+              "Cuisinier a domicile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "nomservice": "Electricien",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien",
+            "aliases": [
+              "Electricien"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6963de688eda1aafc5de56a6",
+          "before": {
+            "nomservice": "Electricien Auto",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien auto",
+            "aliases": [
+              "Electricien Auto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69618620bff072a8b1695dda",
+          "before": {
+            "nomservice": "Electricien Industriel",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien industriel",
+            "aliases": [
+              "Electricien Industriel"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "nomservice": "Mecanicien Auto",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Mécanicien auto",
+            "aliases": [
+              "Mecanicien Auto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69618ec4bff072a8b1695e1a",
+          "before": {
+            "nomservice": "Decorateur Interieur",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Décorateur d’intérieur",
+            "aliases": [
+              "Decorateur Interieur",
+              "Décorateur d’intérieur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6961826fbff072a8b1695dbc",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "plomberie",
+              "plombier sanitaire"
+            ],
+            "needs": [
+              "robinet",
+              "fuite d’eau",
+              "evier bouche",
+              "lavabo",
+              "chasse d’eau",
+              "fuite",
+              "canalisation"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "électricien",
+              "électricité"
+            ],
+            "needs": [
+              "panne de courant",
+              "prise electrique",
+              "tableau electrique",
+              "court-circuit"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "aide menagere",
+              "ménage",
+              "femme de menage"
+            ],
+            "needs": [
+              "menage",
+              "nettoyage maison",
+              "repassage a domicile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "69618414bff072a8b1695dcb",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "menuiserie"
+            ],
+            "needs": [
+              "chaise cassee",
+              "reparer une chaise",
+              "porte en bois",
+              "meuble en bois"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966b8ed31f7f3c834546e4e",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "cordonnerie"
+            ],
+            "needs": [
+              "chaussure a reparer",
+              "semelle decollee",
+              "talon",
+              "chaussure"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966b61b31f7f3c834546e35",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "couture",
+              "couturier"
+            ],
+            "needs": [
+              "ourlet",
+              "fermeture cassee",
+              "vetement a ajuster"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "670e7566628e163918cf3353",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "climatisation",
+              "clim"
+            ],
+            "needs": [
+              "climatiseur qui ne refroidit plus",
+              "clim en panne"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "670e825e628e163918cf3375",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "reparation telephone"
+            ],
+            "needs": [
+              "ecran casse",
+              "batterie telephone",
+              "telephone qui ne charge plus"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "69618ae4bff072a8b1695dfc",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "installateur clim"
+            ],
+            "needs": [
+              "installer un climatiseur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "69617a33bff072a8b1695d8a",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "maconnerie"
+            ],
+            "needs": [
+              "mur a construire",
+              "enduit",
+              "parpaing"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "mecanicien automobile",
+              "garage auto"
+            ],
+            "needs": [
+              "voiture en panne",
+              "revision auto",
+              "vidange"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "coiffeur homme",
+              "salon homme"
+            ],
+            "needs": [
+              "coupe homme",
+              "barbe"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966bbc431f7f3c834546e6c",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "coiffeuse",
+              "salon femme"
+            ],
+            "needs": [
+              "tresse",
+              "defrisage",
+              "coupe femme"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "6961826fbff072a8b1695dbc",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 1
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 2
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 3
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "69617a33bff072a8b1695d8a",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 4
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 5
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 6
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nuisibles",
+          "title": "Technicien de lutte contre les nuisibles",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Technicien de lutte contre les nuisibles",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.nuisibles",
+            "aliases": [
+              "deratiseur",
+              "desinsectisation"
+            ],
+            "needs": [
+              "rats",
+              "cafards",
+              "termite"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.vidangeur",
+          "title": "Vidangeur de fosses septiques",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Vidangeur de fosses septiques",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.vidangeur",
+            "aliases": [
+              "vidange fosse"
+            ],
+            "needs": [
+              "fosse septique",
+              "fosse pleine"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.curage",
+          "title": "Agent de curage et d’assainissement",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Agent de curage et d’assainissement",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.curage",
+            "aliases": [
+              "curage",
+              "debouchage canalisation"
+            ],
+            "needs": [
+              "canalisation bouchee",
+              "egout"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nettoyage-textile",
+          "title": "Nettoyeur de textiles d’ameublement",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Nettoyeur de textiles d’ameublement",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.nettoyage-textile",
+            "aliases": [
+              "nettoyage canape"
+            ],
+            "needs": [
+              "canape",
+              "matelas",
+              "tapis"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.laveur-vitres",
+          "title": "Laveur de vitres",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Laveur de vitres",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.laveur-vitres",
+            "aliases": [
+              "laveur vitre"
+            ],
+            "needs": [
+              "vitres sales",
+              "vitrines"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nettoyage-chantier",
+          "title": "Nettoyeur de fin de chantier",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Nettoyeur de fin de chantier",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.nettoyage-chantier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.entretien-piscine",
+          "title": "Technicien d’entretien de piscines",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Technicien d’entretien de piscines",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.entretien-piscine",
+            "aliases": [
+              "pisciniste entretien"
+            ],
+            "needs": [
+              "eau verte",
+              "entretien piscine"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.auxiliaire-vie",
+          "title": "Auxiliaire de vie à domicile",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Auxiliaire de vie à domicile",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.auxiliaire-vie",
+            "aliases": [
+              "aide a domicile"
+            ],
+            "needs": [
+              "aide personne agee"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pet-sitter",
+          "title": "Gardien d’animaux à domicile",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Gardien d’animaux à domicile",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.pet-sitter",
+            "aliases": [
+              "pet sitter"
+            ],
+            "needs": [
+              "garder un chien",
+              "chat en pension"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.menuisier-alu",
+          "title": "Menuisier aluminium",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Menuisier aluminium",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.menuisier-alu",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.monteur-meubles",
+          "title": "Monteur de meubles",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Monteur de meubles",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.monteur-meubles",
+            "aliases": [
+              "montage meuble"
+            ],
+            "needs": [
+              "lit a monter",
+              "armoire a demonter",
+              "meuble ikea"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.cuisine-amenagee",
+          "title": "Installateur de cuisines aménagées",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur de cuisines aménagées",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.cuisine-amenagee",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.staffeur",
+          "title": "Staffeur",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Staffeur",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.staffeur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.facadier",
+          "title": "Façadier-enduiseur",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Façadier-enduiseur",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.facadier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.moustiquaires",
+          "title": "Poseur de moustiquaires",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Poseur de moustiquaires",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.moustiquaires",
+            "aliases": [],
+            "needs": [
+              "moustiques",
+              "moustiquaire fenetre"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pompes-eau",
+          "title": "Installateur-réparateur de pompes à eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur-réparateur de pompes à eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.pompes-eau",
+            "aliases": [
+              "surpresseur"
+            ],
+            "needs": [
+              "pompe a eau",
+              "plus d eau"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.traitement-eau",
+          "title": "Technicien de traitement de l’eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Technicien de traitement de l’eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.traitement-eau",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.arrosage",
+          "title": "Installateur de systèmes d’arrosage",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur de systèmes d’arrosage",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.arrosage",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.chauffe-eau",
+          "title": "Installateur-réparateur de chauffe-eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur-réparateur de chauffe-eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.chauffe-eau",
+            "aliases": [],
+            "needs": [
+              "chauffe-eau en panne",
+              "pas d eau chaude"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.ascensoriste",
+          "title": "Ascensoriste",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Ascensoriste",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.ascensoriste",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.bobinier",
+          "title": "Bobinier de moteurs électriques",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Bobinier de moteurs électriques",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.bobinier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.onduleurs",
+          "title": "Technicien d’onduleurs",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Technicien d’onduleurs",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.onduleurs",
+            "aliases": [
+              "inverter"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.extincteurs",
+          "title": "Technicien de maintenance d’extincteurs",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Technicien de maintenance d’extincteurs",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.extincteurs",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.machine-coudre",
+          "title": "Réparateur de machines à coudre",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Réparateur de machines à coudre",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.machine-coudre",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pesage",
+          "title": "Technicien de balances et pesage",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Technicien de balances et pesage",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.pesage",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.velo",
+          "title": "Réparateur de vélos",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Réparateur de vélos",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.velo",
+            "aliases": [],
+            "needs": [
+              "velo creve",
+              "chaine velo"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.clim-auto",
+          "title": "Technicien de climatisation automobile",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Technicien de climatisation automobile",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.clim-auto",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.diag-auto",
+          "title": "Technicien de diagnostic électronique automobile",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Technicien de diagnostic électronique automobile",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.diag-auto",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.chapiteaux",
+          "title": "Monteur de tentes et chapiteaux",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Monteur de tentes et chapiteaux",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.chapiteaux",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.serveur-event",
+          "title": "Serveur événementiel",
+          "categoryId": "670aa9c65323d4161ecb9800",
+          "after": {
+            "nomservice": "Serveur événementiel",
+            "categorie": "670aa9c65323d4161ecb9800",
+            "catalogKey": "metiers.serveur-event",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.barman",
+          "title": "Barman événementiel",
+          "categoryId": "670aa9c65323d4161ecb9800",
+          "after": {
+            "nomservice": "Barman événementiel",
+            "categorie": "670aa9c65323d4161ecb9800",
+            "catalogKey": "metiers.barman",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.maquilleur",
+          "title": "Maquilleur professionnel",
+          "categoryId": "670aa9935323d4161ecb97fc",
+          "after": {
+            "nomservice": "Maquilleur professionnel",
+            "categorie": "670aa9935323d4161ecb97fc",
+            "catalogKey": "metiers.maquilleur",
+            "aliases": [
+              "maquillage mariage"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.retouche",
+          "title": "Retoucheur de vêtements",
+          "categoryId": "670aa9495323d4161ecb97fa",
+          "after": {
+            "nomservice": "Retoucheur de vêtements",
+            "categorie": "670aa9495323d4161ecb97fa",
+            "catalogKey": "metiers.retouche",
+            "aliases": [],
+            "needs": [
+              "ourlet",
+              "pantalon trop long"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.imprimeur",
+          "title": "Imprimeur",
+          "categoryId": "670aaa305323d4161ecb9804",
+          "after": {
+            "nomservice": "Imprimeur",
+            "categorie": "670aaa305323d4161ecb9804",
+            "catalogKey": "metiers.imprimeur",
+            "aliases": [
+              "imprimerie"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.serigraphe",
+          "title": "Sérigraphe",
+          "categoryId": "670aa9495323d4161ecb97fa",
+          "after": {
+            "nomservice": "Sérigraphe",
+            "categorie": "670aa9495323d4161ecb97fa",
+            "catalogKey": "metiers.serigraphe",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.enseignes",
+          "title": "Fabricant-poseur d’enseignes",
+          "categoryId": "670aaa305323d4161ecb9804",
+          "after": {
+            "nomservice": "Fabricant-poseur d’enseignes",
+            "categorie": "670aaa305323d4161ecb9804",
+            "catalogKey": "metiers.enseignes",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.graveur",
+          "title": "Graveur-personnalisateur",
+          "categoryId": "670aaa045323d4161ecb9802",
+          "after": {
+            "nomservice": "Graveur-personnalisateur",
+            "categorie": "670aaa045323d4161ecb9802",
+            "catalogKey": "metiers.graveur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pisciculteur",
+          "title": "Pisciculteur",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Pisciculteur",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.pisciculteur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.apiculteur",
+          "title": "Apiculteur",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Apiculteur",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.apiculteur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        }
+      ],
+      "createdIds": [],
+      "failed": [],
+      "noops": [],
+      "skipped": [
+        {
+          "type": "proposal-add",
+          "n": 10,
+          "title": "Élagueur",
+          "reason": "catégorie introuvable: Jardinage & Espaces verts"
+        },
+        {
+          "type": "proposal",
+          "n": 28,
+          "title": "Dépanneur-remorqueur automobile",
+          "action": "A_REVOIR",
+          "note": "Depanneur #6966a35031f7f3c834546d91 est A_REVOIR (sens flou). Pas de création tant que le périmètre dépannage vs remorquage n’est pas tranché."
+        },
+        {
+          "type": "proposal",
+          "n": 31,
+          "title": "Photographe événementiel",
+          "action": "AUTRE_UNIVERS_JUSTIFIE",
+          "note": "Équivalent Freelance existant. Pas de duplicata Métiers. L’orphelin Photographe n’est pas rattaché."
+        },
+        {
+          "type": "proposal",
+          "n": 32,
+          "title": "Vidéaste événementiel",
+          "action": "AUTRE_UNIVERS_JUSTIFIE",
+          "note": "Équivalent Freelance (vidéaste mariage). Parcours Freelance, souvent à distance/livraison de fichiers."
+        },
+        {
+          "type": "proposal-add",
+          "n": 33,
+          "title": "DJ",
+          "reason": "catégorie introuvable: Événementiel & Animation"
+        },
+        {
+          "type": "proposal-add",
+          "n": 34,
+          "title": "Technicien de sonorisation",
+          "reason": "catégorie introuvable: Événementiel & Animation"
+        },
+        {
+          "type": "proposal-add",
+          "n": 35,
+          "title": "Maître de cérémonie",
+          "reason": "catégorie introuvable: Événementiel & Animation"
+        },
+        {
+          "type": "proposal-add",
+          "n": 36,
+          "title": "Organisateur d’événements",
+          "reason": "catégorie introuvable: Événementiel & Animation"
+        },
+        {
+          "type": "proposal",
+          "n": 46,
+          "title": "Professeur particulier à domicile",
+          "action": "A_REVOIR",
+          "note": "Aucun équivalent Métiers ni Freelance « cours / professeur ». L’indépendance ne justifie pas Freelance. Domicile vs distanciel non tranché."
+        },
+        {
+          "type": "proposal",
+          "n": 47,
+          "title": "Coach sportif à domicile",
+          "action": "A_REVOIR",
+          "note": "Les Coach Freelance existants sont B2B / carrière / nutrition au travail, pas un coaching sportif à domicile."
+        },
+        {
+          "type": "proposal",
+          "n": 48,
+          "title": "Maître-nageur / moniteur de natation",
+          "action": "A_REVOIR",
+          "note": "Installateur Piscine #6963d7398eda1aafc5de566c = construction. Pas de catégorie Sport existante. Ne pas ranger en Services à domicile. Catégorie Sport & Loisirs proposée, non créée auto."
+        }
+      ],
+      "counts": {
+        "operations": 93,
+        "applied": 0,
+        "planned": 93,
+        "noops": 0,
+        "skipped": 11,
+        "failed": 0,
+        "created": 0
+      },
+      "aRevoir": [
+        "Depanneur",
+        "Mécanique",
+        "Controlleur Technique",
+        "Installateur Reseau",
+        "Reparateur Engins",
+        "Constructeur Bassins",
+        "Location Materiel",
+        "Spécialiste Gazon",
+        "Maçon Traditionnaliste",
+        "Ferrailleur",
+        "Eleveur Ruminants",
+        "Chauffeur de véhicule électrique",
+        "Decorateur",
+        "Technicien CCTV"
+      ],
+      "orphanIds": [
+        "68d6a41c40b8a717973dd400",
+        "68d6a42040b8a717973dd417",
+        "68d6a74a8d705907be738abf",
+        "68d6a74b8d705907be738ac9",
+        "68d6a74f8d705907be738ae3",
+        "68d6a7528d705907be738af5",
+        "68d6a7548d705907be738aff",
+        "68d6a75b8d705907be738b2a",
+        "68d6a7748d705907be738bc4",
+        "68d6a7768d705907be738bce",
+        "68d6a77b8d705907be738bf0",
+        "68d6a77c8d705907be738bfa",
+        "68d6a852490b63f4b89feec0",
+        "68d6a85e490b63f4b89fef0a",
+        "68d6a862490b63f4b89fef24",
+        "68d6a868490b63f4b89fef46",
+        "68d6a86b490b63f4b89fef6c",
+        "68d6a871490b63f4b89fefb5",
+        "68d6a876490b63f4b89fefe2"
+      ]
+    },
+    {
+      "at": "2026-09-30T20:26:35.836Z",
+      "uri": "mongodb+srv://***:***@cluster0.84okv.mongodb.net/soutralideals?retryWrites=true&w=majority",
+      "apply": false,
+      "runId": "run_1790799974068",
+      "operations": [
+        {
+          "type": "category-add",
+          "after": {
+            "nomcategorie": "Jardinage & Espaces verts",
+            "groupe": "66dcaf6ccb96c35a997df14d"
+          },
+          "status": "planned"
+        },
+        {
+          "type": "category-add",
+          "after": {
+            "nomcategorie": "Événementiel & Animation",
+            "groupe": "66dcaf6ccb96c35a997df14d"
+          },
+          "status": "planned"
+        },
+        {
+          "type": "category-trim",
+          "id": "670aa9935323d4161ecb97fc",
+          "before": {
+            "nomcategorie": " Beauté & Soins"
+          },
+          "after": {
+            "nomcategorie": "Beauté & Soins"
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69879768b20e7d1a0d512930",
+          "before": {
+            "nomservice": "Bijoutier Artisannal",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Bijoutier artisanal",
+            "aliases": [
+              "Bijoutier Artisannal",
+              "Bijoutier artisanal"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6961785ebff072a8b1695d7e",
+          "before": {
+            "nomservice": "Controlleur Entrée",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Agent de contrôle d’accès",
+            "aliases": [
+              "Controlleur Entrée",
+              "Agent de contrôle d’accès"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69618b8bbff072a8b1695e06",
+          "before": {
+            "nomservice": "Faux Plafonds",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Poseur de faux plafonds",
+            "aliases": [
+              "Faux Plafonds",
+              "Poseur de faux plafonds"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "nomservice": "Servante ménagère",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Aide ménagère à domicile",
+            "aliases": [
+              "Servante ménagère",
+              "Aide ménagère à domicile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69879683b20e7d1a0d512921",
+          "before": {
+            "nomservice": "Marchand Céraéles",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Marchand de céréales",
+            "aliases": [
+              "Marchand Céraéles",
+              "Marchand de céréales"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966b2f531f7f3c834546e17",
+          "before": {
+            "nomservice": "Technicen ADSL",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Technicien ADSL",
+            "aliases": [
+              "Technicen ADSL",
+              "Technicien ADSL"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966b3e531f7f3c834546e26",
+          "before": {
+            "nomservice": "Technicien Photo Voltaique",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Technicien photovoltaïque",
+            "aliases": [
+              "Technicien Photo Voltaique",
+              "Technicien photovoltaïque"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6963e3fc8eda1aafc5de56ce",
+          "before": {
+            "nomservice": "Vulganisateur",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Vulcanisateur",
+            "aliases": [
+              "Vulganisateur",
+              "Vulcanisateur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966ad3631f7f3c834546dea",
+          "before": {
+            "nomservice": "Specialiste Console",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Spécialiste consoles de jeux",
+            "aliases": [
+              "Specialiste Console",
+              "Spécialiste consoles de jeux"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e832b628e163918cf3384",
+          "before": {
+            "nomservice": "Service de déménagement local ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Déménageur",
+            "aliases": [
+              "Service de déménagement local",
+              "Déménageur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "nomservice": "Coiffure Homme",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Coiffeur / coiffeuse pour hommes",
+            "aliases": [
+              "Coiffure Homme",
+              "Coiffeur / coiffeuse pour hommes"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966bbc431f7f3c834546e6c",
+          "before": {
+            "nomservice": "Coiffeuse Dame",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Coiffeur / coiffeuse pour femmes",
+            "aliases": [
+              "Coiffeuse Dame",
+              "Coiffeur / coiffeuse pour femmes"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69877efcb20e7d1a0d512875",
+          "before": {
+            "nomservice": "Manicure Pedicure",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Manucure / pédicure",
+            "aliases": [
+              "Manicure Pedicure",
+              "Manucure / pédicure"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69877b84b20e7d1a0d512870",
+          "before": {
+            "nomservice": "Protheiste Ongulaire",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Prothésiste ongulaire",
+            "aliases": [
+              "Protheiste Ongulaire",
+              "Prothésiste ongulaire"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69877b1cb20e7d1a0d51286b",
+          "before": {
+            "nomservice": "Estheticien",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Esthéticien / esthéticienne",
+            "aliases": [
+              "Estheticien",
+              "Esthéticien / esthéticienne"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966b61b31f7f3c834546e35",
+          "before": {
+            "nomservice": "Couturiere",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Couturier / couturière",
+            "aliases": [
+              "Couturiere",
+              "Couturier / couturière"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "698793d5b20e7d1a0d51291c",
+          "before": {
+            "nomservice": "Marchand Legume",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Marchand de légumes",
+            "aliases": [
+              "Marchand Legume",
+              "Marchand de légumes"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966aae231f7f3c834546dd6",
+          "before": {
+            "nomservice": "Reparateur ElectroMenager",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Réparateur d’électroménager",
+            "aliases": [
+              "Reparateur ElectroMenager",
+              "Réparateur d’électroménager"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e8296628e163918cf337a",
+          "before": {
+            "nomservice": "Réparateurs d' appareils ménagers",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Réparateur d’appareils ménagers",
+            "aliases": [
+              "Réparateurs d' appareils ménagers",
+              "Réparateur d’appareils ménagers"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966a77d31f7f3c834546da9",
+          "before": {
+            "nomservice": "Poseur VItre Teintées",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Poseur de vitres teintées",
+            "aliases": [
+              "Poseur VItre Teintées",
+              "Poseur de vitres teintées"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966a84c31f7f3c834546db3",
+          "before": {
+            "nomservice": "Specialiste Tunning",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Spécialiste tuning automobile",
+            "aliases": [
+              "Specialiste Tunning",
+              "Spécialiste tuning automobile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966a1d031f7f3c834546d8c",
+          "before": {
+            "nomservice": "Laveur Auto ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Laveur auto",
+            "aliases": [
+              "Laveur Auto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e835f628e163918cf3389",
+          "before": {
+            "nomservice": "Taxi moto ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Taxi moto",
+            "aliases": [
+              "Taxi moto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e7000628e163918cf3333",
+          "before": {
+            "nomservice": "Livreur de colis ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Livreur de colis",
+            "aliases": [
+              "Livreur de colis"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670e6f12628e163918cf3324",
+          "before": {
+            "nomservice": "Gardien / Vigile ",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Gardien / vigile",
+            "aliases": [
+              "Gardien / Vigile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6966ba7b31f7f3c834546e5d",
+          "before": {
+            "nomservice": "Createur Bijoux",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Créateur de bijoux",
+            "aliases": [
+              "Createur Bijoux",
+              "Créateur de bijoux"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "670db27b628e163918cf330b",
+          "before": {
+            "nomservice": "Cuisinier a domicile",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Cuisinier à domicile",
+            "aliases": [
+              "Cuisinier a domicile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "nomservice": "Electricien",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien",
+            "aliases": [
+              "Electricien"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6963de688eda1aafc5de56a6",
+          "before": {
+            "nomservice": "Electricien Auto",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien auto",
+            "aliases": [
+              "Electricien Auto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69618620bff072a8b1695dda",
+          "before": {
+            "nomservice": "Electricien Industriel",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Électricien industriel",
+            "aliases": [
+              "Electricien Industriel"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "nomservice": "Mecanicien Auto",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Mécanicien auto",
+            "aliases": [
+              "Mecanicien Auto"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "rename",
+          "id": "69618ec4bff072a8b1695e1a",
+          "before": {
+            "nomservice": "Decorateur Interieur",
+            "aliases": {
+              "absent": true
+            }
+          },
+          "after": {
+            "nomservice": "Décorateur d’intérieur",
+            "aliases": [
+              "Decorateur Interieur",
+              "Décorateur d’intérieur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6961826fbff072a8b1695dbc",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "plomberie",
+              "plombier sanitaire"
+            ],
+            "needs": [
+              "robinet",
+              "fuite d’eau",
+              "evier bouche",
+              "lavabo",
+              "chasse d’eau",
+              "fuite",
+              "canalisation"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "électricien",
+              "électricité"
+            ],
+            "needs": [
+              "panne de courant",
+              "prise electrique",
+              "tableau electrique",
+              "court-circuit"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "aide menagere",
+              "ménage",
+              "femme de menage"
+            ],
+            "needs": [
+              "menage",
+              "nettoyage maison",
+              "repassage a domicile"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "69618414bff072a8b1695dcb",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "menuiserie"
+            ],
+            "needs": [
+              "chaise cassee",
+              "reparer une chaise",
+              "porte en bois",
+              "meuble en bois"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966b8ed31f7f3c834546e4e",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "cordonnerie"
+            ],
+            "needs": [
+              "chaussure a reparer",
+              "semelle decollee",
+              "talon",
+              "chaussure"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966b61b31f7f3c834546e35",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "couture",
+              "couturier"
+            ],
+            "needs": [
+              "ourlet",
+              "fermeture cassee",
+              "vetement a ajuster"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "670e7566628e163918cf3353",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "climatisation",
+              "clim"
+            ],
+            "needs": [
+              "climatiseur qui ne refroidit plus",
+              "clim en panne"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "670e825e628e163918cf3375",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "reparation telephone"
+            ],
+            "needs": [
+              "ecran casse",
+              "batterie telephone",
+              "telephone qui ne charge plus"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "69618ae4bff072a8b1695dfc",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "installateur clim"
+            ],
+            "needs": [
+              "installer un climatiseur"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "69617a33bff072a8b1695d8a",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "maconnerie"
+            ],
+            "needs": [
+              "mur a construire",
+              "enduit",
+              "parpaing"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "mecanicien automobile",
+              "garage auto"
+            ],
+            "needs": [
+              "voiture en panne",
+              "revision auto",
+              "vidange"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "coiffeur homme",
+              "salon homme"
+            ],
+            "needs": [
+              "coupe homme",
+              "barbe"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "vocab",
+          "id": "6966bbc431f7f3c834546e6c",
+          "before": {
+            "aliases": {
+              "absent": true
+            },
+            "needs": {
+              "absent": true
+            }
+          },
+          "after": {
+            "aliases": [
+              "coiffeuse",
+              "salon femme"
+            ],
+            "needs": [
+              "tresse",
+              "defrisage",
+              "coupe femme"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "6961826fbff072a8b1695dbc",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 1
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "696182cabff072a8b1695dc1",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 2
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "670db0b8628e163918cf32f2",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 3
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "69617a33bff072a8b1695d8a",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 4
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "6963dc678eda1aafc5de5697",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 5
+          },
+          "status": "planned"
+        },
+        {
+          "type": "shortcut",
+          "id": "6966bb8331f7f3c834546e67",
+          "before": {
+            "shortcutRank": {
+              "absent": true
+            }
+          },
+          "after": {
+            "shortcutRank": 6
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nuisibles",
+          "title": "Technicien de lutte contre les nuisibles",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Technicien de lutte contre les nuisibles",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.nuisibles",
+            "aliases": [
+              "deratiseur",
+              "desinsectisation"
+            ],
+            "needs": [
+              "rats",
+              "cafards",
+              "termite"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.vidangeur",
+          "title": "Vidangeur de fosses septiques",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Vidangeur de fosses septiques",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.vidangeur",
+            "aliases": [
+              "vidange fosse"
+            ],
+            "needs": [
+              "fosse septique",
+              "fosse pleine"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.curage",
+          "title": "Agent de curage et d’assainissement",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Agent de curage et d’assainissement",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.curage",
+            "aliases": [
+              "curage",
+              "debouchage canalisation"
+            ],
+            "needs": [
+              "canalisation bouchee",
+              "egout"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nettoyage-textile",
+          "title": "Nettoyeur de textiles d’ameublement",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Nettoyeur de textiles d’ameublement",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.nettoyage-textile",
+            "aliases": [
+              "nettoyage canape"
+            ],
+            "needs": [
+              "canape",
+              "matelas",
+              "tapis"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.laveur-vitres",
+          "title": "Laveur de vitres",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Laveur de vitres",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.laveur-vitres",
+            "aliases": [
+              "laveur vitre"
+            ],
+            "needs": [
+              "vitres sales",
+              "vitrines"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.nettoyage-chantier",
+          "title": "Nettoyeur de fin de chantier",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Nettoyeur de fin de chantier",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.nettoyage-chantier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.entretien-piscine",
+          "title": "Technicien d’entretien de piscines",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Technicien d’entretien de piscines",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.entretien-piscine",
+            "aliases": [
+              "pisciniste entretien"
+            ],
+            "needs": [
+              "eau verte",
+              "entretien piscine"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.auxiliaire-vie",
+          "title": "Auxiliaire de vie à domicile",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Auxiliaire de vie à domicile",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.auxiliaire-vie",
+            "aliases": [
+              "aide a domicile"
+            ],
+            "needs": [
+              "aide personne agee"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pet-sitter",
+          "title": "Gardien d’animaux à domicile",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Gardien d’animaux à domicile",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.pet-sitter",
+            "aliases": [
+              "pet sitter"
+            ],
+            "needs": [
+              "garder un chien",
+              "chat en pension"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.elagueur",
+          "title": "Élagueur",
+          "categoryId": "planned:jardinage espaces verts",
+          "dependsOnPlannedCategory": "Jardinage & Espaces verts",
+          "after": {
+            "nomservice": "Élagueur",
+            "categorie": "planned:jardinage espaces verts",
+            "catalogKey": "metiers.elagueur",
+            "aliases": [],
+            "needs": [
+              "arbre a couper",
+              "elagage"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.menuisier-alu",
+          "title": "Menuisier aluminium",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Menuisier aluminium",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.menuisier-alu",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.monteur-meubles",
+          "title": "Monteur de meubles",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Monteur de meubles",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.monteur-meubles",
+            "aliases": [
+              "montage meuble"
+            ],
+            "needs": [
+              "lit a monter",
+              "armoire a demonter",
+              "meuble ikea"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.cuisine-amenagee",
+          "title": "Installateur de cuisines aménagées",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur de cuisines aménagées",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.cuisine-amenagee",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.staffeur",
+          "title": "Staffeur",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Staffeur",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.staffeur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.facadier",
+          "title": "Façadier-enduiseur",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Façadier-enduiseur",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.facadier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.moustiquaires",
+          "title": "Poseur de moustiquaires",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Poseur de moustiquaires",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.moustiquaires",
+            "aliases": [],
+            "needs": [
+              "moustiques",
+              "moustiquaire fenetre"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pompes-eau",
+          "title": "Installateur-réparateur de pompes à eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur-réparateur de pompes à eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.pompes-eau",
+            "aliases": [
+              "surpresseur"
+            ],
+            "needs": [
+              "pompe a eau",
+              "plus d eau"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.traitement-eau",
+          "title": "Technicien de traitement de l’eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Technicien de traitement de l’eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.traitement-eau",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.arrosage",
+          "title": "Installateur de systèmes d’arrosage",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur de systèmes d’arrosage",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.arrosage",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.chauffe-eau",
+          "title": "Installateur-réparateur de chauffe-eau",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Installateur-réparateur de chauffe-eau",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.chauffe-eau",
+            "aliases": [],
+            "needs": [
+              "chauffe-eau en panne",
+              "pas d eau chaude"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.ascensoriste",
+          "title": "Ascensoriste",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Ascensoriste",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.ascensoriste",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.bobinier",
+          "title": "Bobinier de moteurs électriques",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Bobinier de moteurs électriques",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.bobinier",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.onduleurs",
+          "title": "Technicien d’onduleurs",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Technicien d’onduleurs",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.onduleurs",
+            "aliases": [
+              "inverter"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.extincteurs",
+          "title": "Technicien de maintenance d’extincteurs",
+          "categoryId": "670aa6655323d4161ecb97e4",
+          "after": {
+            "nomservice": "Technicien de maintenance d’extincteurs",
+            "categorie": "670aa6655323d4161ecb97e4",
+            "catalogKey": "metiers.extincteurs",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.machine-coudre",
+          "title": "Réparateur de machines à coudre",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Réparateur de machines à coudre",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.machine-coudre",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pesage",
+          "title": "Technicien de balances et pesage",
+          "categoryId": "670aa9145323d4161ecb97f8",
+          "after": {
+            "nomservice": "Technicien de balances et pesage",
+            "categorie": "670aa9145323d4161ecb97f8",
+            "catalogKey": "metiers.pesage",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.velo",
+          "title": "Réparateur de vélos",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Réparateur de vélos",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.velo",
+            "aliases": [],
+            "needs": [
+              "velo creve",
+              "chaine velo"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.clim-auto",
+          "title": "Technicien de climatisation automobile",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Technicien de climatisation automobile",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.clim-auto",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.diag-auto",
+          "title": "Technicien de diagnostic électronique automobile",
+          "categoryId": "670aa78f5323d4161ecb97ec",
+          "after": {
+            "nomservice": "Technicien de diagnostic électronique automobile",
+            "categorie": "670aa78f5323d4161ecb97ec",
+            "catalogKey": "metiers.diag-auto",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.dj",
+          "title": "DJ",
+          "categoryId": "planned:evenementiel animation",
+          "dependsOnPlannedCategory": "Événementiel & Animation",
+          "after": {
+            "nomservice": "DJ",
+            "categorie": "planned:evenementiel animation",
+            "catalogKey": "metiers.dj",
+            "aliases": [
+              "disc jockey"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.sono",
+          "title": "Technicien de sonorisation",
+          "categoryId": "planned:evenementiel animation",
+          "dependsOnPlannedCategory": "Événementiel & Animation",
+          "after": {
+            "nomservice": "Technicien de sonorisation",
+            "categorie": "planned:evenementiel animation",
+            "catalogKey": "metiers.sono",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.mc",
+          "title": "Maître de cérémonie",
+          "categoryId": "planned:evenementiel animation",
+          "dependsOnPlannedCategory": "Événementiel & Animation",
+          "after": {
+            "nomservice": "Maître de cérémonie",
+            "categorie": "planned:evenementiel animation",
+            "catalogKey": "metiers.mc",
+            "aliases": [
+              "MC",
+              "animateur ceremonie"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.wedding-planner",
+          "title": "Organisateur d’événements",
+          "categoryId": "planned:evenementiel animation",
+          "dependsOnPlannedCategory": "Événementiel & Animation",
+          "after": {
+            "nomservice": "Organisateur d’événements",
+            "categorie": "planned:evenementiel animation",
+            "catalogKey": "metiers.wedding-planner",
+            "aliases": [
+              "wedding planner"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.chapiteaux",
+          "title": "Monteur de tentes et chapiteaux",
+          "categoryId": "670aa6e45323d4161ecb97e6",
+          "after": {
+            "nomservice": "Monteur de tentes et chapiteaux",
+            "categorie": "670aa6e45323d4161ecb97e6",
+            "catalogKey": "metiers.chapiteaux",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.serveur-event",
+          "title": "Serveur événementiel",
+          "categoryId": "670aa9c65323d4161ecb9800",
+          "after": {
+            "nomservice": "Serveur événementiel",
+            "categorie": "670aa9c65323d4161ecb9800",
+            "catalogKey": "metiers.serveur-event",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.barman",
+          "title": "Barman événementiel",
+          "categoryId": "670aa9c65323d4161ecb9800",
+          "after": {
+            "nomservice": "Barman événementiel",
+            "categorie": "670aa9c65323d4161ecb9800",
+            "catalogKey": "metiers.barman",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.maquilleur",
+          "title": "Maquilleur professionnel",
+          "categoryId": "670aa9935323d4161ecb97fc",
+          "after": {
+            "nomservice": "Maquilleur professionnel",
+            "categorie": "670aa9935323d4161ecb97fc",
+            "catalogKey": "metiers.maquilleur",
+            "aliases": [
+              "maquillage mariage"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.retouche",
+          "title": "Retoucheur de vêtements",
+          "categoryId": "670aa9495323d4161ecb97fa",
+          "after": {
+            "nomservice": "Retoucheur de vêtements",
+            "categorie": "670aa9495323d4161ecb97fa",
+            "catalogKey": "metiers.retouche",
+            "aliases": [],
+            "needs": [
+              "ourlet",
+              "pantalon trop long"
+            ]
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.imprimeur",
+          "title": "Imprimeur",
+          "categoryId": "670aaa305323d4161ecb9804",
+          "after": {
+            "nomservice": "Imprimeur",
+            "categorie": "670aaa305323d4161ecb9804",
+            "catalogKey": "metiers.imprimeur",
+            "aliases": [
+              "imprimerie"
+            ],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.serigraphe",
+          "title": "Sérigraphe",
+          "categoryId": "670aa9495323d4161ecb97fa",
+          "after": {
+            "nomservice": "Sérigraphe",
+            "categorie": "670aa9495323d4161ecb97fa",
+            "catalogKey": "metiers.serigraphe",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.enseignes",
+          "title": "Fabricant-poseur d’enseignes",
+          "categoryId": "670aaa305323d4161ecb9804",
+          "after": {
+            "nomservice": "Fabricant-poseur d’enseignes",
+            "categorie": "670aaa305323d4161ecb9804",
+            "catalogKey": "metiers.enseignes",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.graveur",
+          "title": "Graveur-personnalisateur",
+          "categoryId": "670aaa045323d4161ecb9802",
+          "after": {
+            "nomservice": "Graveur-personnalisateur",
+            "categorie": "670aaa045323d4161ecb9802",
+            "catalogKey": "metiers.graveur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.pisciculteur",
+          "title": "Pisciculteur",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Pisciculteur",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.pisciculteur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        },
+        {
+          "type": "add",
+          "catalogKey": "metiers.apiculteur",
+          "title": "Apiculteur",
+          "categoryId": "695a5f434e13bbfb6a0a5c0c",
+          "after": {
+            "nomservice": "Apiculteur",
+            "categorie": "695a5f434e13bbfb6a0a5c0c",
+            "catalogKey": "metiers.apiculteur",
+            "aliases": [],
+            "needs": []
+          },
+          "status": "planned"
+        }
+      ],
+      "createdIds": [],
+      "failed": [],
+      "noops": [],
+      "skipped": [
+        {
+          "type": "proposal",
+          "n": 28,
+          "title": "Dépanneur-remorqueur automobile",
+          "action": "A_REVOIR",
+          "note": "Depanneur #6966a35031f7f3c834546d91 est A_REVOIR (sens flou). Pas de création tant que le périmètre dépannage vs remorquage n’est pas tranché."
+        },
+        {
+          "type": "proposal",
+          "n": 31,
+          "title": "Photographe événementiel",
+          "action": "AUTRE_UNIVERS_JUSTIFIE",
+          "note": "Équivalent Freelance existant. Pas de duplicata Métiers. L’orphelin Photographe n’est pas rattaché."
+        },
+        {
+          "type": "proposal",
+          "n": 32,
+          "title": "Vidéaste événementiel",
+          "action": "AUTRE_UNIVERS_JUSTIFIE",
+          "note": "Équivalent Freelance (vidéaste mariage). Parcours Freelance, souvent à distance/livraison de fichiers."
+        },
+        {
+          "type": "proposal",
+          "n": 46,
+          "title": "Professeur particulier à domicile",
+          "action": "A_REVOIR",
+          "note": "Aucun équivalent Métiers ni Freelance « cours / professeur ». L’indépendance ne justifie pas Freelance. Domicile vs distanciel non tranché."
+        },
+        {
+          "type": "proposal",
+          "n": 47,
+          "title": "Coach sportif à domicile",
+          "action": "A_REVOIR",
+          "note": "Les Coach Freelance existants sont B2B / carrière / nutrition au travail, pas un coaching sportif à domicile."
+        },
+        {
+          "type": "proposal",
+          "n": 48,
+          "title": "Maître-nageur / moniteur de natation",
+          "action": "A_REVOIR",
+          "note": "Installateur Piscine #6963d7398eda1aafc5de566c = construction. Pas de catégorie Sport existante. Ne pas ranger en Services à domicile. Catégorie Sport & Loisirs proposée, non créée auto."
+        }
+      ],
+      "counts": {
+        "operations": 98,
+        "applied": 0,
+        "planned": 98,
+        "noops": 0,
+        "skipped": 6,
+        "failed": 0,
+        "created": 0
+      },
+      "aRevoir": [
+        "Depanneur",
+        "Mécanique",
+        "Controlleur Technique",
+        "Installateur Reseau",
+        "Reparateur Engins",
+        "Constructeur Bassins",
+        "Location Materiel",
+        "Spécialiste Gazon",
+        "Maçon Traditionnaliste",
+        "Ferrailleur",
+        "Eleveur Ruminants",
+        "Chauffeur de véhicule électrique",
+        "Decorateur",
+        "Technicien CCTV"
+      ],
+      "orphanIds": [
+        "68d6a41c40b8a717973dd400",
+        "68d6a42040b8a717973dd417",
+        "68d6a74a8d705907be738abf",
+        "68d6a74b8d705907be738ac9",
+        "68d6a74f8d705907be738ae3",
+        "68d6a7528d705907be738af5",
+        "68d6a7548d705907be738aff",
+        "68d6a75b8d705907be738b2a",
+        "68d6a7748d705907be738bc4",
+        "68d6a7768d705907be738bce",
+        "68d6a77b8d705907be738bf0",
+        "68d6a77c8d705907be738bfa",
+        "68d6a852490b63f4b89feec0",
+        "68d6a85e490b63f4b89fef0a",
+        "68d6a862490b63f4b89fef24",
+        "68d6a868490b63f4b89fef46",
+        "68d6a86b490b63f4b89fef6c",
+        "68d6a871490b63f4b89fefb5",
+        "68d6a876490b63f4b89fefe2"
+      ]
+    }
+  ]
+}
