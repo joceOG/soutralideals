@@ -75,6 +75,9 @@
         "metrics": "curl http://localhost:3000/metrics",
         "test:optimizations": "node scripts/test-optimizations.js"
     },
+    "nodemonConfig": {
+        "ignore": ["uploads/**", "logs/**", "catalog/journals/**"]
+    },
     "author": "",
     "license": "ISC",
     "description": ""
