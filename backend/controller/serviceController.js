@@ -103,6 +103,13 @@ export const createService = async (req, res) => {
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: "services",
+                resource_type: "image",
+                quality: "auto:good",
+                fetch_format: "auto",
+                width: 1280,
+                height: 1280,
+                crop: "limit",
+                timeout: 120000,
             });
             finalImageUrl = result.secure_url;
             fs.unlinkSync(req.file.path);
@@ -162,15 +169,19 @@ export const updateService = async (req, res) => {
 
         // Check if a new image is uploaded
         if (req.file) {
-            // Upload new image to Cloudinary
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: "services",
+                resource_type: "image",
+                quality: "auto:good",
+                fetch_format: "auto",
+                width: 1280,
+                height: 1280,
+                crop: "limit",
+                timeout: 120000,
             });
 
-            // Update the image URL in the updates object
             updates.imageservice = result.secure_url;
 
-            // Remove the local file after uploading
             fs.unlinkSync(req.file.path);
         } else if (clearImage === 'true' || clearImage === true) {
             updates.imageservice = null;

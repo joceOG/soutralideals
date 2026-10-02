@@ -10,8 +10,8 @@ import {
 } from '../utils/emailIdentity.js';
 
 const UtilisateurSchema = new mongoose.Schema({
-  nom: { 
-    type: String, 
+  nom: {
+    type: String,
     required: true,
     trim: true
   },
@@ -35,7 +35,7 @@ const UtilisateurSchema = new mongoose.Schema({
       message: 'Email invalide',
     },
   },
-  password: { 
+  password: {
     type: String,
     required: true,
     trim: true,
@@ -202,7 +202,7 @@ UtilisateurSchema.index(
 );
 
 // Hash du mot de passe avant sauvegarde + ne jamais stocker telephone/email null/vide
-UtilisateurSchema.pre("save", async function(next) {
+UtilisateurSchema.pre("save", async function (next) {
   const user = this;
   const emailNorm = normalizeEmail(user.email);
   if (emailNorm === undefined) {
@@ -226,41 +226,41 @@ UtilisateurSchema.pre("save", async function(next) {
 });
 
 // Génération token JWT incluant le rôle (expire en 15 minutes)
-UtilisateurSchema.methods.generateAuthToken = async function() {
+UtilisateurSchema.methods.generateAuthToken = async function () {
   const user = this;
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET manquant dans les variables d\'environnement');
   const token = jwt.sign(
     { _id: user._id.toString(), id: user._id.toString(), role: user.role },
     secret,
-    { expiresIn: '15m' }
+    { expiresIn: '2h' }
   );
   user.tokens = user.tokens.concat({ token });
-  // Limiter la taille du tableau pour éviter une croissance illimitée (JWT 15min)
+  // Limiter la taille du tableau (max 10 sessions actives)
   user.tokens = user.tokens.slice(-10);
   await user.save();
   return token;
 };
 
 // Génération d'un refresh token opaque (valide 30 jours)
-UtilisateurSchema.methods.generateRefreshToken = async function() {
+UtilisateurSchema.methods.generateRefreshToken = async function () {
   const user = this;
   const token = crypto.randomBytes(64).toString('hex');
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 jours
-  
+
   user.refreshTokens = user.refreshTokens.concat({ token, expiresAt });
-  
+
   // Nettoyage des refresh tokens expirés ou anciens (garde max 5)
   user.refreshTokens = user.refreshTokens
     .filter(rt => rt.expiresAt > new Date())
     .slice(-5);
-    
+
   await user.save();
   return token;
 };
 
 // Méthode statique pour login par email ou téléphone
-UtilisateurSchema.statics.findByCredentials = async function(identifiant, password) {
+UtilisateurSchema.statics.findByCredentials = async function (identifiant, password) {
   let user = null;
   if (validator.isEmail(identifiant)) {
     const emailNorm = normalizeEmail(identifiant);
@@ -288,7 +288,7 @@ UtilisateurSchema.statics.findByCredentials = async function(identifiant, passwo
 };
 
 // Méthode d'instance pour comparer un mot de passe en clair avec le hash
-UtilisateurSchema.methods.comparePassword = async function(password) {
+UtilisateurSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 

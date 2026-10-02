@@ -738,8 +738,21 @@ httpServer.listen(port, '0.0.0.0', () => {
 });
 
 httpServer.on('error', (err) => {
+  if (err?.code === 'ECONNRESET' || err?.code === 'EPIPE') {
+    logger.warn('Connexion HTTP réinitialisée (client parti ou upload interrompu)', {
+      code: err.code,
+    });
+    return;
+  }
   console.error('❌ HTTP server error:', err);
   process.exit(1);
+});
+
+httpServer.on('clientError', (err, socket) => {
+  if (err?.code === 'ECONNRESET' || err?.code === 'EPIPE' || !socket.writable) {
+    return;
+  }
+  socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
 });
 
 connect()

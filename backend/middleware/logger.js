@@ -69,8 +69,27 @@ const logger = winston.createLogger({
 // 📊 Middleware pour logger les requêtes HTTP
 export const httpLogger = (req, res, next) => {
   const start = Date.now();
-  
+  let clientGone = false;
+
+  const markClientGone = (code) => {
+    clientGone = true;
+    logger.debug('Client a fermé la connexion', {
+      method: req.method,
+      url: req.url,
+      code,
+    });
+  };
+
+  req.on('aborted', () => markClientGone('aborted'));
+  req.socket?.on('error', (err) => {
+    if (err?.code === 'ECONNRESET' || err?.code === 'EPIPE') {
+      markClientGone(err.code);
+    }
+  });
+
   res.on('finish', () => {
+    if (clientGone) return;
+
     const duration = Date.now() - start;
     const logData = {
       method: req.method,
@@ -80,14 +99,27 @@ export const httpLogger = (req, res, next) => {
       ip: req.ip,
       userAgent: req.get('User-Agent'),
     };
-    
+
     if (res.statusCode >= 400) {
       logger.error('HTTP Request Error', logData);
     } else {
       logger.http('HTTP Request', logData);
     }
   });
-  
+
+  res.on('error', (err) => {
+    if (err?.code === 'ECONNRESET' || err?.code === 'EPIPE') {
+      markClientGone(err.code);
+      return;
+    }
+    logger.warn('Erreur flux réponse HTTP', {
+      method: req.method,
+      url: req.url,
+      code: err?.code,
+      message: err?.message,
+    });
+  });
+
   next();
 };
 

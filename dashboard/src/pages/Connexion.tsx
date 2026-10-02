@@ -55,7 +55,7 @@ const Connexion: React.FC = () => {
         return;
       }
 
-      persistSession(response.data.token, response.data.utilisateur);
+      persistSession(response.data.token, response.data.utilisateur, response.data.refreshToken);
       window.setTimeout(() => {
         navigate("/", { replace: true });
       }, 0);

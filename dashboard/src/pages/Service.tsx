@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EuroIcon from '@mui/icons-material/Euro';
 import { colors } from '../tokens/colors';
 import TagsInput from '../components/TagsInput';
+import { compressImageForUpload } from '../utils/compressImage';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface ServiceItem {
@@ -65,7 +66,7 @@ const TH_SX = {
 
 // ── Composant ──────────────────────────────────────────────────────────────────
 const Service: React.FC = () => {
-    const [services, setServices] = useState<ServiceItem[]>([]);
+  const [services, setServices] = useState<ServiceItem[]>([]);
   const [filtered, setFiltered] = useState<ServiceItem[]>([]);
   const [categories, setCategories] = useState<CategorieOption[]>([]);
   const [groupes, setGroupes] = useState<GroupeOption[]>([]);
@@ -82,6 +83,7 @@ const Service: React.FC = () => {
   const [selectedGroupe, setSelectedGroupe] = useState('');
   const [selectedCategorie, setSelectedCategorie] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [compressingImage, setCompressingImage] = useState(false);
   const [clearImage, setClearImage] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [aliases, setAliases] = useState<string[]>([]);
@@ -139,8 +141,17 @@ const Service: React.FC = () => {
         (s.needs || []).some(t => t.toLowerCase().includes(q)),
       ),
     );
-    setPage(0);
   }, [search, services]);
+
+  // Ne pas réinitialiser la page quand on rafraîchit la liste (ex. après un PUT).
+  useEffect(() => {
+    setPage(0);
+  }, [search]);
+
+  useEffect(() => {
+    const maxPage = Math.max(0, Math.ceil(filtered.length / rowsPerPage) - 1);
+    if (page > maxPage) setPage(maxPage);
+  }, [filtered.length, rowsPerPage, page]);
 
   // Filtrage catégories par groupe sélectionné
   const filteredCats = selectedGroupe
@@ -175,6 +186,33 @@ const Service: React.FC = () => {
 
   const closeDialog = () => { setDialogOpen(false); setSaving(false); };
 
+  const mergeServiceRow = (prev: ServiceItem, data: any, fallbackCategorie: ServiceItem['categorie']): ServiceItem => ({
+    ...prev,
+    ...data,
+    tags: data.tags || [],
+    aliases: data.aliases || [],
+    needs: data.needs || [],
+    categorie:
+      data.categorie && typeof data.categorie === 'object' && data.categorie.nomcategorie
+        ? data.categorie
+        : fallbackCategorie,
+  });
+
+  const pickImage = async (file: File | null) => {
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+    setImageFile(file);
+    setCompressingImage(true);
+    try {
+      const compressed = await compressImageForUpload(file);
+      setImageFile(compressed);
+    } finally {
+      setCompressingImage(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!nomservice.trim() || !selectedCategorie) return;
     setSaving(true);
@@ -192,14 +230,21 @@ const Service: React.FC = () => {
       if (clearImage && !imageFile) fd.append('clearImage', 'true');
 
       if (editTarget) {
-        await apiClient.put(`/service/${editTarget._id}`, fd);
+        const { data } = await apiClient.put(`/service/${editTarget._id}`, fd, {
+          timeout: 120000,
+        });
+        setServices(prev =>
+          prev.map(s =>
+            s._id === editTarget._id ? mergeServiceRow(s, data, s.categorie) : s,
+          ),
+        );
         notify('Service mis à jour');
       } else {
         await apiClient.post(`/service`, fd);
         notify('Service ajouté');
+        await fetchAll();
       }
       closeDialog();
-      fetchAll();
     } catch {
       notify('Erreur lors de la sauvegarde', 'error');
       setSaving(false);
@@ -341,7 +386,7 @@ const Service: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      {s.prixmoyen !== undefined ? (
+                      {s.prixmoyen != null && s.prixmoyen > 0 ? (
                         <Typography variant="body2" color={colors.textPrimary} fontWeight={500}>
                           {s.prixmoyen.toLocaleString('fr-FR')} F
                         </Typography>
@@ -536,7 +581,9 @@ const Service: React.FC = () => {
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography variant="body2" fontWeight={500}>{imageFile.name}</Typography>
                   <Typography variant="caption" color={colors.textMuted}>
-                    {(imageFile.size / 1024).toFixed(0)} Ko
+                    {compressingImage
+                      ? 'Réduction de l’image…'
+                      : `${(imageFile.size / 1024).toFixed(0)} Ko — réduite avant envoi`}
                   </Typography>
                 </Box>
                 <Button size="small" color="inherit" onClick={() => setImageFile(null)}>
@@ -555,8 +602,9 @@ const Service: React.FC = () => {
                 <Button variant="outlined" component="label" size="small">
                   Remplacer
                   <input type="file" hidden accept="image/*" onChange={e => {
-                    setImageFile(e.target.files?.[0] ?? null);
+                    void pickImage(e.target.files?.[0] ?? null);
                     setClearImage(false);
+                    e.target.value = '';
                   }} />
                 </Button>
               </Stack>
@@ -575,8 +623,9 @@ const Service: React.FC = () => {
                 >
                   Choisir une image (optionnel)
                   <input type="file" hidden accept="image/*" onChange={e => {
-                    setImageFile(e.target.files?.[0] ?? null);
+                    void pickImage(e.target.files?.[0] ?? null);
                     setClearImage(false);
+                    e.target.value = '';
                   }} />
                 </Button>
               </Stack>
@@ -588,10 +637,14 @@ const Service: React.FC = () => {
           <Button
             variant="contained"
             onClick={handleSave}
-            disabled={saving || !nomservice.trim() || !selectedCategorie}
+            disabled={saving || compressingImage || !nomservice.trim() || !selectedCategorie}
             sx={{ minWidth: 160, height: 40 }}
           >
-            {saving ? 'Enregistrement…' : editTarget ? 'Enregistrer les modifications' : 'Créer le service'}
+            {compressingImage
+              ? 'Préparation de l’image…'
+              : saving
+                ? 'Enregistrement…'
+                : editTarget ? 'Enregistrer les modifications' : 'Créer le service'}
           </Button>
         </DialogActions>
       </Dialog>

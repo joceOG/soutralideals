@@ -16,6 +16,8 @@ const USER_PRENOM_KEY = "userPrenom";
 
 const USER_EMAIL_KEY = "userEmail";
 
+const REFRESH_TOKEN_KEY = "refreshToken";
+
 
 
 export function getApiUrl() {
@@ -144,6 +146,8 @@ export async function clearSession() {
 
   localStorage.removeItem("token");
 
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+
   localStorage.removeItem(USER_ID_KEY);
 
   localStorage.removeItem(USER_ROLE_KEY);
@@ -216,9 +220,15 @@ export function persistSession(
 
   user?: { _id?: string; role?: string; nom?: string; prenom?: string; email?: string },
 
+  refreshToken?: string,
+
 ) {
 
   localStorage.setItem("token", token);
+
+  if (refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
 
   if (user?._id) localStorage.setItem(USER_ID_KEY, String(user._id));
 
@@ -340,7 +350,7 @@ export function setupApiClient() {
 
     (response) => response,
 
-    (error) => {
+    async (error) => {
 
       const status = error.response?.status;
 
@@ -354,25 +364,53 @@ export function setupApiClient() {
 
       });
 
-
-
+      // Sur 401 d'une route interne (hors login/refresh), tenter le renouvellement
+      // du token avant de vider la session. Évite la déconnexion silencieuse lors
+      // d'une session expirée pendant une action longue (ex. mise à jour d'image).
       if (
-
         status === 401 &&
-
         isInternalSoutraliApiUrl(fullUrl) &&
-
         !url.includes("/login") &&
-
-        !fullUrl.includes("/login")
-
+        !url.includes("/refresh-token") &&
+        !(error.config as Record<string, unknown>)?._retried
       ) {
+        const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
+        if (storedRefreshToken) {
+          try {
+            // Échange du refresh token contre un nouveau couple access/refresh
+            const refreshRes = await publicApiClient.post("/refresh-token", {
+              refreshToken: storedRefreshToken,
+            });
+
+            const { token: newToken, refreshToken: newRefreshToken } = refreshRes.data ?? {};
+
+            if (newToken) {
+              // Mise à jour du token en mémoire et relance de la requête originale
+              localStorage.setItem("token", newToken);
+              if (newRefreshToken) {
+                localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+              }
+
+              const retryConfig = {
+                ...error.config,
+                _retried: true,
+                headers: {
+                  ...(error.config?.headers ?? {}),
+                  Authorization: `Bearer ${newToken}`,
+                },
+              };
+
+              return apiClient(retryConfig);
+            }
+          } catch {
+            // Le refresh a échoué (token expiré ou révoqué) → vraie déconnexion
+          }
+        }
+
+        // Pas de refresh token disponible ou refresh échoué → déconnexion propre
         clearSession();
-
       }
-
-
 
       return Promise.reject(error);
 
