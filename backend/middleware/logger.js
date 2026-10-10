@@ -12,13 +12,28 @@ const logColors = {
 
 winston.addColors(logColors);
 
-// 📝 Format personnalisé pour les logs
+function consoleDetail(info) {
+  if (info.method && info.url && info.status != null) {
+    const duration = info.duration ? ` ${info.duration}` : '';
+    return `${info.method} ${info.url} ${info.status}${duration}`;
+  }
+  const parts = [];
+  if (info.action) parts.push(String(info.action));
+  if (info.userId) parts.push(`user=${info.userId}`);
+  if (info.status != null) parts.push(String(info.status));
+  if (info.code) parts.push(String(info.code));
+  return parts.join(' ');
+}
+
+// 📝 Console : message + champs utiles (les fichiers restent en JSON complet).
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`
-  )
+  winston.format.printf((info) => {
+    const detail = consoleDetail(info);
+    const suffix = detail ? ` ${detail}` : '';
+    return `${info.timestamp} ${info.level}: ${info.message}${suffix}`;
+  })
 );
 
 // 📁 Configuration des transports
@@ -51,7 +66,7 @@ const transports = [
 
 // 🏗️ Création du logger
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env.LOG_LEVEL || 'http',
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),

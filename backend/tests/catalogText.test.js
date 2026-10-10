@@ -68,4 +68,19 @@ describe('catalogText', () => {
     ]);
     assert.equal(ranked.length, 1);
   });
+
+  it('préfixe d’une lettre (r / R) matche les noms de service', () => {
+    const redacteur = { nomservice: 'Redacteur Web SEO', aliases: [], needs: [] };
+    const plombier = { nomservice: 'Plombier', aliases: [], needs: [] };
+    assert.equal(scoreCatalogService('r', redacteur)?.kind, 'prefix-name');
+    assert.equal(scoreCatalogService('R', redacteur)?.kind, 'prefix-name');
+    assert.equal(scoreCatalogService('r', plombier), null);
+    const ranked = rankCatalogServices(
+      'r',
+      [redacteur, plombier, { nomservice: 'Rédacteur technique', aliases: [], needs: [] }],
+      { limit: 20 },
+    );
+    assert.ok(ranked.length >= 2);
+    assert.ok(ranked.every((m) => normalizeCatalogText(m.service.nomservice).startsWith('r')));
+  });
 });

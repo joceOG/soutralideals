@@ -27,9 +27,15 @@ function emptyBuckets() {
   return { services: [], articles: [], freelances: [], prestataires: [], vendeurs: [] };
 }
 
+function resolveIncludeEmarket(scope, includeEmarketRaw) {
+  if (includeEmarketRaw === '0' || includeEmarketRaw === 'false') return false;
+  return scope === 'global' || scope === 'emarket';
+}
+
 export const globalSearch = async (req, res) => {
   try {
-    const { query, minPrice, maxPrice, scope: scopeRaw } = req.query;
+    const { query, minPrice, maxPrice, scope: scopeRaw, includeEmarket: includeEmarketRaw } =
+      req.query;
     if (!query) {
       return res.status(400).json({ message: 'Le paramètre query est requis' });
     }
@@ -60,7 +66,7 @@ export const globalSearch = async (req, res) => {
 
     const includePrestataires = scope === 'global' || scope === 'metiers';
     const includeFreelance = scope === 'global' || scope === 'freelance';
-    const includeEmarket = scope === 'global' || scope === 'emarket';
+    const includeEmarket = resolveIncludeEmarket(scope, includeEmarketRaw);
 
     if (includePrestataires && catalog.serviceIds.length) {
       const prestatairePublic = applyUtilisateurConflictExclusion(
@@ -169,19 +175,20 @@ export const globalSearch = async (req, res) => {
 
 export const getSuggestions = async (req, res) => {
   try {
-    const { query, scope: scopeRaw } = req.query;
+    const { query, scope: scopeRaw, includeEmarket: includeEmarketRaw } = req.query;
     if (!query || query.length < 1) {
       return res.json([]);
     }
 
     const scope = resolveSearchScope(scopeRaw);
+    const includeEmarket = resolveIncludeEmarket(scope, includeEmarketRaw);
     const catalog = await matchCatalogServices(query, scope === 'global' ? 'global' : scope, {
       limit: 10,
     });
     const fromCatalog = catalog.matches.map((m) => m.service.nomservice).filter(Boolean);
 
     let extra = [];
-    if (scope === 'global' || scope === 'emarket') {
+    if (includeEmarket) {
       const publicVendeurIds = await findPublicVendeurIds(vendeurModel);
       const { buildFuzzyRegex } = await import('../utils/searchNormalize.js');
       const { contains: fuzzyRegex, exact: exactRegex } = buildFuzzyRegex(query);
