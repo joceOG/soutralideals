@@ -99,8 +99,11 @@ export function scoreCatalogService(query, service) {
     if (!catalogHasBuy && name !== nq && !aliases.includes(nq)) return null;
   }
 
-  if (name && (name.startsWith(nq) || nq.startsWith(name)) && nq.length >= 3) {
+  if (name && name.startsWith(nq) && nq.length >= 1) {
     return { score: 80, kind: 'prefix-name' };
+  }
+  if (name && nq.startsWith(name) && nq.length >= 3) {
+    return { score: 78, kind: 'prefix-name-query' };
   }
   if (aliases.some((a) => a.startsWith(nq) || (nq.length >= 4 && nq.startsWith(a)))) {
     return { score: 74, kind: 'prefix-alias' };

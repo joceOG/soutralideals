@@ -7,6 +7,9 @@ const SENSITIVE_PRESTATION_FIELDS = [
   'notesClient',
   'notesPrestataire',
   'referencePaiement',
+  'description',
+  'photosAvant',
+  'photosApres',
 ];
 
 function trimUserPublic(user) {
