@@ -13,6 +13,8 @@ export interface AdminFileUploadProps {
   file: File | null;
   onFileChange: (file: File | null) => void;
   existingLabel?: string;
+  /** Aperçu déjà enregistré (URL https signée). Jamais une ref privée. */
+  existingPreviewUrl?: string | null;
   disabled?: boolean;
 }
 
@@ -25,6 +27,7 @@ export const AdminFileUpload: React.FC<AdminFileUploadProps> = ({
   file,
   onFileChange,
   existingLabel,
+  existingPreviewUrl,
   disabled,
 }) => {
   const inputId = useId();
@@ -60,6 +63,15 @@ export const AdminFileUpload: React.FC<AdminFileUploadProps> = ({
       <Typography variant="caption" sx={{ color: colors.textMuted, display: 'block', mb: 1 }}>
         Images uniquement — max {(maxBytes / (1024 * 1024)).toFixed(0)} Mo
       </Typography>
+
+      {existingPreviewUrl && !file ? (
+        <Box
+          component="img"
+          src={existingPreviewUrl}
+          alt=""
+          sx={{ width: 72, height: 72, objectFit: 'cover', borderRadius: '10px', border: `1px solid ${colors.border}`, mb: 1 }}
+        />
+      ) : null}
 
       {existingLabel && !file ? (
         <Typography variant="body2" sx={{ color: colors.emerald, mb: 1 }}>

@@ -99,9 +99,52 @@ export function documentPresent(value: unknown): boolean {
   return false;
 }
 
+function cleanNamePart(value?: string | null): string {
+  const text = (value ?? '').trim();
+  if (!text || text === 'undefined' || text === 'null') return '';
+  return text;
+}
+
+/** Nom affichable. N’émet jamais la chaîne « undefined ». */
+export function visiblePersonName(
+  prenom?: string | null,
+  nom?: string | null,
+  fallbackLabel?: string,
+): string {
+  const built = `${cleanNamePart(prenom)} ${cleanNamePart(nom)}`.trim();
+  if (built) return built;
+  const label = cleanNamePart(fallbackLabel);
+  if (!label || label.includes('undefined')) return '';
+  return label;
+}
+
+/** GET /utilisateur est paginé `{ utilisateurs }`, plus un tableau nu. */
+export function readUtilisateurOptions(data: unknown): PrestataireUtilisateurRef[] {
+  const rows = Array.isArray(data)
+    ? data
+    : data && typeof data === 'object' && Array.isArray((data as { utilisateurs?: unknown }).utilisateurs)
+      ? (data as { utilisateurs: unknown[] }).utilisateurs
+      : [];
+  return rows.flatMap((row) => {
+    if (!row || typeof row !== 'object') return [];
+    const u = row as PrestataireUtilisateurRef;
+    if (!u._id) return [];
+    return [{ ...u, _id: String(u._id), nom: cleanNamePart(u.nom), prenom: cleanNamePart(u.prenom) }];
+  });
+}
+
+/** URL affichable. Une ref `cld:auth:` ou un booléen n’est pas une image. */
+export function httpsPreviewUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  if (!text.startsWith('https://') || text.includes('cld:auth:')) return null;
+  return text;
+}
+
 export function normalizePrestataireForEdit(raw: Record<string, unknown>): {
   values: PrestataireFormValues;
   existingKyc: PrestataireExistingKyc;
+  existingPreviews: Record<keyof PrestataireExistingKyc, string | null>;
 } {
   const u = raw.utilisateur as PrestataireUtilisateurRef | undefined;
   const s = raw.service as PrestataireServiceRef | undefined;
@@ -110,7 +153,7 @@ export function normalizePrestataireForEdit(raw: Record<string, unknown>): {
 
   const values: PrestataireFormValues = {
     utilisateurId: u?._id ? String(u._id) : '',
-    utilisateurLabel: u ? `${u.prenom ?? ''} ${u.nom ?? ''}`.trim() : '',
+    utilisateurLabel: visiblePersonName(u?.prenom, u?.nom),
     serviceId: s?._id ? String(s._id) : '',
     prixprestataire: Number(raw.prixprestataire) || 0,
     localisation: String(raw.localisation ?? ''),
@@ -145,6 +188,12 @@ export function normalizePrestataireForEdit(raw: Record<string, unknown>): {
       cni2: documentPresent(raw.cni2),
       selfie: documentPresent(raw.selfie),
       attestationAssurance: documentPresent(raw.attestationAssurance),
+    },
+    existingPreviews: {
+      cni1: httpsPreviewUrl(raw.cni1),
+      cni2: httpsPreviewUrl(raw.cni2),
+      selfie: httpsPreviewUrl(raw.selfie),
+      attestationAssurance: httpsPreviewUrl(raw.attestationAssurance),
     },
   };
 }
@@ -321,15 +370,23 @@ export function buildPrestataireFormData(
   return form;
 }
 
-export function stripKycForListRow<T extends { cni1?: unknown; cni2?: unknown; selfie?: unknown }>(
-  row: T,
-): T {
+export function stripKycForListRow<
+  T extends {
+    cni1?: unknown;
+    cni2?: unknown;
+    selfie?: unknown;
+    attestationAssurance?: unknown;
+    kycLegacy?: unknown;
+  },
+>(row: T): T {
+  const { kycLegacy: _kycLegacy, ...rest } = row;
   return {
-    ...row,
+    ...rest,
     cni1: documentPresent(row.cni1),
     cni2: documentPresent(row.cni2),
     selfie: documentPresent(row.selfie),
-  };
+    attestationAssurance: documentPresent(row.attestationAssurance),
+  } as T;
 }
 
 export function mapPrestataireApiError(error: unknown): string {
