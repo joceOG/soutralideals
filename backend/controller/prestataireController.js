@@ -367,6 +367,20 @@ export const updatePrestataire = async (req, res) => {
       return Number.isFinite(parsed) ? parsed : undefined;
     };
 
+    const definedText = (value) => {
+      if (typeof value !== "string") return undefined;
+      const text = value.trim();
+      if (!text || text === "undefined" || text === "null") return undefined;
+      return text;
+    };
+
+    const localisationText = definedText(localisation);
+    const descriptionText = definedText(description);
+    const experienceText = definedText(anneeExperience);
+    const numeroCniText = definedText(numeroCNI);
+    const numeroRccmText = definedText(numeroRCCM);
+    const numeroAssuranceText = definedText(numeroAssurance);
+
     // Parsing localisationmaps
     let parsedLocalisation = null;
     if (localisationmaps) {
@@ -384,31 +398,34 @@ export const updatePrestataire = async (req, res) => {
     // STAB-13B1 : même contrat CREATE/UPDATE (évite ["[\"Bâtiment…\"]"]).
     const specialiteArr =
       specialite != null && specialite !== ""
-        ? parseStringArrayField(specialite)
+        ? parseStringArrayField(specialite).map(definedText).filter(Boolean)
         : null;
     const zoneInterventionArr =
       zoneIntervention != null && zoneIntervention !== ""
-        ? parseStringArrayField(zoneIntervention)
+        ? parseStringArrayField(zoneIntervention).map(definedText).filter(Boolean)
         : null;
 
+    const utilisateurId = definedText(typeof utilisateur === "string" ? utilisateur : "");
     const updates = {
-      ...(isAdminUser && utilisateur && { utilisateur: new mongoose.Types.ObjectId(utilisateur) }),
+      ...(isAdminUser && utilisateurId && mongoose.Types.ObjectId.isValid(utilisateurId) && {
+        utilisateur: new mongoose.Types.ObjectId(utilisateurId),
+      }),
       ...(service && { service: new mongoose.Types.ObjectId(service) }),
       ...(typeof parseNumber(prixprestataire) !== "undefined" && { prixprestataire: parseNumber(prixprestataire) }),
-      ...(localisation && { localisation }),
+      ...(localisationText && { localisation: localisationText }),
       ...(isAdminUser && typeof parseNumber(note) !== "undefined" && { note: parseNumber(note) }),
       ...(specialiteArr && specialiteArr.length > 0 && { specialite: specialiteArr }),
-      ...(anneeExperience && { anneeExperience }),
-      ...(description && { description }),
+      ...(experienceText && { anneeExperience: experienceText }),
+      ...(descriptionText && { description: descriptionText }),
       ...(typeof parseNumber(rayonIntervention) !== "undefined" && { rayonIntervention: parseNumber(rayonIntervention) }),
       ...(zoneInterventionArr &&
         zoneInterventionArr.length > 0 && { zoneIntervention: zoneInterventionArr }),
       ...(parsedLocalisation && { localisationmaps: parsedLocalisation }),
       ...(typeof parseNumber(tarifHoraireMin) !== "undefined" && { tarifHoraireMin: parseNumber(tarifHoraireMin) }),
       ...(typeof parseNumber(tarifHoraireMax) !== "undefined" && { tarifHoraireMax: parseNumber(tarifHoraireMax) }),
-      ...(numeroCNI && { numeroCNI }),
-      ...(numeroRCCM && { numeroRCCM }),
-      ...(numeroAssurance && { numeroAssurance }),
+      ...(numeroCniText && { numeroCNI: numeroCniText }),
+      ...(numeroRccmText && { numeroRCCM: numeroRccmText }),
+      ...(numeroAssuranceText && { numeroAssurance: numeroAssuranceText }),
       ...(isAdminUser && typeof parseNumber(nbMission) !== "undefined" && { nbMission: parseNumber(nbMission) }),
       ...(isAdminUser && typeof parseNumber(body.nbAvis) !== "undefined" && { nbAvis: parseNumber(body.nbAvis) }),
       ...(isAdminUser && typeof parseNumber(revenus) !== "undefined" && { revenus: parseNumber(revenus) }),
@@ -485,7 +502,19 @@ export const updatePrestataire = async (req, res) => {
       await prestataire.save();
     }
 
-    res.status(200).json(prestataire);
+    let presented;
+    try {
+      presented = presentProDocForViewer(req, prestataire, res);
+      await applyRecensementPhotoFallback([presented]);
+    } catch (presentErr) {
+      console.error('Erreur présentation prestataire:', presentErr.message);
+      const plain = typeof prestataire.toObject === 'function' ? prestataire.toObject() : { ...prestataire };
+      presented = redactKycFromPlain(plain);
+      for (const f of KYC_FIELD_NAMES) {
+        presented[f] = Boolean(plain[f]);
+      }
+    }
+    res.status(200).json(presented);
 
   } catch (err) {
     const mapped = mongooseValidationTo400(err);

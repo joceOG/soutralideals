@@ -17,7 +17,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import { AdminPageHeader, AdminStatusChip, AdminEmptyState, AdminErrorState, AdminConfirmDialog } from '../components/admin';
 import { PrestataireFormDialog } from '../components/prestataire/PrestataireFormDialog';
-import { stripKycForListRow } from '../services/prestataireService';
+import { httpsPreviewUrl, stripKycForListRow, visiblePersonName } from '../services/prestataireService';
 import { apiClient } from '../services/setupApi';
 import { safeDate, formatPrice, kycStatus, maskPhone } from '../components/admin/utils';
 import { colors } from '../tokens/colors';
@@ -26,7 +26,7 @@ import { colors } from '../tokens/colors';
 
 interface IPrestataire {
   _id: string;
-  utilisateur?: { _id: string; nom: string; prenom: string; email?: string; telephone?: string };
+  utilisateur?: { _id: string; nom: string; prenom: string; email?: string; telephone?: string; photoProfil?: string };
   service?: { _id: string; nomservice: string; categorie?: { nomcategorie: string } };
   prixprestataire?: number;
   localisation?: string;
@@ -53,13 +53,15 @@ interface IPrestataire {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const initials = (p: IPrestataire) => {
-  const nom = p.utilisateur?.nom ?? '';
-  const prenom = p.utilisateur?.prenom ?? '';
-  return `${prenom[0] ?? ''}${nom[0] ?? ''}`.toUpperCase() || 'P';
+  const name = visiblePersonName(p.utilisateur?.prenom, p.utilisateur?.nom);
+  const parts = name.split(/\s+/).filter(Boolean);
+  return `${parts[0]?.[0] ?? ''}${parts[1]?.[0] ?? ''}`.toUpperCase() || 'P';
 };
 
 const fullName = (p: IPrestataire) =>
-  `${p.utilisateur?.prenom ?? ''} ${p.utilisateur?.nom ?? ''}`.trim() || '—';
+  visiblePersonName(p.utilisateur?.prenom, p.utilisateur?.nom) || '—';
+
+const publicPhoto = (p: IPrestataire) => httpsPreviewUrl(p.utilisateur?.photoProfil);
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
@@ -98,6 +100,7 @@ const PrestataireComponent: React.FC = () => {
 
   // AbortController pour éviter les mises à jour sur composant démonté
   const abortRef = useRef<AbortController | null>(null);
+  const detailToken = useRef(0);
 
   const fetchPrestataires = useCallback(async () => {
     abortRef.current?.abort();
@@ -150,9 +153,28 @@ const PrestataireComponent: React.FC = () => {
   const closeMenu = () => { setMenuAnchor(null); setMenuItem(null); };
 
   const openDetail = (item: IPrestataire) => {
-    setDetailItem(item);
+    const token = ++detailToken.current;
+    setDetailItem(stripKycForListRow(item));
     setDetailOpen(true);
     closeMenu();
+    apiClient.get(`/prestataire/${item._id}`).then((res) => {
+      if (detailToken.current !== token) return;
+      setDetailItem(res.data as IPrestataire);
+    }).catch(() => {
+      /* La ligne déjà affichée reste. Les pièces privées ne sont pas inventées. */
+    });
+  };
+
+  const applyFreshDetail = (id: string, fresh: IPrestataire) => {
+    setRows((prev) => {
+      const row = stripKycForListRow(fresh);
+      const idx = prev.findIndex((r) => r._id === id);
+      if (idx < 0) return [row, ...prev];
+      const next = [...prev];
+      next[idx] = row;
+      return next;
+    });
+    setDetailItem((prev) => (prev && prev._id === id ? fresh : prev));
   };
 
   const requestConfirm = (label: string, fn: () => Promise<void>) => {
@@ -300,7 +322,7 @@ const PrestataireComponent: React.FC = () => {
                     {/* Prestataire */}
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: alpha(colors.primary500, 0.15), color: colors.primary500 }}>
+                        <Avatar src={publicPhoto(p) ?? undefined} sx={{ width: 32, height: 32, fontSize: 12, bgcolor: alpha(colors.primary500, 0.15), color: colors.primary500 }}>
                           {initials(p)}
                         </Avatar>
                         <Box>
@@ -414,7 +436,7 @@ const PrestataireComponent: React.FC = () => {
 
             {/* Identité */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-              <Avatar sx={{ width: 56, height: 56, bgcolor: alpha(colors.primary500, 0.15), color: colors.primary500, fontSize: 18 }}>
+              <Avatar src={publicPhoto(detailItem) ?? undefined} sx={{ width: 56, height: 56, bgcolor: alpha(colors.primary500, 0.15), color: colors.primary500, fontSize: 18 }}>
                 {initials(detailItem)}
               </Avatar>
               <Box>
@@ -460,10 +482,19 @@ const PrestataireComponent: React.FC = () => {
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Documents
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-                  <Chip label="CNI Recto" size="small" color={detailItem.cni1 ? 'success' : 'default'} variant="outlined" />
-                  <Chip label="CNI Verso" size="small" color={detailItem.cni2 ? 'success' : 'default'} variant="outlined" />
-                  <Chip label="Selfie" size="small" color={detailItem.selfie ? 'success' : 'default'} variant="outlined" />
+                <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {([
+                    ['CNI Recto', detailItem.cni1],
+                    ['CNI Verso', detailItem.cni2],
+                    ['Selfie', detailItem.selfie],
+                  ] as const).map(([label, value]) => {
+                    const preview = httpsPreviewUrl(value);
+                    return preview ? (
+                      <Box key={label} component="img" src={preview} alt={label} sx={{ width: 72, height: 72, objectFit: 'cover', borderRadius: '10px' }} />
+                    ) : (
+                      <Chip key={label} label={label} size="small" color={value ? 'success' : 'default'} variant="outlined" />
+                    );
+                  })}
                 </Box>
               </Box>
 
@@ -518,19 +549,20 @@ const PrestataireComponent: React.FC = () => {
         open={formOpen}
         prestataireId={editId}
         onClose={() => { setFormOpen(false); setEditId(null); }}
-        onSuccess={(saved) => {
-          const id = String((saved as { _id?: string })._id ?? '');
-          setRows((prev) => {
-            const idx = prev.findIndex((r) => r._id === id);
-            const row = stripKycForListRow(saved as unknown as IPrestataire);
-            if (idx >= 0) {
-              const next = [...prev];
-              next[idx] = { ...next[idx], ...row };
-              return next;
-            }
-            return [row, ...prev];
-          });
-          notify(editId ? 'Prestataire mis à jour.' : 'Prestataire créé.');
+        onSuccess={async (saved) => {
+          const id = String((saved as { _id?: string })._id ?? editId ?? '');
+          const wasUpdate = Boolean(editId);
+          if (!id) {
+            notify('Enregistrement incomplet.', 'error');
+            return;
+          }
+          try {
+            const res = await apiClient.get(`/prestataire/${id}`);
+            applyFreshDetail(id, res.data as IPrestataire);
+            notify(wasUpdate ? 'Prestataire mis à jour.' : 'Prestataire créé.');
+          } catch {
+            notify('Enregistré, mais la fiche n’a pas pu être rechargée.', 'error');
+          }
           setEditId(null);
         }}
       />
