@@ -33,6 +33,8 @@ import {
   PRESTATAIRE_FORM_STEPS,
   emptyPrestataireFormValues,
   normalizePrestataireForEdit,
+  readUtilisateurOptions,
+  visiblePersonName,
   buildPrestataireFormData,
   validatePrestataireStep,
   collectPrestataireMissingFields,
@@ -86,6 +88,12 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
     selfie: false,
     attestationAssurance: false,
   });
+  const [existingPreviews, setExistingPreviews] = useState<Record<keyof PrestataireExistingKyc, string | null>>({
+    cni1: null,
+    cni2: null,
+    selfie: null,
+    attestationAssurance: null,
+  });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loadingOptions, setLoadingOptions] = useState(false);
@@ -107,6 +115,7 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
     setValues(emptyPrestataireFormValues());
     setFiles(EMPTY_FILES);
     setExistingKyc({ cni1: false, cni2: false, selfie: false, attestationAssurance: false });
+    setExistingPreviews({ cni1: null, cni2: null, selfie: null, attestationAssurance: null });
     setFieldErrors({});
     setFormError(null);
     setDirty(false);
@@ -116,7 +125,7 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
     setLoadingOptions(true);
     try {
       const [uRes, sRes] = await Promise.all([
-        apiClient.get<PrestataireUtilisateurRef[]>('/utilisateur'),
+        apiClient.get('/utilisateur', { params: { limit: 100, page: 1 } }),
         apiClient.get<PrestataireServiceRef[]>('/service'),
       ]);
       const allServices = Array.isArray(sRes.data) ? sRes.data : [];
@@ -126,7 +135,14 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
           return g === 'Métiers';
         }),
       );
-      setUtilisateurs(Array.isArray(uRes.data) ? uRes.data : []);
+      const incoming = readUtilisateurOptions(uRes.data);
+      setUtilisateurs((prev) => {
+        const byId = new Map(incoming.map((u) => [u._id, u]));
+        for (const u of prev) {
+          if (!byId.has(u._id)) byId.set(u._id, u);
+        }
+        return [...byId.values()];
+      });
     } catch {
       setFormError('Impossible de charger les listes utilisateurs / services.');
     } finally {
@@ -138,9 +154,12 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
     setLoadingDetail(true);
     try {
       const res = await apiClient.get(`/prestataire/${id}`);
-      const { values: v, existingKyc: kyc } = normalizePrestataireForEdit(res.data as Record<string, unknown>);
+      const { values: v, existingKyc: kyc, existingPreviews: previews } = normalizePrestataireForEdit(
+        res.data as Record<string, unknown>,
+      );
       setValues(v);
       setExistingKyc(kyc);
+      setExistingPreviews(previews);
       const u = (res.data as { utilisateur?: PrestataireUtilisateurRef }).utilisateur;
       if (u?._id && !utilisateurs.some((x) => x._id === u._id)) {
         setUtilisateurs((prev) => [...prev, u]);
@@ -220,14 +239,17 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
               options={utilisateurs}
               loading={loadingOptions}
               value={selectedUser}
-              getOptionLabel={(o) => `${o.prenom} ${o.nom}${o.telephone ? ` — ${o.telephone}` : ''}`}
+              getOptionLabel={(o) => {
+                const name = visiblePersonName(o.prenom, o.nom) || 'Utilisateur';
+                return o.telephone ? `${name} — ${o.telephone}` : name;
+              }}
               isOptionEqualToValue={(a, b) => a._id === b._id}
               onChange={(_, u) => {
                 markDirty();
                 setValues((prev) => ({
                   ...prev,
                   utilisateurId: u?._id ?? '',
-                  utilisateurLabel: u ? `${u.prenom} ${u.nom}` : '',
+                  utilisateurLabel: u ? visiblePersonName(u.prenom, u.nom) : '',
                 }));
               }}
               renderInput={(params) => (
@@ -438,6 +460,7 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
             <AdminFileUpload
               label="CNI recto"
               file={files.cni1}
+              existingPreviewUrl={files.cni1 ? null : existingPreviews.cni1}
               existingLabel={existingKyc.cni1 && !files.cni1 ? 'Document enregistré' : undefined}
               error={fieldErrors.cni1}
               onFileChange={(f) => {
@@ -448,6 +471,7 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
             <AdminFileUpload
               label="CNI verso"
               file={files.cni2}
+              existingPreviewUrl={files.cni2 ? null : existingPreviews.cni2}
               existingLabel={existingKyc.cni2 && !files.cni2 ? 'Document enregistré' : undefined}
               error={fieldErrors.cni2}
               onFileChange={(f) => {
@@ -458,6 +482,7 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
             <AdminFileUpload
               label="Selfie"
               file={files.selfie}
+              existingPreviewUrl={files.selfie ? null : existingPreviews.selfie}
               existingLabel={existingKyc.selfie && !files.selfie ? 'Document enregistré' : undefined}
               error={fieldErrors.selfie}
               onFileChange={(f) => {
@@ -468,6 +493,7 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
             <AdminFileUpload
               label="Attestation d'assurance (optionnel)"
               file={files.attestationAssurance}
+              existingPreviewUrl={files.attestationAssurance ? null : existingPreviews.attestationAssurance}
               existingLabel={
                 existingKyc.attestationAssurance && !files.attestationAssurance ? 'Document enregistré' : undefined
               }
@@ -516,7 +542,8 @@ export const PrestataireFormDialog: React.FC<PrestataireFormDialogProps> = ({
           <AdminFormSection title="Récapitulatif">
             <Stack spacing={1}>
               <Typography variant="body2">
-                <strong>Utilisateur :</strong> {values.utilisateurLabel || selectedUser ? `${selectedUser?.prenom} ${selectedUser?.nom}` : '—'}
+                <strong>Utilisateur :</strong>{' '}
+                {visiblePersonName(selectedUser?.prenom, selectedUser?.nom, values.utilisateurLabel) || '—'}
               </Typography>
               <Typography variant="body2">
                 <strong>Service :</strong>{' '}
