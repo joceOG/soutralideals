@@ -5,6 +5,9 @@ import {
   emptyPrestataireFormValues,
   stripKycForListRow,
   mapPrestataireApiError,
+  visiblePersonName,
+  readUtilisateurOptions,
+  httpsPreviewUrl,
 } from './prestataireService';
 
 describe('prestataireService — DASH-8A', () => {
@@ -12,7 +15,7 @@ describe('prestataireService — DASH-8A', () => {
   const existingKyc = { cni1: true, cni2: true, selfie: false, attestationAssurance: false };
 
   it('normalizePrestataireForEdit mappe utilisateur et KYC existants', () => {
-    const { values, existingKyc: kyc } = normalizePrestataireForEdit({
+    const { values, existingKyc: kyc, existingPreviews: previews } = normalizePrestataireForEdit({
       utilisateur: { _id: 'u1', nom: 'Kou', prenom: 'Aya' },
       service: { _id: 's1', nomservice: 'Plombier' },
       prixprestataire: 5000,
@@ -26,6 +29,26 @@ describe('prestataireService — DASH-8A', () => {
     expect(values.zoneInterventionText).toBe('Cocody, Plateau');
     expect(kyc.cni1).toBe(true);
     expect(kyc.cni2).toBe(true);
+    expect(previews.cni2).toBeNull();
+  });
+
+  it('le nom affiché ignore la chaîne undefined et la liste utilisateurs paginée', () => {
+    expect(visiblePersonName(undefined, undefined, 'undefined undefined')).toBe('');
+    expect(visiblePersonName('Aya', 'Kou')).toBe('Aya Kou');
+    const users = readUtilisateurOptions({
+      utilisateurs: [{ _id: 'u1', nom: 'Kou', prenom: 'Aya' }],
+      total: 1,
+    });
+    expect(users).toHaveLength(1);
+    expect(users[0].nom).toBe('Kou');
+  });
+
+  it('une ref KYC n’est pas une image affichable, une URL https l’est', () => {
+    expect(httpsPreviewUrl('cld:auth:prestataires/selfie/abc')).toBeNull();
+    expect(httpsPreviewUrl(true)).toBeNull();
+    expect(httpsPreviewUrl('https://res.cloudinary.com/demo/image/upload/s--x/doc.jpg')).toBe(
+      'https://res.cloudinary.com/demo/image/upload/s--x/doc.jpg',
+    );
   });
 
   it('buildPrestataireFormData n’envoie pas undefined et sérialise les tableaux', () => {
